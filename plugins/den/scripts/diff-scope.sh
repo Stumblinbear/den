@@ -9,12 +9,16 @@
 # serves as the map and the reviewer pulls per file, the way hand-launched
 # reviewers already work.
 #
-# Arguments are passed straight to `git diff`; none means HEAD.
+# The skill passes its whole argument string as one word so shell
+# metacharacters in it reach this script instead of breaking the harness
+# eval. Split it back into `git diff` arguments here; none means HEAD.
 set -u
 
-if [ "$#" -eq 0 ]; then
-  set -- HEAD
+read -ra args <<< "${1-}"
+if [ "${#args[@]}" -eq 0 ]; then
+  args=(HEAD)
 fi
+set -- "${args[@]}"
 range="$*"
 
 # The revision part alone, for the per-file commands suggested to the
