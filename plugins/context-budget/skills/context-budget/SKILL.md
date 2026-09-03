@@ -73,12 +73,3 @@ costs nothing:
 At the urgent threshold, the stopping point is the end of the step you are in.
 Do not open a new file, launch a subagent, or start a step you cannot finish.
 
-## Tuning
-
-The thresholds and both injected messages live in the plugin's `config.toml`.
-Overrides go in `~/.claude/plugins/data/context-budget-den/config.toml`, which
-survives plugin updates and is merged over the shipped values key by key; the
-shipped file documents every key. If the notice fires too early or too late,
-the `[default]` row is the thing to change, or a per-model row keyed by a regex
-on the model id; a row carrying `enabled = false` switches the plugin off for
-that model entirely.

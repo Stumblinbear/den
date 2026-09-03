@@ -18,6 +18,8 @@ choose the cut point.
 - The `context-budget` skill: the two rewind directions, `/compact` with a
   focus line, how to pick and describe a cut point, and how to judge a stopping
   point by task.
+- The `configure` skill: what the hook measures and why a notice did or did
+  not appear, where overrides go, how they merge, and how to check an edit.
 
 Nothing is shown to the user directly; the agent's recommendation is the whole
 user-facing surface.

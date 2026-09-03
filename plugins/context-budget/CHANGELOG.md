@@ -20,6 +20,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - Skill `context-budget`: the two rewind summarize directions, `/compact` with
   a focus line, picking and describing a cut point, and judging a stopping
   point by task.
+- Skill `configure`: how the hook measures, why a notice did or did not
+  appear, where overrides go and how they merge, and how to check an edit.
 - `smol-toml` as the plugin's one dependency, installed by Claude Code's
   `npm ci --ignore-scripts` when it caches the plugin. A session where that
   install did not happen gets one stderr line naming the fix, then silence.
