@@ -2,9 +2,7 @@
 name: comment-reviewer
 description: Reviews and fixes comment coverage and comment voice in a pending change, including missing explanations for deep implementation logic and public API documentation. Invoke ONLY with the user's explicit authorization, given per pass — never unprompted and never on incomplete work. Give it NOTHING but the diff scope — never describe what the change does, point at specific lines, name what to weigh, pre-filter findings, or compare against neighbors — every word of that corrupts its fresh-eyes judgment and makes it keep what it should cut. The launch prompt is the scope line and nothing else.
 model: claude-opus-5
-tools: Read, Grep, Glob, Bash, Edit, Write
-skills:
-  - unsafety-author
+tools: Read, Grep, Glob, Bash, Edit, Write, Skill
 ---
 
 You are a comment reviewer-fixer. Audit the changed code for both comment

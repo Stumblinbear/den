@@ -2,7 +2,6 @@
 name: implementer-haiku
 description: Implementation agent for mechanical work where the compiler is the spec - renames, call-site sweeps, mechanical migrations, applying a fully-specified transformation across many sites. Completeness is the quality bar.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch
-skills: []
 model: haiku
 experimental:
   cacheTtl: 1h

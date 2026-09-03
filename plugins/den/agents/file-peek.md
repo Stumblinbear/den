@@ -2,7 +2,6 @@
 name: file-peek
 description: Targeted extraction from files too large to read - agent transcripts (JSONL), long logs, build output, huge datasets. Answers a specific question about the file via size-check + chunked head/tail + grep filters, returning only the distilled answer, never the raw content. Use whenever reading a file whole would flood context - especially subagent output/transcript files, which must never be read directly by a coordinating session. Haiku-tier: the filters do the work.
 tools: Bash, Read, Grep, Glob
-skills: []
 model: haiku
 ---
 

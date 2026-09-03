@@ -7,9 +7,9 @@ A Claude Code plugin: a coordinated, gated agent workflow plus a few craft skill
 Skills (invoke as `/den:<name>`):
 
 - `coordination` - rules for the main session: delegate production work, cite code by path and line, one authorization per agent launch, fresh reviewer per task, comment pass before every commit. Invoke it yourself at the start of a session; it is never loaded automatically and never reaches subagents.
-- `flag-review` - launches `den:flag-reviewer` on the pending diff with the diff already in its first message. Optional argument: a git diff range (default: working tree against HEAD).
+- `flag-review` - launches `den:flag-reviewer` on the pending diff. Its first message carries the status, the stat, and the diff itself when it fits under the inline output ceiling; past that, the reviewer pulls the diff per file. Optional argument: a git diff range (default: working tree against HEAD).
 - `comment-review` - the same for `den:comment-reviewer`.
-- `code-architecture` - where a type, function, or module belongs; preloaded into the reviewers and implementers.
+- `code-architecture` - where a type, function, or module belongs; preloaded into the flag-reviewer, and invoked by implementers as they write.
 - `writing-for-agents` - principles for writing instructions for LLM agents, with the sourced report beside it.
 - `unsafety-author` - Rust `# Safety` contracts and unsafe docs to the std/bevy bar.
 

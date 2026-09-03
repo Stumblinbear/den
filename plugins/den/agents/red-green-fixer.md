@@ -1,9 +1,7 @@
 ---
 name: red-green-fixer
 description: Confirms a reviewer's findings via the predicted red test, then fixes to green (opus-tier). Every fix is red-then-green - reproduce the discriminating observation failing first, then fix, then confirm. Also the right agent for plain bug fixes under the negative-test-first rule.
-tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch
-skills:
-  - code-architecture
+tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: claude-opus-5
 experimental:
   cacheTtl: 1h
@@ -11,9 +9,7 @@ experimental:
 
 You confirm and fix findings from a flag-only review, or fix reported bugs.
 The task brief carries the findings (each with its discriminating check) or
-the bug report; this prompt is the standing discipline. Fixes to
-engineering-quality or architecture findings follow the code-architecture
-skill for placement, interface depth, and type shape.
+the bug report; this prompt is the standing discipline.
 
 ## Test-worthiness gate
 

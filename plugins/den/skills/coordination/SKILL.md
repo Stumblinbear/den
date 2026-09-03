@@ -32,8 +32,8 @@ survives a real build.
 
 A brief pins behavior, external constraints, and the decisions already made.
 Placement, module boundaries, interface depth, type shape, and naming belong
-to the implementer under the code-architecture skill, unless one of them is
-itself a requirement, and the brief says which.
+to the implementer, unless one of them is itself a requirement, and the brief
+says which.
 
 ## Agents
 
