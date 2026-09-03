@@ -1,0 +1,12 @@
+{
+  "name": "context-budget-plugin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "description": "Runtime dependency for the context-budget Claude Code plugin hook. Claude Code installs it with `npm ci --ignore-scripts` when it caches the plugin.",
+  "dependencies": {
+    "smol-toml": "1.8.0"
+  }
+}

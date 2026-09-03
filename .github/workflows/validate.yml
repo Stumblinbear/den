@@ -15,7 +15,18 @@ jobs:
           node-version: 22
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code@2.1.259
-      - name: Validate plugin manifest
-        run: claude plugin validate plugins/den
+      - name: Validate plugin manifests
+        run: |
+          for dir in plugins/*/; do
+            claude plugin validate "${dir%/}"
+          done
       - name: Validate marketplace manifest
         run: claude plugin validate .
+      - name: Test plugins that ship tests
+        run: |
+          for dir in plugins/*/; do
+            [ -f "${dir}package.json" ] || continue
+            node -e 'const p = JSON.parse(require("fs").readFileSync(process.argv[1] + "/package.json", "utf8")); process.exit(p.scripts?.test ? 0 : 1)' "${dir%/}" || continue
+            npm --prefix "${dir%/}" ci
+            npm --prefix "${dir%/}" test
+          done

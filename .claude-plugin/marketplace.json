@@ -9,6 +9,11 @@
       "name": "den",
       "source": "./plugins/den",
       "description": "Coordinated agent workflow and craft skills."
+    },
+    {
+      "name": "context-budget",
+      "source": "./plugins/context-budget",
+      "description": "Per-model context notices that get the agent recommending /compact or a rewind summarize before auto-compact picks the cut point."
     }
   ]
 }

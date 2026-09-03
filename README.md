@@ -46,24 +46,27 @@ The marketplace is assumed to live at the GitHub repository `stumblinbear/den`. 
 Releases are cut by the `Release` GitHub Actions workflow; nothing is bumped
 or tagged by hand. The `version` field in `plugin.json` is the update
 trigger for installed users, so work on `master` freely and release
-deliberately.
+deliberately. The workflow releases one plugin per run — every plugin under
+`plugins/` carries its own version, changelog, and `<plugin>--v*` tags.
 
-1. Add each notable change to the `Unreleased` section of
-   `plugins/den/CHANGELOG.md` as you go. The workflow refuses to release an
-   empty section.
-2. Run the workflow from the Actions tab with the version to release, or:
+1. Add each notable change to the `Unreleased` section of that plugin's
+   `plugins/<plugin>/CHANGELOG.md` as you go. The workflow refuses to release
+   an empty section.
+2. Run the workflow from the Actions tab with the plugin and version to
+   release, or:
 
    ```
-   gh workflow run release.yml -f version=1.0.0
+   gh workflow run release.yml -f plugin=den -f version=1.0.0
    ```
 
 3. The workflow validates `master`, runs `.github/scripts/prepare-release.mjs`
-   to bump `plugin.json` and date the changelog section, validates the result
-   again, and only then pushes `Release den x.y.z` to `master`, pushes the
-   `den--vx.y.z` tag, and publishes a GitHub release with that section as
-   its notes. A failure at any check leaves `master` and the tags untouched.
-   If a run fails after the push, rerun it with `version` set to that same
-   version: the script recognizes the bump is already in place and the
-   remaining steps skip whatever already exists.
+   to bump that plugin's `plugin.json` and date its changelog section,
+   validates the result again, and only then pushes
+   `Release <plugin> x.y.z` to `master`, pushes the `<plugin>--vx.y.z` tag,
+   and publishes a GitHub release with that section as its notes. A failure at
+   any check leaves `master` and the tags untouched. If a run fails after the
+   push, rerun it with `version` set to that same version: the script
+   recognizes the bump is already in place and the remaining steps skip
+   whatever already exists.
 4. On a machine installed from GitHub, `/plugin marketplace update den` then
    `/plugin update den@den` picks it up.

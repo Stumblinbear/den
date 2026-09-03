@@ -1,14 +1,20 @@
 name: Release
 
-# Run by hand from the Actions tab (or `gh workflow run release.yml -f version=1.2.0`).
-# Validates the plugin as it stands on master, prepares the release in the
-# working tree, validates that too, and only then pushes the version bump,
-# pushes the den--v* tag, and publishes a GitHub release. A failed check
-# before the push leaves master and the tags untouched; a failure after it is
-# recovered by rerunning with `version` set to the same version.
+# Run by hand from the Actions tab (or
+# `gh workflow run release.yml -f plugin=den -f version=1.2.0`).
+# Releases one plugin: every plugin under plugins/ carries its own version and
+# its own <plugin>--v* tags. Validates the plugin as it stands on master,
+# prepares the release in the working tree, validates that too, and only then
+# pushes the version bump, pushes the tag, and publishes a GitHub release. A
+# failed check before the push leaves master and the tags untouched; a failure
+# after it is recovered by rerunning with `version` set to the same version.
 on:
   workflow_dispatch:
     inputs:
+      plugin:
+        description: Plugin to release, a directory name under plugins/ (e.g. den)
+        type: string
+        required: true
       version:
         description: Version to release, MAJOR.MINOR.PATCH (e.g. 1.2.0)
         type: string
@@ -35,23 +41,40 @@ jobs:
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code@2.1.259
 
+      - name: Resolve the plugin
+        env:
+          INPUT_PLUGIN: ${{ inputs.plugin }}
+        run: |
+          case "$INPUT_PLUGIN" in
+            *[!A-Za-z0-9._-]* | "")
+              echo "plugin must be a directory name under plugins/" >&2
+              exit 1
+              ;;
+          esac
+          if [ ! -f "plugins/$INPUT_PLUGIN/.claude-plugin/plugin.json" ]; then
+            echo "no plugin at plugins/$INPUT_PLUGIN" >&2
+            exit 1
+          fi
+          echo "PLUGIN=$INPUT_PLUGIN" >> "$GITHUB_ENV"
+          echo "DIR=plugins/$INPUT_PLUGIN" >> "$GITHUB_ENV"
+
       - name: Validate the current tree
         run: |
-          claude plugin validate plugins/den
+          claude plugin validate "$DIR"
           claude plugin validate .
 
       - name: Prepare the release
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          version="$(node .github/scripts/prepare-release.mjs --version "$INPUT_VERSION")"
+          version="$(node .github/scripts/prepare-release.mjs --plugin "$PLUGIN" --version "$INPUT_VERSION")"
           echo "VERSION=$version" >> "$GITHUB_ENV"
-          echo "TAG=den--v$version" >> "$GITHUB_ENV"
+          echo "TAG=$PLUGIN--v$version" >> "$GITHUB_ENV"
           git --no-pager diff
 
       - name: Validate the prepared release
         run: |
-          claude plugin validate plugins/den
+          claude plugin validate "$DIR"
           claude plugin validate .
 
       - name: Extract release notes
@@ -60,7 +83,7 @@ jobs:
             /^## \[/ { p = index($0, "[" v "]") > 0; if (p) next }
             /^\[[^]]*\]: / { p = 0 }
             p
-          ' plugins/den/CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          ' "$DIR/CHANGELOG.md" > "$RUNNER_TEMP/notes.md"
           if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
             echo "no changelog section for $VERSION" >&2
             exit 1
@@ -75,11 +98,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add plugins/den/.claude-plugin/plugin.json plugins/den/CHANGELOG.md
+          git add "$DIR/.claude-plugin/plugin.json" "$DIR/CHANGELOG.md"
           if git diff --cached --quiet; then
             echo "release $VERSION is already committed; resuming"
           else
-            git commit -m "Release den $VERSION"
+            git commit -m "Release $PLUGIN $VERSION"
           fi
 
       - name: Check the tag can be created
@@ -88,7 +111,7 @@ jobs:
             echo "TAG_EXISTS=true" >> "$GITHUB_ENV"
             echo "tag $TAG already exists on origin; resuming after it"
           else
-            claude plugin tag --dry-run plugins/den
+            claude plugin tag --dry-run "$DIR"
           fi
 
       - name: Push the version bump
@@ -97,7 +120,7 @@ jobs:
       # The remaining steps tolerate a rerun after a partial failure.
       - name: Tag the release
         if: env.TAG_EXISTS != 'true'
-        run: claude plugin tag --push plugins/den
+        run: claude plugin tag --push "$DIR"
 
       - name: Publish the GitHub release
         env:
@@ -106,5 +129,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "release $TAG already exists; skipping"
           else
-            gh release create "$TAG" --title "den $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+            gh release create "$TAG" --title "$PLUGIN $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
           fi

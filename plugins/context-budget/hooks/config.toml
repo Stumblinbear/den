@@ -1,0 +1,63 @@
+# Context-budget configuration.
+#
+# This is the shipped copy. To tune it, copy this file to
+# ~/.claude/plugins/data/context-budget-den/config.toml and edit that copy;
+# it survives plugin updates, and this one does not. The override is merged
+# over these values key by key, so it only needs the keys it changes.
+
+# Thresholds are absolute input token counts -- prompt plus cache creation plus
+# cache read on the session's last assistant turn -- and deliberately not
+# fractions of a context window. 150K is the published anchor: Anthropic's
+# server-side compaction defaults to 150K input tokens on every 1M-window model.
+[default]
+notice = 150_000
+urgent = 250_000
+
+# Per-model rows, tried before [default]. Each table key is a regular expression
+# matched against the model id as the transcript records it ("claude-opus-5",
+# "claude-fable-5-1", "claude-haiku-4-5-20251001" -- a [1m] suffix on the
+# configured model does not reach the transcript, so there is nothing to match
+# on). The first row that matches wins, in the order written here, and rows
+# added by the override file are tried after these. Single quotes make the key
+# a TOML literal string, so regex backslashes need no escaping.
+#
+# `enabled = false` switches the plugin off for a matching model: the row wins
+# the match, and nothing is injected or recorded for that session. Give a row
+# its own thresholds to re-enable a model or to add one of your own --
+#
+#   [models.'haiku']
+#   notice = 100_000
+#   urgent = 150_000
+#
+# -- since a row in the override file replaces the shipped row with the same
+# key outright.
+
+# Haiku's 200K window is smaller than the 250K urgent threshold, so auto-compact
+# always fires first and the notice would never be worth acting on.
+[models.'haiku']
+enabled = false
+
+# The two messages injected into the agent's context, once each per session per
+# level. They are instructions to the agent, not text shown to the user.
+#
+# Three placeholders are substituted before injection:
+#   {model}      the model id from the transcript
+#   {tokens}     the measured context, e.g. "200.4K"
+#   {threshold}  the threshold just crossed, e.g. "140K"
+[messages]
+
+# Injected on crossing `notice`. Its job is to stop the agent from compacting
+# mid-task and to get the recommendation made at a point where it costs nothing.
+notice = """
+Context budget: this session is at {tokens} tokens, past the {threshold} notice threshold for {model}. Carry the current task through to its next natural stopping point first -- compacting in the middle of one throws away the working state you would then have to rebuild, which costs more than it saves.
+
+At that stopping point, tell the user the number and recommend either `/compact` with a focus line or a rewind summarize, whichever fits what the session still needs, in a sentence or two that says which and why."""
+
+# Injected on crossing `urgent`. Its job is to get the recommendation raised
+# now, and to make it specific enough that the user can act on it in one step.
+urgent = """
+Context budget: this session is at {tokens} tokens, past the {threshold} urgent threshold for {model}. Finish the step in hand, then raise this with the user before starting anything new -- past here auto-compact chooses the cut point on its own, and it chooses worse than you can.
+
+Recommend a rewind summarize in the "Summarize up to here" direction: it summarizes everything before the selected prompt and keeps everything after it verbatim, so the recent stretch you are actually working in survives intact. Give the user three things -- the direction by name, the opening words of the prompt to select so they can find it in the picker, and a focus line to type. Say plainly that only they can run `/rewind`: it takes no arguments, and the direction, the prompt, and the focus text are all chosen in its interactive picker.
+
+When the session has no such cut point, because it is one continuous thread with nothing safely behind it, recommend `/compact` with a focus line instead and say what that focus should keep."""

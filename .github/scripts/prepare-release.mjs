@@ -1,9 +1,12 @@
-// Prepares a den release in the working tree: writes the given version into
-// plugin.json and moves the changelog's Unreleased entries under a dated
-// heading for it. Prints the version on stdout. Makes no git changes; the
+// Prepares one plugin's release in the working tree: writes the given version
+// into its plugin.json and moves its changelog's Unreleased entries under a
+// dated heading for it. Prints the version on stdout. Makes no git changes; the
 // Release workflow commits, tags, and publishes afterwards.
 //
-//   node prepare-release.mjs --version 1.2.3
+//   node prepare-release.mjs --plugin den --version 1.2.3
+//
+// The plugin names a directory under plugins/, and is also the tag prefix:
+// every plugin in this repository is versioned and tagged on its own.
 //
 // Exits non-zero, touching nothing, when the Unreleased section is empty, the
 // requested version is below the current one, or its tag already exists.
@@ -16,10 +19,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 
-const PLUGIN = "den";
 const REPO_URL = "https://github.com/Stumblinbear/den";
-const MANIFEST = "plugins/den/.claude-plugin/plugin.json";
-const CHANGELOG = "plugins/den/CHANGELOG.md";
 
 function fail(message) {
   console.error(`prepare-release: ${message}`);
@@ -37,8 +37,8 @@ function compareVersions(a, b) {
   return 0;
 }
 
-function existingTags() {
-  const out = execFileSync("git", ["tag", "--list", `${PLUGIN}--v*`, "--sort=-v:refname"], {
+function existingTags(plugin) {
+  const out = execFileSync("git", ["tag", "--list", `${plugin}--v*`, "--sort=-v:refname"], {
     encoding: "utf8",
   });
   return out.split("\n").filter(Boolean);
@@ -47,12 +47,19 @@ function existingTags() {
 // --- arguments -------------------------------------------------------------
 
 const args = process.argv.slice(2);
+let plugin = null;
 let next = null;
 for (let i = 0; i < args.length; i++) {
-  if (args[i] === "--version") next = args[++i];
+  if (args[i] === "--plugin") plugin = args[++i];
+  else if (args[i] === "--version") next = args[++i];
   else fail(`unexpected argument "${args[i]}"`);
 }
+if (plugin === null) fail("pass --plugin NAME");
+if (!/^[A-Za-z0-9._-]+$/.test(plugin)) fail(`plugin "${plugin}" is not a directory name`);
 if (next === null) fail("pass --version MAJOR.MINOR.PATCH");
+
+const MANIFEST = `plugins/${plugin}/.claude-plugin/plugin.json`;
+const CHANGELOG = `plugins/${plugin}/CHANGELOG.md`;
 
 // --- version ---------------------------------------------------------------
 
@@ -71,8 +78,8 @@ if (alreadyPrepared) {
   process.exit(0);
 }
 
-const tags = existingTags();
-const nextTag = `${PLUGIN}--v${next}`;
+const tags = existingTags(plugin);
+const nextTag = `${plugin}--v${next}`;
 if (tags.includes(nextTag)) fail(`tag ${nextTag} already exists`);
 const previousTag = tags[0] ?? null;
 
