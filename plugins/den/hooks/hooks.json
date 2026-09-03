@@ -1,0 +1,70 @@
+{
+  "description": "Review-triage and implementer-diagnostics relays, resume cost gate, model-specific writing rule.",
+  "hooks": {
+    "SubagentStop": [
+      {
+        "matcher": "den:flag-reviewer",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-triage-flag.mjs\""
+          }
+        ]
+      },
+      {
+        "matcher": "den:implementer-opus|den:implementer-haiku|den:implementer-fable|den:red-green-fixer",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/implementer-diagnostics-flag.mjs\""
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-triage-inject.mjs\""
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/implementer-diagnostics-inject.mjs\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "SendMessage",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/resume-cost-gate.mjs\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/banned-phrases-inject.mjs\""
+          }
+        ]
+      }
+    ],
+    "PostModelSwitch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/banned-phrases-inject.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

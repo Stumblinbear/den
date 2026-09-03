@@ -1,0 +1,13 @@
+{
+  "name": "den",
+  "owner": {
+    "name": "Trevin Miller"
+  },
+  "plugins": [
+    {
+      "name": "den",
+      "source": "./plugins/den",
+      "description": "Coordinated agent workflow and craft skills."
+    }
+  ]
+}
