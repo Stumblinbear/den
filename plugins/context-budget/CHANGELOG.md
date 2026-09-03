@@ -22,6 +22,10 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   point by task.
 - Skill `configure`: how the hook measures, why a notice did or did not
   appear, where overrides go and how they merge, and how to check an edit.
+- `PreToolUse` gate on `SendMessage`, moved from den: denies resuming a
+  subagent whose context is above 150K tokens, or above 50K with an expired
+  prompt cache, until the user picks "Resume" in an AskUserQuestion prompt.
+  `RESUME_GATE_LARGE_TOKENS` and `RESUME_GATE_COLD_TOKENS` override the limits.
 - `smol-toml` as the plugin's one dependency, installed by Claude Code's
   `npm ci --ignore-scripts` when it caches the plugin. A session where that
   install did not happen gets one stderr line naming the fix, then silence.

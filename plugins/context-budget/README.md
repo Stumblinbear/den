@@ -18,6 +18,12 @@ choose the cut point.
 - The `context-budget` skill: the two rewind directions, `/compact` with a
   focus line, how to pick and describe a cut point, and how to judge a stopping
   point by task.
+- A `PreToolUse` gate on `SendMessage` that denies resuming a subagent whose
+  context is above 150K tokens, or above 50K with an expired prompt cache,
+  until the user picks "Resume" in an AskUserQuestion prompt. A resumed
+  subagent re-reads its whole transcript every turn, so past those sizes a
+  fresh launch is cheaper. `RESUME_GATE_LARGE_TOKENS` and
+  `RESUME_GATE_COLD_TOKENS` in the environment override the limits.
 - The `configure` skill: what the hook measures and why a notice did or did
   not appear, where overrides go, how they merge, and how to check an edit.
 

@@ -1,5 +1,5 @@
 {
-  "description": "Review-triage and implementer-diagnostics relays, resume cost gate, model-specific writing rule.",
+  "description": "Review-triage and implementer-diagnostics relays, model-specific writing rule.",
   "hooks": {
     "SubagentStop": [
       {
@@ -31,17 +31,6 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/implementer-diagnostics-inject.mjs\""
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "SendMessage",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/resume-cost-gate.mjs\""
           }
         ]
       }

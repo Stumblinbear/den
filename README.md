@@ -27,7 +27,6 @@ Agents (`den:<name>` in the Agent tool):
 Hooks (registered while the plugin is enabled):
 
 - SubagentStop + UserPromptSubmit relays that remind the main session to triage a finished reviewer's findings, and to treat IDE diagnostics as stale after an implementer edited Rust sources (an implementer that touched no .rs file leaves no reminder).
-- PreToolUse on SendMessage: denies resuming a subagent whose context is above 150K tokens, or above 50K with an expired cache, until the user picks "Resume" in an AskUserQuestion prompt.
 - SessionStart + PostModelSwitch: injects a writing rule into the main session when the model is Opus 5.
 
 ## Install

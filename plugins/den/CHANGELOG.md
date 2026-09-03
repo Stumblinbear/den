@@ -7,6 +7,11 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Removed
+
+- The resume cost gate on `SendMessage` moved to the `context-budget` plugin,
+  where the other context-size rules live.
+
 ## [0.1.0] - 2026-09-03
 
 Initial release.
