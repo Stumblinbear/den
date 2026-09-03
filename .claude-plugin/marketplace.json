@@ -1,5 +1,6 @@
 {
   "name": "den",
+  "description": "Coordinated, gated agent workflow and craft skills for Claude Code.",
   "owner": {
     "name": "Trevin Miller"
   },

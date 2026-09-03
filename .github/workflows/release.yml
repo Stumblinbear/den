@@ -1,0 +1,110 @@
+name: Release
+
+# Run by hand from the Actions tab (or `gh workflow run release.yml -f version=1.2.0`).
+# Validates the plugin as it stands on master, prepares the release in the
+# working tree, validates that too, and only then pushes the version bump,
+# pushes the den--v* tag, and publishes a GitHub release. A failed check
+# before the push leaves master and the tags untouched; a failure after it is
+# recovered by rerunning with `version` set to the same version.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, MAJOR.MINOR.PATCH (e.g. 1.2.0)
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.259
+
+      - name: Validate the current tree
+        run: |
+          claude plugin validate plugins/den
+          claude plugin validate .
+
+      - name: Prepare the release
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="$(node .github/scripts/prepare-release.mjs --version "$INPUT_VERSION")"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "TAG=den--v$version" >> "$GITHUB_ENV"
+          git --no-pager diff
+
+      - name: Validate the prepared release
+        run: |
+          claude plugin validate plugins/den
+          claude plugin validate .
+
+      - name: Extract release notes
+        run: |
+          awk -v v="$VERSION" '
+            /^## \[/ { p = index($0, "[" v "]") > 0; if (p) next }
+            /^\[[^]]*\]: / { p = 0 }
+            p
+          ' plugins/den/CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
+            echo "no changelog section for $VERSION" >&2
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/notes.md"
+
+      # Local commit only: `claude plugin tag` refuses a dirty tree, so the
+      # commit has to exist before the dry run, but nothing is pushed until
+      # that check has passed. Skipped when resuming a release whose bump is
+      # already on master.
+      - name: Commit the version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add plugins/den/.claude-plugin/plugin.json plugins/den/CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "release $VERSION is already committed; resuming"
+          else
+            git commit -m "Release den $VERSION"
+          fi
+
+      - name: Check the tag can be created
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "TAG_EXISTS=true" >> "$GITHUB_ENV"
+            echo "tag $TAG already exists on origin; resuming after it"
+          else
+            claude plugin tag --dry-run plugins/den
+          fi
+
+      - name: Push the version bump
+        run: git push origin HEAD:master
+
+      # The remaining steps tolerate a rerun after a partial failure.
+      - name: Tag the release
+        if: env.TAG_EXISTS != 'true'
+        run: claude plugin tag --push plugins/den
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG already exists; skipping"
+          else
+            gh release create "$TAG" --title "den $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+          fi
