@@ -7,6 +7,8 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-03
+
 Initial release.
 
 ### Added
@@ -21,3 +23,6 @@ Initial release.
   gate on `SendMessage`, and the banned-phrases writing rule for Opus.
 - The `flag-review` and `comment-review` skills render the review scope
   through a shared `diff-scope.sh` helper and inline the diff when it fits.
+
+[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.1.0...HEAD
+[0.1.0]: https://github.com/Stumblinbear/den/releases/tag/den--v0.1.0
