@@ -13,7 +13,7 @@
     {
       "name": "context-budget",
       "source": "./plugins/context-budget",
-      "description": "Per-model context notices that get the agent recommending /compact or a rewind summarize before auto-compact picks the cut point."
+      "description": "Per-model context notices that get the agent recommending /compact or a rewind summarize before auto-compact picks the cut point, and a guard on resuming large or cold subagents."
     }
   ]
 }
