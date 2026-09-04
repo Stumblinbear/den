@@ -15,13 +15,10 @@
 // an optional --overrides file merged over it key by key (under
 // ${CLAUDE_PLUGIN_DATA}, which survives updates). Both variables also reach
 // this process in the environment; taking the paths as arguments instead keeps
-// the script runnable by hand against an arbitrary config.
-//
-// TOML has no parser in Node, so smol-toml is a real dependency: Claude Code
-// runs `npm ci --ignore-scripts` in the cached plugin when it copies one in.
-// If that did not happen the parser is missing, and staying quiet would leave
-// the session with a silently dead context notice -- so the first run of the
-// session says so on stderr, and every later run in that session is silent.
+// the script runnable by hand against an arbitrary config. A parser that will
+// not import or a configuration this hook cannot use is reported once for the
+// session by hooks/config.mjs, which then stops the run: a dead notice the user
+// was told about beats one that is silently dead.
 //
 // Each level injects once per session. The level reached is recorded in the OS
 // temp directory -- never in the project and never in the data directory, since
@@ -44,14 +41,9 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { configPaths, fill, formatTokens, loadConfig, STATE_DIR } from "./config.mjs";
 
-// Assigned from the guarded dynamic import in run(); a static import would
-// crash the process before it could say why.
-let parseToml = null;
-
-const DIR = join(tmpdir(), "claude-context-budget");
 const EVENTS = ["PostToolUse", "UserPromptSubmit"];
 // Enough to hold the newest assistant entry with room to spare: the largest
 // line seen in a real transcript is ~100 KB, and an assistant entry is bounded
@@ -60,57 +52,30 @@ const EVENTS = ["PostToolUse", "UserPromptSubmit"];
 const TAIL_BYTES = 512 * 1024;
 const LEVELS = ["none", "notice", "urgent"];
 
-// --- arguments -------------------------------------------------------------
-
-const args = process.argv.slice(2);
-let defaultsPath = null;
-let overridesPath = null;
-for (let i = 0; i < args.length; i++) {
-  if (args[i] === "--defaults") defaultsPath = args[++i];
-  else if (args[i] === "--overrides") overridesPath = args[++i];
-}
-
 // --- configuration ---------------------------------------------------------
 
-// Shipped defaults with the user's override merged over them, key by key: an
-// override row with the same regex replaces the shipped one, a new row is
-// appended after them (and so is matched last), and either message can be
-// replaced on its own. An unreadable or malformed override is ignored rather
-// than fatal, so a typo in a hand-edited file falls back to the shipped values
-// instead of silently switching the notice off.
-function loadConfig() {
-  const base = parseToml(readFileSync(defaultsPath, "utf8"));
-  let over = {};
-  try {
-    over = parseToml(readFileSync(overridesPath, "utf8"));
-  } catch {}
-  return {
-    models: { ...(base.models ?? {}), ...(over.models ?? {}) },
-    default: { ...(base.default ?? {}), ...(over.default ?? {}) },
-    messages: { ...(base.messages ?? {}), ...(over.messages ?? {}) },
-  };
-}
+const paths = configPaths(process.argv.slice(2));
 
-// First row whose key, read as a regular expression, matches the model id.
-// Falls through to `default` when none match, and past any row that is not a
-// usable pair of numbers or a usable pattern.
+// The three sections this hook reads, each merged key by key with the user's
+// override: an override row with the same regex replaces the shipped one, and a
+// new row is appended after them, so it is matched last.
+const sections = (file) => ({
+  models: file.section("models"),
+  default: file.section("default"),
+  messages: file.section("messages"),
+});
+
+// First row whose key, read as a regular expression, matches the model id, and
+// `default` when none do. Every row here is one config.mjs has already checked,
+// so a match is a usable answer.
 //
 // `enabled = false` on the matching row returns nothing at all, which switches
 // the plugin off for that model: the row wins the match, so no later row and
 // not `default` applies, and the caller injects nothing and records nothing.
 function thresholds(config, model) {
   for (const [pattern, row] of [...Object.entries(config.models), [null, config.default]]) {
-    if (pattern !== null) {
-      let matched = false;
-      try {
-        matched = new RegExp(pattern).test(model);
-      } catch {
-        continue;
-      }
-      if (!matched) continue;
-    }
-    if (row?.enabled === false) return null;
-    if (!Number.isFinite(row?.notice) || !Number.isFinite(row?.urgent)) continue;
+    if (pattern !== null && !new RegExp(pattern).test(model)) continue;
+    if (row.enabled === false) return null;
     return row;
   }
   return null;
@@ -177,7 +142,7 @@ function measure(path) {
 // --- level state -----------------------------------------------------------
 
 const stateFile = (sessionId) =>
-  join(DIR, String(sessionId).replace(/[^A-Za-z0-9._-]/g, "_") + ".json");
+  join(STATE_DIR, String(sessionId).replace(/[^A-Za-z0-9._-]/g, "_") + ".json");
 
 // One file per session, read-modify-written by whichever run is going. Two
 // PostToolUse instances fired for tool calls running in parallel can both read
@@ -192,48 +157,12 @@ function readState(file) {
   }
 }
 
-// The level file is also where the missing-dependency marker lives, so a level
-// write carries that marker forward rather than clobbering the one-report-per-
-// session promise.
-function writeState(file, stored, fields) {
-  mkdirSync(DIR, { recursive: true });
-  writeFileSync(
-    file,
-    JSON.stringify({
-      ...(stored.dependencyReported ? { dependencyReported: true } : {}),
-      ...fields,
-    }),
-  );
-}
-
-// One report per session that the parser never loaded, then silence: the
-// marker rides in the level file, which is per-session and already disposable.
-function reportMissingDependency(sessionId) {
-  const file = stateFile(sessionId);
-  const state = readState(file);
-  if (state.dependencyReported) process.exit(0);
-  try {
-    mkdirSync(DIR, { recursive: true });
-    writeFileSync(file, JSON.stringify({ ...state, dependencyReported: true }));
-  } catch {}
-  process.stderr.write(
-    "context-budget: the smol-toml package is missing, so the context notice is off for this session -- " +
-      "reinstall the plugin, or run `npm ci` in its cache directory.\n",
-  );
-  // Non-blocking failure: shown to the user, the tool call carries on.
-  process.exit(1);
+function writeState(file, fields) {
+  mkdirSync(STATE_DIR, { recursive: true });
+  writeFileSync(file, JSON.stringify(fields));
 }
 
 // --- output ----------------------------------------------------------------
-
-const round = (n) => (n / 1000).toFixed(1).replace(/\.0$/, "") + "K";
-
-function fill(message, model, tokens, threshold) {
-  return String(message)
-    .replaceAll("{model}", model || "this model")
-    .replaceAll("{tokens}", round(tokens))
-    .replaceAll("{threshold}", round(threshold));
-}
 
 let data = "";
 process.stdin.on("data", (c) => (data += c));
@@ -245,20 +174,16 @@ async function run() {
     if (input.agent_id) process.exit(0);
     const event = String(input.hook_event_name ?? "");
     if (!EVENTS.includes(event)) process.exit(0);
-    if (!input.transcript_path || !input.session_id || !defaultsPath) process.exit(0);
+    if (!input.transcript_path || !input.session_id || !paths.defaultsPath) process.exit(0);
 
-    // Before any work, so a missing install is reported on the session's first
-    // hook run rather than whenever the first threshold happens to be crossed.
-    try {
-      ({ parse: parseToml } = await import("smol-toml"));
-    } catch {
-      reportMissingDependency(input.session_id);
-    }
+    // Before any work, so a broken install or a broken config is reported on
+    // the session's first hook run rather than whenever the first threshold
+    // happens to be crossed.
+    const config = sections(await loadConfig(input.session_id, paths));
 
     const measured = measure(String(input.transcript_path));
     if (!measured) process.exit(0);
 
-    const config = loadConfig();
     const limits = thresholds(config, measured.model);
     if (!limits) process.exit(0);
 
@@ -286,26 +211,27 @@ async function run() {
     if (LEVELS.indexOf(level) <= LEVELS.indexOf(recorded)) {
       if (level !== recorded) {
         if (level === "none") rmSync(file, { force: true });
-        else writeState(file, stored, record);
+        else writeState(file, record);
       }
       process.exit(0);
     }
 
-    const message = config.messages?.[level];
-    if (typeof message !== "string" || message.trim() === "") process.exit(0);
-
-    writeState(file, stored, record);
+    writeState(file, record);
     process.stdout.write(
       JSON.stringify({
         hookSpecificOutput: {
           hookEventName: event,
-          additionalContext: fill(message, measured.model, measured.tokens, limits[level]),
+          additionalContext: fill(config.messages[level], {
+            model: measured.model || "this model",
+            tokens: formatTokens(measured.tokens),
+            threshold: formatTokens(limits[level]),
+          }),
         },
       }),
     );
   } catch {
-    // A broken transcript, an unreadable config, or a full temp directory must
-    // never stall a tool call or a prompt.
+    // A broken transcript or a full temp directory must never stall a tool
+    // call or a prompt.
   }
   process.exit(0);
 }

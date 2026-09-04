@@ -18,12 +18,11 @@ choose the cut point.
 - The `context-budget` skill: the two rewind directions, `/compact` with a
   focus line, how to pick and describe a cut point, and how to judge a stopping
   point by task.
-- A `PreToolUse` gate on `SendMessage` that denies resuming a subagent whose
-  context is above 150K tokens, or above 50K with an expired prompt cache,
-  until the user picks "Resume" in an AskUserQuestion prompt. A resumed
+- A `PreToolUse` resume guard on `SendMessage` that denies resuming a subagent
+  whose context is above 150K tokens, or above 50K with an expired prompt
+  cache, until the user picks "Resume" in an AskUserQuestion prompt. A resumed
   subagent re-reads its whole transcript every turn, so past those sizes a
-  fresh launch is cheaper. `RESUME_GATE_LARGE_TOKENS` and
-  `RESUME_GATE_COLD_TOKENS` in the environment override the limits.
+  fresh launch is cheaper.
 - The `configure` skill: what the hook measures and why a notice did or did
   not appear, where overrides go, how they merge, and how to check an edit.
 
@@ -32,8 +31,8 @@ user-facing surface.
 
 ## Configuration
 
-`hooks/config.toml` holds the thresholds and both injected messages, documented
-key by key. To change them, copy it to
+`hooks/config.toml` holds the thresholds, the guard's limits and all four
+injected messages, documented key by key. To change them, copy it to
 `~/.claude/plugins/data/context-budget-den/config.toml` — that path survives
 plugin updates, and the values there are merged over the shipped ones key by
 key, so it only needs the keys it changes.
@@ -49,14 +48,22 @@ thresholds, which switches the plugin off for that model; Haiku ships that way,
 because its 200K window is smaller than the 250K urgent threshold and
 auto-compact would always fire first.
 
+The resume guard reads the same file: `[resume-guard]` holds its two limits and
+an `enabled` switch, and `[resume-guard.messages]` holds the two deny reasons
+it hands back to the agent.
+
 ## Dependencies
 
-TOML has no parser in Node, so the hook depends on `smol-toml`. Claude Code
+TOML has no parser in Node, so both hooks depend on `smol-toml`. Claude Code
 installs it: when it copies a plugin into its cache it runs
 `npm ci --ignore-scripts` in the cached copy whenever the plugin root has a
 `package.json` and a `package-lock.json`. Nothing to build, nothing to run by
 hand.
 
-If that install did not happen, the hook says so once per session on stderr and
-then goes quiet, rather than leaving a dead context notice behind. The fix it
-names is reinstalling the plugin, or `npm ci` in its cache directory.
+Neither hook keeps a second set of values to run on. If the parser will not
+import, or if either config file cannot be read, parsed, or used, the first
+hook run of the session that meets the problem prints one line on stderr —
+naming what is wrong, which file, and the fix — and the context notice and the
+resume guard are then both off for the rest of that session, silently. A plugin
+running on numbers nobody wrote would be worse than one that says it is not
+running. Fix the file and the next hook run picks it up.

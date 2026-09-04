@@ -1,15 +1,13 @@
-// PreToolUse gate on SendMessage. A resumed subagent re-reads its whole
+// PreToolUse guard on SendMessage. A resumed subagent re-reads its whole
 // transcript on every turn it takes, at the cached rate while its prompt cache
 // is warm, plus one full-price replay first when the cache has expired. Past
 // some size a fresh launch that rebuilds only what it needs is cheaper than
-// resuming, warm or cold; below it a cold replay is still cheaper than
-// re-deriving. This hook reads the target subagent's transcript (the last
+// resuming. This hook reads the target subagent's transcript (the last
 // assistant entry carries the context size, the cache TTL it was written
-// under, and the time) and gates the resume when the context is above
-// LARGE_TOKENS, or when the cache has expired and the context is above
-// COLD_TOKENS.
+// under, and the time) and guards the resume when the context is above
+// `large`, or when the cache has expired and the context is above `cold`.
 //
-// A gated resume is denied with the numbers in the reason, so Claude states
+// A guarded resume is denied with the numbers in the reason, so Claude states
 // them and asks through AskUserQuestion with an option labeled "Resume". The
 // retry is allowed only when the user's most recent answer in the main
 // transcript (an AskUserQuestion tool result, with no later human prompt)
@@ -17,17 +15,27 @@
 // marked consumed. The approval is read from the transcript, not from
 // anything Claude says.
 //
+// The limits, both deny messages, and an `enabled` switch come from the
+// `[resume-guard]` section of the same TOML config the measurement hook reads,
+// passed in as --defaults and --overrides. A parser that will not import or a
+// configuration this hook cannot use is reported once for the session by
+// hooks/config.mjs, which then stops the run: an unguarded session the user was
+// told about beats one guarded on numbers nobody wrote.
+//
 // Anything that is not a subagent of this session (teammates, other sessions,
 // "main") is left alone. Never fails loudly: any error allows the call.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { configPaths, fill, formatTokens, loadConfig } from "./config.mjs";
 
-const LARGE_TOKENS = Number(process.env.RESUME_GATE_LARGE_TOKENS || 150_000);
-const COLD_TOKENS = Number(process.env.RESUME_GATE_COLD_TOKENS || 50_000);
 const TTL_MS = { "5m": 5 * 60_000, "1h": 60 * 60_000 };
-const CONSUMED_DIR = join(tmpdir(), "claude-resume-gate");
+const CONSUMED_DIR = join(tmpdir(), "claude-resume-guard");
 const ANSWERED = /^Your questions have been answered:/;
+
+const paths = configPaths(process.argv.slice(2));
+
+// --- transcripts -----------------------------------------------------------
 
 function lastUsage(path) {
   const lines = readFileSync(path, "utf8").split("\n");
@@ -72,6 +80,8 @@ function resumeApproval(path) {
   return null;
 }
 
+// --- output ----------------------------------------------------------------
+
 function decide(decision, reason) {
   process.stdout.write(
     JSON.stringify({
@@ -86,10 +96,20 @@ function decide(decision, reason) {
 
 let data = "";
 process.stdin.on("data", (c) => (data += c));
-process.stdin.on("end", () => {
+process.stdin.on("end", () => void run());
+
+async function run() {
   try {
     const input = JSON.parse(data || "{}");
     if (input.tool_name !== "SendMessage") process.exit(0);
+    if (!paths.defaultsPath) process.exit(0);
+
+    // Read before anything else, so `enabled = false` costs no transcript read.
+    const settings = await loadConfig(input.session_id, paths);
+    const config = settings.section("resume-guard");
+    const messages = settings.section("resume-guard", "messages");
+    if (config.enabled === false) process.exit(0);
+
     const to = String(input.tool_input?.to ?? "").replace(/\s*\[[^\]]*\]\s*$/, "").trim();
     if (!/^[A-Za-z0-9._-]+$/.test(to)) process.exit(0);
     const transcript = String(input.transcript_path);
@@ -104,8 +124,8 @@ process.stdin.on("end", () => {
     const ttl = (u.cache_creation?.ephemeral_1h_input_tokens || 0) > 0 ? "1h" : "5m";
     const ageMs = Date.now() - Date.parse(entry.timestamp);
     const ageMin = Math.round(ageMs / 60_000);
-    const cold = ageMs > TTL_MS[ttl] && context > COLD_TOKENS;
-    const large = context > LARGE_TOKENS;
+    const cold = ageMs > TTL_MS[ttl] && context > config.cold;
+    const large = context > config.large;
     if (!cold && !large) process.exit(0);
 
     let type = "subagent";
@@ -113,11 +133,18 @@ process.stdin.on("end", () => {
       const meta = JSON.parse(readFileSync(join(dir, `agent-${to}.meta.json`), "utf8"));
       type = meta.agentType || meta.agent_type || meta.subagentType || type;
     } catch {}
-    const size = `${(context / 1000).toFixed(1)}K tokens`;
+    const size = `${formatTokens(context)} tokens`;
     const why = [];
-    if (large) why.push(`context ${size} is above the ${LARGE_TOKENS / 1000}K resume limit: every turn re-reads it`);
+    if (large) why.push(`context ${size} is above the ${formatTokens(config.large)} resume limit: every turn re-reads it`);
     if (cold) why.push(`last active ${ageMin} min ago, ${ttl} cache expired: cold full-price replay of ${size}`);
-    const facts = `Resume of ${type} ${to}: ${why.join("; ")}.`;
+    const values = {
+      agent: to,
+      type,
+      tokens: formatTokens(context),
+      reasons: why.join("; "),
+      large: formatTokens(config.large),
+      cold: formatTokens(config.cold),
+    };
 
     const approval = resumeApproval(transcript);
     if (approval) {
@@ -127,16 +154,10 @@ process.stdin.on("end", () => {
         writeFileSync(marker, new Date().toISOString());
         process.exit(0);
       }
-      decide(
-        "deny",
-        `${facts} The user's latest answer has already been used for one resume of this agent; ask again before another.`,
-      );
+      decide("deny", fill(messages.used, values));
       process.exit(0);
     }
-    decide(
-      "deny",
-      `${facts} Gated: state these numbers to the user, then call AskUserQuestion naming the agent in the question, with an option labeled "Resume" and an option "Fresh launch". Retry this call only if the user picks Resume; otherwise launch fresh or stop.`,
-    );
+    decide("deny", fill(messages.denied, values));
   } catch {}
   process.exit(0);
-});
+}

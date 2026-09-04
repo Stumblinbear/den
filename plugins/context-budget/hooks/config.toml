@@ -4,6 +4,11 @@
 # ~/.claude/plugins/data/context-budget-den/config.toml and edit that copy;
 # it survives plugin updates, and this one does not. The override is merged
 # over these values key by key, so it only needs the keys it changes.
+#
+# Neither hook has anything to run on but what these two files say. A file that
+# cannot be read or parsed, or a value neither hook can use, switches both of
+# them off for the rest of the session, after one line on stderr naming the
+# file and what is wrong with it.
 
 # Thresholds are absolute input token counts -- prompt plus cache creation plus
 # cache read on the session's last assistant turn -- and deliberately not
@@ -61,3 +66,45 @@ Context budget: this session is at {tokens} tokens, past the {threshold} urgent 
 Recommend a rewind summarize in the "Summarize up to here" direction: it summarizes everything before the selected prompt and keeps everything after it verbatim, so the recent stretch you are actually working in survives intact. Give the user three things -- the direction by name, the opening words of the prompt to select so they can find it in the picker, and a focus line to type. Say plainly that only they can run `/rewind`: it takes no arguments, and the direction, the prompt, and the focus text are all chosen in its interactive picker.
 
 When the session has no such cut point, because it is one continuous thread with nothing safely behind it, recommend `/compact` with a focus line instead and say what that focus should keep."""
+
+# The resume guard is a separate hook, on SendMessage. Resuming a subagent
+# makes it re-read its whole transcript on every turn it then takes, so past a
+# certain size a fresh launch that rebuilds only what it needs is cheaper. The
+# guard denies the resume with the numbers in the reason, leaving Claude to put
+# the choice to the user before it retries.
+#
+# `large` is the context above which a resume is refused whatever the cache is
+# doing. `cold` is a lower limit that applies only once the subagent's prompt
+# cache has expired, which makes the next turn a full-price replay of
+# everything in it. Both are absolute input token counts, like the thresholds
+# above.
+#
+# `enabled = false` switches the guard off entirely: every resume is allowed,
+# and no transcript is read.
+[resume-guard]
+enabled = true
+large = 150_000
+cold = 50_000
+
+# The two deny reasons, read by Claude and not by the user. `denied` is the
+# first refusal, and has to leave Claude asking the user through
+# AskUserQuestion with an option labeled "Resume", because that answer in the
+# transcript is what the guard looks for when the call comes back. `used` is
+# the refusal once that one answer has already been spent on a resume.
+#
+# Six placeholders are substituted before the reason is returned:
+#   {agent}    the target agent's name
+#   {type}     its agent type, or "subagent" when none is recorded
+#   {tokens}   its context, e.g. "162.3K"
+#   {reasons}  the clauses that fired -- which limit was passed, and how cold
+#              the cache is -- joined with "; ". Which of them appear follows
+#              from the numbers and is not configurable.
+#   {large}    the configured large limit, e.g. "150K"
+#   {cold}     the configured cold limit, e.g. "50K"
+[resume-guard.messages]
+
+denied = """
+Resume of {type} {agent}: {reasons}. Guarded: state these numbers to the user, then call AskUserQuestion naming the agent in the question, with an option labeled "Resume" and an option "Fresh launch". Retry this call only if the user picks Resume; otherwise launch fresh or stop."""
+
+used = """
+Resume of {type} {agent}: {reasons}. The user's latest answer has already been used for one resume of this agent; ask again before another."""
