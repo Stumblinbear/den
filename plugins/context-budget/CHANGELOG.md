@@ -7,6 +7,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-04
+
 ### Added
 
 - `PostToolUse` and `UserPromptSubmit` hook measuring the session's context
@@ -39,3 +41,6 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - The resume guard's limits come from `[resume-guard]` in `hooks/config.toml`
   instead of the `RESUME_GATE_LARGE_TOKENS` and `RESUME_GATE_COLD_TOKENS`
   environment variables den 0.1.0 read; neither is consulted any more.
+
+[Unreleased]: https://github.com/Stumblinbear/den/compare/context-budget--v0.2.0...HEAD
+[0.2.0]: https://github.com/Stumblinbear/den/releases/tag/context-budget--v0.2.0
