@@ -1,6 +1,6 @@
 {
   "name": "den",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Skills, agent definitions, and hooks for a coordinated, gated agent workflow: fresh reviewers, briefed implementers, red-then-green fixes, and craft skills for Rust architecture, unsafe docs, and writing for agents.",
   "author": {
     "name": "Trevin Miller"

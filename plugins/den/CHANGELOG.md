@@ -7,6 +7,8 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-04
+
 ### Removed
 
 - The resume cost gate on `SendMessage` moved to the `context-budget` plugin,
@@ -29,5 +31,6 @@ Initial release.
 - The `flag-review` and `comment-review` skills render the review scope
   through a shared `diff-scope.sh` helper and inline the diff when it fits.
 
-[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.1.0...HEAD
+[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.2.0...HEAD
+[0.2.0]: https://github.com/Stumblinbear/den/compare/den--v0.1.0...den--v0.2.0
 [0.1.0]: https://github.com/Stumblinbear/den/releases/tag/den--v0.1.0
