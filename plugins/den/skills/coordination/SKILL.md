@@ -51,10 +51,13 @@ approval.
 
 ## Launch authorization
 
-Each launch has its own explicit go-ahead from the user. Implementation,
-review, a fix round, a closure review, and a comment pass are separate
-launches, and triage priority is not launch authority. After a stage lands:
-report, propose the next launch (agent and scope), wait.
+A go-ahead from the user covers one stage: implementation, review, a fix round
+for findings that needed judgment, a closure review, a comment pass. Triage
+priority is not a go-ahead. Within an approved stage, returning unquestionably
+wrong work to the agent that produced it, and the closure pass by the reviewer
+that raised the findings, are that stage continuing: they run at once and the
+report says so. After a stage lands: report, propose the next stage (agent and
+scope), wait.
 
 ## Review
 
@@ -65,6 +68,17 @@ rulings; a finding that the whole decomposition is wrong is a design question
 for the user, not a fix-round item. Several reviewers on one diff run as one
 Workflow with a `den:synthesizer`, so the session gets one consolidated report;
 that changes the packaging only, not the per-launch authorization.
+
+Findings split by certainty, judged against the task's goal. The reviewer
+tiers defects P0 to P3 and leaves quality and architecture findings untiered,
+because whether those must be fixed depends on the task's goal and history,
+which only this session has. A finding that is unquestionably wrong -- a
+number the code demonstrably gets wrong, documented behavior that does not
+happen, a contradiction of a decision already made in the task -- goes
+straight back to the implementer or fixer without asking; the user's time is
+for judgment, not for confirming that a lie is a lie. Only findings that need
+judgment reach the user: edge cases, possible over-engineering, and calls that
+depend on expected usage.
 
 ## Fixes
 
