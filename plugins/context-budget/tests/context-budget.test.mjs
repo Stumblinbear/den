@@ -52,6 +52,14 @@ const COMPACT_SUMMARY = JSON.stringify({
   message: { role: "user", content: "This session is being continued..." },
 });
 
+// The injected text is the user's, not the plugin's, so these tests write the
+// two messages they then assert on.
+const OVERRIDES = join(FIXTURES, "messages.toml");
+writeFileSync(
+  OVERRIDES,
+  '[messages]\nnotice = "NOTICE {tokens} over {threshold}"\nurgent = "URGENT {tokens} over {threshold}"\n',
+);
+
 let seq = 0;
 function transcript(...lines) {
   const path = join(FIXTURES, `transcript-${seq++}.jsonl`);
@@ -71,7 +79,7 @@ function session(t) {
     run: (transcriptPath) =>
       execFileSync(
         process.execPath,
-        [HOOK, "--defaults", DEFAULTS, "--overrides", join(FIXTURES, "no-such-override.toml")],
+        [HOOK, "--defaults", DEFAULTS, "--overrides", OVERRIDES],
         {
           input: JSON.stringify({
             session_id: id,
@@ -90,7 +98,7 @@ const injected = (stdout) =>
 test("injects once when the context first crosses notice", (t) => {
   const s = session(t);
   const path = transcript(assistant(200_000));
-  assert.match(injected(s.run(path)) ?? "", /200K tokens, past the 150K notice threshold/);
+  assert.equal(injected(s.run(path)), "NOTICE 200K over 150K");
   assert.equal(injected(s.run(path)), null, "the same level must not inject twice");
 });
 
@@ -104,7 +112,7 @@ test("a compaction resets the record instead of measuring the pre-compact turn",
     "the turn before the boundary is not this context; nothing may be injected",
   );
   // The record is gone, so the rebuilt context announces itself from `notice`.
-  assert.match(injected(s.run(transcript(assistant(200_000)))) ?? "", /notice threshold/);
+  assert.equal(injected(s.run(transcript(assistant(200_000)))), "NOTICE 200K over 150K");
 });
 
 test("a compaction summary alone resets the record", (t) => {
@@ -121,9 +129,9 @@ test("urgent re-arms after the context falls back to notice", (t) => {
   const s = session(t);
   s.seed({ level: "urgent" });
   assert.equal(injected(s.run(transcript(assistant(200_000)))), null, "a fall injects nothing");
-  assert.match(
-    injected(s.run(transcript(assistant(260_000)))) ?? "",
-    /260K tokens, past the 250K urgent threshold/,
+  assert.equal(
+    injected(s.run(transcript(assistant(260_000)))),
+    "URGENT 260K over 250K",
     "climbing past urgent again must inject again",
   );
 });

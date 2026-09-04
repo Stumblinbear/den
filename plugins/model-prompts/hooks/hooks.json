@@ -1,0 +1,25 @@
+{
+	"description": "Injects the prompts configured for the active model at session start and on a model switch.",
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" model-prompts --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+					}
+				]
+			}
+		],
+		"PostModelSwitch": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" model-prompts --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+					}
+				]
+			}
+		]
+	}
+}

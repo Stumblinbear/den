@@ -1,0 +1,57 @@
+# An example, and the plugin's documentation of its own format. The hook never
+# reads this file. It reads one file and only one:
+#
+#   ~/.claude/plugins/data/model-prompts-den/config.toml
+#
+# Copy this file there to start from it. No file there means nothing is
+# injected, which is the state a fresh install is in.
+#
+# Each table key is a regular expression matched against the model id as Claude
+# Code reports it ("claude-opus-5", "claude-fable-5-1",
+# "claude-haiku-4-5-20251001"). Single quotes make the key a TOML literal
+# string, so regex backslashes need no escaping.
+#
+# Every row whose key matches injects, in the order the rows are written --
+# rules compose rather than the first match winning.
+#
+# Keys in a row, all optional but for the text:
+#   enabled     bool                       default true; false injects nothing
+#   prompt      string                     the text; exactly one of prompt/file
+#   file        string                     path relative to this file's directory
+#   on_start    bool                       default true; inject at session start
+#   on_switch   "every" / "once" / "never" default "once"; on a switch into a
+#                                          matching model, where "once" means
+#                                          once per session
+
+# Opus 5's writing habits, injected on every switch into it because the habits
+# come back with the model.
+[models.'opus-5\b']
+on_switch = "every"
+prompt = """
+Every sentence carries content. A sentence whose only job is to introduce,
+label, or praise another sentence is cut; if the point matters, say it. Hard
+ban, observed in past output, including near-synonyms and reworded variants:
+"load-bearing", "the way X is Y is the interesting part", "quiet lifting",
+"the honest truth", "the smoking gun", "sharpest insight", "you were right to
+push on that", "the part nobody talks about", "here's the kicker", "belt and
+suspenders", every "worth X" construction ("worth naming", "worth noting",
+"worth being clear about", "worth flagging", ...), and every announcement of
+plainness or directness ("let me be direct", "I want to be clear", "to put it
+plainly", "one thing to call out", "the thing to understand here", "in
+short", "bottom line:")."""
+
+# A row that matches every model, for a rule that is about the work rather than
+# about the model.
+#
+# [models.'.']
+# prompt = """
+# Cite code by path and line."""
+
+# The same thing kept in its own file, which is easier to edit than a TOML
+# string and shows up as prose in a diff. The path is relative to the directory
+# of the config file, so the file sits beside it.
+#
+# [models.'sonnet']
+# file = "sonnet-rules.md"
+# on_start = true
+# on_switch = "once"

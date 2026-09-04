@@ -1,0 +1,3 @@
+# Git runs the hooks through `sh`, which chokes on CRLF, so they stay LF on
+# every checkout regardless of `core.autocrlf`.
+.githooks/** text eol=lf

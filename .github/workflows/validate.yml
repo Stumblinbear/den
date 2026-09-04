@@ -6,13 +6,17 @@ on:
   pull_request:
 
 jobs:
-  validate:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install the toolchain
+        run: npm ci
+      - name: Format, lint and type check
+        run: npm run check
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code@2.1.259
       - name: Validate plugin manifests
@@ -22,11 +26,24 @@ jobs:
           done
       - name: Validate marketplace manifest
         run: claude plugin validate .
-      - name: Test plugins that ship tests
-        run: |
-          for dir in plugins/*/; do
-            [ -f "${dir}package.json" ] || continue
-            node -e 'const p = JSON.parse(require("fs").readFileSync(process.argv[1] + "/package.json", "utf8")); process.exit(p.scripts?.test ? 0 : 1)' "${dir%/}" || continue
-            npm --prefix "${dir%/}" ci
-            npm --prefix "${dir%/}" test
-          done
+
+  # 22.6 is the floor the hook launchers enforce, and the release Node is what
+  # users mostly run; the tests themselves exercise both bun and Node on each.
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["22.6", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+      - name: Install the toolchain and every plugin's dependencies
+        run: npm ci
+      - name: Run the tests
+        run: npm test

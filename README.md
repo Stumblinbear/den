@@ -1,8 +1,16 @@
 # den
 
-A Claude Code plugin: a coordinated, gated agent workflow plus a few craft skills.
+A Claude Code plugin marketplace. Three plugins live under `plugins/`, each
+with its own version, changelog and release tag.
 
-## What is in it
+- `den` - a coordinated, gated agent workflow plus a few craft skills.
+- `context-budget` - per-model context notices that get the agent recommending
+  `/compact` or a rewind summarize before auto-compact picks the cut point, and
+  a guard on resuming large or cold subagents.
+- `model-prompts` - injects the prompts configured for the active model into
+  the main session's context, at session start and on a model switch.
+
+## What is in den
 
 Skills (invoke as `/den:<name>`):
 
@@ -27,7 +35,6 @@ Agents (`den:<name>` in the Agent tool):
 Hooks (registered while the plugin is enabled):
 
 - SubagentStop + UserPromptSubmit relays that remind the main session to triage a finished reviewer's findings, and to treat IDE diagnostics as stale after an implementer edited Rust sources (an implementer that touched no .rs file leaves no reminder).
-- SessionStart + PostModelSwitch: injects a writing rule into the main session when the model is Opus 5.
 
 ## Install
 
@@ -39,6 +46,32 @@ In Claude Code:
 ```
 
 The marketplace is assumed to live at the GitHub repository `stumblinbear/den`. Then run `/reload-plugins` if the install summary asks for it, and `/den:coordination` at the start of a session where the workflow rules should apply.
+
+## Developing
+
+```sh
+npm install     # tooling, the git hook path, and each plugin's dependencies
+npm run check   # biome ci + tsc --noEmit, the same pair CI runs
+npm run fix     # biome check --write
+npm test        # every plugin's tests
+```
+
+The toolchain wants **Node 22.6 or newer**, and CI runs the tests on that
+floor as well as on the current release.
+
+`npm install` also points `core.hooksPath` at `.githooks`, so `git commit`
+runs `biome check --staged` and `tsc --noEmit` before it lands. The hook only
+checks; fix a failure with `npm run fix` and stage the result. Two things to
+know about it:
+
+- `--staged` checks the on-disk content of every staged file, so a partially
+  staged file is judged by what is in the working tree, not by what is about
+  to be committed.
+- A GUI git client that runs hooks without `node` on `PATH` fails the hook
+  with a message saying so; commit from a shell that has it.
+
+Biome runs Biome's recommended preset plus a few rules chosen one at a time;
+`biome.jsonc` carries the reason for each beside it.
 
 ## Releasing
 

@@ -1,0 +1,66 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true
+	},
+	"files": {
+		"includes": [
+			"**",
+			"!**/package-lock.json",
+			// Not migrated to Biome yet.
+			"!plugins/context-budget",
+			"!plugins/den/hooks/*.mjs",
+			"!.github/scripts/*.mjs"
+		],
+		"ignoreUnknown": true
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"complexity": {
+				// Bracket access on an index signature is what tsconfig's
+				// `noPropertyAccessFromIndexSignature` requires.
+				"useLiteralKeys": "off",
+				// A hook has to be readable by whoever it just failed on.
+				"noExcessiveLinesPerFunction": "on"
+			},
+			"style": {
+				// A file that outgrows the budget is two subjects in one place.
+				"noExcessiveLinesPerFile": "on",
+				// Configuration reaches a hook through argv, not the environment.
+				"noProcessEnv": "on",
+				// A default export lets each importer name the same thing
+				// differently.
+				"noDefaultExport": "on",
+				"useNamingConvention": {
+					"level": "on",
+					"options": {
+						"conventions": [
+							{
+								// Object literals here spell wire formats: hook input
+								// fields (`session_id`, `to_model`) and child process
+								// environments (`HOME`). Hook code stays camelCase.
+								"selector": { "kind": "objectLiteralProperty" },
+								"formats": ["camelCase", "snake_case", "CONSTANT_CASE"]
+							}
+						]
+					}
+				}
+			}
+		}
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}

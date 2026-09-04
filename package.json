@@ -1,0 +1,21 @@
+{
+	"name": "den-marketplace",
+	"private": true,
+	"type": "module",
+	"description": "Development toolchain for the den plugin marketplace: TypeScript, Biome, the git hook path, and the test entry point. Nothing here is installed for plugin users; each plugin carries its own runtime dependencies.",
+	"engines": {
+		"node": ">=22.6"
+	},
+	"scripts": {
+		"prepare": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/prepare.mts",
+		"check": "biome ci . && tsc --noEmit",
+		"fix": "biome check --write .",
+		"typecheck": "tsc --noEmit",
+		"test": "npm --prefix plugins/model-prompts test && npm --prefix plugins/context-budget test"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.12",
+		"@types/node": "22.20.1",
+		"typescript": "7.0.2"
+	}
+}

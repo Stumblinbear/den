@@ -1,19 +1,24 @@
 {
-  "name": "den",
-  "description": "Coordinated, gated agent workflow and craft skills for Claude Code.",
-  "owner": {
-    "name": "Trevin Miller"
-  },
-  "plugins": [
-    {
-      "name": "den",
-      "source": "./plugins/den",
-      "description": "Coordinated agent workflow and craft skills."
-    },
-    {
-      "name": "context-budget",
-      "source": "./plugins/context-budget",
-      "description": "Per-model context notices that get the agent recommending /compact or a rewind summarize before auto-compact picks the cut point, and a guard on resuming large or cold subagents."
-    }
-  ]
+	"name": "den",
+	"description": "Coordinated, gated agent workflow and craft skills for Claude Code.",
+	"owner": {
+		"name": "Trevin Miller"
+	},
+	"plugins": [
+		{
+			"name": "den",
+			"source": "./plugins/den",
+			"description": "Coordinated agent workflow and craft skills."
+		},
+		{
+			"name": "context-budget",
+			"source": "./plugins/context-budget",
+			"description": "Per-model context notices that get the agent recommending /compact or a rewind summarize before auto-compact picks the cut point, and a guard on resuming large or cold subagents."
+		},
+		{
+			"name": "model-prompts",
+			"source": "./plugins/model-prompts",
+			"description": "Injects the prompts configured for the active model into the main session's context, at session start and on a mid-session model switch, so a model-specific rule follows the model rather than the project."
+		}
+	]
 }

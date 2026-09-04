@@ -1,0 +1,43 @@
+{
+	"compilerOptions": {
+		"target": "es2024",
+		"lib": ["es2024"],
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"types": ["node"],
+		"noEmit": true,
+
+		// The runtime selector is JavaScript, so that the launcher parses on any
+		// Node, and a test imports it. Checked by Biome and its own JSDoc types.
+		"allowJs": true,
+
+		"rewriteRelativeImportExtensions": true,
+		"allowImportingTsExtensions": true,
+		"erasableSyntaxOnly": true,
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+
+		"strict": true,
+		"exactOptionalPropertyTypes": true,
+		"noUncheckedIndexedAccess": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noUncheckedSideEffectImports": true,
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"forceConsistentCasingInFileNames": true,
+
+		"skipLibCheck": true
+	},
+	"include": [
+		"plugins/*/hooks/**/*.mts",
+		"plugins/*/tests/**/*.mts",
+		"tests/**/*.mts",
+		"scripts/**/*.mts",
+		".github/scripts/**/*.mts"
+	]
+}

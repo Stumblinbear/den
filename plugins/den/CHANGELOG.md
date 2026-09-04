@@ -7,6 +7,12 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Removed
+
+- The Opus writing rule on `SessionStart` and `PostModelSwitch` moved to the
+  `model-prompts` plugin, which injects prompts for any model from a
+  configuration file instead of hard-coding one model and one list.
+
 ## [0.2.0] - 2026-09-04
 
 ### Removed
