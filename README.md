@@ -46,18 +46,15 @@ Releases are cut by the `Release` GitHub Actions workflow; nothing is bumped
 or tagged by hand. The `version` field in `plugin.json` is the update
 trigger for installed users, so work on `master` freely and release
 deliberately. The workflow releases one plugin per run — every plugin under
-`plugins/` carries its own version, changelog, and `<plugin>--v*` tags.
+`plugins/` carries its own version, changelog, and `<plugin>--v*` tags. A new
+plugin has to be added to the `plugin` input's `options` in
+`.github/workflows/release.yml` before it can be picked for release.
 
 1. Add each notable change to the `Unreleased` section of that plugin's
    `plugins/<plugin>/CHANGELOG.md` as you go. The workflow refuses to release
    an empty section.
-2. Run the workflow from the Actions tab with the plugin and version to
-   release, or:
-
-   ```
-   gh workflow run release.yml -f plugin=den -f version=1.0.0
-   ```
-
+2. Run the workflow from the Actions tab, picking the plugin from the
+   dropdown and typing the version to release.
 3. The workflow validates `master`, runs `.github/scripts/prepare-release.mjs`
    to bump that plugin's `plugin.json` and date its changelog section,
    validates the result again, and only then pushes

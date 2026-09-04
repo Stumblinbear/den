@@ -1,20 +1,18 @@
 name: Release
 
-# Run by hand from the Actions tab (or
-# `gh workflow run release.yml -f plugin=den -f version=1.2.0`).
-# Releases one plugin: every plugin under plugins/ carries its own version and
-# its own <plugin>--v* tags. Validates the plugin as it stands on master,
-# prepares the release in the working tree, validates that too, and only then
-# pushes the version bump, pushes the tag, and publishes a GitHub release. A
-# failed check before the push leaves master and the tags untouched; a failure
-# after it is recovered by rerunning with `version` set to the same version.
+# A failed check before the push leaves master and the tags untouched; a
+# failure after it is recovered by rerunning with `version` set to the same
+# version.
 on:
   workflow_dispatch:
     inputs:
       plugin:
-        description: Plugin to release, a directory name under plugins/ (e.g. den)
-        type: string
+        description: Plugin to release
+        type: choice
         required: true
+        options:
+          - den
+          - context-budget
       version:
         description: Version to release, MAJOR.MINOR.PATCH (e.g. 1.2.0)
         type: string
@@ -45,12 +43,6 @@ jobs:
         env:
           INPUT_PLUGIN: ${{ inputs.plugin }}
         run: |
-          case "$INPUT_PLUGIN" in
-            *[!A-Za-z0-9._-]* | "")
-              echo "plugin must be a directory name under plugins/" >&2
-              exit 1
-              ;;
-          esac
           if [ ! -f "plugins/$INPUT_PLUGIN/.claude-plugin/plugin.json" ]; then
             echo "no plugin at plugins/$INPUT_PLUGIN" >&2
             exit 1
