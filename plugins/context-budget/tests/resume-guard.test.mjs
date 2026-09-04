@@ -10,6 +10,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
+import { apiError } from "./fixtures.mjs";
 
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const HOOK = join(ROOT, "hooks", "resume-guard.mjs");
@@ -23,43 +24,51 @@ process.on("exit", () => rmSync(FIXTURES, { recursive: true, force: true }));
 
 let seq = 0;
 
+// One turn of the subagent's own transcript: `tokens` of context, taken
+// `minutesAgo` ago, billed under the `ttl` cache-creation split. `null` is a
+// request that wrote nothing to the cache -- both splits zero -- which says
+// nothing about the lifetime in force.
+const turn = (tokens, minutesAgo, ttl = "5m") =>
+  JSON.stringify({
+    type: "assistant",
+    timestamp: new Date(Date.now() - minutesAgo * 60_000).toISOString(),
+    message: {
+      usage: {
+        input_tokens: 1000,
+        cache_creation_input_tokens: ttl ? 1000 : 0,
+        cache_read_input_tokens: ttl ? tokens - 2000 : tokens - 1000,
+        cache_creation: {
+          ephemeral_1h_input_tokens: ttl === "1h" ? 1000 : 0,
+          ephemeral_5m_input_tokens: ttl === "5m" ? 1000 : 0,
+        },
+      },
+    },
+  });
+
 // A session transcript with the subagent transcript the guard reads beside it,
 // at the path Claude Code writes: <transcript without .jsonl>/subagents/
-// agent-<name>.jsonl. `entries` are the main transcript's lines.
-function session(name, tokens, ...entries) {
-  // Well inside the 5m cache TTL, so only the `large` limit is in play.
-  return build(name, tokens, 0, entries);
-}
-
-// The same, with the subagent's last turn `ageMin` minutes in the past. Past
-// the 5m TTL its cache is cold, which is what brings the `cold` limit into
-// play.
-function aged(name, tokens, ageMin, ...entries) {
-  return build(name, tokens, ageMin, entries);
-}
-
-function build(name, tokens, ageMin, entries) {
+// agent-<name>.jsonl. `turns` are the subagent's, oldest first; `entries` are
+// the main transcript's lines.
+function build(name, turns, entries) {
   const dir = join(FIXTURES, `session-${seq++}`);
   const subagents = join(dir, "main", "subagents");
   mkdirSync(subagents, { recursive: true });
   const transcript = join(dir, "main.jsonl");
   writeFileSync(transcript, entries.join("\n") + "\n");
-  writeFileSync(
-    join(subagents, `agent-${name}.jsonl`),
-    JSON.stringify({
-      type: "assistant",
-      timestamp: new Date(Date.now() - ageMin * 60_000).toISOString(),
-      message: {
-        usage: {
-          input_tokens: 1000,
-          cache_creation_input_tokens: 1000,
-          cache_read_input_tokens: tokens - 2000,
-        },
-      },
-    }) + "\n",
-  );
+  writeFileSync(join(subagents, `agent-${name}.jsonl`), turns.join("\n") + "\n");
   return transcript;
 }
+
+// One turn, just taken: well inside the 5m cache TTL, so only the `large`
+// limit is in play.
+const session = (name, tokens, ...entries) =>
+  build(name, [turn(tokens, 0)], entries);
+
+// The same, with the subagent's last turn `ageMin` minutes in the past. Past
+// the 5m TTL its cache is cold, which is what brings the `cold` limit into
+// play.
+const aged = (name, tokens, ageMin, ...entries) =>
+  build(name, [turn(tokens, ageMin)], entries);
 
 const PROMPT = JSON.stringify({ type: "user", message: { role: "user", content: "carry on" } });
 
@@ -174,5 +183,57 @@ test("denies a cold resume above the shipped cold limit, and an override raises 
   assert.match(
     reason(run(aged("napping", 162_300, 10, PROMPT), "napping", raised)),
     /context 162\.3K tokens is above the 150K resume limit/,
+  );
+});
+
+test("a last turn that wrote nothing to the cache takes its lifetime from the turn that did", () => {
+  // A request served entirely from a warm cache writes nothing back to it, so
+  // both its cache-creation splits are zero and it says nothing about the
+  // lifetime in force. Reading that silence as 5m makes every subagent whose
+  // last turn was a cache hit look cold minutes after it stopped, and refuses
+  // a resume whose cache in fact has most of an hour left.
+  const transcript = build(
+    "dozing",
+    [turn(60_000, 90, "1h"), turn(60_000, 20, null)],
+    [PROMPT],
+  );
+
+  assert.equal(
+    run(transcript, "dozing"),
+    null,
+    "20 minutes into the 1h lifetime that turn wrote under, and 60K is under `large`",
+  );
+});
+
+test("a request that failed is not the subagent's last turn", () => {
+  // A subagent whose newest entry is a failed request has a usage with every
+  // field zero, which measures its context at nothing and lets any resume
+  // through -- including the one this guard exists for, where every turn from
+  // here on re-reads 162.3K tokens.
+  const transcript = build(
+    "stalled",
+    [turn(162_300, 3, "1h"), apiError({ minutesAgo: 1 })],
+    [PROMPT],
+  );
+
+  assert.match(
+    reason(run(transcript, "stalled")),
+    /context 162\.3K tokens is above the 150K resume limit/,
+  );
+});
+
+test("the cache age is measured from the last turn, not from the turn that wrote the cache", () => {
+  // The lifetime comes from the writing turn; how long ago the subagent
+  // stopped does not. Its cache was refreshed by every turn since, so the one
+  // that matters is the newest.
+  const transcript = build(
+    "dozed-off",
+    [turn(60_000, 200, "1h"), turn(60_000, 70, null)],
+    [PROMPT],
+  );
+
+  assert.match(
+    reason(run(transcript, "dozed-off")),
+    /last active 70 min ago, 1h cache expired: cold full-price replay of 60K tokens/,
   );
 });

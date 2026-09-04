@@ -15,14 +15,36 @@ choose the cut point.
   now and to recommend a `Summarize up to here` rewind with a named cut point.
   Each level injects once per session and re-arms if the context falls back
   below it, which is what a compact or a summarize produces.
-- The `context-budget` skill: the two rewind directions, `/compact` with a
-  focus line, how to pick and describe a cut point, and how to judge a stopping
-  point by task.
+- A snapshot of the prompt cache inside both injected messages. A rewind at a
+  prompt re-reads everything before it, and that prefix is cached only while
+  the prompt itself is younger than the session's cache lifetime — so the
+  snapshot lists three cached prompts spread across the context, the oldest,
+  the newest and the one nearest halfway between them by size, each a row
+  carrying the clock time it falls out, what a cut there summarizes away and
+  what it keeps verbatim; the agent is told to hand the user that deadline with
+  the recommendation. Where the session was compacted and kept prompts
+  verbatim, the reading names them, since a rewind at one of them costs at most
+  the context the compaction left behind. It is read by walking the transcript
+  backward, only on the run that injects; the runs that measure and stay quiet
+  keep their fixed tail read.
+- The `cut-point` skill, `/context-budget:cut-point`: the identical reading
+  taken fresh — one renderer prints both — listing the same three cut points
+  with their expiry and their two sizes, since everything newer than the oldest
+  is cached too and a busy hour would otherwise print dozens of interchangeable
+  rows. For when the snapshot in the message has aged out, or the user asks for
+  another cut point. It finds the session's transcript through the record the
+  hook writes on every run, so it works from the session's first tool call
+  whether or not anything has been injected.
+- The `context-budget` skill: the "Summarize up to here" rewind, `/compact`
+  with a focus line, how to pick and describe a cut point, and how to judge a
+  stopping point by task.
 - A `PreToolUse` resume guard on `SendMessage` that denies resuming a subagent
   whose context is above 150K tokens, or above 50K with an expired prompt
   cache, until the user picks "Resume" in an AskUserQuestion prompt. A resumed
   subagent re-reads its whole transcript every turn, so past those sizes a
-  fresh launch is cheaper.
+  fresh launch is cheaper. Whether the cache has expired is measured from the
+  subagent's last turn against the lifetime the last turn that wrote to the
+  cache was billed under.
 - The `configure` skill: what the hook measures and why a notice did or did
   not appear, where overrides go, how they merge, and how to check an edit.
 

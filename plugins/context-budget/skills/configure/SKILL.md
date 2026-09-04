@@ -12,8 +12,8 @@ reads the newest assistant turn from the session transcript and sums that
 turn's prompt, cache-creation and cache-read tokens: the size of the context
 the model was last sent. Against that number it holds two levels, `notice`
 and `urgent`, and injects the matching message into the agent's context the
-first time each is crossed. A compaction or rewind summarize clears the record,
-and a level re-arms whenever the context falls back below it.
+first time each is crossed. A compaction or rewind summarize takes the level
+back to none, and a level re-arms whenever the context falls back below it.
 
 Consequences that answer most "why did it" questions:
 
@@ -24,21 +24,60 @@ Consequences that answer most "why did it" questions:
   below the 250K urgent threshold and auto-compact would always win.
 - Auto-compact is Claude Code's own mechanism and runs regardless of this
   plugin; the plugin only tries to get a recommendation made before it does.
-- The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`.
-  Deleting it makes the current level fire again, which is the quickest way to
-  see a message after editing it.
+- The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,
+  and it is the only file a session leaves there. Every run that measures
+  anything rewrites it: the transcript path the hook read, the model id, the
+  token count, the time, the highest level it has injected so far — which falls
+  again with the context so each level can fire on the next climb — and any
+  fault already reported (below). Latest reading only, no history. Deleting it
+  makes the current level fire again, which is the quickest way to see a message
+  after editing it. It is written even for a model whose row is switched off,
+  and even when nothing was near a threshold, because the `cut-point` skill has
+  only the session id to find the transcript by.
 - One stderr line starting `context-budget:` means both the notice and the
   resume guard are off, and says why: `parser error` is a missing `smol-toml`
   in the plugin's cache directory, `config error` names the file that cannot
   be read, parsed, or used. Nothing is measured and nothing is guarded until
-  it is fixed; fixing it takes effect on the next hook run. The line is said
-  once per session, marked by `<session id>.parser` or `<session id>.config`
-  beside the record above — delete the marker to hear it again.
+  it is fixed; fixing it takes effect on the next hook run. Each kind of fault
+  is said once per session, listed in the record above once it has been —
+  delete the record to hear it again.
+
+Each injected message also carries a snapshot of the prompt cache, substituted
+into it as `{cache}`. A rewind at a prompt re-reads everything before that
+prompt, and that prefix is in the cache only while the prompt itself is younger
+than the cache lifetime — so the snapshot lists three cached prompts spread
+across the context, the oldest, the newest and the one nearest halfway between
+them by size, each a row carrying when it stops being cached, how much a cut
+there summarizes away and how much it keeps verbatim, and what sits above them.
+Where
+the session was compacted and kept prompts verbatim, the reading names them,
+since a rewind at one of them costs at most the context the compaction left
+behind. It is taken by walking the transcript
+backward from its end, only on
+the run that injects; the per-tool-call runs that measure and stay quiet read a
+fixed 512 KB tail as before, and never walk anything.
+
+Two consequences:
+
+- The snapshot goes stale. The notice message tells the agent to carry on with
+  its task and raise the recommendation later, and the prompt it named may have
+  fallen out of the cache by then — the messages tell it to say the expiry out
+  loud and to take a fresh reading if the stopping point comes too late.
+- A fresh reading is the `cut-point` skill, `/context-budget:cut-point`. It
+  runs the same scan over the same transcript through the same renderer, so
+  what it prints is identical to the snapshot in the message, only current —
+  which is also what the user gets by asking for another cut point after the
+  first one expired. It reaches that transcript through the record above, so it
+  works from the session's first tool call and says so plainly in a session
+  this plugin has never measured.
 
 The resume guard is the second hook, on every `SendMessage` to a subagent of
-this session. It reads the newest assistant turn of that subagent's own
-transcript, beside the session transcript under `subagents/`, for its context
-size, when it last ran, and which prompt-cache lifetime it was billed under.
+this session. It reads that subagent's own transcript, beside the session
+transcript under `subagents/`: its newest assistant turn for the context size
+and when it last ran, and the newest turn that wrote to the prompt cache for
+which lifetime that cache is on — a turn served entirely from the cache
+writes nothing and records no lifetime, so reading only the newest turn would
+make every such subagent look cold five minutes after it stopped.
 The resume is refused when the context is above `large`, or above `cold` with
 that cache lifetime already elapsed, and the refusal tells the agent to put the
 numbers to the user through AskUserQuestion with an option labeled "Resume".
@@ -83,17 +122,25 @@ Values:
   hook does not know the window size, and the `[1m]` suffix on a configured
   model never reaches the transcript. The shipped 150K is Anthropic's
   server-side compaction default on 1M-window models; raise or lower from
-  there by how much the user is willing to spend per turn.
+  there by how much the user is willing to spend per turn. The shipped
+  `fable` row sits at 400K and 700K because that model reads a cached
+  context at a quarter of the usual price while a compaction writes back what
+  it keeps at double: with the 45K or so a compaction writes back, as measured
+  on real sessions, one at 150K pays for itself only after about 35 more
+  turns, at 400K after about 11.
 - Row keys are regular expressions in single quotes, matched against the
   model id as the transcript records it: `claude-fable-5-1`,
   `claude-opus-5`, `claude-haiku-4-5-20251001`.
 - All four messages are read by the agent, not the user, so write them as
   instructions with the reason attached, the way the shipped ones are. The
-  notice pair substitutes `{model}`, `{tokens}` and `{threshold}`; the
-  guard pair substitutes `{agent}`, `{type}`, `{tokens}`, `{reasons}`,
-  `{large}` and `{cold}`, where `{reasons}` is the computed list of limits
-  that fired. A `denied` message that stops asking for the "Resume" option
-  breaks the retry, since that option's label is what the guard looks for.
+  notice pair substitutes `{model}`, `{tokens}`, `{threshold}` and `{cache}`;
+  the guard pair substitutes `{agent}`, `{type}`, `{tokens}`, `{reasons}`,
+  `{large}` and `{cold}`. `{cache}` and `{reasons}` are computed, not
+  configurable — the cache snapshot and the list of limits that fired. Drop
+  `{cache}` from a message and the recommendation it asks for goes back to
+  being blind to what a rewind would cost. A `denied` message that stops
+  asking for the "Resume" option breaks the retry, since that option's label
+  is what the guard looks for.
 
 ## Checking a change
 
@@ -117,3 +164,22 @@ one with an `agent-<name>.jsonl` under the transcript's `subagents/` directory:
 
 Output is the deny JSON with the filled message, or nothing when the resume
 is allowed.
+
+The cache snapshot inside the injected message is the cut-point script's
+reading of the same transcript, the identical text, so run that on its own to
+see it without a threshold in the way. By hand it takes the path:
+
+    node scripts/cut-point.mjs --transcript "<the .jsonl>"
+
+In a session it takes no arguments: it reads `CLAUDE_CODE_SESSION_ID` from its
+own environment and the transcript path from that session's record. Output is
+the lifetime, three cached cut points with their expiry and their two sizes,
+and what sits above them; or a line saying nothing is cached; or, where the
+session was compacted and kept prompts verbatim, the prompts it kept and the
+context it left behind, since a rewind at one of them costs at most that
+context; or, where there is no record, a line saying the hook has never
+measured that session. The
+list is three because everything newer than the oldest cached prompt is cached
+too: a busy hour would otherwise print dozens of rows that all say the same
+thing, so it prints the oldest, the newest and the one nearest halfway between
+them by size, and one line saying the rest of the range is open as well.

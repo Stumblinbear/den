@@ -4,24 +4,11 @@
 // summarize.
 //
 // Subagents are out of scope, as they are short-lived and cannot compact.
-import {
-  closeSync,
-  fstatSync,
-  mkdirSync,
-  openSync,
-  readFileSync,
-  readSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { join } from "node:path";
-import {
-  configPaths,
-  fill,
-  formatTokens,
-  loadConfig,
-  STATE_DIR,
-} from "./config.mjs";
+import { closeSync, fstatSync, openSync, readSync } from "node:fs";
+import { cacheSnapshot } from "./cache-reading.mjs";
+import { configPaths, fill, formatTokens, loadConfig } from "./config.mjs";
+import { readRecord, writeRecord } from "./session-record.mjs";
+import { contextTokens, isCompaction, turnUsage } from "./transcript.mjs";
 
 const EVENTS = ["PostToolUse", "UserPromptSubmit"];
 // Enough to hold the newest assistant entry with room to spare: the largest
@@ -93,12 +80,9 @@ function tail(path) {
 // is not the session's.
 //
 // A compaction entry reached before any assistant entry means the context was
-// replaced. `/compact`, auto-compact and both rewind summarize directions each
-// append a `compact_boundary` system entry followed by an `isCompactSummary`
-// user entry, and no assistant entry until the next turn. Either one ends the
-// scan, so a path that writes only the summary is covered without having to
-// know which paths write a boundary. The assistant entry above them measures
-// the context that was thrown away, so the scan reports an empty one instead.
+// replaced: there is no assistant entry until the next turn, and the one above
+// the boundary measures the context that was thrown away, so the scan reports
+// an empty one instead.
 function measure(path) {
   const { text, truncated } = tail(path);
   const lines = text.split("\n");
@@ -116,10 +100,7 @@ function measure(path) {
       continue;
     }
 
-    if (
-      (entry.type === "system" && entry.subtype === "compact_boundary") ||
-      (entry.type === "user" && entry.isCompactSummary === true)
-    ) {
+    if (isCompaction(entry)) {
       return { model: "", tokens: 0 };
     }
 
@@ -127,49 +108,16 @@ function measure(path) {
       continue;
     }
 
-    const usage = entry.message?.usage;
+    const usage = turnUsage(entry);
 
     if (!usage) {
       continue;
     }
 
-    const tokens =
-      (usage.input_tokens || 0) +
-      (usage.cache_creation_input_tokens || 0) +
-      (usage.cache_read_input_tokens || 0);
-
-    if (tokens <= 0) {
-      continue;
-    }
-
-    return { model: String(entry.message?.model ?? ""), tokens };
+    return { model: String(entry.message?.model ?? ""), tokens: contextTokens(usage) };
   }
 
   return null;
-}
-
-// --- level state -----------------------------------------------------------
-
-const stateFile = (sessionId) =>
-  join(STATE_DIR, String(sessionId).replace(/[^A-Za-z0-9._-]/g, "_") + ".json");
-
-// One file per session, read-modify-written by whichever run is going. Two
-// PostToolUse instances fired for tool calls running in parallel can both read
-// the old level and both inject on the first crossing: an accepted race, since
-// the worst case is the same reminder twice in one turn.
-function readState(file) {
-  try {
-    const state = JSON.parse(readFileSync(file, "utf8"));
-
-    return state && typeof state === "object" ? state : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeState(file, fields) {
-  mkdirSync(STATE_DIR, { recursive: true });
-  writeFileSync(file, JSON.stringify(fields));
 }
 
 // --- output ----------------------------------------------------------------
@@ -207,47 +155,48 @@ async function run() {
       process.exit(0);
     }
 
-    const limits = getThresholds(config, measured.model);
-    if (!limits) {
-      process.exit(0);
-    }
+    // The reading goes into the session's record on every run, injected or
+    // not: the cut-point script is handed a session id and nothing else, and
+    // the record is where it finds the transcript.
+    //
+    // Two instances of this hook fired for tool calls running in parallel can
+    // both read the old level and both inject on the first crossing: an
+    // accepted race, since the worst case is the same reminder twice in one
+    // turn.
+    const stored = readRecord(input.session_id);
+    const posted = LEVELS.includes(stored.level) ? stored.level : "none";
 
-    const level =
-      measured.tokens >= limits.urgent
+    // A row switched off for this model, which injects nothing and so posts
+    // nothing: the level stands where it was, and the reading is recorded all
+    // the same.
+    const limits = getThresholds(config, measured.model);
+
+    const level = !limits
+      ? posted
+      : measured.tokens >= limits.urgent
         ? "urgent"
         : measured.tokens >= limits.notice
           ? "notice"
           : "none";
 
-    const file = stateFile(input.session_id);
-    const stored = readState(file);
-    const recorded = LEVELS.includes(stored.level) ? stored.level : "none";
+    // Only a rise injects, but a fall is still recorded, so `level` tracks the
+    // context rather than the highest point the session ever reached: a
+    // summarize that takes `urgent` back down to `notice` has to leave `urgent`
+    // able to fire again on the next climb, and a fall to `none` -- what a
+    // compact produces -- starts the climb over.
+    const rise = LEVELS.indexOf(level) > LEVELS.indexOf(posted);
 
-    const record = {
+    writeRecord(input.session_id, {
       level,
       model: measured.model,
       tokens: measured.tokens,
+      transcript_path: String(input.transcript_path),
       at: new Date().toISOString(),
-    };
+    });
 
-    // Only a rise injects, but a fall is still recorded, so the record tracks
-    // the context rather than the highest point the session ever reached: a
-    // summarize that takes `urgent` back down to `notice` has to leave `urgent`
-    // able to fire again on the next climb. A fall to `none` -- what a compact
-    // produces -- drops the file, and the next climb starts over from there.
-    if (LEVELS.indexOf(level) <= LEVELS.indexOf(recorded)) {
-      if (level !== recorded) {
-        if (level === "none") {
-          rmSync(file, { force: true });
-        } else {
-          writeState(file, record);
-        }
-      }
-
+    if (!rise) {
       process.exit(0);
     }
-
-    writeState(file, record);
 
     process.stdout.write(
       JSON.stringify({
@@ -257,6 +206,10 @@ async function run() {
             model: measured.model || "this model",
             tokens: formatTokens(measured.tokens),
             threshold: formatTokens(limits[level]),
+            // Only here, on the one run in the session that injects this
+            // level. The per-tool-call path that measures and stays quiet
+            // keeps its fixed-size tail read and never walks the transcript.
+            cache: cacheSnapshot(String(input.transcript_path)),
           }),
         },
       }),

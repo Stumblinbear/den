@@ -1,18 +1,17 @@
 ---
 name: context-budget
-description: Use when the session's context is filling and you need to recommend `/compact` or a rewind summarize to the user — how the two summarize directions differ, how to pick and describe a cut point and a focus line, and how to judge a natural stopping point for the task in hand.
+description: Use when the session's context is filling and you need to recommend `/compact` or a rewind summarize to the user — how a rewind summarize differs from `/compact`, how to pick a cut point and a focus line, and how to judge a natural stopping point for the task in hand.
 ---
 
 # Context budget
 
-Three ways to shrink a session, differing only in where the cut falls and who
+Two ways to shrink a session, differing only in where the cut falls and who
 can make it:
 
 | | kept verbatim | summarized | run by |
 |---|---|---|---|
 | `/compact [focus]` | a recent tail, size chosen for you | everything before it | you or the user |
 | rewind, "Summarize up to here" | everything from the selected prompt on | everything before it | the user only |
-| rewind, "Summarize from here" | everything before the selected prompt | everything from it on | the user only |
 
 `/rewind` takes no arguments and cannot be invoked by you: the direction, the
 prompt, and the focus text are all chosen by the user in its interactive
@@ -29,9 +28,6 @@ you can name a cut point better than "the last little while".
   shipped feature, an investigation that produced its answer) and the current
   task began at a prompt you can quote. Everything from that prompt on survives
   exactly, which is what makes this the safe direction mid-task.
-- **"Summarize from here"** — the recent stretch is the disposable part: a long
-  debugging detour, a search that went nowhere, a file dump you have finished
-  reading. The setup before it is what you still need.
 
 ## Naming the cut point
 
@@ -40,10 +36,9 @@ first prompt of the current task, not the most recent one. A good cut point has
 nothing after it that you would be sorry to lose and nothing before it that you
 are still leaning on.
 
-Give the user the opening words of that prompt verbatim, enough to be unique in
-the list ("Now implement the plugin described in..."), because the picker shows
-their prompts and they have to find it. Naming the position ("three prompts
-ago") does not survive scrolling.
+## The cache window
+
+A rewind at a prompt re-reads everything before it. That prefix is cached only while the prompt is younger than the session's cache lifetime, 5 minutes or an hour: a rewind at a cached prompt costs nothing, and one at an uncached prompt re-reads its whole prefix at full price. Prefer the oldest cached prompt at or after the start of the current task; that is the most the session can summarize away for nothing. What it keeps is written back at full price when the rewind lands, so a cut that keeps most of the context is a case for a newer cut or for `/compact`. The `cut-point` skill reads the transcript, lists the cached prompts with the time each stays cached until, and says how to phrase the recommendation; invoke it rather than guessing, and again if the time you quoted has passed.
 
 ## The focus line
 
@@ -67,7 +62,7 @@ costs nothing:
 - mid-edit or mid-refactor: after the change compiles or its test passes
 - an investigation: after the finding is written down somewhere durable
 - a multi-step plan: at a step boundary, never inside a step
-- a subagent in flight: after its report has been relayed to the user
+- a subagent in flight: after its report has been relayed and whatever it leads to is launched; a pause for launch approval is not a stopping point, since the report and your judgment of it are what the launch prompt is written from
 - a red-then-green fix: after green
 
 At the urgent threshold, the stopping point is the end of the step you are in.

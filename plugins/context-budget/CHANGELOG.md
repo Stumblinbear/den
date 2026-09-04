@@ -7,6 +7,31 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Added
+
+- `{cache}` placeholder in both injected messages: a prompt-cache snapshot
+  naming three cached cut points (oldest, middle, newest) with each one's
+  expiry, what a cut there summarizes away and what it keeps, and what a
+  compaction kept verbatim.
+- Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mjs`:
+  the same reading taken fresh, for when the snapshot in a message has aged
+  out. The script finds the transcript through the session record, or takes
+  `--transcript <path>`.
+
+### Changed
+
+- Shipped `fable` model row at 400K notice and 700K urgent: Fable's cache
+  reads cost a quarter of other models', so a compaction at 150K takes about
+  35 turns to pay back.
+- The per-session record is written on every run and carries
+  `transcript_path`; fault reports go into it instead of marker files, so a
+  session leaves one file.
+- The resume guard reads the cache lifetime from the subagent's newest turn
+  that wrote to the cache, so a turn served from cache no longer makes it
+  look cold.
+- Skill `context-budget` presents only "Summarize up to here"; "Summarize from
+  here" is no longer offered.
+
 ## [0.2.0] - 2026-09-04
 
 ### Added

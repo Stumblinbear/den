@@ -2,16 +2,23 @@
 // transcript on every turn it takes, at the cached rate while its prompt cache
 // is warm, plus one full-price replay first when the cache has expired. Past
 // some size a fresh launch that rebuilds only what it needs is cheaper than
-// resuming. This hook reads the target subagent's transcript (the last
-// assistant entry carries the context size, the cache TTL it was written
-// under, and the time) and guards the resume when the context is above
-// `large`, or when the cache has expired and the context is above `cold`.
+// resuming. This hook reads the target subagent's transcript -- the last
+// assistant entry for the context size and the time, and the last one that
+// wrote to the cache for the lifetime -- and guards the resume when the
+// context is above `large`, or when the cache has expired and the context is
+// above `cold`.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { configPaths, fill, formatTokens, loadConfig } from "./config.mjs";
+import {
+  cacheLifetime,
+  contextTokens,
+  DEFAULT_TTL,
+  TTL_MS,
+  turnUsage,
+} from "./transcript.mjs";
 
-const TTL_MS = { "5m": 5 * 60_000, "1h": 60 * 60_000 };
 const CONSUMED_DIR = join(tmpdir(), "claude-resume-guard");
 const ANSWERED = /^Your questions have been answered:/;
 
@@ -19,24 +26,49 @@ const paths = configPaths(process.argv.slice(2));
 
 // --- transcripts -----------------------------------------------------------
 
-function lastUsage(path) {
+// What the subagent's own transcript says about resuming it: the context and
+// the time from its last turn, and the cache lifetime from the last turn that
+// wrote to the cache -- which is not always the same turn. A request served
+// entirely from a warm cache writes nothing back to it and records no split,
+// so the lifetime in force is the one the request that did write was billed
+// under. `lifetime` is null when no turn in the transcript wrote at all.
+function resumeState(path) {
   const lines = readFileSync(path, "utf8").split("\n");
+  let last = null;
 
   for (let i = lines.length - 1; i >= 0; i--) {
     if (!lines[i]) {
       continue;
     }
 
-    try {
-      const j = JSON.parse(lines[i]);
+    let entry;
 
-      if (j.type === "assistant" && j.message?.usage) {
-        return j;
-      }
-    } catch {}
+    try {
+      entry = JSON.parse(lines[i]);
+    } catch {
+      continue;
+    }
+
+    if (entry.type !== "assistant") {
+      continue;
+    }
+
+    const usage = turnUsage(entry);
+
+    if (!usage) {
+      continue;
+    }
+
+    last ??= entry;
+
+    const lifetime = cacheLifetime(usage);
+
+    if (lifetime) {
+      return { last, lifetime };
+    }
   }
 
-  return null;
+  return last && { last, lifetime: null };
 }
 
 // Whether the user's latest answer approved resuming `to`. Walking back over
@@ -151,20 +183,18 @@ async function run() {
       process.exit(0);
     }
 
-    const entry = lastUsage(file);
+    const state = resumeState(file);
 
-    if (!entry) {
+    if (!state) {
       process.exit(0);
     }
 
-    const u = entry.message.usage;
-    const context =
-      (u.input_tokens || 0) +
-      (u.cache_creation_input_tokens || 0) +
-      (u.cache_read_input_tokens || 0);
-    const ttl =
-      (u.cache_creation?.ephemeral_1h_input_tokens || 0) > 0 ? "1h" : "5m";
-    const ageMs = Date.now() - Date.parse(entry.timestamp);
+    const context = contextTokens(state.last.message.usage);
+    // A transcript in which no turn ever wrote to the cache says nothing about
+    // the lifetime, so the guard falls back to the default here, at the one
+    // place that has to know it is a guess.
+    const ttl = state.lifetime ?? DEFAULT_TTL;
+    const ageMs = Date.now() - Date.parse(state.last.timestamp);
     const ageMin = Math.round(ageMs / 60_000);
     const cold = ageMs > TTL_MS[ttl] && context > config.cold;
     const large = context > config.large;

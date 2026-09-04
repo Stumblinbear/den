@@ -4,41 +4,51 @@
 // after that every hook in that session does nothing at all, silently.
 //
 // These run the real processes, because the whole contract is out-of-band: an
-// exit code, one line on stderr, and a marker file shared across two hooks.
+// exit code, one line on stderr, and one per-session file shared across two
+// hooks.
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
+import { STATE_DIR, stateFile } from "../hooks/session-record.mjs";
 
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const HOOKS = join(ROOT, "hooks");
 const DEFAULTS = join(HOOKS, "config.toml");
-const STATE_DIR = join(tmpdir(), "claude-context-budget");
 
 const FIXTURES = mkdtempSync(join(tmpdir(), "config-errors-test-"));
 process.on("exit", () => rmSync(FIXTURES, { recursive: true, force: true }));
 
 let seq = 0;
 
-// A per-test session id, with whichever once-per-session error markers it
-// leaves behind removed with it.
+// A per-test session id, with the state it leaves behind removed with it.
 function sessionId(t) {
   const id = `config-errors-test-${process.pid}-${seq++}`;
-  t.after(() => {
-    rmSync(join(STATE_DIR, id + ".json"), { force: true });
-    for (const cls of ["parser", "config"]) {
-      rmSync(join(STATE_DIR, `${id}.${cls}`), { force: true });
-    }
-  });
+  t.after(() => rmSync(stateFile(id), { force: true }));
   return id;
 }
 
+// Everything this session has left in the state directory: one file, the
+// record, whatever it reported along the way.
+const stateFiles = (id) =>
+  readdirSync(STATE_DIR).filter((name) => name.startsWith(id + "."));
+
 // The hooks copied where smol-toml cannot be imported: the stub package
 // resolves to a file that is not there, so the import throws wherever the copy
-// is run from, which is the `parser` class.
+// is run from, which is the `parser` class. Every module in `hooks/` goes
+// along, since a hook that cannot resolve one of its own imports fails with a
+// stack trace rather than the report under test.
 function withoutParser() {
   const dir = join(FIXTURES, `no-parser-${seq++}`);
   mkdirSync(join(dir, "node_modules", "smol-toml"), { recursive: true });
@@ -46,7 +56,7 @@ function withoutParser() {
     join(dir, "node_modules", "smol-toml", "package.json"),
     JSON.stringify({ name: "smol-toml", version: "0.0.0", main: "index.js" }),
   );
-  for (const file of ["config.mjs", "context-budget.mjs", "resume-guard.mjs"]) {
+  for (const file of readdirSync(HOOKS).filter((f) => f.endsWith(".mjs"))) {
     cpSync(join(HOOKS, file), join(dir, file));
   }
   return dir;
@@ -68,7 +78,7 @@ function mainTranscript() {
       type: "assistant",
       isSidechain: false,
       message: {
-        model: "claude-fable-5-1",
+        model: "claude-opus-5",
         usage: {
           input_tokens: 1000,
           cache_creation_input_tokens: 1000,
@@ -181,4 +191,56 @@ test("a blank deny message is a config fault, not an empty deny reason", (t) => 
   const over = overrides('[resume-guard.messages]\ndenied = ""\n');
   reported(guard(HOOKS, id, transcript, over), "config");
   quiet(guard(HOOKS, id, transcript, over));
+});
+
+// --- one file per session ---------------------------------------------------
+
+test("a reported fault leaves the session one state file, the record itself", (t) => {
+  const id = sessionId(t);
+  const transcript = mainTranscript();
+  const over = overrides("[default]\nnotice = \n");
+
+  reported(measure(HOOKS, id, transcript, over), "config");
+  quiet(measure(HOOKS, id, transcript, over));
+
+  assert.deepEqual(
+    stateFiles(id),
+    [basename(stateFile(id))],
+    "the fault class is recorded in the session record, not in a file of its own",
+  );
+});
+
+test("both fault classes are reported once each and still share the one file", (t) => {
+  const id = sessionId(t);
+  const noParser = withoutParser();
+  const guardPath = guardTranscript();
+  const transcript = mainTranscript();
+  const broken = overrides("[default]\nnotice = \n");
+  const fine = overrides();
+
+  reported(guard(noParser, id, guardPath, fine), "parser");
+  reported(measure(HOOKS, id, transcript, broken), "config");
+
+  quiet(guard(noParser, id, guardPath, fine));
+  quiet(measure(HOOKS, id, transcript, broken));
+
+  assert.deepEqual(stateFiles(id), [basename(stateFile(id))]);
+});
+
+test("recording a fault keeps the reading the record already held", (t) => {
+  const id = sessionId(t);
+  const transcript = mainTranscript();
+  const over = overrides("[default]\nnotice = 150000\n");
+
+  assert.notEqual(measure(HOOKS, id, transcript, over).stdout, "", "the run measures");
+
+  writeFileSync(over, "[default]\nnotice = \n");
+  reported(measure(HOOKS, id, transcript, over), "config");
+
+  assert.deepEqual(stateFiles(id), [basename(stateFile(id))]);
+
+  const record = JSON.parse(readFileSync(stateFile(id), "utf8"));
+
+  assert.equal(record.transcript_path, transcript, "the transcript path survives");
+  assert.equal(record.level, "notice", "so does the level already posted");
 });

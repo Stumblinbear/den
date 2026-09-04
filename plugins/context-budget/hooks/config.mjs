@@ -1,14 +1,9 @@
-// The TOML configuration both hooks read, the once-per-session report that
-// stands in place of any recovery, and the number formatting and placeholder
-// substitution both hooks apply to the messages the configuration carries.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-
-// Per-session state for both hooks: the measurement hook's level record and
-// the two error markers. The OS temp directory and never the project or the
-// data directory, since all of it is worthless the moment the session ends.
-export const STATE_DIR = join(tmpdir(), "claude-context-budget");
+// The TOML configuration both hooks read: how it is found, merged and checked,
+// the once-per-session report that stands in place of any recovery when it
+// cannot be used, and the number formatting and placeholder substitution both
+// hooks apply to the messages it carries.
+import { readFileSync } from "node:fs";
+import { readRecord, writeRecord } from "./session-record.mjs";
 
 const OFF = "The context notice and the resume guard are off for this session";
 
@@ -229,19 +224,16 @@ function validate(paths, file) {
 // --- reporting -------------------------------------------------------------
 
 // One report per class per session, then silence, whichever hook gets there
-// first: the marker is a file beside the level record, per-session and already
-// disposable, so both hooks see the same one.
+// first: the classes already reported are listed in the session's record,
+// which both hooks read and write.
 function report(sessionId, fault) {
-  const marker = join(
-    STATE_DIR,
-    String(sessionId).replace(/[^A-Za-z0-9._-]/g, "_") + "." + fault.cls,
-  );
+  const done = readRecord(sessionId).reported;
+  const reported = Array.isArray(done) ? done : [];
 
-  if (existsSync(marker)) process.exit(0);
+  if (reported.includes(fault.cls)) process.exit(0);
 
   try {
-    mkdirSync(STATE_DIR, { recursive: true });
-    writeFileSync(marker, new Date().toISOString());
+    writeRecord(sessionId, { reported: [...reported, fault.cls] });
   } catch {}
 
   process.stderr.write(fault.message + "\n");
