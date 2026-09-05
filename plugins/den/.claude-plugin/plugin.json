@@ -1,8 +1,8 @@
 {
-	"name": "den",
-	"version": "0.2.0",
-	"description": "Skills, agent definitions, and hooks for a coordinated, gated agent workflow: fresh reviewers, briefed implementers, red-then-green fixes, a scoping pass for the decisions an ask leaves open, and craft skills for Rust architecture, unsafe docs, design decisions, and writing for agents and for humans.",
-	"author": {
-		"name": "Trevin Miller"
-	}
+  "name": "den",
+  "version": "0.3.0",
+  "description": "Skills, agent definitions, and hooks for a coordinated, gated agent workflow: fresh reviewers, briefed implementers, red-then-green fixes, a scoping pass for the decisions an ask leaves open, and craft skills for Rust architecture, unsafe docs, design decisions, and writing for agents and for humans.",
+  "author": {
+    "name": "Trevin Miller"
+  }
 }
