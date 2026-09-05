@@ -29,6 +29,8 @@ you can name a cut point better than "the last little while".
   shipped feature, an investigation that produced its answer) and the arc you
   are in began at a prompt you can quote. Everything from that prompt on
   survives exactly, which is what makes this the safe direction inside an arc.
+  Selecting that prompt needs the interactive picker, which a user on Remote
+  Control cannot open, so `/compact` with a focus line is the only cut there.
 
 ## Naming the cut point
 
@@ -43,17 +45,19 @@ A rewind at a prompt re-reads everything before it. That prefix is cached only w
 
 ## The focus line
 
-A focus line steers what the summary keeps; it is optional on both `/compact`
-and rewind, and it is where most of the value is. Write it as what must survive,
-concretely, not as a topic:
+A focus line steers what the summary keeps, on `/compact` and on a rewind
+alike. Everything that must survive the cut goes to disk before you write it:
+open work becomes tasks, with the run ids, file paths, and remaining steps in
+the task description; a ruling that outlives the session goes to memory; a
+finding goes in a file. That leaves the line one clause for the arc and a
+pointer to the task holding the state.
 
-- good: "keep the file paths touched, the failing test name, and the decision to
-  use a temp-dir state file over a data-dir one"
-- weak: "keep the important context about the plugin work"
+`/compact finishing the repo-wide comment and voice pass, task #26`
 
-Decisions and their reasons, exact identifiers, and open questions are worth
-naming. Anything still on disk is not: a summary that re-describes code you
-can re-read spends tokens to save none.
+Decisions and identifiers still matter, and they are on disk by the time the
+line is written, so the line says where they are rather than repeating them. A
+summary that re-describes what is already written down spends tokens to save
+none, and a long focus line is that mistake made in advance.
 
 ## Judging the stopping point
 

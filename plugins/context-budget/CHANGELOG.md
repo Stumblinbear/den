@@ -7,6 +7,13 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+
+- The `context-budget` skill writes a `/compact` focus line as one clause naming
+  the arc and the task holding its state, after that state has gone to tasks,
+  memory or files. Both it and the `cut-point` skill send a user on Remote
+  Control, who cannot open the `/rewind` picker, to `/compact`.
+
 ## [0.3.0] - 2026-09-05
 
 ### Added

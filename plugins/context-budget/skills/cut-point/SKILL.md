@@ -17,4 +17,4 @@ The payback is how many more turns the work must take before the cut has saved m
 
 ## Saying it
 
-Give the user, in one short passage: the direction by name, "Summarize up to here"; the prompt's opening words quoted verbatim, since the picker lists their prompts and a position like "three prompts ago" does not survive scrolling; "valid until HH:MM" from the list; and that they can ask you for another cut point if they miss it. Only the user can run `/rewind`; the direction is chosen in its picker after the prompt is selected.
+Give the user, in one short passage: the direction by name, "Summarize up to here"; the prompt's opening words quoted verbatim, since the picker lists their prompts and a position like "three prompts ago" does not survive scrolling; "valid until HH:MM" from the list; and that they can ask you for another cut point if they miss it. Only the user can run `/rewind`; the direction is chosen in its picker after the prompt is selected. A user working from Remote Control cannot open that picker at all, so recommend `/compact <focus line>` there instead; the `context-budget` skill has the shape of that line.
