@@ -16,7 +16,14 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mjs`:
   the same reading taken fresh, for when the snapshot in a message has aged
   out. The script finds the transcript through the session record, or takes
-  `--transcript <path>`.
+  `--transcript <path>`, and takes the same `--pricing` and
+  `--pricing-overrides` the measurement hook takes.
+- A payback on every listed cut point: the turns before the rewind's write
+  back to the cache is earned out of what it saves per turn.
+- `hooks/pricing.toml`, what a cached input token costs against a fresh one
+  per model and the rate the payback is priced at: 0.1 by default, 0.025 on
+  `fable`. Not configuration; a `pricing.toml` under the plugin data directory
+  corrects a rate row by row.
 
 ### Changed
 

@@ -38,7 +38,7 @@ are still leaning on.
 
 ## The cache window
 
-A rewind at a prompt re-reads everything before it. That prefix is cached only while the prompt is younger than the session's cache lifetime, 5 minutes or an hour: a rewind at a cached prompt costs nothing, and one at an uncached prompt re-reads its whole prefix at full price. Prefer the oldest cached prompt at or after the start of the current task; that is the most the session can summarize away for nothing. What it keeps is written back at full price when the rewind lands, so a cut that keeps most of the context is a case for a newer cut or for `/compact`. The `cut-point` skill reads the transcript, lists the cached prompts with the time each stays cached until, and says how to phrase the recommendation; invoke it rather than guessing, and again if the time you quoted has passed.
+A rewind at a prompt re-reads everything before it. That prefix is cached only while the prompt is younger than the session's cache lifetime, 5 minutes or an hour: a rewind at a cached prompt costs nothing, and one at an uncached prompt re-reads its whole prefix at full price. Prefer the oldest cached prompt at or after the start of the current task; that is the most the session can summarize away for nothing. What it keeps is written back at the write price when the rewind lands — twice a fresh input token on the one-hour lifetime, 1.25 times on the five-minute — so a cut that keeps most of the context is a case for a newer cut or for `/compact`. The `cut-point` skill reads the transcript, lists the cached prompts with the time each stays cached until, and says how to phrase the recommendation; invoke it rather than guessing, and again if the time you quoted has passed.
 
 ## The focus line
 

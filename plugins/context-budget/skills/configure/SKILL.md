@@ -34,13 +34,17 @@ Consequences that answer most "why did it" questions:
   after editing it. It is written even for a model whose row is switched off,
   and even when nothing was near a threshold, because the `cut-point` skill has
   only the session id to find the transcript by.
-- One stderr line starting `context-budget:` means both the notice and the
-  resume guard are off, and says why: `parser error` is a missing `smol-toml`
-  in the plugin's cache directory, `config error` names the file that cannot
-  be read, parsed, or used. Nothing is measured and nothing is guarded until
-  it is fixed; fixing it takes effect on the next hook run. Each kind of fault
-  is said once per session, listed in the record above once it has been —
-  delete the record to hear it again.
+- One stderr line starting `context-budget: parser error` or `config error`
+  means both the notice and the resume guard are off, and says why: a missing
+  `smol-toml` in the plugin's cache directory, or the file that cannot be read,
+  parsed, or used. Nothing is measured and nothing is guarded until it is
+  fixed; fixing it takes effect on the next hook run. Each kind of fault is
+  said once per session, listed in the record above once it has been — delete
+  the record to hear it again.
+- A user pricing file gets no line of its own. One that cannot be read,
+  parsed, or used is dropped whole, the shipped rates stand, and the reading is
+  printed as if the file were not there — so an edit to it that changes no
+  figure is the sign to look at the file.
 
 Each injected message also carries a snapshot of the prompt cache, substituted
 into it as `{cache}`. A rewind at a prompt re-reads everything before that
@@ -48,14 +52,21 @@ prompt, and that prefix is in the cache only while the prompt itself is younger
 than the cache lifetime — so the snapshot lists three cached prompts spread
 across the context, the oldest, the newest and the one nearest halfway between
 them by size, each a row carrying when it stops being cached, how much a cut
-there summarizes away and how much it keeps verbatim, and what sits above them.
-Where
-the session was compacted and kept prompts verbatim, the reading names them,
-since a rewind at one of them costs at most the context the compaction left
-behind. It is taken by walking the transcript
-backward from its end, only on
-the run that injects; the per-tool-call runs that measure and stay quiet read a
-fixed 512 KB tail as before, and never walk anything.
+there summarizes away, how much it keeps verbatim, and how many more turns the
+session has to take before the cut has paid for itself; and what sits above
+them. The payback is what turns two token counts into a decision: the rewind
+writes everything it keeps back to the cache at twice a fresh input token on
+the one-hour lifetime, where carrying on would have read that same stretch at
+the cache read rate, and it saves the read of what it summarized on every turn
+after that — so a cut in a session with little work left in it costs more than
+it ever returns. Every term is what the cut costs over carrying on, which is
+the only comparison worth making. It is priced at the model's cache read rate,
+which is the pricing file below and not configuration. Where the session was
+compacted and kept prompts verbatim, the reading names them, since a rewind at
+one of them costs at most the context the compaction left behind. It is taken
+by walking the transcript backward from its end, only on the run that injects;
+the per-tool-call runs that measure and stay quiet read a fixed 512 KB tail as
+before, and never walk anything.
 
 Two consequences:
 
@@ -130,7 +141,10 @@ Values:
   turns, at 400K after about 11.
 - Row keys are regular expressions in single quotes, matched against the
   model id as the transcript records it: `claude-fable-5-1`,
-  `claude-opus-5`, `claude-haiku-4-5-20251001`.
+  `claude-opus-5`, `claude-haiku-4-5-20251001`. A transcript whose turns name
+  no model takes `[default]` whatever the rows say, in this file and in the
+  pricing one: an id that is not there is not a model a row was written for,
+  and a key like `'.*'` does not collect it.
 - All four messages are read by the agent, not the user, so write them as
   instructions with the reason attached, the way the shipped ones are. The
   notice pair substitutes `{model}`, `{tokens}`, `{threshold}` and `{cache}`;
@@ -142,6 +156,34 @@ Values:
   asking for the "Resume" option breaks the retry, since that option's label
   is what the guard looks for.
 
+## What a cached token costs
+
+The rate the payback figure is priced at is not configuration — it is what the
+model charges — so it is a shipped file of its own, `../../hooks/pricing.toml`
+from this file, and none of the merge rules above touch it. It holds one
+number per model: what a token read from the prompt cache costs against one
+fresh input token, as a multiple of the fresh-input price. `default = 0.1` is
+every tier in Claude Code's own price table but one, and the `[models]` row
+`'fable' = 0.025` is that one. Every value has to be a number above 0 and at
+most 1; lower it and every cut takes proportionally more turns to pay for
+itself.
+
+Correct a rate that has gone out of date in a file of the same shape at
+
+    ~/.claude/plugins/data/context-budget-den/pricing.toml
+
+merged by one rule: a `[models]` row whose key matches a shipped one replaces
+it where it stands, so it keeps that row's place in the order; a row with a
+new key is tried after all the shipped ones; and `default` replaces `default`.
+Keys are regular expressions matched against the model id the same way the
+config's rows are, and the first row that matches wins.
+
+That file is optional and almost nobody has one, so a missing one changes
+nothing. One that cannot be read, parsed, or used is dropped whole and every
+payback is priced at the shipped rates — unlike a config fault it costs the
+session nothing else, and nothing about the reading says it happened, so an
+edit that has no effect on the figures is the sign to look at the file.
+
 ## Checking a change
 
 A TOML typo, or a value neither hook can use, is not quietly dropped: it
@@ -150,7 +192,8 @@ hook by hand from the plugin root against a real transcript to see what it will
 inject, or what it objects to:
 
     printf '%s' '{"session_id":"check","transcript_path":"<a .jsonl under ~/.claude/projects/>","hook_event_name":"UserPromptSubmit"}' \
-      | node hooks/context-budget.mjs --defaults hooks/config.toml --overrides ~/.claude/plugins/data/context-budget-den/config.toml
+      | node hooks/context-budget.mjs --defaults hooks/config.toml --overrides ~/.claude/plugins/data/context-budget-den/config.toml \
+        --pricing hooks/pricing.toml --pricing-overrides ~/.claude/plugins/data/context-budget-den/pricing.toml
 
 Output is the injection JSON, or nothing when the transcript is below the
 first threshold. Delete `claude-context-budget/check.json` from the temp
@@ -167,14 +210,23 @@ is allowed.
 
 The cache snapshot inside the injected message is the cut-point script's
 reading of the same transcript, the identical text, so run that on its own to
-see it without a threshold in the way. By hand it takes the path:
+see it without a threshold in the way. It reads nothing from the config; by
+hand it takes the path and the two pricing paths, since the payback figure is
+priced from them:
 
-    node scripts/cut-point.mjs --transcript "<the .jsonl>"
+    node scripts/cut-point.mjs --transcript "<the .jsonl>" \
+      --pricing hooks/pricing.toml --pricing-overrides ~/.claude/plugins/data/context-budget-den/pricing.toml
 
-In a session it takes no arguments: it reads `CLAUDE_CODE_SESSION_ID` from its
-own environment and the transcript path from that session's record. Output is
-the lifetime, three cached cut points with their expiry and their two sizes,
-and what sits above them; or a line saying nothing is cached; or, where the
+In a session it takes only the two pricing paths, which the skill's own preamble
+fills in: it reads `CLAUDE_CODE_SESSION_ID` from its own environment and the
+transcript path from that session's record. The model it prices against comes
+out of the transcript it is reading and never out of the record, so a reading
+of somebody else's transcript is priced by that transcript; where its turns
+name no model at all it prices at the table's default and says so in its
+opening line. A pricing file it cannot use is dropped whole and the reading is
+printed on the shipped rates. Output is the
+lifetime, three cached cut points with their expiry, their two sizes and their
+payback, and what sits above them; or a line saying nothing is cached; or, where the
 session was compacted and kept prompts verbatim, the prompts it kept and the
 context it left behind, since a rewind at one of them costs at most that
 context; or, where there is no record, a line saying the hook has never

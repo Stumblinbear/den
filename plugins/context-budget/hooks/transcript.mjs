@@ -32,6 +32,13 @@ export function turnUsage(entry) {
   return usage && contextTokens(usage) > 0 ? usage : null;
 }
 
+// The model id a turn was sent to, as the transcript records it
+// ("claude-opus-5"), and the empty string for a turn that records none -- a
+// transcript saying nothing about what it was sent to, which is not the same
+// as a model nobody has written a row for. Both readers ask this of the newest
+// turn they accepted, since that is the model the session is on now.
+export const turnModel = (entry) => String(entry.message?.model ?? "");
+
 // The lifetime the turn's request wrote the cache under, from the split it was
 // billed in, or null when it wrote nothing at all. A request served entirely
 // from a warm cache is that null: it refreshed an entry another request wrote,

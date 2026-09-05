@@ -6,9 +6,17 @@
 // Subagents are out of scope, as they are short-lived and cannot compact.
 import { closeSync, fstatSync, openSync, readSync } from "node:fs";
 import { cacheSnapshot } from "./cache-reading.mjs";
-import { configPaths, fill, formatTokens, loadConfig } from "./config.mjs";
+import {
+  configPaths,
+  fill,
+  formatTokens,
+  loadConfig,
+  modelRow,
+  printedFault,
+} from "./config.mjs";
+import { loadPricing, pricingPaths } from "./pricing.mjs";
 import { readRecord, writeRecord } from "./session-record.mjs";
-import { contextTokens, isCompaction, turnUsage } from "./transcript.mjs";
+import { contextTokens, isCompaction, turnModel, turnUsage } from "./transcript.mjs";
 
 const EVENTS = ["PostToolUse", "UserPromptSubmit"];
 // Enough to hold the newest assistant entry with room to spare: the largest
@@ -21,37 +29,7 @@ const LEVELS = ["none", "notice", "urgent"];
 // --- configuration ---------------------------------------------------------
 
 const paths = configPaths(process.argv.slice(2));
-
-// The three sections this hook reads, each merged key by key with the user's
-// override: an override row with the same regex replaces the shipped one, and a
-// new row is appended after them, so it is matched last.
-const sections = (file) => ({
-  models: file.section("models"),
-  default: file.section("default"),
-  messages: file.section("messages"),
-});
-
-// First row whose key, read as a regular expression, matches the model id, and
-// `default` when none do. Every row here is one config.mjs has already checked,
-// so a match is a usable answer.
-function getThresholds(config, model) {
-  for (const [pattern, row] of [
-    ...Object.entries(config.models),
-    [null, config.default],
-  ]) {
-    if (pattern !== null && !new RegExp(pattern).test(model)) {
-      continue;
-    }
-
-    if (row.enabled === false) {
-      return null;
-    }
-
-    return row;
-  }
-
-  return null;
-}
+const prices = pricingPaths(process.argv.slice(2));
 
 // --- measurement -----------------------------------------------------------
 
@@ -114,7 +92,7 @@ function measure(path) {
       continue;
     }
 
-    return { model: String(entry.message?.model ?? ""), tokens: contextTokens(usage) };
+    return { model: turnModel(entry), tokens: contextTokens(usage) };
   }
 
   return null;
@@ -147,7 +125,7 @@ async function run() {
     // Before any work, so a broken install or a broken config is reported on
     // the session's first hook run rather than whenever the first threshold
     // happens to be crossed.
-    const config = sections(await loadConfig(input.session_id, paths));
+    const config = await loadConfig(input.session_id, paths);
 
     const measured = measure(String(input.transcript_path));
 
@@ -166,10 +144,10 @@ async function run() {
     const stored = readRecord(input.session_id);
     const posted = LEVELS.includes(stored.level) ? stored.level : "none";
 
-    // A row switched off for this model, which injects nothing and so posts
-    // nothing: the level stands where it was, and the reading is recorded all
-    // the same.
-    const limits = getThresholds(config, measured.model);
+    // A row switched off for this model injects nothing and so posts nothing:
+    // the level stands where it was, and the reading is recorded all the same.
+    const row = modelRow(config, measured.model);
+    const limits = row.enabled === false ? null : row;
 
     const level = !limits
       ? posted
@@ -198,25 +176,31 @@ async function run() {
       process.exit(0);
     }
 
+    // Only here, on the one run in the session that injects this level. The
+    // per-tool-call path that measures and stays quiet keeps its fixed-size
+    // tail read: it never walks the transcript and never reads a price.
+    const cache = cacheSnapshot(String(input.transcript_path), await loadPricing(prices));
+
     process.stdout.write(
       JSON.stringify({
         hookSpecificOutput: {
           hookEventName: event,
-          additionalContext: fill(config.messages[level], {
+          additionalContext: fill(config.section("messages")[level], {
             model: measured.model || "this model",
             tokens: formatTokens(measured.tokens),
             threshold: formatTokens(limits[level]),
-            // Only here, on the one run in the session that injects this
-            // level. The per-tool-call path that measures and stays quiet
-            // keeps its fixed-size tail read and never walks the transcript.
-            cache: cacheSnapshot(String(input.transcript_path)),
+            cache,
           }),
         },
       }),
     );
-  } catch {
-    // A broken transcript or a full temp directory must never stall a tool
-    // call or a prompt.
+  } catch (error) {
+    // A config fault `loadConfig` has just printed: exit 1 is what puts that
+    // line in front of the user. Everything else -- a broken transcript, a
+    // full temp directory -- must never stall a tool call or a prompt.
+    if (printedFault(error)) {
+      process.exit(1);
+    }
   }
 
   process.exit(0);

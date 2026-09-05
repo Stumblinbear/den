@@ -1,6 +1,6 @@
 // The one file a session leaves behind: its record, holding the latest reading
-// the measurement hook took and the faults either hook has already reported.
-// Written by both hooks and read by the cut-point script, which is handed a
+// the measurement hook took and the faults the session has already been told
+// about. Written by both hooks and by the cut-point script, which is handed a
 // session id and nothing else and finds the transcript through it.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -40,4 +40,31 @@ export function writeRecord(sessionId, fields) {
     stateFile(sessionId),
     JSON.stringify({ ...readRecord(sessionId), ...fields }),
   );
+}
+
+// Whether this run is the one to report `cls`, claiming it for the session if
+// so: one report per class per session and then silence, whichever hook gets
+// there first. A class names the kind of failure -- `parser` or `config` --
+// and the classes already claimed are listed in the record above.
+export function claimReport(sessionId, cls) {
+  // No session id is no session to claim against, and the resume guard does
+  // not require one before it reads its configuration. Claiming anyway would
+  // name the record after the empty id, shared by every such run on the
+  // machine, so only the first would ever report the fault.
+  if (!sessionId) {
+    return true;
+  }
+
+  const done = readRecord(sessionId).reported;
+  const reported = Array.isArray(done) ? done : [];
+
+  if (reported.includes(cls)) {
+    return false;
+  }
+
+  try {
+    writeRecord(sessionId, { reported: [...reported, cls] });
+  } catch {}
+
+  return true;
 }

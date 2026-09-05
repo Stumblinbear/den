@@ -10,7 +10,13 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { configPaths, fill, formatTokens, loadConfig } from "./config.mjs";
+import {
+  configPaths,
+  fill,
+  formatTokens,
+  loadConfig,
+  printedFault,
+} from "./config.mjs";
 import {
   cacheLifetime,
   contextTokens,
@@ -258,7 +264,14 @@ async function run() {
     }
 
     decide("deny", fill(messages.denied, values));
-  } catch {}
+  } catch (error) {
+    // A config fault `loadConfig` has just printed: exit 1 is what puts that
+    // line in front of the user. Everything else -- an unreadable transcript,
+    // a full temp directory -- must never stall the message being sent.
+    if (printedFault(error)) {
+      process.exit(1);
+    }
+  }
 
   process.exit(0);
 }

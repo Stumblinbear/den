@@ -25,6 +25,7 @@ import {
   DEFAULT_TTL,
   isCompaction,
   TTL_MS,
+  turnModel,
   turnUsage,
 } from "./transcript.mjs";
 
@@ -114,11 +115,12 @@ function boundaryDetail(entry) {
   };
 }
 
-// The cache window over `path` as of `now`: the lifetime in force, the
-// picker-eligible prompts whose prefix is still cached oldest first, and what
-// lies above the oldest of them -- a colder cut point, a compaction, or the
-// start of the file, which is the difference between "there are older cut
-// points and they all cost" and "this is as far back as the session goes".
+// The cache window over `path` as of `now`: the lifetime in force, the model
+// the transcript is on, the picker-eligible prompts whose prefix is still
+// cached oldest first, and what lies above the oldest prompt -- a colder cut
+// point, a compaction, or the start of the file, which is the difference
+// between "there are older cut points and they all cost" and "this is as far
+// back as the session goes".
 //
 // A compaction above them is reported apart from the prompts: the first
 // request after it wrote everything it kept verbatim to the cache in one
@@ -127,6 +129,7 @@ function boundaryDetail(entry) {
 export function scanCacheWindow(path, now = Date.now()) {
   let ttl = null;
   let context = null;
+  let model = "";
   let unresolved = [];
   let pending = [];
   const warm = [];
@@ -232,8 +235,15 @@ export function scanCacheWindow(path, now = Date.now()) {
       ttl ??= written;
 
       // The newest turn's context is the context now, which is what a rewind
-      // at any of these prompts keeps verbatim above the part it summarizes.
-      context ??= prefixTokens;
+      // at any of these prompts keeps verbatim above the part it summarizes --
+      // and the model that turn was sent to is the one whose prices the whole
+      // reading is figured at, taken from the same turn so the two cannot be
+      // read off different requests. A turn `turnUsage` refuses never gets
+      // here, which is what keeps the synthetic id of a failed request out.
+      if (context === null) {
+        context = prefixTokens;
+        model = turnModel(entry);
+      }
 
       for (const prompt of unresolved) {
         pending.push({ ...prompt, prefixTokens });
@@ -241,16 +251,13 @@ export function scanCacheWindow(path, now = Date.now()) {
 
       unresolved = [];
 
-      // A turn that wrote nothing was served from an entry an older request
-      // wrote, and refreshing an entry does not extend it, so the prompts it
-      // priced wait for that older request to say how long it lives.
-      if (!written) {
-        continue;
-      }
-
       // Everything above a cold prompt is colder still: this is where the
-      // cached stretch ends and the rest of the file stops mattering.
-      if (settle(TTL_MS[written])) {
+      // cached stretch ends and the rest of the file stops mattering. A turn
+      // that wrote nothing settles nothing -- it was served from an entry an
+      // older request wrote, and refreshing an entry does not extend it, so
+      // the prompts it priced wait for that older request to say how long
+      // they live.
+      if (written && settle(TTL_MS[written])) {
         above = "colder";
         break;
       }
@@ -291,6 +298,10 @@ export function scanCacheWindow(path, now = Date.now()) {
 
   return {
     ttl: ttl ?? DEFAULT_TTL,
+    // Empty where the walk met no turn to take it from: a context that is
+    // nothing but a compaction, or a transcript whose entries carry no id at
+    // all. The reading says which rate it settled for in that case.
+    model,
     // What a cut at each prompt keeps verbatim is everything from it to the end
     // of the context, and the first request after the rewind writes all of it
     // to the cache before any of the saving starts.

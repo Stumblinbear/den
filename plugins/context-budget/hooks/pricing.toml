@@ -1,0 +1,25 @@
+# What one token read from the prompt cache costs against one fresh input
+# token, as a multiple of the fresh-input price, per model. It is the rate the
+# cut-point reading prices a rewind's payback at, and nothing else reads it.
+#
+# A fact about the model rather than a preference, which is why it is here and
+# not in config.toml. To correct a rate that has gone out of date, copy this
+# file to ~/.claude/plugins/data/context-budget-den/pricing.toml and edit that
+# copy; it survives plugin updates, and this one does not. A row there whose
+# key matches one here replaces it where it stands, a row with a new key is
+# tried after all of these, and `default` replaces `default`. Every value must
+# be a number above 0 and at most 1.
+
+# Claude Code's own price table puts every tier here.
+default = 0.1
+
+# Per-model rows, tried before `default`. Each key is a regular expression
+# matched against the model id as the transcript records it ("claude-opus-5",
+# "claude-fable-5-1", "claude-haiku-4-5-20251001"). The first row that matches
+# wins, in the order written here. Single quotes make the key a TOML literal
+# string, so regex backslashes need no escaping.
+[models]
+
+# The one tier that is not on the default rate: a quarter of it, which makes a
+# rewind take about four times as many turns to pay for itself.
+'fable' = 0.025

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-budget.mjs\" --defaults \"${CLAUDE_PLUGIN_ROOT}/hooks/config.toml\" --overrides \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-budget.mjs\" --defaults \"${CLAUDE_PLUGIN_ROOT}/hooks/config.toml\" --overrides \"${CLAUDE_PLUGIN_DATA}/config.toml\" --pricing \"${CLAUDE_PLUGIN_ROOT}/hooks/pricing.toml\" --pricing-overrides \"${CLAUDE_PLUGIN_DATA}/pricing.toml\""
           }
         ]
       }
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-budget.mjs\" --defaults \"${CLAUDE_PLUGIN_ROOT}/hooks/config.toml\" --overrides \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-budget.mjs\" --defaults \"${CLAUDE_PLUGIN_ROOT}/hooks/config.toml\" --overrides \"${CLAUDE_PLUGIN_DATA}/config.toml\" --pricing \"${CLAUDE_PLUGIN_ROOT}/hooks/pricing.toml\" --pricing-overrides \"${CLAUDE_PLUGIN_DATA}/pricing.toml\""
           }
         ]
       }

@@ -2,6 +2,9 @@
 # ~/.claude/plugins/data/context-budget-den/config.toml and edit that copy;
 # it survives plugin updates, and this one does not. The override is merged
 # over these values key by key, so it only needs the keys it changes.
+#
+# What a cached token costs a model is not configuration: it is pricing.toml,
+# beside this file.
 
 # Thresholds are absolute input token counts: prompt plus cache creation plus
 # cache read on the session's last assistant turn.
@@ -21,12 +24,13 @@ urgent = 250_000
 [models.'haiku']
 enabled = false
 
-# Fable reads a cached context at 0.025x the fresh-input price, a quarter of
-# what other models pay, while a compaction writes back what it keeps at 2x on
-# the one-hour lifetime. With the 45K or so a compaction writes back, as
-# measured on real sessions, a compaction at 150K pays for itself only after
-# about 35 more turns; at 400K it takes about 11. The urgent level leaves 300K
-# before the 1M window fills.
+# Fable reads a cached context at a quarter of the usual price, while a
+# compaction writes back what it keeps at twice a fresh input token on the
+# one-hour lifetime. With the 45K or so a compaction writes back, as measured
+# on real sessions, a compaction at 150K pays for itself only after about 35
+# more turns; at 400K it takes about 11. That is why these two sit so much
+# higher than [default]'s. The urgent level leaves 300K before the 1M window
+# fills.
 [models.'fable']
 notice = 400_000
 urgent = 700_000
@@ -42,10 +46,12 @@ urgent = 700_000
 #                the moment of injection: three prompts spread across the
 #                cached range -- oldest, middle, newest -- as numbered rows,
 #                each with the clock time it stops being cached, what a cut
-#                there summarizes away and what it keeps verbatim, and what
-#                sits above them; or a plain statement that no prompt is
-#                cached, or that the context is only its first prompt. The
-#                same reading the `context-budget:cut-point` skill prints.
+#                there summarizes away, what it keeps verbatim, and how many
+#                turns of the session it takes before the cut has paid for
+#                itself; and what sits above them. Or a plain statement that
+#                no prompt is cached, or that the context is only its first
+#                prompt. The same reading the `context-budget:cut-point`
+#                skill prints.
 [messages]
 
 # Injected on crossing `notice`. Its job is to stop the agent from compacting

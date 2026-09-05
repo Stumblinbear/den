@@ -1,5 +1,6 @@
 // What a cache scan reads like: the cut points still cached, what a cut at
-// each of them summarizes away and what it keeps, and what sits above them.
+// each of them summarizes away, what it keeps, how many turns it takes to pay
+// for itself, and what sits above them.
 //
 // One renderer, two callers. The measurement hook bakes this into the message
 // it injects and the cut-point script prints it on demand, and the agent
@@ -7,6 +8,7 @@
 // the identical thing, down to the layout, rather than two wordings it would
 // have to reconcile.
 import { formatTokens } from "./config.mjs";
+import { DEFAULT_READ_MULTIPLIER, paybackTurns, readMultiplier } from "./pricing.mjs";
 import { scanCacheWindow } from "./prompt-cache.mjs";
 
 // A wall-clock time to hand the user: local, 24-hour, no date. Everything
@@ -16,9 +18,31 @@ const clock = (date) =>
   ":" +
   String(date.getMinutes()).padStart(2, "0");
 
-// When the reading was taken and which lifetime it is reading against.
-const header = (scan) =>
-  `Prompt cache, read at ${clock(scan.at)} (${scan.ttl} lifetime)`;
+const plural = (n, noun) => `${n} ${noun}${n === 1 ? "" : "s"}`;
+
+// How this reading prices a cut: what the price table charges the model the
+// scan read off the transcript. `assumed` marks a fallback to the default
+// rate -- the transcript named no model, or there was no table to ask.
+const priceOf = (scan, pricing) => {
+  // Null only where there is no table to ask: a model the table has never
+  // heard of takes its default.
+  const rate = readMultiplier(pricing, scan.model);
+
+  return { read: rate ?? DEFAULT_READ_MULTIPLIER, assumed: !scan.model || rate == null };
+};
+
+// The rate the opening line discloses, or null for a reading that discloses
+// none: an assumed rate is worth a clause only where the reading quotes a
+// figure that rate governs. Hung on a reading that prices nothing, it reads as
+// a claim about the sentence it stands next to instead.
+const disclosedRate = (price, quotesPayback) =>
+  price.assumed && quotesPayback ? price.read : null;
+
+// When the reading was taken, which lifetime it is reading against, and the
+// rate it priced the payback figures at where that rate was a guess.
+const header = (scan, rate) =>
+  `Prompt cache, read at ${clock(scan.at)} (${scan.ttl} lifetime` +
+  (rate === null ? ")" : `, payback at the default ${rate}x cache read)`);
 
 // Whether the reading has a compaction to speak of. A boundary that kept
 // prompts verbatim prices them, and that is worth a sentence. A boundary that
@@ -30,19 +54,21 @@ const namesCompaction = (scan) => (scan.compaction?.kept.length ?? 0) > 0;
 // What every reading opens with: the header, and the compaction above the
 // cached range where it kept anything, since that is what prices the prompts
 // the list does not.
-const opening = (scan) =>
+const opening = (scan, rate) =>
   namesCompaction(scan)
-    ? `${header(scan)}. ${compactedTo(scan.compaction)}. ${keptClause(scan.compaction, "since then")}`
-    : `${header(scan)}.`;
+    ? `${header(scan, rate)}. ${compactedTo(scan.compaction)}. ${keptClause(scan.compaction, "since then")}`
+    : `${header(scan, rate)}.`;
 
 // The whole of what there is to say when no prompt is left cached: a rewind
 // costs its whole prefix wherever it lands, which leaves `/compact` -- unless a
 // compaction has already bounded that price, and then what happened is that the
 // session compacted and has been idle since.
+//
+// Neither of them quotes a payback, so neither has a rate to disclose.
 const emptyReading = (scan) =>
   scan.compaction
-    ? `${header(scan)}. ${compactedTo(scan.compaction)} and nothing has been sent since.${scan.compaction.kept.length > 0 ? ` ${keptClause(scan.compaction, "")}` : ""}`
-    : `${header(scan)}: no prompt is still cached, so any rewind re-reads its whole prefix at full price. Recommend \`/compact <focus line>\` instead.`;
+    ? `${header(scan, null)}. ${compactedTo(scan.compaction)} and nothing has been sent since.${scan.compaction.kept.length > 0 ? ` ${keptClause(scan.compaction, "")}` : ""}`
+    : `${header(scan, null)}: no prompt is still cached, so any rewind re-reads its whole prefix at full price. Recommend \`/compact <focus line>\` instead.`;
 
 // What the whole context comes to when the only prompt in it is its first: a
 // cut there summarizes nothing, so the list is empty for a reason that is not
@@ -125,11 +151,24 @@ function listedPrompts(scan) {
   return listed;
 }
 
+// What a cut at a prompt costs, in the unit the agent can weigh it in against
+// the work still in front of it: the turns it takes to pay for itself. Empty
+// for a prompt there is no such figure for.
+const paybackClause = (turns) =>
+  turns === null ? "" : `, pays back after ${plural(turns, "turn")}`;
+
 // The reading itself: an opening paragraph, the cut points as numbered rows,
 // and what the rest of the session is, above and below them. Rows rather than
 // a sentence because this is a choice between three things, and a paragraph
 // that has to be unpicked into three is a worse way to put a choice.
-export function cacheReading(scan) {
+//
+// `pricing` is the price table, and the model it is asked about is the one the
+// scan read off the transcript it is reading -- so a reading of another
+// session's transcript is priced by that transcript, not by its caller. Null
+// where there is no table.
+export function cacheReading(scan, pricing = null) {
+  const price = priceOf(scan, pricing);
+
   if (scan.prompts.length === 0) {
     return emptyReading(scan);
   }
@@ -137,22 +176,27 @@ export function cacheReading(scan) {
   const listed = listedPrompts(scan);
 
   if (listed.length === 0) {
-    return `${opening(scan)} ${nothingToCutClause}`;
+    return `${opening(scan, null)} ${nothingToCutClause}`;
   }
+
+  // Priced before anything is written, since whether the opening line has a
+  // rate to disclose turns on whether any of these came to a figure.
+  const payback = listed.map((prompt) => paybackTurns(prompt, scan.ttl, price.read));
+  const rate = disclosedRate(price, payback.some((turns) => turns !== null));
 
   const rows = listed.flatMap((prompt, i) => [
     `  ${i + 1}. "${prompt.text}"`,
     // What a cut here summarizes away, and what it keeps verbatim above it --
-    // which the rewind writes back to the cache at full price before any of
-    // the saving starts.
-    `     sent ${clock(prompt.sentAt)} | valid until ${clock(prompt.expiresAt)} | ${formatTokens(prompt.prefixTokens)} tokens before it, keeps ${formatTokens(prompt.keptTokens)}`,
+    // which the rewind writes back to the cache at the write price before any
+    // of the saving starts.
+    `     sent ${clock(prompt.sentAt)} | valid until ${clock(prompt.expiresAt)} | ${formatTokens(prompt.prefixTokens)} tokens before it, keeps ${formatTokens(prompt.keptTokens)}${paybackClause(payback[i])}`,
   ]);
 
   // The compaction gets a paragraph of its own: the rows below it are the
   // choice, and it is not one of them.
   const paragraphs = namesCompaction(scan)
-    ? [opening(scan), "Cached prompts, oldest first:"]
-    : [`${opening(scan)} Cached prompts, oldest first:`];
+    ? [opening(scan, rate), "Cached prompts, oldest first:"]
+    : [`${opening(scan, rate)} Cached prompts, oldest first:`];
 
   paragraphs.push(rows.join("\n"), cachedRangeClause(scan));
 
@@ -169,9 +213,9 @@ export function cacheReading(scan) {
 //
 // Never throws: the level crossing is what the message is for, and a transcript
 // this cannot make sense of must not cost the user the notice itself.
-export function cacheSnapshot(path, now = Date.now()) {
+export function cacheSnapshot(path, pricing, now = Date.now()) {
   try {
-    return cacheReading(scanCacheWindow(path, now));
+    return cacheReading(scanCacheWindow(path, now), pricing);
   } catch {
     return "Prompt cache: state could not be determined from the transcript, so treat the cost of any rewind cut point as unknown.";
   }

@@ -20,16 +20,18 @@ choose the cut point.
   the prompt itself is younger than the session's cache lifetime — so the
   snapshot lists three cached prompts spread across the context, the oldest,
   the newest and the one nearest halfway between them by size, each a row
-  carrying the clock time it falls out, what a cut there summarizes away and
-  what it keeps verbatim; the agent is told to hand the user that deadline with
-  the recommendation. Where the session was compacted and kept prompts
+  carrying the clock time it falls out, what a cut there summarizes away, what
+  it keeps verbatim, and how many more turns the session has to take before the
+  cut has paid for what it cost; the agent is told to hand the user that
+  deadline with the recommendation. Where the session was compacted and kept prompts
   verbatim, the reading names them, since a rewind at one of them costs at most
   the context the compaction left behind. It is read by walking the transcript
   backward, only on the run that injects; the runs that measure and stay quiet
   keep their fixed tail read.
 - The `cut-point` skill, `/context-budget:cut-point`: the identical reading
   taken fresh — one renderer prints both — listing the same three cut points
-  with their expiry and their two sizes, since everything newer than the oldest
+  with their expiry, their two sizes and how many more turns of the session it
+  takes before the cut has paid for what it cost, since everything newer than the oldest
   is cached too and a busy hour would otherwise print dozens of interchangeable
   rows. For when the snapshot in the message has aged out, or the user asks for
   another cut point. It finds the session's transcript through the record the
@@ -74,13 +76,21 @@ The resume guard reads the same file: `[resume-guard]` holds its two limits and
 an `enabled` switch, and `[resume-guard.messages]` holds the two deny reasons
 it hands back to the agent.
 
+`hooks/pricing.toml` is not configuration and is not part of that file: it is
+what each model charges for a token read from the prompt cache, against one
+fresh input token, which is the rate every payback figure is priced at. A
+`pricing.toml` of the same shape beside the config override corrects a rate
+that has gone out of date; one that cannot be used is dropped whole and the
+shipped rates stand, with nothing said about it — an edit that changes no
+figure is the sign to look at the file.
+
 ## Dependencies
 
-TOML has no parser in Node, so both hooks depend on `smol-toml`. Claude Code
-installs it: when it copies a plugin into its cache it runs
-`npm ci --ignore-scripts` in the cached copy whenever the plugin root has a
-`package.json` and a `package-lock.json`. Nothing to build, nothing to run by
-hand.
+TOML has no parser in Node, so both hooks and the `cut-point` skill's command
+depend on `smol-toml`. Claude Code installs it: when it copies a plugin into
+its cache it runs `npm ci --ignore-scripts` in the cached copy whenever the
+plugin root has a `package.json` and a `package-lock.json`. Nothing to build,
+nothing to run by hand.
 
 Neither hook keeps a second set of values to run on. If the parser will not
 import, or if either config file cannot be read, parsed, or used, the first

@@ -3,7 +3,7 @@
 // nothing to stub -- and the bugs these cover (a stale measurement, a level
 // that never re-arms) live in the interaction between those three, not in any
 // one function.
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -26,6 +26,7 @@ import {
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const HOOK = join(ROOT, "hooks", "context-budget.mjs");
 const DEFAULTS = join(ROOT, "hooks", "config.toml");
+const PRICING = join(ROOT, "hooks", "pricing.toml");
 
 const FIXTURES = mkdtempSync(join(tmpdir(), "context-budget-test-"));
 process.on("exit", () => rmSync(FIXTURES, { recursive: true, force: true }));
@@ -41,27 +42,53 @@ function transcript(...lines) {
 // level and cannot disturb a real session's file. The record lives in the OS
 // temp directory under a name the hook's own module spells, so a test cannot
 // watch the wrong file.
-function session(t) {
+// `config` and `pricing` are the user's own files where a test needs one; with
+// neither, the hook is pointed at paths that are not there, which is what
+// almost every session really has.
+function session(t, { config, pricing } = {}) {
   const id = `context-budget-test-${process.pid}-${seq++}`;
   const file = stateFile(id);
   t.after(() => rmSync(file, { force: true }));
+
+  const userFile = (name, toml) => {
+    if (toml === undefined) return join(FIXTURES, `no-such-${name}.toml`);
+
+    const path = join(FIXTURES, `${name}-${seq++}.toml`);
+    writeFileSync(path, toml);
+    return path;
+  };
+
+  const argv = [
+    HOOK,
+    "--defaults",
+    DEFAULTS,
+    "--overrides",
+    userFile("override", config),
+    "--pricing",
+    PRICING,
+    "--pricing-overrides",
+    userFile("pricing-override", pricing),
+  ];
+
+  const options = (transcriptPath) => ({
+    input: JSON.stringify({
+      session_id: id,
+      transcript_path: transcriptPath,
+      hook_event_name: "UserPromptSubmit",
+    }),
+    encoding: "utf8",
+  });
+
   return {
     id,
     seed: (state) => writeFileSync(file, JSON.stringify(state)),
     record: () => JSON.parse(readFileSync(file, "utf8")),
     run: (transcriptPath) =>
-      execFileSync(
-        process.execPath,
-        [HOOK, "--defaults", DEFAULTS, "--overrides", join(FIXTURES, "no-such-override.toml")],
-        {
-          input: JSON.stringify({
-            session_id: id,
-            transcript_path: transcriptPath,
-            hook_event_name: "UserPromptSubmit",
-          }),
-          encoding: "utf8",
-        },
-      ),
+      execFileSync(process.execPath, argv, options(transcriptPath)),
+    // The whole result, for a test that has to see what the run said on stderr
+    // or exited with rather than what it injected.
+    spawn: (transcriptPath) =>
+      spawnSync(process.execPath, argv, options(transcriptPath)),
   };
 }
 
@@ -174,6 +201,34 @@ test("the shipped fable row raises both thresholds for that model", (t) => {
   );
 });
 
+test("a transcript that names no model takes [default], not a row that matches it", (t) => {
+  // An empty model id is a transcript that says nothing about what it was sent
+  // to, and no row was written for that. A row keyed to match everything --
+  // '.*', '^', '' -- would otherwise take it and fire on thresholds nobody
+  // chose for it, which on a row like this one is an urgent notice at a
+  // context that is not large.
+  const rows = "[models.'.*']\nnotice = 10_000\nurgent = 20_000\n";
+
+  const unnamed = session(t, { config: rows });
+
+  assert.equal(
+    injected(unnamed.run(transcript(assistant(120_000, { model: "" })))),
+    null,
+    "120K is under [default]'s 150K notice, and [default] is what governs it",
+  );
+  assert.equal(unnamed.record().level, "none");
+
+  // The same row against an id there is one for: still tried, still wins, so
+  // the rule is about the empty id and not about the row.
+  const named = session(t, { config: rows });
+
+  assert.match(
+    injected(named.run(transcript(assistant(120_000, { model: "claude-opus-5" })))) ?? "",
+    /this session is at 120K tokens[\s\S]*Finish the step in hand/,
+    "a row keyed to match everything still governs a model that has an id",
+  );
+});
+
 // --- the cache snapshot in the injected message -----------------------------
 //
 // The recommendation the messages ask for is only worth making if the prompt it
@@ -201,7 +256,7 @@ test("the notice passes over a prompt that opens the context and says so", (t) =
       `Cached prompts, oldest first:\\s+` +
         `1\\. "Now wire the placeholder into both messages"\\s+` +
         `sent ${hhmm(wired)} \\| valid until ${hhmm(wired, HOUR)} \\| ` +
-        `150K tokens before it, keeps 50K`,
+        `150K tokens before it, keeps 50K, pays back after 9 turns`,
     ),
     "the expiry is one 1h lifetime after the prompt was sent",
   );
@@ -231,8 +286,37 @@ test("a failed request at the end of the transcript is not the current context",
   assert.match(text, /this session is at 200K tokens/);
   assert.match(
     text,
-    /"Now wire the placeholder into both messages"[\s\S]*?100K tokens before it, keeps 100K/,
+    /"Now wire the placeholder into both messages"[\s\S]*?100K tokens before it, keeps 100K, pays back after 22 turns/,
     "what a cut there keeps is the 200K context less the 100K it summarizes away",
+  );
+});
+
+test("a failed request is not the turn the reading takes the model from either", (t) => {
+  // The same failure, on the one tier whose cache reads are not the default
+  // rate. The synthetic id a failed request carries ("<synthetic>") matches no
+  // row, so a reading that took the model from the newest entry rather than
+  // from the newest turn would quietly price Fable's cut points at four times
+  // what they save: 124 turns is the honest figure and 31 is the wrong one.
+  const s = session(t);
+  const fable = { model: "claude-fable-5-1" };
+  const path = transcript(
+    assistant(200_000, { minutesAgo: 45, ...fable }),
+    prompt("Start on the cache-aware cut points now", at(40)),
+    prompt("Now wire the placeholder into both messages", at(20)),
+    assistant(500_000, { minutesAgo: 19, ...fable }),
+    apiError({ minutesAgo: 5 }),
+  );
+  const text = injected(s.run(path)) ?? "";
+
+  assert.match(text, /this session is at 500K tokens/, "the fable row's 400K notice");
+  assert.match(
+    text,
+    /"Now wire the placeholder into both messages"[\s\S]*?200K tokens before it, keeps 300K, pays back after 124 turns/,
+  );
+  assert.doesNotMatch(
+    text,
+    /cache read\)/,
+    "the transcript names the model, so no rate is being assumed",
   );
 });
 
@@ -265,7 +349,7 @@ test("a prompt older than the lifetime is passed over for the next one down", (t
 
   assert.match(
     text,
-    /1\. "The oldest prompt still inside the window"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 150K tokens before it, keeps 50K/,
+    /1\. "The oldest prompt still inside the window"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 150K tokens before it, keeps 50K, pays back after 9 turns/,
   );
   assert.doesNotMatch(text, /stale prompt/);
   assert.match(
@@ -306,7 +390,7 @@ test("user entries the rewind picker would not list are never named", (t) => {
 
   assert.match(
     text,
-    /1\. "The one prompt the user actually typed"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 100K/,
+    /1\. "The one prompt the user actually typed"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 100K, pays back after 22 turns/,
   );
   for (const ineligible of [
     /picker never offers/,
@@ -341,7 +425,7 @@ test("the scan crosses a compaction boundary only for the prompts it kept", (t) 
   );
   assert.match(
     text,
-    /1\. "The first prompt after the compaction"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 120K tokens before it, keeps 80K/,
+    /1\. "The first prompt after the compaction"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 120K tokens before it, keeps 80K, pays back after 16 turns/,
   );
   assert.doesNotMatch(
     text,
@@ -405,5 +489,35 @@ test("a compaction that kept nothing leaves a context with one prompt and nothin
   assert.match(
     text,
     /Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one is its first, so there is nothing to cut at yet\./,
+  );
+});
+
+test("a user pricing file the plugin cannot use is dropped whole, silently", (t) => {
+  // 5 would price a cached token at five fresh ones, and every payback figure
+  // would come out plausible and wrong. The file is dropped whole and the
+  // shipped rates stand -- and the hook says nothing about it, since a line on
+  // the stderr of a hook that exits 0 is one Claude Code never shows.
+  const s = session(t, { pricing: "default = 5\n" });
+  const result = s.spawn(
+    transcript(
+      assistant(80_000, { minutesAgo: 200 }),
+      prompt("The prompt from before lunch", at(190)),
+      assistant(100_000, { minutesAgo: 55 }),
+      prompt("Read the brief and start on the scanner", at(50)),
+      assistant(200_000, { minutesAgo: 30 }),
+    ),
+  );
+
+  assert.equal(
+    s.record().reported,
+    undefined,
+    "nothing to report, so no class claimed against the session",
+  );
+  assert.equal(result.stderr, "", "and nothing written where nobody would read it");
+  assert.equal(result.status, 0);
+  assert.match(
+    injected(result.stdout) ?? "",
+    /100K tokens before it, keeps 100K, pays back after 22 turns/,
+    "the reading is priced at the shipped rate, as if the file were not there",
   );
 });
