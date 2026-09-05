@@ -7,6 +7,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-05
+
 ### Added
 
 - `SessionStart` and `PostModelSwitch` hook that writes the text of every
@@ -46,3 +48,6 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   on `PATH` and otherwise under Node 22.6+, with a `.runtime` file in the data
   directory to force one. Under bun a dependency the plugin lacks is reported,
   never fetched on the fly.
+
+[Unreleased]: https://github.com/Stumblinbear/den/compare/model-prompts--v0.2.0...HEAD
+[0.2.0]: https://github.com/Stumblinbear/den/releases/tag/model-prompts--v0.2.0
