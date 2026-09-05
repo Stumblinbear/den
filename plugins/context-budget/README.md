@@ -1,45 +1,40 @@
 # context-budget
 
 A Claude Code plugin that tells the agent when the session's context has
-crossed a per-model token threshold, so it finishes the task in hand and then
-recommends `/compact` or a rewind summarize — instead of letting auto-compact
-choose the cut point.
+crossed a per-model token threshold, so it puts `/compact` or a rewind
+summarize to the user at the end of the arc it is working on — instead of
+letting auto-compact choose the cut point.
 
 ## What is in it
 
 - A `PostToolUse` + `UserPromptSubmit` hook that reads the tail of the session
   transcript for the newest assistant turn, sums its prompt, cache-creation and
   cache-read tokens, and compares that against a per-model threshold pair.
-  Crossing `notice` injects a message telling the agent to raise it at the next
-  natural stopping point; crossing `urgent` injects one telling it to raise it
-  now and to recommend a `Summarize up to here` rewind with a named cut point.
-  Each level injects once per session and re-arms if the context falls back
-  below it, which is what a compact or a summarize produces.
-- A snapshot of the prompt cache inside both injected messages. A rewind at a
-  prompt re-reads everything before it, and that prefix is cached only while
-  the prompt itself is younger than the session's cache lifetime — so the
-  snapshot lists three cached prompts spread across the context, the oldest,
-  the newest and the one nearest halfway between them by size, each a row
-  carrying the clock time it falls out, what a cut there summarizes away, what
-  it keeps verbatim, and how many more turns the session has to take before the
-  cut has paid for what it cost; the agent is told to hand the user that
-  deadline with the recommendation. Where the session was compacted and kept prompts
-  verbatim, the reading names them, since a rewind at one of them costs at most
-  the context the compaction left behind. It is read by walking the transcript
-  backward, only on the run that injects; the runs that measure and stay quiet
-  keep their fixed tail read.
-- The `cut-point` skill, `/context-budget:cut-point`: the identical reading
-  taken fresh — one renderer prints both — listing the same three cut points
-  with their expiry, their two sizes and how many more turns of the session it
-  takes before the cut has paid for what it cost, since everything newer than the oldest
-  is cached too and a busy hour would otherwise print dozens of interchangeable
-  rows. For when the snapshot in the message has aged out, or the user asks for
-  another cut point. It finds the session's transcript through the record the
-  hook writes on every run, so it works from the session's first tool call
-  whether or not anything has been injected.
+  Crossing `notice` injects a message saying how large the session is and to
+  wait for the end of the arc in hand before raising it — a brief written or an
+  agent launched is a step inside an arc, not the end of one; crossing `urgent`
+  injects one telling it to raise it at the end of the step in hand instead.
+  Neither names a cut point: both send the agent to the `cut-point` skill for
+  one. Each level injects once per session and re-arms if the context falls
+  back below it, which is what a compact or a summarize produces.
+- The `cut-point` skill, `/context-budget:cut-point`: a reading of the prompt
+  cache, taken at the moment it is asked for. A rewind at a prompt re-reads
+  everything before it, and that prefix is cached only while the prompt itself
+  is younger than the session's cache lifetime — so the reading lists three
+  cached prompts spread across the context, the oldest, the newest and the one
+  nearest halfway between them by size, each a row carrying the clock time it
+  falls out, what a cut there summarizes away, what it keeps verbatim, and how
+  many more turns the session has to take before the cut has paid for what it
+  cost. Three, because everything newer than the oldest is cached too and a
+  busy hour would otherwise print dozens of interchangeable rows. Where the
+  session was compacted and kept prompts verbatim, the reading names them,
+  since a rewind at one of them costs at most the context the compaction left
+  behind. It finds the session's transcript through the record the hook writes
+  on every run, so it works from the session's first tool call whether or not
+  anything has been injected.
 - The `context-budget` skill: the "Summarize up to here" rewind, `/compact`
-  with a focus line, how to pick and describe a cut point, and how to judge a
-  stopping point by task.
+  with a focus line, how to pick and describe a cut point, and how to tell the
+  end of an arc from the end of a step inside one.
 - A `PreToolUse` resume guard on `SendMessage` that denies resuming a subagent
   whose context is above 150K tokens, or above 50K with an expired prompt
   cache, until the user picks "Resume" in an AskUserQuestion prompt. A resumed
@@ -76,7 +71,7 @@ The resume guard reads the same file: `[resume-guard]` holds its two limits and
 an `enabled` switch, and `[resume-guard.messages]` holds the two deny reasons
 it hands back to the agent.
 
-`hooks/pricing.toml` is not configuration and is not part of that file: it is
+`lib/pricing.toml` is not configuration and is not part of that file: it is
 what each model charges for a token read from the prompt cache, against one
 fresh input token, which is the rate every payback figure is priced at. A
 `pricing.toml` of the same shape beside the config override corrects a rate

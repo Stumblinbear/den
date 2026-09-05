@@ -1,23 +1,21 @@
-// The two things about the cache scan that the end-to-end hook tests cannot
-// reach.
+// The parts of the cache scan that a reading printed by the cut-point script
+// does not show.
 //
-// The first is a scan that fails: the hook reads the transcript for the
-// measurement before it reads it for the snapshot, so a transcript it cannot
-// open never gets as far as the snapshot at all. The guarantee -- that a scan
-// failure costs the message its cut point and not the notice -- therefore has
-// to be asserted here.
-//
-// The second is a session whose cache lifetime changed part way through. Which
+// The first is a session whose cache lifetime changed part way through. Which
 // lifetime a prompt expires on is the one its own preceding turn was billed
 // under, not the session's current one, and the difference only shows in the
 // expiry arithmetic.
+//
+// The second is what the walk found above the cached prompts, which the
+// reading turns into one clause and never quotes: the prompt a session opened
+// with is a selectable cut point above them without being one of them, and a
+// prompt straddling the seam of the backward read is neither lost nor mangled.
 import { mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { cacheSnapshot } from "../hooks/cache-reading.mjs";
-import { CHUNK_BYTES, scanCacheWindow } from "../hooks/prompt-cache.mjs";
+import { CHUNK_BYTES, scanCacheWindow } from "../lib/prompt-cache.mjs";
 import { assistant, at, HOUR, prompt } from "./fixtures.mjs";
 
 const FIXTURES = mkdtempSync(join(tmpdir(), "prompt-cache-test-"));
@@ -29,17 +27,6 @@ function transcript(...lines) {
   writeFileSync(path, lines.join("\n") + "\n");
   return path;
 }
-
-test("a transcript that cannot be read fills the placeholder instead of throwing", () => {
-  const missing = join(FIXTURES, "no-session-here.jsonl");
-
-  assert.throws(() => scanCacheWindow(missing), { code: "ENOENT" });
-  assert.match(
-    cacheSnapshot(missing),
-    /^Prompt cache: state could not be determined/,
-    "the notice still has something to say where the scan has nothing",
-  );
-});
 
 test("a prompt expires on the lifetime its own preceding turn was billed under", () => {
   const sent = at(20);

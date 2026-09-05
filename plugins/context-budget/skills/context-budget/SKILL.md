@@ -1,6 +1,6 @@
 ---
 name: context-budget
-description: Use when the session's context is filling and you need to recommend `/compact` or a rewind summarize to the user — how a rewind summarize differs from `/compact`, how to pick a cut point and a focus line, and how to judge a natural stopping point for the task in hand.
+description: Use when the session's context is filling and you need to recommend `/compact` or a rewind summarize to the user — how a rewind summarize differs from `/compact`, how to pick a cut point and a focus line, and how to tell the end of an arc from a step inside one.
 when_to_use: Use the moment a "Context budget:" notice appears in the conversation, before deciding what to recommend, and when the user asks whether to compact, rewind, or keep going. Trigger phrases - "context budget", "should I compact", "rewind or compact".
 ---
 
@@ -26,20 +26,20 @@ you can name a cut point better than "the last little while".
 - **`/compact` with a focus line** — the session is one continuous thread and
   the recent work is the work. The default; it costs one command and no picker.
 - **"Summarize up to here"** — a bounded stretch is finished and behind you (a
-  shipped feature, an investigation that produced its answer) and the current
-  task began at a prompt you can quote. Everything from that prompt on survives
-  exactly, which is what makes this the safe direction mid-task.
+  shipped feature, an investigation that produced its answer) and the arc you
+  are in began at a prompt you can quote. Everything from that prompt on
+  survives exactly, which is what makes this the safe direction inside an arc.
 
 ## Naming the cut point
 
 Look for the prompt where the work you are still doing began — usually the
-first prompt of the current task, not the most recent one. A good cut point has
-nothing after it that you would be sorry to lose and nothing before it that you
-are still leaning on.
+first prompt of the arc you are in, not the most recent one. A good cut point
+has nothing after it that you would be sorry to lose and nothing before it that
+you are still leaning on.
 
 ## The cache window
 
-A rewind at a prompt re-reads everything before it. That prefix is cached only while the prompt is younger than the session's cache lifetime, 5 minutes or an hour: a rewind at a cached prompt costs nothing, and one at an uncached prompt re-reads its whole prefix at full price. Prefer the oldest cached prompt at or after the start of the current task; that is the most the session can summarize away for nothing. What it keeps is written back at the write price when the rewind lands — twice a fresh input token on the one-hour lifetime, 1.25 times on the five-minute — so a cut that keeps most of the context is a case for a newer cut or for `/compact`. The `cut-point` skill reads the transcript, lists the cached prompts with the time each stays cached until, and says how to phrase the recommendation; invoke it rather than guessing, and again if the time you quoted has passed.
+A rewind at a prompt re-reads everything before it. That prefix is cached only while the prompt is younger than the session's cache lifetime, 5 minutes or an hour: a rewind at a cached prompt costs nothing, and one at an uncached prompt re-reads its whole prefix at full price. Prefer the oldest cached prompt at or after the start of the arc; that is the most the session can summarize away for nothing. What it keeps is written back at the write price when the rewind lands — twice a fresh input token on the one-hour lifetime, 1.25 times on the five-minute — so a cut that keeps most of the context is a case for a newer cut or for `/compact`. The `cut-point` skill reads the transcript, lists the cached prompts with the time each stays cached until, and says how to phrase the recommendation; invoke it rather than guessing, and again if the time you quoted has passed.
 
 ## The focus line
 
@@ -57,15 +57,21 @@ can re-read spends tokens to save none.
 
 ## Judging the stopping point
 
-At the notice threshold, keep going and raise it where losing working state
-costs nothing:
+At the notice threshold, keep working and raise the choice at the end of the
+arc you are in. The test is whether the work ahead would need the detail behind
+it: at the end of an arc it would not, so a summary that keeps what came before
+in outline costs nothing. A step inside an arc — a brief written, an agent
+launched, a report relayed, a change made — fails that test, because the next
+step is written from exactly the detail the summary would thin.
 
-- mid-edit or mid-refactor: after the change compiles or its test passes
-- an investigation: after the finding is written down somewhere durable
-- a multi-step plan: at a step boundary, never inside a step
-- a subagent in flight: after its report has been relayed and whatever it leads to is launched; a pause for launch approval is not a stopping point, since the report and your judgment of it are what the launch prompt is written from
-- a red-then-green fix: after green
+That puts the end of an arc a good deal higher than the end of a step:
 
-At the urgent threshold, the stopping point is the end of the step you are in.
-Do not open a new file, launch a subagent, or start a step you cannot finish.
+- a change landed and reviewed, not a change that compiles
+- a question answered and acted on, not an answer relayed
+- an investigation whose finding is written down somewhere durable, so what the
+  context holds is now on disk
+
+At the urgent threshold the arc is no longer affordable to wait for: the
+stopping point is the end of the step in hand. Do not open a new file, launch a
+subagent, or start a step you cannot finish.
 

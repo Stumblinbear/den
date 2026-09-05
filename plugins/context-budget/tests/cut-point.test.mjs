@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { stateFile } from "../hooks/session-record.mjs";
+import { stateFile } from "../lib/session-record.mjs";
 import {
   apiError,
   assistant,
@@ -22,13 +22,14 @@ import {
   HOUR,
   MINUTE,
   prompt,
+  toolResult,
 } from "./fixtures.mjs";
 
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const SCRIPT = join(ROOT, "scripts", "cut-point.mjs");
 const HOOK = join(ROOT, "hooks", "context-budget.mjs");
 const DEFAULTS = join(ROOT, "hooks", "config.toml");
-const PRICING = join(ROOT, "hooks", "pricing.toml");
+const PRICING = join(ROOT, "lib", "pricing.toml");
 
 const FIXTURES = mkdtempSync(join(tmpdir(), "cut-point-test-"));
 process.on("exit", () => rmSync(FIXTURES, { recursive: true, force: true }));
@@ -90,10 +91,6 @@ function session(t) {
           DEFAULTS,
           "--overrides",
           join(FIXTURES, "no-such-override.toml"),
-          "--pricing",
-          PRICING,
-          "--pricing-overrides",
-          pricingOverride(),
         ],
         {
           input: JSON.stringify({
@@ -195,6 +192,28 @@ test("a prompt that opens the context is left off the list", () => {
   assert.match(out, /Every prompt in the context is cached\./);
 });
 
+test("a context with one prompt behind its newest turn has nothing to cut at", () => {
+  // The prompt that opens the context summarizes nothing away and the one in
+  // flight keeps nothing, so the list is empty for a reason that is not "the
+  // cache has expired" -- and a bare "every prompt in the context is cached"
+  // over an empty list reads as exactly that.
+  const out = run([
+    "--transcript",
+    transcript(
+      assistant(100_000, { minutesAgo: 45 }),
+      prompt("Start on the cache-aware cut points now", at(40)),
+      assistant(200_000, { minutesAgo: 19 }),
+      prompt("was there anything still pending?", at(2)),
+    ),
+  ]);
+
+  assert.doesNotMatch(out, /still pending/, "the prompt in flight is not a cut point");
+  assert.match(
+    out,
+    /Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one with a turn after it is its first, so there is nothing to cut at yet\./,
+  );
+});
+
 test("the list is three prompts spread across the cached context, not across the clock", () => {
   // A busy stretch: five prompts, all in the cache. Listing every one of them
   // is a page of rows that say the same thing, and the three that are worth
@@ -233,6 +252,53 @@ test("the list is three prompts spread across the cached context, not across the
   assert.match(out, /Every prompt after the first is cached too;/);
 });
 
+test("user entries the rewind picker would not list are never named", () => {
+  const out = run([
+    "--transcript",
+    transcript(
+      // Cold, and above everything else: it keeps the one prompt below from
+      // being the first of the context, which would take it off the list on
+      // grounds that have nothing to do with the picker.
+      assistant(60_000, { minutesAgo: 200 }),
+      prompt("The stale prompt from hours ago", at(190)),
+      assistant(100_000, { minutesAgo: 50 }),
+      toolResult("Reading the file the picker never offers", at(45)),
+      prompt("A meta entry the harness wrote", at(44), { isMeta: true }),
+      prompt("<task-notification>\n<task-id>abc</task-id>\n</task-notification>", at(43)),
+      prompt("A relayed subagent report", at(42), {
+        origin: { kind: "task-notification" },
+      }),
+      prompt("An entry shown in the transcript only", at(41), {
+        isVisibleInTranscriptOnly: true,
+      }),
+      prompt("[Request interrupted by user]", at(40), {
+        message: {
+          role: "user",
+          content: [{ type: "text", text: "[Request interrupted by user]" }],
+        },
+        interruptedMessageId: "msg_01",
+      }),
+      prompt("The one prompt the user actually typed", at(30)),
+      assistant(200_000, { minutesAgo: 29 }),
+    ),
+  ]);
+
+  assert.match(
+    out,
+    /1\. "The one prompt the user actually typed"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 100K, pays back after 22 turns/,
+  );
+  for (const ineligible of [
+    /picker never offers/,
+    /meta entry/,
+    /task-notification/,
+    /relayed subagent/,
+    /transcript only/,
+    /Request interrupted/,
+  ]) {
+    assert.doesNotMatch(out, ineligible);
+  }
+});
+
 test("finds the transcript from the session id in the environment", (t) => {
   const s = session(t);
   const path = transcript(...SESSION);
@@ -259,6 +325,17 @@ test("a session the hook has never measured is reported, not guessed at", (t) =>
 
 test("no session id in the environment reads the same way as no record", () => {
   assert.match(run([]), /^No measurement recorded for this session/);
+});
+
+test("a transcript that cannot be read is explained, not thrown", () => {
+  // The scan throws on a file it cannot open, and what the agent has in front
+  // of it is this script's stdout: a stack trace on stderr and an empty
+  // reading would leave it nothing to say and no reason why.
+  const out = spawn(["--transcript", join(FIXTURES, "no-session-here.jsonl")]);
+
+  assert.equal(out.status, 0, "the reading is prose, so the exit is always 0");
+  assert.equal(out.stderr, "");
+  assert.match(out.stdout, /could not be read \(ENOENT\), so the cache window is unknown/);
 });
 
 // A session compacted twenty minutes ago, keeping two prompts verbatim above
@@ -309,6 +386,65 @@ test("a prompt in flight is not the session going quiet after a compaction", () 
     out,
     COMPACTED_READING,
     "and what the agent is to recommend is what it was when the session was idle",
+  );
+});
+
+test("the scan crosses a compaction boundary only for the prompts it kept", () => {
+  const out = run([
+    "--transcript",
+    transcript(
+      assistant(80_000, { minutesAgo: 60 }),
+      prompt("A prompt the compaction summarized away", at(55)),
+      assistant(100_000, { minutesAgo: 50 }),
+      prompt("A prompt the compaction kept verbatim", at(45), { uuid: "kept-1" }),
+      compactBoundary({ minutesAgo: 32, postTokens: 30_000, kept: ["kept-1"] }),
+      COMPACT_SUMMARY,
+      assistant(120_000, { minutesAgo: 30 }),
+      prompt("The first prompt after the compaction", at(25)),
+      assistant(200_000, { minutesAgo: 24 }),
+    ),
+  ]);
+
+  assert.match(
+    out,
+    /The one prompt kept verbatim since then, from "A prompt the compaction kept verbatim" on/,
+  );
+  assert.match(
+    out,
+    /1\. "The first prompt after the compaction"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 120K tokens before it, keeps 80K, pays back after 16 turns/,
+  );
+  assert.doesNotMatch(
+    out,
+    /summarized away/,
+    "a prompt the compaction did not keep is gone from the context and from the picker",
+  );
+});
+
+test("a compaction that kept nothing leaves a context with nothing to cut at", () => {
+  // The boundary kept no prompt verbatim, so the only prompt in the context is
+  // the first one sent after it -- and a cut there summarizes nothing away.
+  // Saying what the compaction cost adds nothing to that choice, because there
+  // is no choice; what the agent needs to hear is that there is nothing to cut
+  // at yet, rather than a bare "every prompt in the context is cached" that
+  // reads as an empty list.
+  const out = run([
+    "--transcript",
+    transcript(
+      assistant(80_000, { minutesAgo: 60 }),
+      prompt("A prompt the compaction summarized away", at(55)),
+      assistant(100_000, { minutesAgo: 50 }),
+      compactBoundary({ minutesAgo: 40, postTokens: 31_212, kept: [] }),
+      COMPACT_SUMMARY,
+      assistant(60_000, { minutesAgo: 39 }),
+      prompt("The only prompt in the new context", at(35)),
+      assistant(200_000, { minutesAgo: 34 }),
+    ),
+  ]);
+
+  assert.doesNotMatch(out, /The session was compacted/);
+  assert.match(
+    out,
+    /Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one with a turn after it is its first, so there is nothing to cut at yet\./,
   );
 });
 
@@ -402,6 +538,36 @@ test("a failed request is not the turn the prompt below it is priced against", (
         `100K tokens before it, keeps 100K, pays back after 22 turns`,
     ),
     "the 100K turn wrote the prefix a cut there re-reads, and the context is 200K",
+  );
+});
+
+test("a failed request is not the turn the reading takes the model from either", () => {
+  // The same failure at the end of the transcript, on the one tier whose cache
+  // reads are not the default rate. The synthetic id a failed request carries
+  // ("<synthetic>") matches no row, so a reading that took the model from the
+  // newest entry rather than from the newest turn would quietly price Fable's
+  // cut points at four times what they save: 124 turns is the honest figure
+  // and 31 is the wrong one.
+  const fable = { model: "claude-fable-5-1" };
+  const out = run([
+    "--transcript",
+    transcript(
+      assistant(200_000, { minutesAgo: 45, ...fable }),
+      prompt("Read the brief and start on the scanner", at(40)),
+      prompt("Now add the skill that takes a fresh reading", at(20)),
+      assistant(500_000, { minutesAgo: 19, ...fable }),
+      apiError({ minutesAgo: 5 }),
+    ),
+  ]);
+
+  assert.match(
+    out,
+    /"Now add the skill that takes a fresh reading"[\s\S]*?200K tokens before it, keeps 300K, pays back after 124 turns/,
+  );
+  assert.doesNotMatch(
+    out,
+    /cache read\)/,
+    "the transcript names the model, so no rate is being assumed",
   );
 });
 

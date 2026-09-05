@@ -1,11 +1,15 @@
 // PostToolUse and UserPromptSubmit hook. Measures how full the session's
 // context is and injects one message when it crosses a per-model threshold, so
-// the agent finishes its task and then recommends `/compact` or a rewind
-// summarize.
+// the agent puts the choice between `/compact` and a rewind summarize to the
+// user when the arc it is in ends.
+//
+// The message says the size and nothing else about the session: which prompt
+// to cut at is the `context-budget:cut-point` skill's reading, taken when the
+// agent is ready to act on it. So nothing here reads the transcript beyond the
+// tail it measures, or a price at all.
 //
 // Subagents are out of scope, as they are short-lived and cannot compact.
 import { closeSync, fstatSync, openSync, readSync } from "node:fs";
-import { cacheSnapshot } from "./cache-reading.mjs";
 import {
   configPaths,
   fill,
@@ -13,10 +17,14 @@ import {
   loadConfig,
   modelRow,
   printedFault,
-} from "./config.mjs";
-import { loadPricing, pricingPaths } from "./pricing.mjs";
-import { readRecord, writeRecord } from "./session-record.mjs";
-import { contextTokens, isCompaction, turnModel, turnUsage } from "./transcript.mjs";
+} from "../lib/config.mjs";
+import { readRecord, writeRecord } from "../lib/session-record.mjs";
+import {
+  contextTokens,
+  isCompaction,
+  turnModel,
+  turnUsage,
+} from "../lib/transcript.mjs";
 
 const EVENTS = ["PostToolUse", "UserPromptSubmit"];
 // Enough to hold the newest assistant entry with room to spare: the largest
@@ -29,7 +37,6 @@ const LEVELS = ["none", "notice", "urgent"];
 // --- configuration ---------------------------------------------------------
 
 const paths = configPaths(process.argv.slice(2));
-const prices = pricingPaths(process.argv.slice(2));
 
 // --- measurement -----------------------------------------------------------
 
@@ -176,11 +183,6 @@ async function run() {
       process.exit(0);
     }
 
-    // Only here, on the one run in the session that injects this level. The
-    // per-tool-call path that measures and stays quiet keeps its fixed-size
-    // tail read: it never walks the transcript and never reads a price.
-    const cache = cacheSnapshot(String(input.transcript_path), await loadPricing(prices));
-
     process.stdout.write(
       JSON.stringify({
         hookSpecificOutput: {
@@ -189,7 +191,6 @@ async function run() {
             model: measured.model || "this model",
             tokens: formatTokens(measured.tokens),
             threshold: formatTokens(limits[level]),
-            cache,
           }),
         },
       }),

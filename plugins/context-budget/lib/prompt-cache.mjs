@@ -14,9 +14,8 @@
 // Every prompt older than the oldest cached one costs a full-price read of
 // everything before it, whichever direction the user picks.
 //
-// Read by the measurement hook, which bakes a snapshot into the message it
-// injects, and by the cut-point script, which takes a fresh one on demand.
-// What either of them says about a scan is `cache-reading.mjs`.
+// Read by the cut-point script, which scans on demand. What it says about a
+// scan is `cache-reading.mjs`.
 import { closeSync, fstatSync, openSync, readSync } from "node:fs";
 import { eligible, openingWords } from "./rewind-picker.mjs";
 import {

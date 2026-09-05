@@ -3,8 +3,8 @@
 # it survives plugin updates, and this one does not. The override is merged
 # over these values key by key, so it only needs the keys it changes.
 #
-# What a cached token costs a model is not configuration: it is pricing.toml,
-# beside this file.
+# What a cached token costs a model is not configuration: it is
+# ../lib/pricing.toml.
 
 # Thresholds are absolute input token counts: prompt plus cache creation plus
 # cache read on the session's last assistant turn.
@@ -38,41 +38,28 @@ urgent = 700_000
 # The two messages injected into the agent's context, once each per session per
 # level. They are instructions to the agent, not text shown to the user.
 #
-# Four placeholders are substituted before injection:
+# Three placeholders are substituted before injection:
 #   {model}      the model id from the transcript
 #   {tokens}     the measured context, e.g. "200.4K"
 #   {threshold}  the threshold just crossed, e.g. "140K"
-#   {cache}      a snapshot of the prompt cache, read from the transcript at
-#                the moment of injection: three prompts spread across the
-#                cached range -- oldest, middle, newest -- as numbered rows,
-#                each with the clock time it stops being cached, what a cut
-#                there summarizes away, what it keeps verbatim, and how many
-#                turns of the session it takes before the cut has paid for
-#                itself; and what sits above them. Or a plain statement that
-#                no prompt is cached, or that the context is only its first
-#                prompt. The same reading the `context-budget:cut-point`
-#                skill prints.
+#
+# Neither message names a cut point. That is the `context-budget:cut-point`
+# skill's reading, taken when the agent is ready to put the choice to the user
+# rather than baked in here and left to go stale.
 [messages]
 
-# Injected on crossing `notice`. Its job is to stop the agent from compacting
-# mid-task and to get the recommendation made at a point where it costs nothing.
+# Injected on crossing `notice`. Its job is to say the size once and then get
+# out of the way until the arc the agent is in ends: a step inside an arc is
+# not a point where a summarize is affordable, and an agent that treats it as
+# one recommends a compaction at every brief and every launch.
 notice = """
-Context budget: this session is at {tokens} tokens. Carry the current task to its next natural stopping point, then recommend either `/compact <focus line>` or a rewind summarize, in a sentence or two saying which and why. Compacting mid-task throws away working state you would have to rebuild, so hold the recommendation until then and keep working normally in the meantime.
+Context budget: this session is at {tokens} tokens. A summarize is worth it at the end of an arc, where the work ahead would not need the detail behind it; a step inside one, a brief written or an agent launched, is not that point, since a summary keeps what came before only in outline, and the next step still needs it exact. Until then, work as if this message had not arrived, since raising the budget early pulls the work toward stopping. When the arc ends, invoke the `context-budget:cut-point` skill and put the choice to the user in a sentence."""
 
-{cache}
-
-If you recommend a rewind, cut at or after the oldest prompt listed above and at or after the start of the current task; the snapshot says what a cut above it costs. Give the user the direction by name, the prompt's opening words so they can find it in the picker, and "valid until HH:MM" from the snapshot, and say they can ask you for another cut point if they miss it. If that time is near or past when you reach the stopping point, invoke the `context-budget:cut-point` skill for a current one."""
-
-# Injected on crossing `urgent`. Its job is to get the recommendation raised
-# now, and to make it specific enough that the user can act on it in one step.
+# Injected on crossing `urgent`. Its job is to get the choice raised at the end
+# of the step in hand rather than at the end of the arc, which is no longer
+# affordable to wait for.
 urgent = """
-Context budget: this session is at {tokens} tokens. Finish the step in hand, then raise this with the user before starting anything new.
-
-{cache}
-
-Recommend a rewind in the "Summarize up to here" direction at the oldest cached prompt that is at or after the start of the current task: everything before it is summarized, everything from it on is kept verbatim. Give the user the direction by name, the prompt's opening words so they can find it in the picker, and "valid until HH:MM" from the snapshot, and say they can ask you for another cut point if they miss it; the `context-budget:cut-point` skill gives you one.
-
-If no prompt is cached, or the session is one continuous thread with nothing safely behind it, recommend `/compact <focus line>` instead and say what the focus keeps."""
+Context budget: this session is at {tokens} tokens, past the point where waiting for the arc to end is affordable. Finish the step in hand, then invoke the `context-budget:cut-point` skill and put the choice to the user before starting anything new."""
 
 # Resuming a subagent makes it re-read its whole transcript on every turn it then
 # takes, so past a certain size a fresh launch that rebuilds only what it needs

@@ -9,26 +9,32 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Added
 
-- `{cache}` placeholder in both injected messages: a prompt-cache snapshot
-  naming three cached cut points (oldest, middle, newest) with each one's
+- A priced reading of the prompt cache: the cut points still cached, three of
+  them spread across the context (oldest, middle, newest), with each one's
   expiry, what a cut there summarizes away and what it keeps, and what a
   compaction kept verbatim. A prompt no turn has answered yet is not among
   them: a cut there keeps nothing verbatim, which is `/compact` by another
   name.
-- Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mjs`:
-  the same reading taken fresh, for when the snapshot in a message has aged
-  out. The script finds the transcript through the session record, or takes
-  `--transcript <path>`, and takes the same `--pricing` and
-  `--pricing-overrides` the measurement hook takes.
+- Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mjs`,
+  which print that reading on demand. The script finds the transcript through
+  the session record, or takes `--transcript <path>`, and takes `--pricing`
+  and `--pricing-overrides` for the rate it prices at.
 - A payback on every listed cut point: the turns before the rewind's write
   back to the cache is earned out of what it saves per turn.
-- `hooks/pricing.toml`, what a cached input token costs against a fresh one
+- `lib/pricing.toml`, what a cached input token costs against a fresh one
   per model and the rate the payback is priced at: 0.1 by default, 0.025 on
   `fable`. Not configuration; a `pricing.toml` under the plugin data directory
   corrects a rate row by row.
 
 ### Changed
 
+- Both injected messages now say the session's size and send the agent to the
+  `cut-point` skill for a cut point instead of naming one, so no prompt is
+  quoted to the user after it has fallen out of the cache. The notice waits for
+  the end of the arc in hand rather than the next natural stopping point, since
+  a brief written or an agent launched is a step inside an arc and the step
+  after it still needs the detail a summary would thin; the urgent message acts
+  at the end of the step in hand.
 - Shipped `fable` model row at 400K notice and 700K urgent: Fable's cache
   reads cost a quarter of other models', so a compaction at 150K takes about
   35 turns to pay back.

@@ -21,10 +21,11 @@ import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { STATE_DIR, stateFile } from "../hooks/session-record.mjs";
+import { STATE_DIR, stateFile } from "../lib/session-record.mjs";
 
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const HOOKS = join(ROOT, "hooks");
+const LIB = join(ROOT, "lib");
 const DEFAULTS = join(HOOKS, "config.toml");
 
 const FIXTURES = mkdtempSync(join(tmpdir(), "config-errors-test-"));
@@ -46,9 +47,10 @@ const stateFiles = (id) =>
 
 // The hooks copied where smol-toml cannot be imported: the stub package
 // resolves to a file that is not there, so the import throws wherever the copy
-// is run from, which is the `parser` class. Every module in `hooks/` goes
-// along, since a hook that cannot resolve one of its own imports fails with a
-// stack trace rather than the report under test.
+// is run from, which is the `parser` class. `hooks/` and `lib/` go along under
+// their own names, since a hook that cannot resolve one of its own imports
+// fails with a stack trace rather than the report under test. Returns the
+// copied `hooks/`, which is where the two entry points are.
 function withoutParser() {
   const dir = join(FIXTURES, `no-parser-${seq++}`);
   mkdirSync(join(dir, "node_modules", "smol-toml"), { recursive: true });
@@ -56,10 +58,14 @@ function withoutParser() {
     join(dir, "node_modules", "smol-toml", "package.json"),
     JSON.stringify({ name: "smol-toml", version: "0.0.0", main: "index.js" }),
   );
-  for (const file of readdirSync(HOOKS).filter((f) => f.endsWith(".mjs"))) {
-    cpSync(join(HOOKS, file), join(dir, file));
+  for (const from of [HOOKS, LIB]) {
+    const to = join(dir, basename(from));
+    mkdirSync(to);
+    for (const file of readdirSync(from).filter((f) => f.endsWith(".mjs"))) {
+      cpSync(join(from, file), join(to, file));
+    }
   }
-  return dir;
+  return join(dir, basename(HOOKS));
 }
 
 function overrides(toml) {

@@ -1,26 +1,25 @@
 // The `context-budget:cut-point` skill's preamble command: a current reading of
 // which rewind cut points are still free in the session it runs in.
 //
-// The measurement hook bakes one of these into the message it injects, but that
-// snapshot ages -- the agent is told to finish its task first, and by the time
-// it raises the recommendation the prompt it was going to name may have fallen
-// out of the cache. This is how it gets another one.
+// This is the only place a cut point is named: a prompt named in the message
+// the measurement hook injects is named before the agent is ready to act on
+// it, and may be out of the cache by the time it is. The messages say how
+// large the session is and send the agent here.
 //
-// The reading is the hook's own, printed as it injects it, so the two cannot
-// tell the agent different things about the same session. All this adds is
-// finding the transcript to read and the rate to price it at -- it takes the
-// same `--pricing` and `--pricing-overrides` the measurement hook takes, so a
-// payback figure it prints is the one the hook would have printed.
+// All it adds to the reading itself is finding the transcript to read and the
+// rate to price it at, both of which the skill's preamble hands it:
+// `--pricing` and `--pricing-overrides` for the price table, and the session
+// id from the environment for the transcript.
 //
 // Prints to stdout and always exits 0: its output is read as prose by the
 // agent, so an explanation of why there is no list is more use than a stack
 // trace.
 import { existsSync } from "node:fs";
-import { pathArgs } from "../hooks/args.mjs";
-import { cacheReading } from "../hooks/cache-reading.mjs";
-import { loadPricing, pricingPaths } from "../hooks/pricing.mjs";
-import { scanCacheWindow } from "../hooks/prompt-cache.mjs";
-import { readRecord } from "../hooks/session-record.mjs";
+import { pathArgs } from "../lib/args.mjs";
+import { cacheReading } from "../lib/cache-reading.mjs";
+import { loadPricing, pricingPaths } from "../lib/pricing.mjs";
+import { scanCacheWindow } from "../lib/prompt-cache.mjs";
+import { readRecord } from "../lib/session-record.mjs";
 
 // --- finding the transcript -------------------------------------------------
 

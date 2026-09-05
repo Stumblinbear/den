@@ -13,9 +13,7 @@
 // a price table that cannot be used is dropped whole and the caller is handed
 // the next-best one -- the shipped rates in place of a user file, the default
 // rate in place of the shipped file -- since a payback figure on the shipped
-// rate is worth more to the agent than no figure at all. There is nowhere a
-// complaint could go anyway: a hook that has read its configuration goes on to
-// exit 0, and Claude Code shows nothing from a hook that succeeded.
+// rate is worth more to the agent than no figure at all.
 import { pathArgs } from "./args.mjs";
 import { firstMatchingRow, isPattern, readToml, tomlParser } from "./toml-table.mjs";
 

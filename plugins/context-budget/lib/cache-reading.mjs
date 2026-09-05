@@ -2,14 +2,11 @@
 // each of them summarizes away, what it keeps, how many turns it takes to pay
 // for itself, and what sits above them.
 //
-// One renderer, two callers. The measurement hook bakes this into the message
-// it injects and the cut-point script prints it on demand, and the agent
-// chooses a cut point from whichever it has in front of it -- so the two say
-// the identical thing, down to the layout, rather than two wordings it would
-// have to reconcile.
+// The cut-point script prints it, and nothing else does: the injected messages
+// say the size and send the agent here, so a reading is never older than the
+// moment the agent asked for one.
 import { formatTokens } from "./config.mjs";
 import { DEFAULT_READ_MULTIPLIER, paybackTurns, readMultiplier } from "./pricing.mjs";
-import { scanCacheWindow } from "./prompt-cache.mjs";
 
 // A wall-clock time to hand the user: local, 24-hour, no date. Everything
 // quoted here expires within the hour.
@@ -207,22 +204,4 @@ export function cacheReading(scan, pricing = null) {
   paragraphs.push(rows.join("\n"), cachedRangeClause(scan));
 
   return paragraphs.join("\n\n");
-}
-
-// The `{cache}` placeholder in both injected messages: the same reading, taken
-// at the moment of injection.
-//
-// A snapshot, not a reading. The agent is told to carry on with its task and
-// raise the recommendation later, so the passage has to carry its own clock
-// time and its own expiries -- by the time it is acted on, both may have
-// passed.
-//
-// Never throws: the level crossing is what the message is for, and a transcript
-// this cannot make sense of must not cost the user the notice itself.
-export function cacheSnapshot(path, pricing, now = Date.now()) {
-  try {
-    return cacheReading(scanCacheWindow(path, now), pricing);
-  } catch {
-    return "Prompt cache: state could not be determined from the transcript, so treat the cost of any rewind cut point as unknown.";
-  }
 }

@@ -41,46 +41,37 @@ Consequences that answer most "why did it" questions:
   fixed; fixing it takes effect on the next hook run. Each kind of fault is
   said once per session, listed in the record above once it has been — delete
   the record to hear it again.
-- A user pricing file gets no line of its own. One that cannot be read,
-  parsed, or used is dropped whole, the shipped rates stand, and the reading is
-  printed as if the file were not there — so an edit to it that changes no
-  figure is the sign to look at the file.
 
-Each injected message also carries a snapshot of the prompt cache, substituted
-into it as `{cache}`. A rewind at a prompt re-reads everything before that
-prompt, and that prefix is in the cache only while the prompt itself is younger
-than the cache lifetime — so the snapshot lists three cached prompts spread
-across the context, the oldest, the newest and the one nearest halfway between
-them by size, each a row carrying when it stops being cached, how much a cut
-there summarizes away, how much it keeps verbatim, and how many more turns the
-session has to take before the cut has paid for itself; and what sits above
-them. The payback is what turns two token counts into a decision: the rewind
-writes everything it keeps back to the cache at twice a fresh input token on
-the one-hour lifetime, where carrying on would have read that same stretch at
-the cache read rate, and it saves the read of what it summarized on every turn
+Neither message names a cut point. Each says how large the session is and sends
+the agent to the `cut-point` skill, `/context-budget:cut-point`, for one. That
+skill walks the transcript backward and prints which rewind cut points are still
+cached: a rewind at a prompt re-reads everything before that prompt, and
+that prefix is in the cache only while the prompt itself is younger than the
+cache lifetime — so it lists three cached prompts spread across the context,
+the oldest, the newest and the one nearest halfway between them by size, each a
+row carrying when it stops being cached, how much a cut there summarizes away,
+how much it keeps verbatim, and how many more turns the session has to take
+before the cut has paid for itself; and what sits above them. Where the session
+was compacted and kept prompts verbatim, the reading names them, since a rewind
+at one of them costs at most the context the compaction left behind.
+
+The payback is what turns two token counts into a decision: the rewind writes
+everything it keeps back to the cache at twice a fresh input token on the
+one-hour lifetime, where carrying on would have read that same stretch at the
+cache read rate, and it saves the read of what it summarized on every turn
 after that — so a cut in a session with little work left in it costs more than
 it ever returns. Every term is what the cut costs over carrying on, which is
 the only comparison worth making. It is priced at the model's cache read rate,
-which is the pricing file below and not configuration. Where the session was
-compacted and kept prompts verbatim, the reading names them, since a rewind at
-one of them costs at most the context the compaction left behind. It is taken
-by walking the transcript backward from its end, only on the run that injects;
-the per-tool-call runs that measure and stay quiet read a fixed 512 KB tail as
-before, and never walk anything.
+which is the pricing file below and not configuration.
 
-Two consequences:
-
-- The snapshot goes stale. The notice message tells the agent to carry on with
-  its task and raise the recommendation later, and the prompt it named may have
-  fallen out of the cache by then — the messages tell it to say the expiry out
-  loud and to take a fresh reading if the stopping point comes too late.
-- A fresh reading is the `cut-point` skill, `/context-budget:cut-point`. It
-  runs the same scan over the same transcript through the same renderer, so
-  what it prints is identical to the snapshot in the message, only current —
-  which is also what the user gets by asking for another cut point after the
-  first one expired. It reaches that transcript through the record above, so it
-  works from the session's first tool call and says so plainly in a session
-  this plugin has never measured.
+The reading is taken when the skill is invoked and never before: a prompt named
+at the moment a threshold was crossed can be out of the cache by the time the
+agent is ready to put the choice to the user, and the notice is written to be
+acted on at the end of an arc rather than at once. The skill reaches the
+transcript through the record above, so it works from the session's first tool
+call and says so plainly in a session this plugin has never measured. The hook
+itself reads only the fixed 512 KB tail it measures, on every run, and walks
+nothing.
 
 The resume guard is the second hook, on every `SendMessage` to a subagent of
 this session. It reads that subagent's own transcript, beside the session
@@ -147,26 +138,27 @@ Values:
   and a key like `'.*'` does not collect it.
 - All four messages are read by the agent, not the user, so write them as
   instructions with the reason attached, the way the shipped ones are. The
-  notice pair substitutes `{model}`, `{tokens}`, `{threshold}` and `{cache}`;
-  the guard pair substitutes `{agent}`, `{type}`, `{tokens}`, `{reasons}`,
-  `{large}` and `{cold}`. `{cache}` and `{reasons}` are computed, not
-  configurable — the cache snapshot and the list of limits that fired. Drop
-  `{cache}` from a message and the recommendation it asks for goes back to
-  being blind to what a rewind would cost. A `denied` message that stops
-  asking for the "Resume" option breaks the retry, since that option's label
-  is what the guard looks for.
+  notice pair substitutes `{model}`, `{tokens}` and `{threshold}`; the guard
+  pair substitutes `{agent}`, `{type}`, `{tokens}`, `{reasons}`, `{large}` and
+  `{cold}`. `{reasons}` is computed, not configurable — the list of limits that
+  fired. A notice rewritten to name a cut point itself would be naming one
+  before the agent is ready to use it, which is what sending it to the
+  `cut-point` skill avoids. A `denied` message that stops asking for the
+  "Resume" option breaks the retry, since that option's label is what the
+  guard looks for.
 
 ## What a cached token costs
 
 The rate the payback figure is priced at is not configuration — it is what the
-model charges — so it is a shipped file of its own, `../../hooks/pricing.toml`
-from this file, and none of the merge rules above touch it. It holds one
-number per model: what a token read from the prompt cache costs against one
-fresh input token, as a multiple of the fresh-input price. `default = 0.1` is
-every tier in Claude Code's own price table but one, and the `[models]` row
-`'fable' = 0.025` is that one. Every value has to be a number above 0 and at
-most 1; lower it and every cut takes proportionally more turns to pay for
-itself.
+model charges — so it is a shipped file of its own, `../../lib/pricing.toml`
+from this file, and none of the merge rules above touch it. The `cut-point`
+script is what reads it, when it prices a reading; the hook that injects the
+messages reads no price at all. It holds one number per model: what a token
+read from the prompt cache costs against one fresh input token, as a multiple
+of the fresh-input price. `default = 0.1` is every tier in Claude Code's own
+price table but one, and the `[models]` row `'fable' = 0.025` is that one.
+Every value has to be a number above 0 and at most 1; lower it and every cut
+takes proportionally more turns to pay for itself.
 
 Correct a rate that has gone out of date in a file of the same shape at
 
@@ -192,8 +184,7 @@ hook by hand from the plugin root against a real transcript to see what it will
 inject, or what it objects to:
 
     printf '%s' '{"session_id":"check","transcript_path":"<a .jsonl under ~/.claude/projects/>","hook_event_name":"UserPromptSubmit"}' \
-      | node hooks/context-budget.mjs --defaults hooks/config.toml --overrides ~/.claude/plugins/data/context-budget-den/config.toml \
-        --pricing hooks/pricing.toml --pricing-overrides ~/.claude/plugins/data/context-budget-den/pricing.toml
+      | node hooks/context-budget.mjs --defaults hooks/config.toml --overrides ~/.claude/plugins/data/context-budget-den/config.toml
 
 Output is the injection JSON, or nothing when the transcript is below the
 first threshold. Delete `claude-context-budget/check.json` from the temp
@@ -208,14 +199,13 @@ one with an `agent-<name>.jsonl` under the transcript's `subagents/` directory:
 Output is the deny JSON with the filled message, or nothing when the resume
 is allowed.
 
-The cache snapshot inside the injected message is the cut-point script's
-reading of the same transcript, the identical text, so run that on its own to
-see it without a threshold in the way. It reads nothing from the config; by
-hand it takes the path and the two pricing paths, since the payback figure is
-priced from them:
+The cut-point script is what the messages send the agent to. It takes no
+threshold and reads nothing from the config, so it can be run on any transcript
+directly; by hand it takes the path and the two pricing paths, since the
+payback figure is priced from them:
 
     node scripts/cut-point.mjs --transcript "<the .jsonl>" \
-      --pricing hooks/pricing.toml --pricing-overrides ~/.claude/plugins/data/context-budget-den/pricing.toml
+      --pricing lib/pricing.toml --pricing-overrides ~/.claude/plugins/data/context-budget-den/pricing.toml
 
 In a session it takes only the two pricing paths, which the skill's own preamble
 fills in: it reads `CLAUDE_CODE_SESSION_ID` from its own environment and the

@@ -16,14 +16,14 @@ import {
   formatTokens,
   loadConfig,
   printedFault,
-} from "./config.mjs";
+} from "../lib/config.mjs";
 import {
   cacheLifetime,
   contextTokens,
   DEFAULT_TTL,
   TTL_MS,
   turnUsage,
-} from "./transcript.mjs";
+} from "../lib/transcript.mjs";
 
 const CONSUMED_DIR = join(tmpdir(), "claude-resume-guard");
 const ANSWERED = /^Your questions have been answered:/;
