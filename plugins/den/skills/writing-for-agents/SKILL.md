@@ -88,3 +88,10 @@ For each rule in an existing instruction set, in order:
 5. Phrased negatively without a why? (Rewrite positive + rationale.)
 6. Duplicates or contradicts another rule anywhere in the hierarchy?
    (Keep one home.)
+
+## Platform-specific guidance
+
+- **Configuration skills for Claude Code plugins:**
+  `references/configuration-skills.md` (what a plugin's configure skill
+  covers and in what order: prerequisites first, one shape, arriving with
+  the state read, where a setting lives, the standing cost of every line).

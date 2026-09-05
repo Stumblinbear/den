@@ -13,6 +13,9 @@ minor bump may change behavior.
   costs and the alternative rejected; the codebase, the runtime and an
   established library are checked, in that order, before anything is written
   new; simplicity removes indirection and not the job's essentials.
+- `writing-for-agents` gains `references/configuration-skills.md`: what a
+  plugin's configure skill covers and in what order, so the shape is not
+  re-derived per plugin.
 
 ### Changed
 
