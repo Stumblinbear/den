@@ -39,8 +39,8 @@ requirement, and the brief says which. A question back from an implementer is
 the brief working, and it is weighed like a reviewer's finding: judged against
 the task's goal, taken to the user when the decision is theirs, and answered
 by changing the brief when the implementer is right. Text an agent will follow
-is instructions, not documentation, whoever writes it, and is audited as
-instructions before it ships.
+is instructions, not documentation, whoever writes it, and is audited under
+`den:writing-for-agents` before it ships.
 
 ## Agents
 
@@ -58,13 +58,18 @@ approval.
 
 ## Launch authorization
 
-A go-ahead from the user covers one stage: implementation, review, a fix round
-for findings that needed judgment, a closure review, a comment pass. Triage
-priority is not a go-ahead. Within an approved stage, returning unquestionably
-wrong work to the agent that produced it, and the closure pass by the reviewer
-that raised the findings, are that stage continuing: they run at once and the
-report says so. After a stage lands: report, propose the next stage (agent and
-scope), wait.
+A go-ahead from the user covers one stage: implementation, or a fix round for
+findings that needed judgment. Triage priority is not a go-ahead. A review,
+and the comment pass once the change is clean, need none: whenever nothing is
+waiting on the user, no fix pending a decision, no finding needing judgment,
+no question open, the next pass launches at once, since the user's time is
+for the decisions and a wait for permission to look is a wait for nothing.
+Within an approved stage, returning unquestionably wrong work to the agent
+that produced it, obvious fixes (the unquestionably wrong and the mechanical),
+and the closure pass by the reviewer that raised the findings, are that stage
+continuing: they run at once and the report says so. After a stage lands:
+report, and where the next stage needs a go-ahead, propose it (agent and
+scope) and wait.
 
 ## Review
 
@@ -74,7 +79,7 @@ findings. `den:flag-reviewer`, launched with `/den:flag-review`, owns architectu
 rulings; a finding that the whole decomposition is wrong is a design question
 for the user, not a fix-round item. Several reviewers on one diff run as one
 Workflow with a `den:synthesizer`, so the session gets one consolidated report;
-that changes the packaging only, not the per-launch authorization.
+that changes the packaging only, not the launch rules.
 
 Findings split by certainty, judged against the task's goal. The reviewer
 tiers defects P0 to P3 and leaves quality and architecture findings untiered,
@@ -97,9 +102,9 @@ Each finding that reaches the user carries this session's fix, defer or skip
 call and the reasoning behind it, weighed by real-world impact against the
 cost of fixing it now, and is explained for a reader who has not read the
 code. Set the scene first: what is in play, what changes, what goes observably
-wrong, and only then the mechanism. A proposed test earns a fix when it catches a bug class that
-survives reading the code; a boundary check on a pure function or a test of
-single-path plumbing gets a skip.
+wrong, and only then the mechanism. A proposed test earns a fix when it
+catches a bug class that survives reading the code; a boundary check on a pure
+function or a test of single-path plumbing gets a skip.
 
 ## Fixes
 
@@ -110,10 +115,10 @@ skip it.
 
 ## Commits
 
-Once implementation and code review have settled, ask the user to authorize
-a `den:comment-reviewer` pass, launched with `/den:comment-review`, before proposing
-the commit; an earlier pass is wasted churn. Then propose the commit and wait
-for its own approval.
+Once implementation and code review have settled, a `den:comment-reviewer`
+pass, launched with `/den:comment-review`, runs before the commit is proposed;
+an earlier pass is wasted churn. Then propose the commit and wait for its own
+approval.
 
 ## Talking to the user
 

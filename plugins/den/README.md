@@ -18,6 +18,9 @@ Skills, invoked as `/den:<name>`:
 - `comment-review`: the same for the comment-reviewer.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
+- `design-decisions`: how an engineering choice is made and stated: the
+  tradeoff a recommendation carries, reuse before writing, and simplicity as
+  a tool rather than a lean.
 - `writing-for-agents`: principles for writing instructions an agent will
   follow.
 - `unsafety-author`: Rust `# Safety` contracts and unsafe documentation.

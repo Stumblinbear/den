@@ -7,10 +7,21 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+
+- Skill `design-decisions`: a recommendation names what it buys, what it
+  costs and the alternative rejected; the codebase, the runtime and an
+  established library are checked, in that order, before anything is written
+  new; simplicity removes indirection and not the job's essentials.
+
 ### Changed
 
 - The review-triage and implementer-diagnostics hooks are TypeScript, and need
   Node 22.6 or newer.
+- The coordination skill launches a review, and the comment pass once the
+  change is clean, without a go-ahead whenever nothing is waiting on the
+  user, and runs obvious fixes as the stage continuing. Implementation, a
+  fix round for findings that needed judgment, and the commit keep theirs.
 
 ### Removed
 

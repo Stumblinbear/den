@@ -49,6 +49,9 @@ have fewer methods, simpler parameters, and more hidden inside.
 - **The deletion test.** Imagine deleting the module. If the complexity
   vanishes, it was a pass-through; if it reappears across its callers, it was
   earning its keep.
+- **A library's callers are outside the tree.** An exported item only the
+  tests exercise is the product, not dead weight; its interface is judged on
+  depth and on the obligation it meets, never on in-tree caller count.
 - **One implementation is a hypothetical variation point; two is a real one.**
   Add a trait or injected dependency only when something actually varies
   across it — production plus a test double counts, if a test uses the double.
