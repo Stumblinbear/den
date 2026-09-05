@@ -38,4 +38,5 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   fix takes effect on the next one.
 - The hook is TypeScript, run by `lib/shared/launch.mjs` under bun when it is
   on `PATH` and otherwise under Node 22.6+, with a `.runtime` file in the data
-  directory to force one.
+  directory to force one. Under bun a dependency the plugin lacks is reported,
+  never fetched on the fly.

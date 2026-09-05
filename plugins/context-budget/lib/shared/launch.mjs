@@ -63,6 +63,11 @@ function fail(message) {
  * stripping is on by default from 22.18, so the pair is a no-op there and the
  * floor stays at 22.6 for free.
  *
+ * Bun is told never to install. With no `node_modules` in the working
+ * directory or above it, which is most projects a hook runs in, it would
+ * otherwise fetch a missing import from the network as the entry runs, and a
+ * dependency the plugin lacks is a fault to report, not a download.
+ *
  * @param {"bun" | "node"} kind
  * @param {string} name
  * @param {readonly string[]} args
@@ -72,7 +77,7 @@ function spawnEntry(kind, name, args) {
 	const entry = join(plugin, `${name}.mts`);
 
 	return kind === "bun"
-		? spawnSync("bun", [entry, ...args], { stdio: "inherit" })
+		? spawnSync("bun", ["--no-install", entry, ...args], { stdio: "inherit" })
 		: spawnSync(
 				process.execPath,
 				[

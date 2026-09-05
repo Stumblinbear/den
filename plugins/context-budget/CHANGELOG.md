@@ -60,7 +60,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - `hooks/config.toml` is now `hooks/config.example.toml`, a documented file to
   copy into the data directory. Neither hook reads it, so a plugin update
   cannot change what a configured session runs on.
-- The hooks need Node 22.6 or newer.
+- The hooks need Node 22.6 or newer. Under bun a dependency the plugin lacks
+  is reported, never fetched on the fly.
 
 ### Fixed
 
