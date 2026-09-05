@@ -5,6 +5,13 @@ description: Use when the user asks how the context-budget plugin works, why a c
 
 # Configuring context-budget
 
+The data directory as it stands:
+
+!`for f in config.toml pricing.toml; do test -f "${CLAUDE_PLUGIN_DATA}/$f" && echo "$f: present" || echo "$f: absent"; done; test -f "${CLAUDE_PLUGIN_DATA}/.runtime" && echo ".runtime: $(cat "${CLAUDE_PLUGIN_DATA}/.runtime")" || echo ".runtime: absent, so bun when found and node otherwise"`
+
+No `config.toml` means nothing is measured or guarded; no `pricing.toml` means
+the shipped rates.
+
 ## Running it at all
 
 The hooks need **Node 22.6 or newer**, and run under bun instead when `bun

@@ -5,6 +5,12 @@ description: Use when the user asks how the model-prompts plugin works, why a pr
 
 # Configuring model-prompts
 
+The data directory as it stands:
+
+!`test -f "${CLAUDE_PLUGIN_DATA}/config.toml" && echo "config.toml: present" || echo "config.toml: absent"; test -f "${CLAUDE_PLUGIN_DATA}/.runtime" && echo ".runtime: $(cat "${CLAUDE_PLUGIN_DATA}/.runtime")" || echo ".runtime: absent, so bun when found and node otherwise"`
+
+No `config.toml` means nothing is injected.
+
 ## Running it at all
 
 The hook is TypeScript with no build step. `hooks.json` starts
