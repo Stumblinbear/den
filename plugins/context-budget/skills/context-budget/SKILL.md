@@ -1,6 +1,7 @@
 ---
 name: context-budget
 description: Use when the session's context is filling and you need to recommend `/compact` or a rewind summarize to the user — how a rewind summarize differs from `/compact`, how to pick a cut point and a focus line, and how to judge a natural stopping point for the task in hand.
+when_to_use: Use the moment a "Context budget:" notice appears in the conversation, before deciding what to recommend, and when the user asks whether to compact, rewind, or keep going. Trigger phrases - "context budget", "should I compact", "rewind or compact".
 ---
 
 # Context budget

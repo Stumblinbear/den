@@ -1,6 +1,7 @@
 ---
 name: writing-for-agents
 description: General principles for writing instructions for LLM agents — system prompts, persistent rule files, and prompt bodies of any kind. Use when authoring, auditing, or editing instructions an agent will follow, to apply documented prompt-authoring canon and current-model calibration.
+when_to_use: Instructions an agent will follow include a SKILL.md, an agent definition, a CLAUDE.md or rules file, a system prompt, a hook's injected text, a brief or launch prompt for a subagent, and a message a plugin prints to the model. Also use when an agent keeps ignoring an instruction, before strengthening its wording.
 ---
 
 # Writing for agents

@@ -1,6 +1,7 @@
 ---
 name: code-architecture
 description: Use when writing a new type, function, or module to help decide where it belongs, whether a file is still one concept, whether a module's interface is deep enough to earn its place, or whether a type can represent states that shouldn't exist.
+when_to_use: Use before creating a file, module, type, or public function, while its place is still open. Trigger phrases - "where should this go", "new module", "split this file", "make invalid states unrepresentable", "is this the right abstraction".
 ---
 
 # Code architecture
