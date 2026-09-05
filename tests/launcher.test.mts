@@ -36,6 +36,16 @@ const said: string = process.argv[2] ?? "nothing";
 process.stdout.write(said);
 `;
 
+// The entry that says which interpreter is running it: only bun defines that
+// global. Without it a leg whose pin never arrived would run under bun like
+// the other one and pass as if it had been the leg it says it is.
+const WHICH = `import process from "node:process";
+
+const kind: string = typeof Bun === "undefined" ? "node" : "bun";
+
+process.stdout.write(kind);
+`;
+
 const CASES: ReadonlyArray<{
 	readonly what: string;
 	readonly requested: string;
@@ -187,5 +197,38 @@ for (const runtime of runtimes()) {
 
 		assert.equal(result.status, 0, result.stderr);
 		assert.equal(result.stdout, "THROUGH A LINK");
+	});
+}
+
+// Both interpreters are here, so what `.runtime` asks for is checked against
+// what actually ran the entry, not against the run having happened at all.
+for (const runtime of runtimes()) {
+	test(`${runtime}: the pinned runtime is what the entry runs under`, () => {
+		const plugin = fixtureDir(`plugin-which-${runtime}`);
+		const data = fixtureDir(`data-which-${runtime}`);
+
+		mkdirSync(join(plugin, "lib", "shared"), { recursive: true });
+		mkdirSync(join(plugin, "hooks"));
+
+		for (const file of ["launch.mjs", "select-runtime.mjs"]) {
+			cpSync(join(LIB, file), join(plugin, "lib", "shared", file));
+		}
+
+		writeFileSync(join(plugin, "hooks", "which.mts"), WHICH);
+		writeFileSync(join(data, ".runtime"), `${runtime}\n`);
+
+		const result = spawnSync(
+			process.execPath,
+			[
+				join(plugin, "lib", "shared", "launch.mjs"),
+				"--data",
+				data,
+				"hooks/which",
+			],
+			{ input: "{}", encoding: "utf8" },
+		);
+
+		assert.equal(result.status, 0, result.stderr);
+		assert.equal(result.stdout, runtime);
 	});
 }

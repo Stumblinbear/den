@@ -18,7 +18,7 @@ A file named `.runtime` in the data directory forces the choice for this
 plugin. It holds one word:
 
 ```sh
-echo node > ~/.claude/plugins/data/model-prompts-den/.runtime
+echo node > "${CLAUDE_PLUGIN_DATA}/.runtime"
 ```
 
 `bun` and `node` are the two it takes; no file is the default above. `bun` on
@@ -72,17 +72,16 @@ Consequences that answer most "why did it" questions:
 
 The hook reads one file and only one:
 
-    ~/.claude/plugins/data/model-prompts-den/config.toml
+    ${CLAUDE_PLUGIN_DATA}/config.toml
 
-The `-den` suffix is the marketplace name the plugin was installed from. The
-directory survives plugin updates.
+That directory survives plugin updates.
 
 `../../hooks/config.example.toml` from this file is an example to copy there,
 documented key by key and carrying an Opus 5 writing rule. The hook never
 reads it, and a plugin update replaces it, so the copy is where edits go:
 
     cp <plugin root>/hooks/config.example.toml \
-      ~/.claude/plugins/data/model-prompts-den/config.toml
+      "${CLAUDE_PLUGIN_DATA}/config.toml"
 
 It is read on every hook run, so an edit takes effect on the next session
 start or model switch with no reload.
@@ -106,14 +105,14 @@ the hook by hand from the plugin root to see what it will inject, or what it
 objects to:
 
     printf '%s' '{"session_id":"check","hook_event_name":"SessionStart","session_start_reason":"startup","model":"claude-opus-5"}' \
-      | node lib/shared/launch.mjs --data ~/.claude/plugins/data/model-prompts-den \
-        hooks/model-prompts --config ~/.claude/plugins/data/model-prompts-den/config.toml
+      | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
+        hooks/model-prompts --config "${CLAUDE_PLUGIN_DATA}/config.toml"
 
 Output is the header and the matching text, or nothing when no row matches.
 Swap the input for a switch to see the other event:
 
     printf '%s' '{"session_id":"check","hook_event_name":"PostModelSwitch","to_model":"claude-opus-5"}' \
-      | node lib/shared/launch.mjs --data ~/.claude/plugins/data/model-prompts-den \
-        hooks/model-prompts --config ~/.claude/plugins/data/model-prompts-den/config.toml
+      | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
+        hooks/model-prompts --config "${CLAUDE_PLUGIN_DATA}/config.toml"
 
 Delete `claude-model-prompts/check.json` from the temp directory afterwards.

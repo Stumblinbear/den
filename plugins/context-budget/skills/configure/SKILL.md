@@ -15,7 +15,7 @@ A file named `.runtime` in the data directory forces the choice for this
 plugin. It holds one word:
 
 ```sh
-echo node > ~/.claude/plugins/data/context-budget-den/.runtime
+echo node > "${CLAUDE_PLUGIN_DATA}/.runtime"
 ```
 
 `bun` and `node` are the two it takes; no file is the default above. `bun` on
@@ -114,17 +114,16 @@ session record above; a second retry on the same answer is refused with the
 
 Both hooks read one file and only one:
 
-    ~/.claude/plugins/data/context-budget-den/config.toml
+    ${CLAUDE_PLUGIN_DATA}/config.toml
 
-The `-den` suffix is the marketplace name the plugin was installed from. The
-directory survives plugin updates.
+That directory survives plugin updates.
 
 `../../hooks/config.example.toml` from this file is an example to copy there,
 documenting every key. The hooks never read it, and a plugin update replaces
 it, so the copy is where edits go:
 
     cp <plugin root>/hooks/config.example.toml \
-      ~/.claude/plugins/data/context-budget-den/config.toml
+      "${CLAUDE_PLUGIN_DATA}/config.toml"
 
 It is read on every hook run, so an edit takes effect on the next tool call
 with no reload.
@@ -147,7 +146,7 @@ it; the hook that injects the messages reads no price at all.
 
 Correct a rate that has gone out of date in a file of the same shape at
 
-    ~/.claude/plugins/data/context-budget-den/pricing.toml
+    ${CLAUDE_PLUGIN_DATA}/pricing.toml
 
 merged by one rule: a `[models]` row whose key matches a shipped one replaces
 it where it stands, so it keeps that row's place in the order; a row with a
@@ -172,8 +171,8 @@ stderr. Run a hook by hand from the plugin root against a real transcript to
 see what it will inject, or what it objects to:
 
     printf '%s' '{"session_id":"check","transcript_path":"<a .jsonl under ~/.claude/projects/>","hook_event_name":"UserPromptSubmit"}' \
-      | node lib/shared/launch.mjs --data ~/.claude/plugins/data/context-budget-den \
-        hooks/context-budget --config ~/.claude/plugins/data/context-budget-den/config.toml
+      | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
+        hooks/context-budget --config "${CLAUDE_PLUGIN_DATA}/config.toml"
 
 Output is the injection JSON, or nothing when the transcript is below the
 first threshold. Delete `claude-context-budget/check.json` from the temp
@@ -183,8 +182,8 @@ The guard takes a `SendMessage` input naming a subagent of that transcript,
 one with an `agent-<name>.jsonl` under the transcript's `subagents/` directory:
 
     printf '%s' '{"session_id":"check","transcript_path":"<the .jsonl>","hook_event_name":"PreToolUse","tool_name":"SendMessage","tool_input":{"to":"<name>"}}' \
-      | node lib/shared/launch.mjs --data ~/.claude/plugins/data/context-budget-den \
-        hooks/resume-guard --config ~/.claude/plugins/data/context-budget-den/config.toml
+      | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
+        hooks/resume-guard --config "${CLAUDE_PLUGIN_DATA}/config.toml"
 
 Output is the deny JSON with the filled message, or nothing when the resume
 is allowed.
@@ -194,10 +193,10 @@ from the configuration, so it can be run against any transcript directly; by
 hand it takes the path and the two pricing paths, since the payback figure is
 priced from them:
 
-    node lib/shared/launch.mjs --data ~/.claude/plugins/data/context-budget-den \
+    node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
       scripts/cut-point --transcript "<the .jsonl>" \
       --pricing lib/pricing.toml \
-      --pricing-overrides ~/.claude/plugins/data/context-budget-den/pricing.toml
+      --pricing-overrides "${CLAUDE_PLUGIN_DATA}/pricing.toml"
 
 In a session the skill's own preamble fills in the two pricing paths and
 `--session`, which Claude Code substitutes the session id into; the script
