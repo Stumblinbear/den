@@ -6,7 +6,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" model-prompts --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/model-prompts --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
 					}
 				]
 			}
@@ -16,7 +16,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" model-prompts --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/model-prompts --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
 					}
 				]
 			}

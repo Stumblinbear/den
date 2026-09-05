@@ -1,0 +1,12 @@
+{
+	"name": "den-plugin",
+	"private": true,
+	"type": "module",
+	"description": "Test entry point for the den Claude Code plugin. It declares no dependencies and ships no lockfile, so Claude Code installs nothing for it when it caches the plugin.",
+	"engines": {
+		"node": ">=22.6"
+	},
+	"scripts": {
+		"test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test \"tests/*.test.mts\""
+	}
+}

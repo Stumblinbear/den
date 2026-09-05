@@ -17,23 +17,28 @@ and a level re-arms whenever the context falls back below it.
 
 Consequences that answer most "why did it" questions:
 
+- **Nothing is measured or guarded until the configuration file exists.** A
+  fresh install has none, and says nothing about that.
 - The number is one turn old. The notice lands after the reply that crossed
   the line, and a fresh session reads as empty until its first reply.
 - Subagents are never measured; only the main session is.
-- Haiku is switched off in the shipped config, because its 200K window sits
-  below the 250K urgent threshold and auto-compact would always win.
+- Haiku is switched off in the example configuration, because its 200K window
+  sits below the 250K urgent threshold and auto-compact would always win.
 - Auto-compact is Claude Code's own mechanism and runs regardless of this
   plugin; the plugin only tries to get a recommendation made before it does.
-- The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`.
-  Deleting it makes the current level fire again, which is the quickest way to
-  see a message after editing it.
+- The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`:
+  the level this session has been told about, and the resume answers it has
+  spent. Deleting it makes the current level fire again, which is the quickest
+  way to see a message after editing it.
 - One stderr line starting `context-budget:` means both the notice and the
   resume guard are off, and says why: `parser error` is a missing `smol-toml`
   in the plugin's cache directory, `config error` names the file that cannot
-  be read, parsed, or used. Nothing is measured and nothing is guarded until
-  it is fixed; fixing it takes effect on the next hook run. The line is said
-  once per session, marked by `<session id>.parser` or `<session id>.config`
-  beside the record above — delete the marker to hear it again.
+  be read, parsed, or used, and `internal error` is a failure of the plugin's
+  own with nothing in the configuration to fix. Nothing is measured and
+  nothing is guarded until it is fixed; fixing it takes effect on the next
+  hook run. The line is said once per session, marked by `<session
+  id>.parser`, `<session id>.config` or `<session id>.internal` beside the
+  record above — delete the marker to hear it again.
 
 The resume guard is the second hook, on every `SendMessage` to a subagent of
 this session. It reads the newest assistant turn of that subagent's own
@@ -44,76 +49,73 @@ that cache lifetime already elapsed, and the refusal tells the agent to put the
 numbers to the user through AskUserQuestion with an option labeled "Resume".
 The retry is allowed only when the user's newest answer in the session
 transcript picked that option: the guard reads the answer itself, so nothing
-the agent claims can stand in for it. One answer approves one resume, recorded
-as a marker named by the answer's uuid under `<os temp dir>/claude-resume-guard/`;
-a second retry on the same answer is refused with the `used` message.
+the agent claims can stand in for it. One answer approves one resume, whose
+uuid is then in the session record above; a second retry on the same answer is
+refused with the `used` message.
 
 ## Where changes go
 
-The shipped config is `../../hooks/config.toml` from this file, and it
-documents every key. It is replaced on every plugin update, so changes go in
-the override file instead:
+Both hooks read one file and only one:
 
     ~/.claude/plugins/data/context-budget-den/config.toml
 
 The `-den` suffix is the marketplace name the plugin was installed from. The
-override holds only the keys that change, and it is read on every hook run, so
-an edit takes effect on the next tool call with no reload.
+directory survives plugin updates.
 
-Merge rules, one per section:
+`../../hooks/config.example.toml` from this file is an example to copy there,
+documenting every key. The hooks never read it, and a plugin update replaces
+it, so the copy is where edits go:
 
-- `[default]` and `[messages]` merge key by key: an override with only
-  `notice` keeps the shipped `urgent`.
-- `[models.'<regex>']` rows are tried in order and the first match wins.
-  An override row with the same key replaces the shipped row; a row with a
-  new key is appended after all shipped rows. So to change a model the
-  shipped file already matches, reuse its key exactly: `[models.'haiku']`
-  with thresholds re-enables Haiku, while `[models.'claude-haiku']` sits
-  behind the shipped `'haiku'` row and is never reached.
-- `enabled = false` on a row switches the plugin off for every model that
-  row matches; on `[default]` it switches off every model no row matches.
-- `[resume-guard]` merges key by key, and `[resume-guard.messages]` inside
-  it merges key by key of its own, so an override can replace one deny
-  message and keep the other. `enabled = false` there switches the resume
-  guard off: every resume is allowed, and no transcript is read.
+    cp <plugin root>/hooks/config.example.toml \
+      ~/.claude/plugins/data/context-budget-den/config.toml
 
-Values:
+It is read on every hook run, so an edit takes effect on the next tool call
+with no reload.
 
-- Thresholds are absolute token counts, not fractions of a window: the
-  hook does not know the window size, and the `[1m]` suffix on a configured
-  model never reaches the transcript. The shipped 150K is Anthropic's
-  server-side compaction default on 1M-window models; raise or lower from
-  there by how much the user is willing to spend per turn.
-- Row keys are regular expressions in single quotes, matched against the
-  model id as the transcript records it: `claude-fable-5-1`,
-  `claude-opus-5`, `claude-haiku-4-5-20251001`.
-- All four messages are read by the agent, not the user, so write them as
-  instructions with the reason attached, the way the shipped ones are. The
-  notice pair substitutes `{model}`, `{tokens}` and `{threshold}`; the
-  guard pair substitutes `{agent}`, `{type}`, `{tokens}`, `{reasons}`,
-  `{large}` and `{cold}`, where `{reasons}` is the computed list of limits
-  that fired. A `denied` message that stops asking for the "Resume" option
-  breaks the retry, since that option's label is what the guard looks for.
+Nothing is merged under it, so it carries every key both hooks read, and a
+missing one is a `config error` naming the section and the key. Read the
+Configuration section of `../../README.md` before writing an edit: it is the
+table of every key, its type and its default, along with how a row key is
+matched and what each message substitutes.
 
 ## Checking a change
 
-A TOML typo, or a value neither hook can use, is not quietly dropped: it
-switches both of them off for the session and says so once on stderr. Run the
-hook by hand from the plugin root against a real transcript to see what it will
-inject, or what it objects to:
+A TOML typo, a missing key, or a value neither hook can use is not quietly
+dropped: it switches both of them off for the session and says so once on
+stderr. Run a hook by hand from the plugin root against a real transcript to
+see what it will inject, or what it objects to:
 
     printf '%s' '{"session_id":"check","transcript_path":"<a .jsonl under ~/.claude/projects/>","hook_event_name":"UserPromptSubmit"}' \
-      | node hooks/context-budget.mjs --defaults hooks/config.toml --overrides ~/.claude/plugins/data/context-budget-den/config.toml
+      | node lib/launch.mjs --data ~/.claude/plugins/data/context-budget-den \
+        hooks/context-budget --config ~/.claude/plugins/data/context-budget-den/config.toml
 
 Output is the injection JSON, or nothing when the transcript is below the
 first threshold. Delete `claude-context-budget/check.json` from the temp
-directory afterwards.
+directory afterwards, along with any `check.parser` or `check.config` marker
+beside it.
 
 The guard takes a `SendMessage` input naming a subagent of that transcript,
 one with an `agent-<name>.jsonl` under the transcript's `subagents/` directory:
 
     printf '%s' '{"session_id":"check","transcript_path":"<the .jsonl>","hook_event_name":"PreToolUse","tool_name":"SendMessage","tool_input":{"to":"<name>"}}' \
-      | node hooks/resume-guard.mjs --defaults hooks/config.toml --overrides ~/.claude/plugins/data/context-budget-den/config.toml
+      | node lib/launch.mjs --data ~/.claude/plugins/data/context-budget-den \
+        hooks/resume-guard --config ~/.claude/plugins/data/context-budget-den/config.toml
 
 Output is the deny JSON with the filled message, or nothing when the resume
 is allowed.
+
+## Running it at all
+
+The hooks need **Node 22.6 or newer**, and run under bun instead when `bun
+--version` answers on `PATH`. On an older Node with no bun, one stderr line
+names the floor and the version it found, and nothing is injected or guarded.
+
+A file named `.runtime` in the data directory forces the choice for this
+plugin. It holds one word:
+
+```sh
+echo node > ~/.claude/plugins/data/context-budget-den/.runtime
+```
+
+`bun` and `node` are the two it takes; no file is the default above, and
+anything else is one stderr line naming the file and a failed hook run.

@@ -7,6 +7,27 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+
+- Both hooks read one configuration file,
+  `${CLAUDE_PLUGIN_DATA}/config.toml`, and nothing else. No file there is the
+  unconfigured state: the context notice and the resume guard are both off and
+  say nothing about it. Every key the hooks read has to be in that file, and a
+  missing section or key is a config error naming it; `enabled` and the whole
+  `[models]` table may still be left out.
+- `hooks/config.toml` is now `hooks/config.example.toml`, a documented file to
+  copy into the data directory. Neither hook reads it, so a plugin update
+  cannot change what a configured session runs on.
+- The hooks need Node 22.6 or newer.
+- Both hooks keep one file per session in the temp directory, holding the
+  level the session has been told about and the resume answers it has spent.
+  A spent answer is no longer recorded as an empty file named after it.
+
+### Removed
+
+- The shipped configuration and the key-by-key merge of a user's file over it.
+  A file that only carried the keys it changed now has to carry the rest.
+
 ## [0.2.0] - 2026-09-04
 
 ### Added

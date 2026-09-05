@@ -6,14 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": [
-			"**",
-			"!**/package-lock.json",
-			// Not migrated to Biome yet.
-			"!plugins/context-budget",
-			"!plugins/den/hooks/*.mjs",
-			"!.github/scripts/*.mjs"
-		],
+		"includes": ["**", "!**/package-lock.json"],
 		"ignoreUnknown": true
 	},
 	"formatter": {

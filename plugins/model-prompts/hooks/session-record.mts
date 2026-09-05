@@ -10,7 +10,8 @@
 // context and outlives that: a session is still on the model its last input
 // named, whatever rebuilt the conversation.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { STATE_DIR, stateFile } from "./session-state.mts";
+import { isTable } from "../lib/fields.mts";
+import { SESSION_STATE } from "./plugin.mts";
 
 export interface SessionRecord {
 	readonly injected: readonly string[];
@@ -20,7 +21,8 @@ export interface SessionRecord {
 
 const NOTHING: SessionRecord = { injected: [], model: null };
 
-const recordFile = (sessionId: string): string => stateFile(sessionId, "json");
+const recordFile = (sessionId: string): string =>
+	SESSION_STATE.file(sessionId, "json");
 
 export const hasInjected = (record: SessionRecord, key: string): boolean =>
 	record.injected.includes(key);
@@ -54,13 +56,12 @@ export function readRecord(sessionId: string): SessionRecord {
 			readFileSync(recordFile(sessionId), "utf8"),
 		);
 
-		if (typeof parsed !== "object" || parsed === null) {
+		if (!isTable(parsed)) {
 			return NOTHING;
 		}
 
-		const fields = parsed as Record<string, unknown>;
-		const keys = fields["injected"];
-		const model = fields["model"];
+		const keys = parsed["injected"];
+		const model = parsed["model"];
 
 		return {
 			injected: Array.isArray(keys)
@@ -85,7 +86,7 @@ export function writeRecord(sessionId: string, record: SessionRecord): void {
 			return;
 		}
 
-		mkdirSync(STATE_DIR, { recursive: true });
+		mkdirSync(SESSION_STATE.dir, { recursive: true });
 		writeFileSync(recordFile(sessionId), JSON.stringify(record));
 	} catch {
 		// A record that cannot be written costs a repeated injection, which is

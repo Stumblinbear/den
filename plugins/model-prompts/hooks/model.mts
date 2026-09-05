@@ -1,6 +1,7 @@
 // Which model the hook input is about, and which configured rows speak to it.
 import { readFileSync } from "node:fs";
-import type { Row } from "./config.mts";
+import { fieldsOf } from "../lib/fields.mts";
+import type { Row } from "./rows.mts";
 
 // The two events that carry a model; any other input is not this hook's
 // business.
@@ -55,9 +56,7 @@ function settingsModel(settingsPath: string): string | null {
 	try {
 		const settings: unknown = JSON.parse(readFileSync(settingsPath, "utf8"));
 
-		return typeof settings === "object" && settings !== null
-			? modelId((settings as Record<string, unknown>)["model"])
-			: null;
+		return modelId(fieldsOf(settings)["model"]);
 	} catch {
 		// No settings file, or one that is not readable JSON, is not this
 		// hook's problem to report: it is Claude Code's own file.

@@ -8,14 +8,16 @@
 	},
 	"scripts": {
 		"prepare": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/prepare.mts",
-		"check": "biome ci . && tsc --noEmit",
+		"check": "biome ci . && tsc --noEmit && node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/plugin-lib.mts --check",
 		"fix": "biome check --write .",
 		"typecheck": "tsc --noEmit",
-		"test": "npm --prefix plugins/model-prompts test && npm --prefix plugins/context-budget test"
+		"plugin-lib": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/plugin-lib.mts",
+		"test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test \"tests/*.test.mts\" && npm --prefix plugins/context-budget test && npm --prefix plugins/den test && npm --prefix plugins/model-prompts test"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.12",
 		"@types/node": "22.20.1",
+		"smol-toml": "1.8.0",
 		"typescript": "7.0.2"
 	}
 }

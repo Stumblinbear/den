@@ -1,36 +1,36 @@
 {
-  "description": "Per-model context-budget notice, measured from the transcript on every tool call and prompt, and the resume guard on SendMessage.",
-  "hooks": {
-    "PostToolUse": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-budget.mjs\" --defaults \"${CLAUDE_PLUGIN_ROOT}/hooks/config.toml\" --overrides \"${CLAUDE_PLUGIN_DATA}/config.toml\""
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/context-budget.mjs\" --defaults \"${CLAUDE_PLUGIN_ROOT}/hooks/config.toml\" --overrides \"${CLAUDE_PLUGIN_DATA}/config.toml\""
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "SendMessage",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/resume-guard.mjs\" --defaults \"${CLAUDE_PLUGIN_ROOT}/hooks/config.toml\" --overrides \"${CLAUDE_PLUGIN_DATA}/config.toml\""
-          }
-        ]
-      }
-    ]
-  }
+	"description": "Per-model context-budget notice, measured from the transcript on every tool call and prompt, and the resume guard on SendMessage.",
+	"hooks": {
+		"PostToolUse": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/context-budget --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+					}
+				]
+			}
+		],
+		"UserPromptSubmit": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/context-budget --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+					}
+				]
+			}
+		],
+		"PreToolUse": [
+			{
+				"matcher": "SendMessage",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/resume-guard --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+					}
+				]
+			}
+		]
+	}
 }

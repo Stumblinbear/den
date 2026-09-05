@@ -9,8 +9,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
-import { configPath, loadConfig, type Row } from "./config.mts";
-import { HookFault, reportOnce } from "./fault.mts";
+import { runEntry } from "../lib/entry.mts";
 import {
 	type ActiveModel,
 	type HookEvent,
@@ -18,6 +17,8 @@ import {
 	matchingRows,
 	modelFor,
 } from "./model.mts";
+import { FAULTS } from "./plugin.mts";
+import { loadRows, type Row } from "./rows.mts";
 import {
 	hasInjected,
 	readRecord,
@@ -30,53 +31,7 @@ import {
 
 const SETTINGS = join(homedir(), ".claude", "settings.json");
 
-const path = configPath(process.argv.slice(2));
-
-// Out here because a fault is reported against the session it happened in, and
-// because both of the things a run leaves behind are settled on the way out.
-let session = "";
-let record: SessionRecord | null = null;
-let output: string | null = null;
-
-try {
-	const fields = fieldsIn(await stdinText());
-
-	// The main session: a subagent's input names the agent it is for.
-	if (fields !== null && !fields["agent_id"]) {
-		const event = String(fields["hook_event_name"] ?? "");
-
-		session = String(fields["session_id"] ?? "");
-
-		if (isHookEvent(event) && session !== "") {
-			const before = readRecord(session);
-			const model = modelFor(event, fields, before.model, SETTINGS);
-
-			// Settled before the configuration is read: what the session is on,
-			// and that it has rebuilt its context, are facts about the session
-			// whether or not there is a usable configuration to act on them with.
-			record = noted(event, model, before);
-
-			const injected = await injection(event, model, record);
-
-			if (injected !== null) {
-				record = injected.record;
-				output = injected.text;
-			}
-		}
-	}
-} catch (error) {
-	fail(session, error);
-}
-
-if (record !== null) {
-	writeRecord(session, record);
-}
-
-if (output !== null) {
-	// Written on the way out rather than followed by `process.exit`, which can
-	// truncate a piped stdout before it has flushed.
-	process.stdout.write(output);
-}
+const args = process.argv.slice(2);
 
 /**
  * The record as this run leaves it before anything can fail: a session start
@@ -108,7 +63,7 @@ async function injection(
 	// Read on every run, and before the model is judged, so a broken install or
 	// a broken config is reported on the session's first hook run rather than
 	// whenever the first matching model happens to come up.
-	const rows = await loadConfig(path);
+	const rows = await loadRows(args);
 
 	if (model === null) {
 		return null;
@@ -127,24 +82,6 @@ async function injection(
 			firing.map((row) => row.key),
 		),
 	};
-}
-
-/**
- * A hook that cannot do its job must never stall a session start or a model
- * switch, so it ends in one line and an exit code rather than a stack trace.
- * A fault the session has already been told about is not worth repeating.
- */
-function fail(sessionId: string, error: unknown): void {
-	if (error instanceof HookFault) {
-		process.exitCode = reportOnce(sessionId, error) ? 1 : 0;
-
-		return;
-	}
-
-	process.stderr.write(
-		`model-prompts: ${error instanceof Error ? error.message : String(error)}\n`,
-	);
-	process.exitCode = 1;
 }
 
 function firingRows(
@@ -175,24 +112,42 @@ function fires(event: HookEvent, row: Row, record: SessionRecord): boolean {
 	return !hasInjected(record, row.key);
 }
 
-function fieldsIn(text: string): Record<string, unknown> | null {
-	const input: unknown = JSON.parse(text || "{}");
+// The run itself, last in the file and below every binding it reads: a `const`
+// read from here before its own declaration throws a ReferenceError, which the
+// runner would report as the bug it is.
+await runEntry(FAULTS, async ({ input, session }) => {
+	// The main session: a subagent's input names the agent it is for.
+	if (input["agent_id"] || session === "") {
+		return null;
+	}
 
-	return typeof input === "object" && input !== null
-		? (input as Record<string, unknown>)
-		: null;
-}
+	const event = String(input["hook_event_name"] ?? "");
 
-function stdinText(): Promise<string> {
-	return new Promise((done) => {
-		let data = "";
+	if (!isHookEvent(event)) {
+		return null;
+	}
 
-		process.stdin.on("data", (chunk) => {
-			data += String(chunk);
-		});
+	const before = readRecord(session);
+	const model = modelFor(event, input, before.model, SETTINGS);
 
-		process.stdin.on("end", () => {
-			done(data);
-		});
-	});
-}
+	// Settled before the configuration is read: what the session is on, and
+	// that it has rebuilt its context, are facts about the session whether or
+	// not there is a usable configuration to act on them with. Written back
+	// however this run ends, so a switch made while the config is broken is
+	// still the model a later run reads back.
+	let record = noted(event, model, before);
+
+	try {
+		const injected = await injection(event, model, record);
+
+		if (injected === null) {
+			return null;
+		}
+
+		record = injected.record;
+
+		return injected.text;
+	} finally {
+		writeRecord(session, record);
+	}
+});

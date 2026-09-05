@@ -1,12 +1,15 @@
 {
-  "name": "context-budget-plugin",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "node --test"
-  },
-  "description": "Runtime dependency for the context-budget Claude Code plugin hook. Claude Code installs it with `npm ci --ignore-scripts` when it caches the plugin.",
-  "dependencies": {
-    "smol-toml": "1.8.0"
-  }
+	"name": "context-budget-plugin",
+	"private": true,
+	"type": "module",
+	"description": "Runtime dependency for the context-budget Claude Code plugin hooks. Claude Code installs it with `npm ci --ignore-scripts` when it caches the plugin.",
+	"engines": {
+		"node": ">=22.6"
+	},
+	"scripts": {
+		"test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test \"tests/*.test.mts\""
+	},
+	"dependencies": {
+		"smol-toml": "1.8.0"
+	}
 }

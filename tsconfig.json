@@ -34,7 +34,9 @@
 		"skipLibCheck": true
 	},
 	"include": [
+		"lib/**/*.mts",
 		"plugins/*/hooks/**/*.mts",
+		"plugins/*/lib/**/*.mts",
 		"plugins/*/tests/**/*.mts",
 		"tests/**/*.mts",
 		"scripts/**/*.mts",

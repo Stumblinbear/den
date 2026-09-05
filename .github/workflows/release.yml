@@ -60,7 +60,7 @@ jobs:
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          version="$(node .github/scripts/prepare-release.mjs --plugin "$PLUGIN" --version "$INPUT_VERSION")"
+          version="$(node --experimental-strip-types --disable-warning=ExperimentalWarning .github/scripts/prepare-release.mts --plugin "$PLUGIN" --version "$INPUT_VERSION")"
           echo "VERSION=$version" >> "$GITHUB_ENV"
           echo "TAG=$PLUGIN--v$version" >> "$GITHUB_ENV"
           git --no-pager diff

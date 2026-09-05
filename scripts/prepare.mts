@@ -1,7 +1,7 @@
 // Root `npm install`/`npm ci` postinstall. Two jobs, both of them setup a
 // checkout needs and neither of them anything a plugin user ever runs: point
 // git at the tracked hook directory, and install each plugin's own
-// dependencies so the root `tsc` can resolve them.
+// dependencies.
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -13,7 +13,7 @@ const PLUGINS = join(ROOT, "plugins");
 
 // Neither step is worth failing an install over: a tarball or an archive
 // export has no git directory, and a plugin whose dependencies did not install
-// only costs the type checker its `smol-toml` types.
+// fails its own tests, which say so.
 function run(command: string, args: readonly string[], cwd: string): boolean {
 	const result = spawnSync(command, [...args], {
 		cwd,

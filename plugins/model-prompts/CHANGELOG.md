@@ -35,6 +35,6 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   the fix, and injects nothing while the problem stands. The report is
   silenced for the rest of that session; every run still reads the file, so a
   fix takes effect on the next one.
-- The hook is TypeScript, run by `hooks/launch.mjs` under bun when it is on
+- The hook is TypeScript, run by `lib/launch.mjs` under bun when it is on
   `PATH` and otherwise under Node 22.6+, with a `.runtime` file in the data
   directory to force one.

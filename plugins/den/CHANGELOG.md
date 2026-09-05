@@ -7,6 +7,11 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+
+- The review-triage and implementer-diagnostics hooks are TypeScript, and need
+  Node 22.6 or newer.
+
 ### Removed
 
 - The Opus writing rule on `SessionStart` and `PostModelSwitch` moved to the

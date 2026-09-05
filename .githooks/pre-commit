@@ -1,8 +1,9 @@
 #!/bin/sh
-# Pre-commit check: Biome over the staged files, then a type check of the whole
-# tree. It never writes -- a hook that reformats what is about to be committed
-# hides the change from the person committing it -- so a failure is fixed with
-# `npm run fix` and staged again.
+# Pre-commit check: Biome over the staged files, a type check of the whole
+# tree, and the check that every plugin's copy of the shared library still
+# matches it. It never writes -- a hook that reformats what is about to be
+# committed hides the change from the person committing it -- so a failure is
+# fixed with `npm run fix` or `npm run plugin-lib` and staged again.
 #
 # `npm install` at the repository root points `core.hooksPath` here.
 set -eu
@@ -18,7 +19,19 @@ for tool in biome tsc; do
   fi
 done
 
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node is not on PATH, and the copy check runs on it." >&2
+  echo "pre-commit: commit from somewhere \`node\` is on PATH -- a GUI git client" >&2
+  echo "pre-commit: often is not." >&2
+  exit 1
+fi
+
 # --staged reads the working-tree content of every staged file, so a partially
 # staged file is checked as it is on disk rather than as it will be committed.
 node_modules/.bin/biome check --staged --error-on-warnings --no-errors-on-unmatched
 node_modules/.bin/tsc --noEmit
+
+# Read-only, like everything above it: it names every copy that drifted and
+# every file in a plugin's `lib/` that nothing put there, and leaves the fix to
+# `npm run plugin-lib`.
+node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/plugin-lib.mts --check

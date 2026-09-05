@@ -1,40 +1,22 @@
 # den
 
 A Claude Code plugin marketplace. Three plugins live under `plugins/`, each
-with its own version, changelog and release tag.
+with its own version, changelog, README and release tag.
 
-- `den` - a coordinated, gated agent workflow plus a few craft skills.
-- `context-budget` - per-model context notices that get the agent recommending
-  `/compact` or a rewind summarize before auto-compact picks the cut point, and
-  a guard on resuming large or cold subagents.
-- `model-prompts` - injects the prompts configured for the active model into
-  the main session's context, at session start and on a model switch.
+- [`den`](plugins/den): a gated agent workflow. Standing agents do the
+  production work, every launch is authorized on its own, and two hooks remind
+  the main session what to do with a finished agent. Needs Node 22.6 or newer
+  for the hooks.
+- [`context-budget`](plugins/context-budget): gets the agent recommending
+  `/compact` or a rewind summarize before auto-compact picks the cut point,
+  and guards against resuming a large or cold subagent. Needs Node 22.6 or
+  newer, and a configuration file before it does anything.
+- [`model-prompts`](plugins/model-prompts): injects the prompts you have
+  written for a model whenever that model becomes the one in use. Needs Node
+  22.6 or newer, and a configuration file before it does anything.
 
-## What is in den
-
-Skills (invoke as `/den:<name>`):
-
-- `coordination` - rules for the main session: delegate production work, cite code by path and line, one authorization per agent launch, fresh reviewer per task, comment pass before every commit. Invoke it yourself at the start of a session; it is never loaded automatically and never reaches subagents.
-- `flag-review` - launches `den:flag-reviewer` on the pending diff. Its first message carries the status, the stat, and the diff itself when it fits under the inline output ceiling; past that, the reviewer pulls the diff per file. Optional argument: a git diff range (default: working tree against HEAD).
-- `comment-review` - the same for `den:comment-reviewer`.
-- `code-architecture` - where a type, function, or module belongs; preloaded into the flag-reviewer, and invoked by implementers as they write.
-- `writing-for-agents` - principles for writing instructions for LLM agents, with the sourced report beside it.
-- `unsafety-author` - Rust `# Safety` contracts and unsafe docs to the std/bevy bar.
-
-Agents (`den:<name>` in the Agent tool):
-
-- `flag-reviewer` (fable) - flag-only code and architecture review; never edits.
-- `comment-reviewer` (opus) - comment coverage and voice on a pending change.
-- `implementer-opus`, `implementer-haiku`, `implementer-fable` - execute a pinned brief; declare deviations; stop on broken assumptions.
-- `red-green-fixer` (opus) - reproduces a finding as a failing test, then fixes to green.
-- `prior-art-check` (opus) - how the problem is already solved, before an approach is chosen.
-- `surveyor` (sonnet), `file-peek` (haiku) - read-only evidence sweeps and targeted extraction from large files.
-- `synthesizer` (opus) - one ranked decision document from proposals and verdicts.
-- `localizer`, `localization-reviewer` (opus) - natural target-language localization and its review.
-
-Hooks (registered while the plugin is enabled):
-
-- SubagentStop + UserPromptSubmit relays that remind the main session to triage a finished reviewer's findings, and to treat IDE diagnostics as stale after an implementer edited Rust sources (an implementer that touched no .rs file leaves no reminder).
+Each plugin's README covers what it does on your machine, how to configure it,
+and how to troubleshoot it.
 
 ## Install
 
@@ -43,59 +25,89 @@ In Claude Code:
 ```
 /plugin marketplace add stumblinbear/den
 /plugin install den@den
+/plugin install context-budget@den
+/plugin install model-prompts@den
 ```
 
-The marketplace is assumed to live at the GitHub repository `stumblinbear/den`. Then run `/reload-plugins` if the install summary asks for it, and `/den:coordination` at the start of a session where the workflow rules should apply.
+Install only the ones you want. Run `/reload-plugins` if the install summary
+asks for it.
+
+## Repository structure
+
+- `plugins/<name>/`: one plugin, with its own manifest, changelog, README,
+  dependencies and tests. What Claude Code installs, the hooks and the `lib/`
+  copy, imports nothing from outside the plugin directory; only the tests
+  reach out, to the shared harness.
+- `lib/`: the sources every plugin shares, including the launcher that picks
+  an interpreter, the reader for what Claude Code writes on a hook's stdin,
+  and the configuration loader. Each plugin carries a committed copy under its
+  own `lib/`.
+- `scripts/`: the copy that keeps those in step, and the root install step
+  that points git at the tracked hooks and installs each plugin's
+  dependencies.
+- `tests/`: the shared test harness, and the tests that belong to no single
+  plugin.
+- `.githooks/`: the pre-commit check.
+- `.github/`: the validate and release workflows, and the release script.
+- `.claude-plugin/marketplace.json`: the marketplace manifest. A new plugin is
+  listed here, in `scripts/plugin-lib.mts`, and in the release workflow's
+  `plugin` input.
 
 ## Developing
 
 ```sh
-npm install     # tooling, the git hook path, and each plugin's dependencies
-npm run check   # biome ci + tsc --noEmit, the same pair CI runs
-npm run fix     # biome check --write
-npm test        # every plugin's tests
+npm install        # tooling, the git hook path, and each plugin's dependencies
+npm run check      # biome ci, tsc --noEmit and the copy check, as CI runs them
+npm run fix        # biome check --write
+npm run plugin-lib # copy lib/ into every plugin that takes it
+npm test           # the root tests, then every plugin's
 ```
 
 The toolchain wants **Node 22.6 or newer**, and CI runs the tests on that
-floor as well as on the current release.
+floor as well as on the current release, under both bun and Node.
+
+After editing anything in `lib/`, run `npm run plugin-lib`. `npm run check`
+fails and names any copy that has drifted, and any file in a plugin's `lib/`
+that nothing puts there.
 
 `npm install` also points `core.hooksPath` at `.githooks`, so `git commit`
-runs `biome check --staged` and `tsc --noEmit` before it lands. The hook only
-checks; fix a failure with `npm run fix` and stage the result. Two things to
-know about it:
+runs `biome check --staged`, `tsc --noEmit` and the copy check before it
+lands. The hook only checks. Fix a failure with `npm run fix` or
+`npm run plugin-lib` and stage the result. Two things to know about it:
 
 - `--staged` checks the on-disk content of every staged file, so a partially
   staged file is judged by what is in the working tree, not by what is about
   to be committed.
 - A GUI git client that runs hooks without `node` on `PATH` fails the hook
-  with a message saying so; commit from a shell that has it.
+  with a message saying so. Commit from a shell that has it.
 
-Biome runs Biome's recommended preset plus a few rules chosen one at a time;
+Biome runs its recommended preset plus a few rules chosen one at a time;
 `biome.jsonc` carries the reason for each beside it.
 
 ## Releasing
 
-Releases are cut by the `Release` GitHub Actions workflow; nothing is bumped
-or tagged by hand. The `version` field in `plugin.json` is the update
-trigger for installed users, so work on `master` freely and release
-deliberately. The workflow releases one plugin per run — every plugin under
-`plugins/` carries its own version, changelog, and `<plugin>--v*` tags. A new
-plugin has to be added to the `plugin` input's `options` in
-`.github/workflows/release.yml` before it can be picked for release.
+Releases are cut by the `Release` GitHub Actions workflow. Nothing is bumped
+or tagged by hand. The `version` field in `plugin.json` is the update trigger
+for installed users, so work on `master` freely and release deliberately. The
+workflow releases one plugin per run.
 
 1. Add each notable change to the `Unreleased` section of that plugin's
    `plugins/<plugin>/CHANGELOG.md` as you go. The workflow refuses to release
    an empty section.
-2. Run the workflow from the Actions tab, picking the plugin from the
-   dropdown and typing the version to release.
-3. The workflow validates `master`, runs `.github/scripts/prepare-release.mjs`
+2. Run the workflow from the Actions tab, picking the plugin from the dropdown
+   and typing the version to release.
+3. The workflow validates `master`, runs `.github/scripts/prepare-release.mts`
    to bump that plugin's `plugin.json` and date its changelog section,
-   validates the result again, and only then pushes
-   `Release <plugin> x.y.z` to `master`, pushes the `<plugin>--vx.y.z` tag,
-   and publishes a GitHub release with that section as its notes. A failure at
-   any check leaves `master` and the tags untouched. If a run fails after the
-   push, rerun it with `version` set to that same version: the script
-   recognizes the bump is already in place and the remaining steps skip
-   whatever already exists.
-4. On a machine installed from GitHub, `/plugin marketplace update den` then
-   `/plugin update den@den` picks it up.
+   validates the result again, and only then pushes `Release <plugin> x.y.z`
+   to `master`, pushes the `<plugin>--vx.y.z` tag, and publishes a GitHub
+   release with that section as its notes. A failure at any check leaves
+   `master` and the tags untouched. If a run fails after the push, rerun it
+   with `version` set to that same version: the script recognizes the bump is
+   already in place, and the remaining steps skip whatever already exists.
+4. On an installed machine, `/plugin marketplace update den` then
+   `/plugin update <plugin>@den` picks it up.
+
+## Contributing
+
+Changes go through `npm run check` and `npm test`, and every notable one is
+added to the `Unreleased` section of the plugin's changelog.

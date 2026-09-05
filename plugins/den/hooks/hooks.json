@@ -7,7 +7,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-triage-flag.mjs\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/review-triage-flag"
 					}
 				]
 			},
@@ -16,7 +16,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/implementer-diagnostics-flag.mjs\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-diagnostics-flag"
 					}
 				]
 			}
@@ -26,11 +26,11 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-triage-inject.mjs\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/review-triage-inject"
 					},
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/implementer-diagnostics-inject.mjs\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-diagnostics-inject"
 					}
 				]
 			}
