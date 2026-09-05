@@ -72,7 +72,9 @@ that changes the packaging only, not the per-launch authorization.
 Findings split by certainty, judged against the task's goal. The reviewer
 tiers defects P0 to P3 and leaves quality and architecture findings untiered,
 because whether those must be fixed depends on the task's goal and history,
-which only this session has. A finding that is unquestionably wrong -- a
+which only this session has. A priority is the reviewer's estimate of impact,
+not evidence; the send-back test is the same at every tier. A finding that is
+unquestionably wrong -- a
 number the code demonstrably gets wrong, documented behavior that does not
 happen, a contradiction of a decision already made in the task -- goes
 straight back to the implementer or fixer without asking; the user's time is
