@@ -33,7 +33,8 @@ survives a real build.
 A brief pins behavior, external constraints, and the decisions already made.
 Placement, module boundaries, interface depth, type shape, and naming belong
 to the implementer, unless one of them is itself a requirement, and the brief
-says which.
+says which. Text an agent will follow is instructions, not documentation,
+whoever writes it, and is audited as instructions before it ships.
 
 ## Agents
 
