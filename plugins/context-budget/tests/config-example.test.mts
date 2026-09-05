@@ -6,7 +6,8 @@
 // One run covers the whole file: the settings are checked in full before
 // anything is measured, so a mistake anywhere in it is a fault on this run.
 // What the example says is the user's to rewrite, so nothing here reads its
-// wording -- only that the threshold it sets is the one that fires.
+// wording. What a case asserts is that the threshold it sets is the one that
+// fires.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

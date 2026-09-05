@@ -20,7 +20,7 @@ auto-compact choose one for you.
   for. A rewind at a prompt re-reads everything before it, and that stretch is
   cached only while the prompt itself is younger than the session's cache
   lifetime, so the reading lists three still-cached prompts spread across the
-  context — each with the clock time it falls out, what a cut there summarizes
+  context: each with the clock time it falls out, what a cut there summarizes
   away, what it keeps verbatim, and how many more turns the session has to
   take before the cut has paid for what it cost.
 - The `context-budget` skill, which the agent loads when it makes that
@@ -184,11 +184,11 @@ The reading it prints lists three prompts and not every cached one, because
 everything newer than the oldest cached prompt is cached too and a busy hour
 would otherwise be dozens of interchangeable rows: the oldest, the newest, and
 the one nearest halfway between them by size. A prompt no turn has answered
-yet is left out — a cut there keeps nothing verbatim, which is `/compact` by
-another name — and so is the first prompt of the context, which summarizes
-nothing away. Where the session was compacted within the cache lifetime and
-kept prompts verbatim, the reading names them instead, since a rewind at one
-of them costs at most the context the compaction left behind.
+yet is left out, since a cut there keeps nothing verbatim, which is
+`/compact` by another name. So is the first prompt of the context, which
+summarizes nothing away. Where the session was compacted within the cache
+lifetime and kept prompts verbatim, the reading names them instead, since a
+rewind at one of them costs at most the context the compaction left behind.
 
 The payback on each row is what turns two token counts into a decision: a
 rewind writes everything it keeps back to the cache at twice a fresh input
@@ -235,10 +235,10 @@ message. It clears the resume answers the session has spent along with it, and
 leaves the `cut-point` skill with no transcript to read until the next tool
 call writes a new record.
 
-`/context-budget:cut-point` printing "No measurement recorded for this
-session" means these hooks have not run in it — an unconfigured plugin, or a
-session started before it was installed — or that the script was run by hand
-without `--session`. Pass `--transcript <path to the session's .jsonl>` to
+`/context-budget:cut-point` prints "No measurement recorded for this
+session" when these hooks have not run in it, which is an unconfigured plugin
+or a session started before it was installed, or when the script was run by
+hand without `--session`. Pass `--transcript <path to the session's .jsonl>` to
 read one directly.
 
 A pricing file that cannot be read, parsed or used is dropped whole and every
@@ -252,8 +252,8 @@ A run killed while it held the record's lock leaves the directory `<session
 id>.lock` beside the record, and the next run of the session takes it over:
 the lock names the run that made it, and a process the OS no longer knows is
 the proof that nobody is coming back for it. A lock whose holder is still a
-running process is never taken over -- a run hung rather than dead, or one
-whose pid the machine has since given to something else -- and while it stands
+running process is never taken over, whether the run is hung rather than dead
+or the machine has since handed its pid to something else. While it stands,
 every later run of the session skips its own update of the file without a
 word: the notice never fires again, and a resume answer is never marked spent.
 Deleting `<session id>.lock` is what clears it.

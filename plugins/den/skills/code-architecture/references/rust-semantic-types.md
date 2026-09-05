@@ -4,7 +4,7 @@ Replace structurally interchangeable primitives with types that carry the
 domain's identity, units, and operations. This is **nominal semantic typing**,
 and it's distinct from making invalid states unrepresentable: a `u64` of
 milliseconds or a bare `Uuid` isn't an *invalid* value, it's a *meaningless*
-one — it has no units, no domain identity, and swaps freely with the wrong
+one. It has no units, no domain identity, and swaps freely with the wrong
 value of the same shape.
 
 Two moves:
@@ -17,7 +17,7 @@ Two moves:
 
 The newtype here is about *meaning and identity*, even when every value is
 valid. For the newtype used to *enforce an invariant* (private field + smart
-constructor, `Port` can't be 0), see `rust-invalid-states.md` §1 — same
+constructor, `Port` can't be 0), see `rust-invalid-states.md` §1: same
 mechanism, different purpose.
 
 ## Contents
@@ -43,7 +43,7 @@ mechanism, different purpose.
 - **Two same-typed arguments that could be transposed** (`fn transfer(from: Uuid,
   to: Uuid)`). → distinct newtypes.
 - **`type UserId = Uuid` / `type Meters = f64`.** A type alias creates *no* type
-  distinction — aliases and their underlying type stay interchangeable. This is
+  distinction: aliases and their underlying type stay interchangeable. This is
   not a semantic type; it's a comment. → newtype.
 - **A raw `Uuid` / `u64` / `i128` / `String` used as a domain identifier.**
   → `UserId(Uuid)` etc.
@@ -61,7 +61,7 @@ fn retry_after(delay: Duration) { sleep(delay); } // after
 `Duration` is a span with unit-named constructors, checked arithmetic, and
 conversions; `Instant` is a monotonic point for measuring elapsed time. Keep raw
 integers only at serialization/FFI/protocol/hardware-register boundaries whose
-representation is fixed — convert at the boundary.
+representation is fixed. Convert at the boundary.
 
 ## 2. Representation-aware standard types
 
@@ -88,16 +88,16 @@ struct UserId(Uuid); struct OrderId(Uuid);               // after
 struct Meters(f64);
 ```
 
-The API Guidelines' own example is `Miles(f64)` vs `Kilometers(f64)` — a
+The API Guidelines' own example is `Miles(f64)` vs `Kilometers(f64)`, a
 compiler-enforced distinction at no runtime cost (C-NEWTYPE). A `Uuid` is already
 semantic relative to `[u8; 16]`, but `UserId(Uuid)` adds the *application* domain
 identity that `Uuid` itself lacks. Skip wrappers for short-lived locals whose
-meaning is unambiguous, or where no same-representation domains can be confused —
-proliferation adds conversion, import, and trait-forwarding noise.
+meaning is unambiguous, or where no same-representation domains can be
+confused: proliferation adds conversion, import, and trait-forwarding noise.
 
 ## 4. Derive only the intended ergonomics
 
-The boilerplate that discourages newtypes is avoidable — but derive
+The boilerplate that discourages newtypes is avoidable, but derive
 deliberately, per trait, so the wrapper doesn't inherit operations it shouldn't.
 
 ```rust
@@ -107,12 +107,12 @@ struct UserId(Uuid);
 ```
 
 `derive_more` forwards conversion, formatting, operator, and reference traits,
-each selected separately. Don't auto-derive every inner capability — an
+each selected separately. Don't auto-derive every inner capability: an
 identifier should not gain arithmetic just because a `Uuid`/`u128` supports it.
 
 ## 5. Prefer explicit borrowing over a blanket `Deref`
 
-Don't `impl Deref<Target = Inner>` to save boilerplate — it leaks the inner API,
+Don't `impl Deref<Target = Inner>` to save boilerplate: it leaks the inner API,
 muddies method resolution, and lets callers bypass the wrapper's intended surface.
 
 ```rust
@@ -138,13 +138,13 @@ struct UserId(Uuid);
 `#[serde(transparent)]` serializes a one-field wrapper as its field (no wrapper
 object on the wire). `nutype` generates sanitization, validation, fallible
 construction, serde integration, and invariant-aware derives when the newtype
-*also* enforces constraints — skip it for plain identity wrappers where ordinary
+*also* enforces constraints. Skip it for plain identity wrappers where ordinary
 derives suffice.
 
 ## 7. Newtype to cross the orphan rule
 
 You can't `impl` a foreign trait on a foreign type; a local newtype makes it
-legal. (This is also why the orphan rule pushes organizational decisions — see
+legal. (This is also why the orphan rule pushes organizational decisions: see
 `rust-organization.md`.)
 
 ```rust
@@ -164,7 +164,7 @@ The cost is deliberate method/trait forwarding.
 - **Situational:** mint a newtype when accidental interchange is plausible, the
   name matters across an API boundary, or domain-specific traits/operations
   belong on it.
-- **Never a substitute:** `type UserId = Uuid` — a type alias adds readability
+- **Never a substitute:** `type UserId = Uuid`. A type alias adds readability
   but no distinction; the alias and the underlying type stay interchangeable.
 
 ## Production evidence
@@ -172,17 +172,17 @@ The cost is deliberate method/trait forwarding.
 Production ECS libraries expose semantic entity handles, not raw integers: Bevy
 separately types `EntityIndex`, `EntityGeneration`, and `Entity`; hecs's `Entity`
 hides private index/generation fields and converts to bits only explicitly for
-external storage — semantic handles internally, primitives only at the boundary.
+external storage: semantic handles internally, primitives only at the boundary.
 
 ## Sources
 
-- Rust API Guidelines — type safety (C-NEWTYPE, `Miles`/`Kilometers`):
+- Rust API Guidelines, type safety (C-NEWTYPE, `Miles`/`Kilometers`):
   https://rust-lang.github.io/api-guidelines/type-safety.html
-- Rust API Guidelines — predictability (C-DEREF):
+- Rust API Guidelines, predictability (C-DEREF):
   https://rust-lang.github.io/api-guidelines/predictability.html
-- Rust Book — Advanced Types (newtype, alias ≠ distinct type):
+- Rust Book, Advanced Types (newtype, alias ≠ distinct type):
   https://doc.rust-lang.org/book/ch20-03-advanced-types.html
-- Rust Book — Advanced Traits (orphan rule, newtype workaround):
+- Rust Book, Advanced Traits (orphan rule, newtype workaround):
   https://doc.rust-lang.org/book/ch20-02-advanced-traits.html
 - `Duration` / `Instant`: https://doc.rust-lang.org/std/time/struct.Duration.html
 - `Path` / `IpAddr` / `char`: https://doc.rust-lang.org/std/path/struct.Path.html

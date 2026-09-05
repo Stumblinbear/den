@@ -7,8 +7,8 @@ import { closeSync, fstatSync, openSync, readSync } from "node:fs";
 
 /**
  * Big enough that a normal transcript's whole cached stretch is one or two
- * reads, small enough that a session idle past its cache lifetime -- where the
- * newest prompt is already cold and the scan stops at it -- pays for almost
+ * reads, small enough that a session idle past its cache lifetime, where the
+ * newest prompt is already cold and the scan stops at it, pays for almost
  * nothing.
  */
 export const CHUNK_BYTES = 128 * 1024;

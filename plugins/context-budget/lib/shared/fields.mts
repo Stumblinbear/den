@@ -9,7 +9,7 @@ export const isTable = (value: unknown): value is Record<string, unknown> =>
 export const fieldsOf = (value: unknown): Record<string, unknown> =>
 	isTable(value) ? value : {};
 
-/** What a caught error is named by -- an errno, mostly -- when it carries one. */
+/** A caught error's code, usually an errno, or nothing when it carries none. */
 export const errorCode = (error: unknown): string | undefined =>
 	isTable(error) && typeof error["code"] === "string"
 		? error["code"]

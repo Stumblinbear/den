@@ -43,8 +43,8 @@ session, not to you.
 
 ## Boundary problems
 
-If the work exposes a concrete boundary problem — a missing primitive, a
-misplaced responsibility — name the observed friction and whether the
+If the work exposes a concrete boundary problem (a missing primitive, a
+misplaced responsibility), name the observed friction and whether the
 mechanical work can continue in your report, for the reviewer. Do not widen
 scope.
 

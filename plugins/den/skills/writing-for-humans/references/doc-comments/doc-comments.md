@@ -4,14 +4,14 @@ The reader is a caller who will not read the body. The comment owes them what
 the body would have told them and the signature does not; it owes them nothing
 for what the signature already shows.
 
-Rust's form is the general rule below — concise, complete, free of filler — and
+Rust's form is the general rule below (concise, complete, free of filler), and
 the shape generalizes. Where a language genuinely differs, its delta is a short
 file listed at the end; read that one too before writing.
 
 ## The summary
 
-The first unit — the first sentence in Go and Java, the `<summary>` tag in C#,
-the first paragraph elsewhere — is the only text that exists in an index, a
+The first unit (the first sentence in Go and Java, the `<summary>` tag in C#,
+the first paragraph elsewhere) is the only text that exists in an index, a
 search result, or an editor tooltip. rustdoc reuses everything before the first
 blank line in searches and module overviews; C# feeds `<summary>` to
 IntelliSense; javadoc puts the first sentence in class and method indexes;
@@ -20,7 +20,7 @@ Python's indexing tools take the first line of the docstring.
 That render fact gives the test: **if this were the only text that rendered,
 could the caller tell whether this is the item they want?**
 
-A summary that restates the signature fails it — the reader scanning an index
+A summary that restates the signature fails it: the reader scanning an index
 has the signature already. It is the commonest doc-comment failure, and the one
 usually traded against padding. Write what the item is for, in the terms the
 index reader has:
@@ -45,15 +45,15 @@ function without reading the function's code.
 Four slots. Decide for each whether it is non-trivial for this item, and write
 the ones that are:
 
-- **Obligation** — what the caller must ensure before calling, or must not do.
+- **Obligation.** What the caller must ensure before calling, or must not do.
   *"It is your responsibility to make sure that `buf` is initialized before
   calling `read`."*
-- **Guarantee** — what holds on return, that other code may rely on.
+- **Guarantee.** What holds on return, that other code may rely on.
   *"implementations must guarantee that `0 <= n <= buf.len()`"*
-- **Failure** — which condition yields which error, panic, or abort, and what
+- **Failure.** Which condition yields which error, panic, or abort, and what
   is true of the state afterwards. *"If an error is returned then it must be
   guaranteed that no bytes were read."*
-- **Invariant** — what holds across calls or across sites: ordering, the scope
+- **Invariant.** What holds across calls or across sites: ordering, the scope
   of a returned guard, what the type promises about itself.
   *"Implementations must not retain p."*
 
@@ -61,7 +61,7 @@ A slot the signature answers needs no line. A non-trivial slot left unwritten
 is the gap that sends the caller into the body, and at that point the doc is
 decoration.
 
-State a slot **as the obligation** — what the caller must ensure — not as the
+State a slot **as the obligation** (what the caller must ensure), not as the
 arithmetic or encoding that derives it. The derivation is the body; the caller
 needs the bound.
 
@@ -69,7 +69,7 @@ Keep the body's mechanism out: a doc that names the sorting algorithm makes the
 algorithm harder to change, because callers now depend on what you wrote. The
 same holds for constants, encodings, and buffer layouts.
 
-Keep out, too, the implementation that does not exist — "a naive version would
+Keep out, too, the implementation that does not exist: "a naive version would
 deadlock here". `references/inline-comments.md` carries that rule for both
 comment kinds, and two exceptions to it; the one that reaches a doc comment is
 the failure a non-obvious rule prevents, stated in one present-tense sentence
@@ -79,7 +79,7 @@ as the reason the rule exists.
 
 No standard sets a length limit, and length tracks contract size: a four-line
 doc and a forty-line doc are both right when that is the size of the contract.
-Interface documentation has to be complete — a cap on it just relocates the
+Interface documentation has to be complete: a cap on it just relocates the
 cost to every caller who now reads the body.
 
 Layer instead, so a reader who has what they need can stop: summary, then the
@@ -98,7 +98,7 @@ called "Failure modes" is invisible to a reader looking for `# Panics`, and
 rustdoc renders these into the sidebar.
 
 The Rust vocabulary: `# Safety`, `# Panics`, `# Errors`, `# Examples`,
-`# Time complexity`. Async code adds `# Cancel safety` — a tokio convention
+`# Time complexity`. Async code adds `# Cancel safety`, a tokio convention
 rather than a standard, on a public async fn a caller could race in `select!`.
 
 - `# Errors` on every public fn returning `Result`.
@@ -116,14 +116,14 @@ Give a public item an example: at least one snippet the caller can copy and
 paste to try it.
 
 Write it as code someone will paste verbatim, because they will. In Rust it is
-also a doctest, which makes it the one part of a doc the compiler keeps honest
-— so use `?` rather than `unwrap`, and mark it `no_run` when running it needs
-live infrastructure.
+also a doctest, which makes it the one part of a doc the compiler keeps
+honest, so use `?` rather than `unwrap`, and mark it `no_run` when running it
+needs live infrastructure.
 
 ## History belongs in the markers
 
-Prose states what is. History has a sanctioned home — the markers the toolchain
-parses — and putting it there buys tool behavior that a sentence in prose does
+Prose states what is. History has a sanctioned home (the markers the toolchain
+parses), and putting it there buys tool behavior that a sentence in prose does
 not: in Rust, `#[deprecated(since = "...", note = "use ... instead")]` for a
 thing on its way out and `#[stable(since = "...")]` for the version one landed
 in. Every toolchain has its own; where the form differs, the language file
@@ -147,9 +147,9 @@ they must guarantee, which is three chances to stop before they have it.
 An interface comment that has to be very long to be complete is a signal about
 the abstraction, not about the comment. Ask which produced the length:
 
-- **Restatement** — mechanism, constants, one caller's usage narrated onto a
+- **Restatement.** Mechanism, constants, one caller's usage narrated onto a
   general operation. Cut it; it was never contract.
-- **Contract** — every paragraph is something the caller must know. Keep all of
+- **Contract.** Every paragraph is something the caller must know. Keep all of
   it, and treat the size as a design finding: the item is probably doing two
   things, or leaking state its callers have to track.
 
@@ -162,7 +162,7 @@ Every publicly visible item. Full treatment on the public API surface; for an
 internal item, the summary plus any non-obvious obligation.
 
 Nothing on this page reaches test code: a `#[cfg(test)]` module, a `tests/`
-tree, or a language's equivalent, and every item inside one — a helper as much
+tree, or a language's equivalent, and every item inside one, a helper as much
 as a test. None of it appears in an index, and its callers are the tests beside
 it, so it answers to the skill body's common rules alone.
 
@@ -175,14 +175,14 @@ documentation; restating it there is a second copy to keep in sync.
 Read the file for the language in hand; each is short and states only its delta
 from the above.
 
-- `go.md` — first-sentence summary beginning with the item's name; the package
+- `go.md`: first-sentence summary beginning with the item's name; the package
   comment as the package's own orientation; contract in prose, no headings;
   `Deprecated:`.
-- `python.md` — docstring, imperative summary, `Args`/`Returns`/`Raises`.
-- `java.md` — summary is a sentence fragment; block tag order; never an empty
+- `python.md`: docstring, imperative summary, `Args`/`Returns`/`Raises`.
+- `java.md`: summary is a sentence fragment; block tag order; never an empty
   tag.
-- `csharp.md` — tags delimit the summary; `<param>` coverage and `cref` targets
+- `csharp.md`: tags delimit the summary; `<param>` coverage and `cref` targets
   are compiler-checked.
-- `swift.md` — summary is a sentence fragment; callouts for the slots.
-- `typescript.md` — the summary is everything before `@remarks`, so the
+- `swift.md`: summary is a sentence fragment; callouts for the slots.
+- `typescript.md`: the summary is everything before `@remarks`, so the
   contract goes under `@remarks`.

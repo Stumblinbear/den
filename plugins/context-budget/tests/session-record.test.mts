@@ -3,9 +3,9 @@
 // the resume guard spends answers in it, the shared reporter lists the faults
 // the session has been told about in it, and the cut-point script finds the
 // transcript through it. None of them knows the others' fields, so what any of
-// them writes must leave the rest of the file where it was -- and there must be
-// exactly one file, since a fault class in a file of its own is a second place
-// to look and a second thing to delete.
+// them writes must leave the rest of the file where it was. There must be
+// exactly one file too, since a fault class in a file of its own is a second
+// place to look and a second thing to delete.
 import assert from "node:assert/strict";
 import { rmSync, writeFileSync } from "node:fs";
 import { test } from "node:test";
@@ -93,8 +93,9 @@ for (const runtime of runtimes()) {
 	test(
 		name("a model whose row is switched off is recorded all the same"),
 		() => {
-			// A row switched off is the whole plugin off for the models it matches --
-			// and the session still needs a transcript path the skill can read.
+			// A row switched off is the whole plugin off for the models it
+			// matches, and the session still needs a transcript path the skill can
+			// read.
 			const off = configFile(
 				DEFAULTS,
 				"[models.'fable']\nenabled = false\n",

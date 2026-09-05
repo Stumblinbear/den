@@ -156,8 +156,8 @@ A run killed while it held the record's lock leaves the directory `<session
 id>.lock` beside the record, and the next run of the session takes it over:
 the lock names the run that made it, and a process the OS no longer knows is
 the proof that nobody is coming back for it. A lock whose holder is still a
-running process is never taken over -- a run hung rather than dead, or one
-whose pid the machine has since given to something else -- and while it stands
+running process is never taken over, whether the run is hung rather than dead
+or the machine has since handed its pid to something else. While it stands,
 every later run of the session skips its own update of the file without a
 word: a `once` row says its text again, and a session start carrying no model
 id falls back to the model the record held before the lock stuck, and to

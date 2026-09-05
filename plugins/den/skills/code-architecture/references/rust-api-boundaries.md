@@ -3,8 +3,8 @@
 Every signature is a contract about what the boundary does with a value:
 observe it, mutate it, consume it, store it, or share it. Encode that in the
 types. Two canonical principles from the API Guidelines drive the choices:
-**the caller controls copying** (`C-CALLER-CONTROL` — don't take ownership just
-to read) and **minimum necessary assumptions** (`C-GENERIC` — accept the
+**the caller controls copying** (`C-CALLER-CONTROL`: don't take ownership just
+to read) and **minimum necessary assumptions** (`C-GENERIC`: accept the
 weakest type that does the job).
 
 The highest-frequency mistake this prevents: over-owning parameters and cloning
@@ -22,7 +22,7 @@ result is genuinely a view into caller-visible state.
 - 2. Return according to provenance
 - 3. Fix signatures, not call sites
 - 4. Accept the pointee abstraction
-- 5. Model sharing explicitly — but only when it's real
+- 5. Model sharing explicitly, but only when it's real
 - 6. Choose builder receivers from terminal ownership
 - Calibration
 - Sources
@@ -75,8 +75,9 @@ fn names(&self) -> impl Iterator<Item = &str> {                  // after
 `Path::file_name` returns `Option<&OsStr>` tied to `self`; `CStr::to_string_lossy`
 returns `Cow<str>` because the conversion may borrow or allocate; return-position
 `impl Trait` hides a concrete iterator/closure type while keeping static dispatch.
-Note the *opposite* failure — an unconditional "public APIs must return owned"
-rule would diverge from `std`: return a borrow when the value is genuinely a view.
+Note the *opposite* failure: an unconditional "public APIs must return owned"
+rule would diverge from `std`. Return a borrow when the value is genuinely a
+view.
 
 ## 3. Fix signatures, not call sites
 
@@ -94,8 +95,8 @@ shared ownership genuinely doesn't fit.
 
 ## 4. Accept the pointee abstraction
 
-Take the borrowed *slice/str/pointee*, not a borrow of the owning wrapper — deref
-coercion means owning callers still pass with a plain `&`.
+Take the borrowed *slice/str/pointee*, not a borrow of the owning wrapper:
+deref coercion means owning callers still pass with a plain `&`.
 
 ```rust
 fn show(s: &String, xs: &Vec<u8>, n: &Box<Node>)                 // before
@@ -105,7 +106,7 @@ fn show(s: &str,    xs: &[u8],    n: &Node)                       // after
 Keep the wrapper only when its capacity, allocator, pointer identity, ownership,
 or a wrapper-specific operation is actually part of the contract.
 
-## 5. Model sharing explicitly — but only when it's real
+## 5. Model sharing explicitly, but only when it's real
 
 Shared ownership and interior mutability trade compile-time guarantees for
 reference counts, runtime borrow panics, or lock overhead and deadlock risk.
@@ -118,7 +119,7 @@ fn run(cfg: &Config, state: &mut State) { /* ... */ }            // after
 
 Use `Rc`/`Arc` for genuine multiple ownership, `RefCell` when runtime-checked
 interior mutation is intrinsic to the design, and a lock when mutation is
-genuinely concurrent — not as a default for "the borrow checker is hard."
+genuinely concurrent, not as a default for "the borrow checker is hard."
 
 ## 6. Choose builder receivers from terminal ownership
 
@@ -132,7 +133,7 @@ fn option(mut self, x: X) -> Self;  fn build(self) -> Product;   // consuming
 
 `reqwest::RequestBuilder` consumes `self` through configuration to `build`/`send`;
 `clap` combines consuming builders with `impl Into<Id>` and `impl IntoIterator`.
-Neither style is universally better — terminal ownership and whether callers
+Neither style is universally better: terminal ownership and whether callers
 build conditionally decide.
 
 ## Calibration
@@ -140,18 +141,18 @@ build conditionally decide.
 - **Close to unconditional:** borrow (`&str`/`&[T]`/`&T`) when only observing;
   take the pointee not the wrapper; fix the signature instead of cloning to
   appease the borrow checker.
-- **Situational:** generic bounds (`AsRef`/`Into`/`IntoIterator`) — ergonomic
-  tools, not mandatory; builder receiver style; whether to return a borrow or
-  owned (decided by provenance).
+- **Situational:** generic bounds (`AsRef`/`Into`/`IntoIterator`), which are
+  ergonomic tools and not mandatory; builder receiver style; whether to return
+  a borrow or owned (decided by provenance).
 - **Deliberate exceptions, not smells:** owning a parameter that's stored or
   consumed; cloning when two independent owned values must survive; `Rc`/`Arc`/
   `RefCell`/`Mutex` for genuine shared ownership or concurrent mutation.
 
 ## Sources
 
-- Rust API Guidelines — Flexibility (C-CALLER-CONTROL, C-GENERIC):
+- Rust API Guidelines, Flexibility (C-CALLER-CONTROL, C-GENERIC):
   https://rust-lang.github.io/api-guidelines/flexibility.html
-- Rust API Guidelines — builders (C-BUILDER):
+- Rust API Guidelines, builders (C-BUILDER):
   https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder
 - `File::open` (`impl AsRef<Path>`):
   https://doc.rust-lang.org/std/fs/struct.File.html#method.open
@@ -163,5 +164,5 @@ build conditionally decide.
   https://doc.rust-lang.org/reference/types/impl-trait.html#abstract-return-types
 - clippy: `ptr_arg`, `needless_pass_by_value`, `redundant_clone`, `borrowed_box`:
   https://rust-lang.github.io/rust-clippy/master/index.html#ptr_arg
-- The Rust Book — `Rc`, `RefCell`, shared-state concurrency:
+- The Rust Book on `Rc`, `RefCell`, and shared-state concurrency:
   https://doc.rust-lang.org/book/ch15-04-rc.html

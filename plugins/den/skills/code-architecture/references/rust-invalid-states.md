@@ -2,7 +2,7 @@
 
 Design types so the set of constructible values approximates the set of valid
 domain states. If a value can be built, it should be legal. This is established
-Rust practice — the Rust Book teaches state-encoding through types, and the API
+Rust practice: the Rust Book teaches state-encoding through types, and the API
 Guidelines prefer types that statically rule out invalid inputs.
 
 The mechanism is type-driven domain modeling: product types, sum types, refined
@@ -17,7 +17,7 @@ being re-checked; typestate extends the same idea from values to the permitted
 - 1. Constructor-level: refine at the boundary
 - 2. Type shape: illegal combinations can't be built
 - 3. Typestate: illegal operation sequences can't be called
-- 4. API hardening (adjacent — not the core principle)
+- 4. API hardening (adjacent, not the core principle)
 - Calibration
 - Sources
 
@@ -32,7 +32,7 @@ being re-checked; typestate extends the same idea from values to the permitted
   → §1, parse-don't-validate.
 - **`assert!(n != 0)`, `.is_empty()` guards, or `.first().unwrap()` repeated
   across a value's call sites.** The precondition wants to live in the type. → §2.
-- **`type UserId = u64; type OrderId = u64;`** — aliases don't stop interchange.
+- **`type UserId = u64; type OrderId = u64;`.** Aliases don't stop interchange.
   → §1, newtype.
 - **A public field or public tuple-struct constructor on a type with an
   invariant.** Any caller can bypass it. → §1, smart constructor.
@@ -118,13 +118,14 @@ type so downstream code drops its guards.
 
 ```rust
 fn divide_by(n: u32) { assert!(n != 0); }    // before
-fn divide_by(n: NonZeroU32) {}               // after — caller proves it once
+fn divide_by(n: NonZeroU32) {}               // after: caller proves it once
 ```
 
 `NonZero<T>` also enables niche layout optimization (`Option<NonZero<u32>>` is
 the size of `u32`). Non-empty collections (`nonempty`, `vec1`) can't implement
-ordinary `FromIterator` — an arbitrary iterator may yield nothing — so they
-restrict length-reducing operations. Skip when empty/zero is a meaningful value.
+ordinary `FromIterator`, because an arbitrary iterator may yield nothing, and
+so they restrict length-reducing operations. Skip when empty/zero is a
+meaningful value.
 
 ## 3. Typestate: illegal operation *sequences* can't be called
 
@@ -141,7 +142,7 @@ impl Device<Open>   { fn read(&mut self) -> Data { /* ... */ } }
 Canonical in embedded and protocol APIs: the Embedded Rust Book encodes GPIO pin
 configuration as type parameters so a misconfigured pin can't be used;
 embedded-hal distinguishes 7-/10-bit I²C via a marker type parameter.
-`PhantomData` is zero-sized but not semantically inert — it affects ownership,
+`PhantomData` is zero-sized but not semantically inert: it affects ownership,
 variance, drop-check, and auto traits.
 
 Situational, not a default. Avoid when state changes dynamically across
@@ -149,20 +150,20 @@ collections, trait objects, async ownership boundaries, or frequent
 reassignment: typestate multiplies concrete types, exposes generics to callers,
 and makes storage and error recovery awkward.
 
-## 4. API hardening (adjacent — not the core principle)
+## 4. API hardening (adjacent, not the core principle)
 
 These constrain implementors, preserve evolution space, or surface ignored
 obligations. None alone makes a domain-invalid *value* unrepresentable; reach
 for them to harden a public API, not to model a domain invariant.
 
-- **Sealed traits** — a `: private::Sealed` supertrait bound keeps the set of
+- **Sealed traits.** A `: private::Sealed` supertrait bound keeps the set of
   implementors closed (embedded-hal seals `AddressMode`; API Guidelines
   C-SEALED). Don't seal when third-party implementation is the point.
-- **`#[non_exhaustive]`** — forces downstream `_ =>` arms and non-exhaustive
+- **`#[non_exhaustive]`.** Forces downstream `_ =>` arms and non-exhaustive
   construction, so adding a variant/field isn't a breaking change. Don't use it
   when exhaustive matching is a desired contract (a new variant *should* force
   every consumer to update).
-- **`#[must_use]`** — a lint (not a type guarantee) against silently dropping a
+- **`#[must_use]`.** A lint (not a type guarantee) against silently dropping a
   value whose whole point is to be consumed (`Result`, guards, lazy iterator
   adapters). Don't apply it where ignoring the value is routinely legitimate;
   overuse just breeds `let _ = ...`.
@@ -180,16 +181,16 @@ for them to harden a public API, not to model a domain invariant.
 
 ## Sources
 
-- Rust Book — encoding state and behavior as types:
+- Rust Book, encoding state and behavior as types:
   https://doc.rust-lang.org/stable/book/ch18-03-oo-design-patterns.html
 - Alexis King, "Parse, don't validate":
   https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
-- Rust API Guidelines — type safety (C-NEWTYPE, C-CUSTOM-TYPE):
+- Rust API Guidelines, type safety (C-NEWTYPE, C-CUSTOM-TYPE):
   https://rust-lang.github.io/api-guidelines/type-safety.html
-- Rust API Guidelines — future-proofing (C-SEALED, C-NEWTYPE-HIDE,
+- Rust API Guidelines, future-proofing (C-SEALED, C-NEWTYPE-HIDE,
   C-STRUCT-PRIVATE): https://rust-lang.github.io/api-guidelines/future-proofing.html
 - `std::num::NonZero`: https://doc.rust-lang.org/std/num/struct.NonZero.html
-- Embedded Rust Book — GPIO typestate:
+- Embedded Rust Book, GPIO typestate:
   https://doc.rust-lang.org/stable/embedded-book/design-patterns/hal/gpio.html
 - `PhantomData`: https://doc.rust-lang.org/std/marker/struct.PhantomData.html
 - Serde container attributes (`try_from`): https://serde.rs/container-attrs.html

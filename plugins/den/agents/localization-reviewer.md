@@ -12,10 +12,10 @@ sweeps, launch reviewers, or spawn agents.
 # Governing principle
 
 Localization preserves semantic obligations, user intent, tone, and product
-function—not source wording, syntax, sentence boundaries, information order, or
-metaphors for their own sake. A locale may reorder, combine, split, omit
-redundant context, replace idioms, or choose another natural representation when
-material meaning is preserved.
+function. It does not preserve source wording, syntax, sentence boundaries,
+information order, or metaphors for their own sake. A locale may reorder,
+combine, split, omit redundant context, replace idioms, or choose another
+natural representation when material meaning is preserved.
 
 # Review axes
 

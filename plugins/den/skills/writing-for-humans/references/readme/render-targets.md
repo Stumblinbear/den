@@ -9,15 +9,15 @@ Two constraints apply to every target:
 - **Anything essential uses an absolute URL.** Only GitHub rewrites relative
   paths for you. On a registry page the base differs or is wrong, and the reader
   gets a dead link or a missing image.
-- **GitHub and docs.rs build an outline from the headings** — docs.rs when the
-  README is included as crate docs. A long README needs a contents list of its
-  own on crates.io, PyPI and npm.
+- **GitHub and docs.rs build an outline from the headings.** docs.rs does so
+  when the README is included as crate docs. A long README needs a contents
+  list of its own on crates.io, PyPI and npm.
 
 ## GitHub
 
 - The rendered README is looked for in `.github`, then the repository root, then
   `docs`, in that order.
-- Content past 500 KiB is truncated — an installation matrix or option catalogue
+- Content past 500 KiB is truncated: an installation matrix or option catalogue
   can reach it.
 - The outline is generated from headings, so skip the hand-written contents
   list.
@@ -37,7 +37,7 @@ Two constraints apply to every target:
 - **README as crate docs.** `#![doc = include_str!("../README.md")]` puts the
   README on the crate's front page and makes its fenced blocks doctests:
   rustdoc assumes Rust for an unlabelled block, and compiles and runs it. So
-  every example in the README is now a test that can fail the build — which is
+  every example in the README is now a test that can fail the build, which is
   the point, and the reason to tag deliberately: `text` for output and pseudocode,
   `ignore` for code that should not compile, `no_run` for examples that need the
   network or a running service.
@@ -49,7 +49,7 @@ Two constraints apply to every target:
   `text/plain`.
 - Sphinx directives and roles (`:ref:`, `:py:func:`) are rejected, and
   unsupported markup makes PyPI display the raw source instead of rendered
-  HTML — the whole page, not just the offending line.
+  HTML: the whole page, not just the offending line.
 - Check before publishing: `twine check dist/*` (twine 1.12.0 or newer) reports
   rendering problems.
 

@@ -1,9 +1,9 @@
 // What is particular to this plugin's tests: where its files are, the exact
 // commands `hooks.json` runs, and the transcripts and configuration files a
-// case points them at. Everything the plugins' tests share -- the runtimes,
-// the throwaway directories, the session ids and the spawn itself -- is in the
-// root harness, which a test file imports alongside this one. Importing this
-// registers no test of its own.
+// case points them at. The root harness holds what every plugin's tests share:
+// the runtimes, the throwaway directories, the session ids and the spawn
+// itself. A test file imports both. Importing this registers no test of its
+// own.
 //
 // Nothing is merged under the configuration a hook is handed, so a case that
 // is about one section still has to write a whole file. The sections below are
@@ -235,8 +235,8 @@ export function reading(result: Result): string {
 }
 
 /**
- * A pricing override file, or a path to one that is not there -- the normal
- * case, since almost nobody corrects a published price.
+ * A pricing override file, or a path to one that is not there. Almost nobody
+ * corrects a published price, so the absent file is the normal case.
  */
 export function pricingOverride(toml: string): string {
 	const path = join(fixtureDir("pricing"), "pricing.toml");

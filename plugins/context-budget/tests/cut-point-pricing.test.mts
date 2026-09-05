@@ -5,8 +5,8 @@
 // lifetime where carrying on would have read that same stretch at the read
 // rate, and only then starts saving the read of what it summarized away, once
 // per turn. So the same cut is worth taking in a session with forty turns left
-// in it and not in one with four -- and on the tier that reads at a quarter of
-// the usual price it takes about four times as long to come good.
+// in it and not in one with four. On the tier that reads at a quarter of the
+// usual price it takes about four times as long to come good.
 //
 // The rates themselves, and the file a user corrects one in, are
 // `pricing.test.mts`.
@@ -88,8 +88,8 @@ for (const runtime of runtimes()) {
 		() => {
 			// The identical transcript under the id the `fable` row matches. That
 			// tier reads a cached token at 0.025 against 0.1, so every turn saves a
-			// quarter as much -- and the write back costs a shade more, since the
-			// read it replaces was cheaper too.
+			// quarter as much. The write back costs a shade more too, since the
+			// read it replaces was cheaper.
 			const out = reading(
 				script(measured(paybackTranscript("claude-fable-5-1"))),
 			);
@@ -128,10 +128,10 @@ for (const runtime of runtimes()) {
 		name("a transcript that names no model says which rate it fell back to"),
 		() => {
 			// Every turn in it carries an empty model id, which matches no row. The
-			// reading is still worth printing -- but a payback figure is only worth
+			// reading is still worth printing, but a payback figure is only worth
 			// as much as the rate behind it, and on the one tier that reads at a
-			// quarter of the usual price it would be out by a factor of four, so the
-			// rate it settled for goes in the opening line.
+			// quarter of the usual price it would be out by a factor of four, so
+			// the rate it settled for goes in the opening line.
 			const out = read(
 				assistant(110_000, { minutesAgo: 41, model: "" }),
 				prompt("Read the brief and start on the scanner", at(40)),

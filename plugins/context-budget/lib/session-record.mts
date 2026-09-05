@@ -1,7 +1,7 @@
 // What this session has been told and spent, kept in the plugin's one record
 // for it, `<os temp dir>/claude-context-budget/<session id>.json`: the level
 // the context notice last stood at, the resume answers the guard has already
-// spent, and the transcript the last measuring run read -- which is how the
+// spent, and the transcript the last measuring run read. That last is how the
 // cut-point script, handed a session id and nothing else, finds the transcript
 // to read. A hook run reads it, works on the value and writes it back, all of
 // that under the lock beside it; the script only reads, and takes no lock.

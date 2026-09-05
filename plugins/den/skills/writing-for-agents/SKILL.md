@@ -1,6 +1,6 @@
 ---
 name: writing-for-agents
-description: General principles for writing instructions for LLM agents — system prompts, persistent rule files, and prompt bodies of any kind. Use when authoring, auditing, or editing instructions an agent will follow, to apply documented prompt-authoring canon and current-model calibration.
+description: General principles for writing instructions for LLM agents, whether system prompts, persistent rule files, or prompt bodies of any kind. Use when authoring, auditing, or editing instructions an agent will follow, to apply documented prompt-authoring canon and current-model calibration.
 when_to_use: Instructions an agent will follow include a SKILL.md, an agent definition, a CLAUDE.md or rules file, a system prompt, a hook's injected text, a brief or launch prompt for a subagent, and a message a plugin prints to the model. Also use when an agent keeps ignoring an instruction, before strengthening its wording.
 ---
 
@@ -8,7 +8,7 @@ when_to_use: Instructions an agent will follow include a SKILL.md, an agent defi
 
 Instructions compete for a finite attention budget: every rule added makes
 every other rule slightly less followed. A rule earns its place by the removal
-test — "would removing this cause mistakes?" — applied per sentence, and a
+test, "would removing this cause mistakes?", applied per sentence, and a
 sentence that fails is deleted whole rather than trimmed: prose that changes
 nothing costs attention to say nothing. Rules
 that survive it are typically pitfalls, rationale, conventions that differ
@@ -19,7 +19,7 @@ tutorials, and behavior the model already gets right unprompted.
 ## Core principles
 
 - **Say what to do, not what to avoid.** Naming a behavior to prohibit it makes
-  it more available, not less — *don't think of an elephant*. A positive
+  it more available, not less: *don't think of an elephant*. A positive
   example of the wanted behavior outperforms a prohibition, and one short
   instruction outperforms an enumerated list of bad patterns.
 - **Give the reason, not only the rule.** The model generalizes from the why;
@@ -30,7 +30,7 @@ tutorials, and behavior the model already gets right unprompted.
   survive situations you didn't enumerate.
 - **Match specificity to fragility.** Exact steps where a wrong step is costly
   and the sequence matters; general direction where several approaches are
-  valid. Offer a default with an escape hatch — presenting an option menu
+  valid. Offer a default with an escape hatch: presenting an option menu
   re-spends, on every run, judgment you could have spent once while writing.
 - **One term per concept.** Synonym variety reads as distinction; consistency
   is parsing help.
@@ -41,7 +41,7 @@ tutorials, and behavior the model already gets right unprompted.
   sentences gesture at one idea, collapse them into the word for it.
 - **Start minimal, grow against observed failures.** Begin with the least
   instruction that could work, add only what closes a failure you actually
-  saw — not one you imagined. Where possible, build the eval before the
+  saw, not one you imagined. Where possible, build the eval before the
   instructions.
 - **Keep referenced material one level deep.** Agents read nested references
   partially or not at all, so anything two hops away is effectively unwritten.
@@ -49,29 +49,29 @@ tutorials, and behavior the model already gets right unprompted.
 ## Instructions are requests, not guarantees
 
 Instructions are advisory. A rule that must hold every single time belongs in
-enforcement — a hook, a permission, a tool restriction, a schema. When a
+enforcement: a hook, a permission, a tool restriction, a schema. When a
 written rule keeps being violated, the diagnosis is that the surrounding
 instructions are too long and the rule is being lost; the fix is to shorten
 them or move the rule into enforcement, because stronger wording still
 competes in the same over-full budget. Emphasis markers ("IMPORTANT", "YOU
-MUST") are a per-rule lever for the one rule that needs it — used broadly
+MUST") are a per-rule lever for the one rule that needs it. Used broadly
 they devalue to noise.
 
-Contradictions get resolved arbitrarily — when two rules collide, you don't
+Contradictions get resolved arbitrarily: when two rules collide, you don't
 get to pick which one wins. One home per rule.
 
 ## Calibrate to the model generation
 
-Prescriptiveness that helped older models can hurt current ones — recalibrate
+Prescriptiveness that helped older models can hurt current ones. Recalibrate
 instructions when the model changes rather than accreting.
 
 - **Strong instruction-followers (Fable 5)**: a brief instruction steers as
   well as enumerating each behavior by name; instructions tuned for prior
   generations are often too prescriptive and degrade output. Never instruct
-  the model to echo or explain its internal reasoning as response text — on
+  the model to echo or explain its internal reasoning as response text. On
   reasoning models this can trigger refusals.
 - **Self-verifying models (Opus 5)**: drop "verify your work" / "double-check"
-  scaffolding — it causes over-verification with no quality gain. Severity
+  scaffolding. It causes over-verification with no quality gain. Severity
   filters in review-style prompts ("only report high-severity") are followed
   literally and cause under-reporting; ask for everything and filter in a
   separate pass. Conciseness must be asked for explicitly, and in a long

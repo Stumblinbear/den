@@ -1,10 +1,10 @@
 // The out-of-band contract a configured plugin's failure policy is: an exit
 // code, one line on stderr, and the class written into the session's record,
 // which silences the rest of that session. Everything about it but the
-// plugin's own name and directory is the same for every plugin that has one,
-// and a plugin that reads no configuration -- den -- has none of it, which is
-// why this is not in the harness every plugin's tests import. Importing this
-// registers no test of its own.
+// plugin's own name and directory is the same for every plugin that has one.
+// den reads no configuration and has none of it, which is why this is not in
+// the harness every plugin's tests import. Importing this registers no test of
+// its own.
 import assert from "node:assert/strict";
 import { cpSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

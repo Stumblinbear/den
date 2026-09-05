@@ -156,6 +156,6 @@ if (linkAt >= 0) {
 }
 
 manifest["version"] = next;
-writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, 2)}\n`);
+writeFileSync(MANIFEST, `${JSON.stringify(manifest, null, "\t")}\n`);
 writeFileSync(CHANGELOG, lines.join("\n"));
 process.stdout.write(`${next}\n`);

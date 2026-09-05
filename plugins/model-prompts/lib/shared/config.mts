@@ -12,9 +12,9 @@ export interface ConfigFile {
 }
 
 /**
- * The parsed configuration, or null when the file is not there -- the
- * unconfigured state rather than a fault: the plugin is installed and has
- * nothing to say yet.
+ * The parsed configuration, or null when the file is not there. A missing file
+ * is the unconfigured state rather than a fault: the plugin is installed and
+ * has nothing to say yet.
  */
 export async function loadConfigFile(
 	faults: Faults,

@@ -32,7 +32,7 @@ Core rules:
 
 ## Example gallery: match the contract to the obligation category
 
-**Pointer validity and alignment** -- `std::ptr::read`:
+**Pointer validity and alignment** in `std::ptr::read`:
 > Behavior is undefined if any of the following conditions are violated:
 > - `src` must be valid for reads.
 > - `src` must be properly aligned.
@@ -40,23 +40,23 @@ Core rules:
 
 Flat bullet list of independent must-conditions. The default shape for a raw-pointer fn.
 
-**Bounds** -- `slice::get_unchecked`:
+**Bounds** in `slice::get_unchecked`:
 > Calling this method with an out-of-bounds index is undefined behavior even if the resulting reference is not used.
 
 One sentence. Note the "even if the resulting reference is not used" clause: it forecloses the "but I never dereferenced it" rationalization. Anticipate the wrong mental model and close it.
 
-**Length plus initialization invariant** -- `Vec::set_len`:
+**Length plus initialization invariant** in `Vec::set_len`:
 > - `new_len` must be less than or equal to `capacity()`.
 > - The elements at `old_len..new_len` must be initialized.
 
 Ties a numeric bound to a state invariant the type cannot check.
 
-**Encoding** -- `String::from_utf8_unchecked`:
+**Encoding** in `String::from_utf8_unchecked`:
 > The bytes passed in must be valid UTF-8.
 
 A single encoding precondition the type does not enforce. One line, done.
 
-**Lifetime, provenance, and size** -- `slice::from_raw_parts`:
+**Lifetime, provenance, and size** in `slice::from_raw_parts`:
 > - `data` must be valid for reads for `len * size_of::<T>()` many bytes, and it must be properly aligned.
 > - `data` must point to `len` consecutive properly initialized values of type `T`.
 > - The memory referenced must not be mutated for the duration of lifetime `'a`, except inside an `UnsafeCell`.
@@ -64,12 +64,12 @@ A single encoding precondition the type does not enforce. One line, done.
 
 The honest long list. Length is justified because every bullet is a distinct, real obligation: validity, initialization, aliasing-over-a-lifetime, and the allocation size cap. Do not pad it, do not trim a real bullet to look short.
 
-**Single-ownership transfer** -- `Box::from_raw`:
+**Single-ownership transfer** in `Box::from_raw`:
 > After calling this function, the raw pointer is owned by the resulting `Box`. Constructing more than one `Box` from the same raw pointer leads to undefined behavior.
 
 The obligation is "exactly once": who owns the pointee now, and the double-free hazard.
 
-**Aliasing exclusivity over interior mutability** -- std `UnsafeCell::as_ref_unchecked`:
+**Aliasing exclusivity over interior mutability** in std `UnsafeCell::as_ref_unchecked`:
 > - It is Undefined Behavior to call this while any mutable reference to the wrapped value is alive.
 > - Mutating the wrapped value while the returned reference is alive is Undefined Behavior.
 
@@ -78,7 +78,7 @@ And `RefCell::try_borrow_unguarded`, the model for any accessor that hands out a
 
 Both directions, partner named, no mechanism.
 
-**Permission plus aliasing (shared-mutable escape hatch)** -- bevy `UnsafeWorldCell::get_resource`:
+**Permission plus aliasing (shared-mutable escape hatch)** in bevy `UnsafeWorldCell::get_resource`:
 > It is the caller's responsibility to ensure that
 > - the `UnsafeWorldCell` has permission to access the resource
 > - no mutable reference to the resource exists at the same time
@@ -88,7 +88,7 @@ The two-part structure (permission, then aliasing) repeats across every accessor
 
 "any accesses to its data" is deliberately broad: it covers reads, not just live `&`/`&mut`. bevy also distinguishes a borrow existing from being used ("so long as none of those instances are used") when the benign case is worth stating, but only then.
 
-**Type-erased pointers** -- bevy `Ptr` / `OwningPtr`: the caller must assert the concrete pointee type and its validity, and for `OwningPtr` that ownership is taken exactly once. An erased pointer pushes the type obligation onto the caller; say which type and that it must match.
+**Type-erased pointers** in bevy `Ptr` / `OwningPtr`: the caller must assert the concrete pointee type and its validity, and for `OwningPtr` that ownership is taken exactly once. An erased pointer pushes the type obligation onto the caller; say which type and that it must match.
 
 ## Where the obligation lives
 

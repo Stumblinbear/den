@@ -9,9 +9,10 @@ import { errorCode, errorMessage, isTable } from "./shared/fields.mts";
 export type OnSwitch = "every" | "once" | "never";
 
 /**
- * A row that injects. Its text is already resolved: `file` is relative to the
- * config file, and that is only known while reading it. So is its key: every
- * run tests every row, and none of them recompiles the expression.
+ * A row that injects, its text already read and its key already compiled into
+ * `match`. `file` resolves against the config file, which is only known while
+ * reading it, and every run tests every row, so neither is worth doing again
+ * per run.
  */
 export interface Row {
 	readonly key: string;

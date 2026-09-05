@@ -1,8 +1,8 @@
 {
-  "name": "model-prompts",
-  "version": "0.2.0",
-  "description": "Injects the prompts configured for the active model into the main session's context, at session start and on a mid-session model switch, so a model-specific rule follows the model rather than the project.",
-  "author": {
-    "name": "Trevin Miller"
-  }
+	"name": "model-prompts",
+	"version": "0.2.0",
+	"description": "Injects the prompts configured for the active model into the main session's context, at session start and on a mid-session model switch, so a model-specific rule follows the model rather than the project.",
+	"author": {
+		"name": "Trevin Miller"
+	}
 }

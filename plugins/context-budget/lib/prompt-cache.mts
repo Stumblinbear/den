@@ -50,11 +50,11 @@ export interface CachedPrompt {
 
 /**
  * What the walk met that the list does not hold: nothing to select, a colder
- * cut point, or a compaction -- the difference between "there is nothing
- * further back to cut at", "there are other cut points and they cost" and "the
- * prompts above are priced by the compaction and by nothing else". A colder
- * one is usually above the cached prompts and can sit among them, where a 5m
- * turn left it cold under prefixes a 1h turn wrote either side of it.
+ * cut point, or a compaction. The three are the difference between "there is
+ * nothing further back to cut at", "there are other cut points and they cost"
+ * and "the prompts above are priced by the compaction and by nothing else". A
+ * colder one is usually above the cached prompts and can sit among them, where
+ * a 5m turn left it cold under prefixes a 1h turn wrote either side of it.
  */
 export type Above =
 	| { readonly kind: "nothing" }
@@ -111,10 +111,9 @@ interface Walk {
  * the transcript is on, the picker-eligible prompts a turn has answered whose
  * prefix is still cached oldest first, and what lies above the oldest of them.
  *
- * A compaction above them is reported apart from the prompts: the first
- * request after it wrote everything it kept verbatim to the cache in one
- * piece, so a rewind anywhere in that stretch is a write of at most
- * `postTokens`, the same price for all of them.
+ * A compaction above them is reported apart from the prompts, because a rewind
+ * anywhere in the stretch it kept is a write of at most `postTokens` and so
+ * one price for all of them. See the header of `compaction.mts` for why.
  */
 export function scanCacheWindow(path: string, now = Date.now()): CacheWindow {
 	const walk: Walk = {
@@ -172,8 +171,8 @@ function belowBoundary(
 
 	// A prompt with no turn yet to answer it: walking backward, `context` is
 	// still null for exactly those. Its prefix is the whole current context,
-	// so a cut there keeps nothing verbatim -- `/compact` by another name --
-	// and listing it would displace the newest prompt that is a cut point.
+	// so a cut there keeps nothing verbatim (`/compact` by another name), and
+	// listing it would displace the newest prompt that is a cut point.
 	if (walk.context === null) {
 		return false;
 	}
@@ -209,9 +208,9 @@ function tookTurn(
 	walk.ttl ??= written;
 
 	// The newest turn's context is the context now, which is what a rewind at
-	// any of these prompts keeps verbatim above the part it summarizes -- and
-	// the model that turn was sent to is the one whose prices the whole reading
-	// is figured at, taken from the same turn so the two cannot be read off
+	// any of these prompts keeps verbatim above the part it summarizes. The
+	// model that turn was sent to is the one whose prices the whole reading is
+	// figured at, taken from the same turn so the two cannot be read off
 	// different requests. A turn `turnUsage` refuses never gets here, which is
 	// what keeps the synthetic id of a failed request out.
 	if (walk.context === null) {
@@ -225,7 +224,7 @@ function tookTurn(
 
 	walk.unresolved = [];
 
-	// A turn that wrote nothing settles nothing -- it was served from an entry an
+	// A turn that wrote nothing settles nothing: it was served from an entry an
 	// older request wrote, and a read renews an entry for the lifetime it was
 	// written under without changing that lifetime, so the prompts it priced
 	// wait for that older request to say how long they live.
@@ -236,7 +235,7 @@ function tookTurn(
  * Prices the prompts whose prefix size is settled against the lifetime that
  * prefix was written under: cached while the prompt is younger than it, and
  * cold otherwise. A cold one is dropped and the walk carries on, because older
- * is not colder once the lifetime has switched -- a prefix a 1h turn wrote
+ * is not colder once the lifetime has switched: a prefix a 1h turn wrote
  * outlives one a later 5m turn wrote, so a prompt above a cold one can still
  * be cached. True once a prompt is older than the longest lifetime there is,
  * which is where the cached stretch really ends: no writer could have kept
@@ -253,8 +252,8 @@ function settle(walk: Walk, lifetime: number, now: number): boolean {
 			continue;
 		}
 
-		// Dropped -- and where it is older than the longest lifetime any turn
-		// could have written it under, so is every prompt above it.
+		// Dropped. Where it is older than the longest lifetime any turn could
+		// have written it under, so is every prompt above it.
 		walk.colder = true;
 		pastEveryLifetime ||= prompt.sentAt.getTime() + LONGEST_LIFETIME_MS <= now;
 	}
@@ -271,8 +270,8 @@ function settle(walk: Walk, lifetime: number, now: number): boolean {
  * way it is still a cut point, and with no writing turn left to ask, the
  * session's own lifetime is the only one on offer for any of them. A cold one
  * here is still a cold one above the cached ones, so it settles what lies
- * above too -- the first prompt of a session that opened over a lifetime ago
- * is exactly this case.
+ * above too. The first prompt of a session that opened over a lifetime ago is
+ * exactly this case.
  */
 function ended(walk: Walk, now: number): CacheWindow {
 	const compaction = walk.boundary.read();
@@ -288,9 +287,6 @@ function ended(walk: Walk, now: number): CacheWindow {
 	return {
 		ttl: walk.ttl ?? DEFAULT_TTL,
 		model: walk.model,
-		// What a cut at each prompt keeps verbatim is everything from it to the
-		// end of the context, and the first request after the rewind writes all
-		// of it to the cache before any of the saving starts.
 		prompts: walk.warm.reverse().map((prompt) => ({
 			...prompt,
 			keptTokens: Math.max(
@@ -306,8 +302,8 @@ function ended(walk: Walk, now: number): CacheWindow {
 /**
  * Which of the three the walk ended on. A boundary it read outranks a cold
  * prompt, since the prompts that boundary kept are priced by it and by nothing
- * else. A boundary it could not read -- a transcript holding the compaction's
- * summary alone, or one too old to carry the metadata -- prices nothing and
+ * else. A boundary it could not read (a transcript holding the compaction's
+ * summary alone, or one too old to carry the metadata) prices nothing and
  * names no prompt to choose, so what lies above the cached stretch there is
  * what lies above it at the start of the file.
  */

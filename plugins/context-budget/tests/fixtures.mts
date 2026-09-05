@@ -100,8 +100,9 @@ export interface BoundaryOptions {
 	/** The context the compaction left behind. */
 	readonly postTokens?: number;
 	/**
-	 * The entries above the boundary it kept verbatim, by `uuid` -- the price
-	 * of a rewind at any of them, and the reason the scan reads past it.
+	 * The entries above the boundary it kept verbatim, by `uuid`. A rewind at
+	 * any of them costs what the compaction left behind, which is why the scan
+	 * reads past the boundary.
 	 */
 	readonly kept?: readonly string[];
 }

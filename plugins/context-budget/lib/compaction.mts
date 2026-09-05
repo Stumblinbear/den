@@ -1,10 +1,10 @@
 // The compaction above the cached stretch: what it left behind, and which of
 // the prompts above its boundary it kept verbatim.
 //
-// Its own subject because it is read backward through three kinds of entry --
-// the summary at the end of the file, the boundary itself, and the entries the
-// boundary names -- and because what it prices is not what the cached prompts
-// below it are priced by. The first request after a compaction wrote
+// Its own subject because it is read backward through three kinds of entry
+// (the summary at the end of the file, the boundary itself, and the entries
+// the boundary names), and because what it prices is not what the cached
+// prompts below it are priced by. The first request after a compaction wrote
 // everything it kept to the cache in one piece, so a rewind anywhere in that
 // stretch is a write of at most what the compaction left behind, the same
 // price for all of them.
@@ -82,9 +82,8 @@ export function boundaryReader(): BoundaryReader {
  * What a compaction boundary says about itself, or null for an entry that is
  * not one, or one too old to carry the metadata. `postTokens` is the context
  * it left behind, and `preservedMessages.uuids` names the entries above it
- * that it kept verbatim -- which is what makes them readable at all, since
- * they stay where they are in the file rather than being rewritten below the
- * boundary.
+ * that it kept verbatim, which is what makes them readable at all: they stay
+ * where they are in the file rather than being rewritten below the boundary.
  */
 function boundaryDetail(entry: Record<string, unknown>): Boundary | null {
 	if (entry["type"] !== "system" || entry["subtype"] !== "compact_boundary") {

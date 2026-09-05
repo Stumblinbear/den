@@ -1,9 +1,8 @@
 // What is particular to this plugin's tests: where its files are, the exact
 // command `hooks.json` runs, and throwaway files for a case to point it at.
-// Everything the plugins' tests share -- the runtimes, the throwaway
-// directories, the session ids and the spawn itself -- is in the root harness,
-// which a test file imports alongside this one. Importing this registers no
-// test of its own.
+// The root harness holds everything the plugins' tests share: the runtimes, the
+// throwaway directories, the session ids and the spawn itself. A test file
+// imports it alongside this one. Importing this registers no test of its own.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";

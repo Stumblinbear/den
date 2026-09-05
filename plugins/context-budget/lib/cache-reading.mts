@@ -87,14 +87,14 @@ function opening(scan: CacheWindow, rate: number | null): string {
 
 /**
  * The whole of what there is to say when no cut point is left cached: a rewind
- * costs its whole prefix wherever it lands, which leaves `/compact` -- unless
- * a compaction has already bounded that price, and then the choice is the
- * prompts it kept and nothing newer.
+ * costs its whole prefix wherever it lands, which leaves `/compact`, unless a
+ * compaction has already bounded that price; then the choice is the prompts it
+ * kept and nothing newer.
  *
  * Both sentences speak only of cut points: an empty list means every prompt a
  * rewind would land on has gone cold, not that the context holds none cached
- * and not that nothing has been sent -- a prompt in flight is both. Neither
- * quotes a payback, so neither has a rate to disclose.
+ * and not that nothing has been sent, since a prompt in flight is both.
+ * Neither quotes a payback, so neither has a rate to disclose.
  */
 function emptyReading(scan: CacheWindow): string {
 	const compaction = compactionIn(scan);
@@ -141,20 +141,18 @@ const compactedTo = (compaction: Compaction): string =>
 	`The session was compacted at ${clock(compaction.at)} down to ${formatTokens(compaction.postTokens)} tokens`;
 
 /**
- * The prompts the compaction kept verbatim. All of them were written to the
- * cache in one piece by the first request after it, so a rewind at any of them
- * is a write of at most what the compaction left behind, and there is nothing
- * to choose between them on price. It says nothing about the prompts sent
- * since: the scan reaches a boundary only when every one of those is still
- * cached.
+ * The prompts the compaction kept verbatim, which cost the same to rewind to
+ * as one another; see the header of `compaction.mts` for why. It says nothing
+ * about the prompts sent since: the scan reaches a boundary only when every
+ * one of those is still cached.
  */
 const keptClause = (compaction: Compaction, since: string): string =>
 	`The ${compaction.kept.length === 1 ? "one prompt" : `${compaction.kept.length} prompts`} kept verbatim${since === "" ? "" : ` ${since}`}, from "${compaction.kept[0]}" on, can be rewound to for at most that price.`;
 
 /**
  * What the listed prompts say about the rest of the session: that everything
- * after them is cached as well, and what sits above them -- more prompts that
- * have gone cold, or nothing selectable at all. A compaction above them is
+ * after them is cached as well, and what sits above them (more prompts that
+ * have gone cold, or nothing selectable at all). A compaction above them is
  * priced by its own clause.
  */
 function cachedRangeClause(scan: CacheWindow): string {
@@ -223,9 +221,6 @@ const row = (
 	turns: number | null,
 ): readonly string[] => [
 	`  ${index + 1}. "${prompt.text}"`,
-	// What a cut here summarizes away, and what it keeps verbatim above it --
-	// which the rewind writes back to the cache at the write price before any
-	// of the saving starts.
 	`     sent ${clock(prompt.sentAt)} | valid until ${clock(prompt.expiresAt)} | ${formatTokens(prompt.prefixTokens)} tokens before it, keeps ${formatTokens(prompt.keptTokens)}${paybackClause(turns)}`,
 ];
 
@@ -234,7 +229,7 @@ const row = (
  * and what the rest of the session is, above and below them.
  *
  * `pricing` is the price table, and the model it is asked about is the one the
- * scan read off the transcript it is reading -- so a reading of another
+ * scan read off the transcript it is reading, so a reading of another
  * session's transcript is priced by that transcript, not by its caller. Null
  * where there is no table.
  */

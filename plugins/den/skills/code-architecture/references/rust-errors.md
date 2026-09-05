@@ -6,11 +6,11 @@ Separate **domain errors** from **error reports**:
   that will branch on them and recover. Typically a typed enum (often via
   `thiserror`).
 - **Error reports** collect heterogeneous errors plus human-oriented context
-  once structured recovery is no longer needed — at the terminal/reporting
+  once structured recovery is no longer needed, at the terminal/reporting
   boundary. Typically an erased `anyhow::Error` / `eyre::Report`.
 
 "`thiserror` for libraries, `anyhow` for applications" is the canonical
-ecosystem shorthand, and it's right — but it's a **boundary rule, not a
+ecosystem shorthand, and it's right, but it's a **boundary rule, not a
 crate-target rule**. Don't force a typed enum on code just because it lives in
 `lib.rs`, and do use typed errors *inside* an application wherever business logic
 branches on failure. The real test: does a caller need a documented, stable set
@@ -34,14 +34,14 @@ walks and downcasts the chain to catch broken pipes.)
 ## Signals to watch for
 
 - **`anyhow::Error` / `anyhow::Result` in a library's public signature** that
-  callers must branch on. Erased error at a recovery boundary — give it a typed
+  callers must branch on. Erased error at a recovery boundary: give it a typed
   enum.
 - **`Result<T, String>` / `Err("...".to_string())`.** Stringly-typed errors:
   undistinguishable, unmatched, source lost.
 - **`.map_err(|e| e.to_string())` chains.** Throwing away the type and the
   `source()` cause.
 - **`.unwrap()` / `.expect()` on filesystem, network, or user input.** Those are
-  expected runtime failures, not invariant violations — return a `Result`.
+  expected runtime failures, not invariant violations: return a `Result`.
 - **One giant app-wide enum enumerating every dependency's error.** That's a
   report wearing an enum; erase it instead.
 
@@ -87,7 +87,7 @@ pub enum LoadError {
 - `#[from]` generates `From` (so `?` converts automatically) and implies
   `#[source]`; a `#[from]` variant can't carry unrelated fields.
 - `Error::source()` retains the lower-level cause across an abstraction
-  boundary — and the outer `Display` should *not* duplicate a message already in
+  boundary, and the outer `Display` should *not* duplicate a message already in
   the chain.
 - `#[non_exhaustive]` forces downstream wildcard arms so you can add variants
   later without breaking callers.
@@ -110,13 +110,13 @@ fn run_tool() -> Result<(), Box<dyn Error + Send + Sync>> {              // afte
 }
 ```
 
-Public error types should implement `Error` — normally also `Send + Sync` and
+Public error types should implement `Error`, normally also `Send + Sync` and
 often `'static`, so trait objects and downcasting work (C-GOOD-ERR).
 `Box<dyn Error>` accepts heterogeneous concretes and forms a `source()` cause
 chain. Don't erase when callers need documented recovery or a concrete type
 suffices; prefer `anyhow`/`eyre` over raw boxing when you actually want
 contextual reports. (The project-group guidance notes boxing a concrete error is
-also the fix for a large stack-size error variant — that's a size concern, not
+also the fix for a large stack-size error variant: that's a size concern, not
 erasure for reporting.)
 
 ## 4. Context without destroying the cause
@@ -168,7 +168,7 @@ context-dependent API judgment.
 
 ## Sources
 
-- Rust Error Handling Project Group — errors vs reports, RFC 2965:
+- Rust Error Handling Project Group, errors vs reports (RFC 2965):
   https://rust-lang.github.io/rfcs/2965-project-error-handling.html
 - `thiserror` (typed errors for library-like code):
   https://docs.rs/crate/thiserror/latest
@@ -176,11 +176,11 @@ context-dependent API judgment.
   https://docs.rs/anyhow/latest/anyhow/
 - `std::error::Error` (`source()` chain, downcasting):
   https://doc.rust-lang.org/std/error/trait.Error.html
-- Rust API Guidelines — C-GOOD-ERR (public errors implement `Error + Send + Sync`):
+- Rust API Guidelines, C-GOOD-ERR (public errors implement `Error + Send + Sync`):
   https://rust-lang.github.io/api-guidelines/interoperability.html
-- `#[non_exhaustive]` — RFC 2008:
+- `#[non_exhaustive]` (RFC 2008):
   https://rust-lang.github.io/rfcs/2008-non-exhaustive.html
-- Rust Book — to panic or not to panic:
+- Rust Book, to panic or not to panic:
   https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html
 - `std::result` (`Result` is `#[must_use]`):
   https://doc.rust-lang.org/std/result/

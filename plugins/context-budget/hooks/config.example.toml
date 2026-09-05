@@ -97,9 +97,9 @@ cold = 50_000
 #   {agent}    the target agent's name
 #   {type}     its agent type, or "subagent" when none is recorded
 #   {tokens}   its context, e.g. "162.3K"
-#   {reasons}  the clauses that fired -- which limit was passed, and how cold
-#              the cache is -- joined with "; ". Which of them appear follows
-#              from the numbers and is not configurable.
+#   {reasons}  the clauses that fired, naming which limit was passed and how
+#              cold the cache is, joined with "; ". Which of them appear
+#              follows from the numbers and is not configurable.
 #   {large}    the configured large limit, e.g. "150K"
 #   {cold}     the configured cold limit, e.g. "50K"
 [resume-guard.messages]

@@ -19,7 +19,7 @@ symptom; concept count is the cause.
   even when related.
 - **Find the seam, not the line count.** When a file needs splitting, cut where
   two concepts meet (distinct mechanism, separate concern axis, independent
-  top-level types) — never through a concept's shared invariants.
+  top-level types), never through a concept's shared invariants.
 - **Size is a smell, not a rule.** A large file is a prompt to check the concept
   count, not an automatic split. A file can be legitimately large if it's one
   concept that can't split.
@@ -33,15 +33,15 @@ symptom; concept count is the cause.
   wrong.
 - **Make invalid states unrepresentable.** Organization decides where code
   lives; type design decides which states can exist at all. Shape types so the
-  set of constructible values approximates the set of valid domain states —
+  set of constructible values approximates the set of valid domain states:
   sum types over tag-plus-nullable-payloads, refined wrappers over re-checked
   primitives, and refinement pushed to the boundary rather than repeated at
   every call site.
 
 ## Interfaces
 
-An interface is everything a caller must know to use a module correctly —
-signature, invariants, ordering constraints, error modes, configuration — not
+An interface is everything a caller must know to use a module correctly
+(signature, invariants, ordering constraints, error modes, configuration), not
 only the type-level surface. A module earns its place by depth: a lot of
 behaviour behind a small interface. When designing one, ask whether it can
 have fewer methods, simpler parameters, and more hidden inside.
@@ -54,7 +54,7 @@ have fewer methods, simpler parameters, and more hidden inside.
   depth and on the obligation it meets, never on in-tree caller count.
 - **One implementation is a hypothetical variation point; two is a real one.**
   Add a trait or injected dependency only when something actually varies
-  across it — production plus a test double counts, if a test uses the double.
+  across it: production plus a test double counts, if a test uses the double.
   A trait with one impl is indirection.
 - **The interface is the test surface.** Callers and tests cross the same
   interface. Wanting to test past it means the module is the wrong shape.
@@ -67,7 +67,7 @@ have fewer methods, simpler parameters, and more hidden inside.
 - Adding a second independent top-level type to a file that doesn't share state
   with the first.
 - Widening a field's visibility so another file can reach it.
-- Writing section-banner comments (`// ---- helpers ----`) — the sections are
+- Writing section-banner comments (`// ---- helpers ----`): the sections are
   concepts that want their own files.
 - Scrolling past unrelated code to reach the code you're editing.
 - Adding a trait whose only implementor is the production type.
@@ -91,7 +91,7 @@ directly.
 - **Making invalid states unrepresentable:**
   `references/rust-invalid-states.md` (parse-don't-validate, smart constructors,
   newtypes, enums over flag/`Option` combinations, `NonZero`/non-empty,
-  typestate, and the API-hardening attributes — with when-not-to-use calibration).
+  typestate, and the API-hardening attributes, with when-not-to-use calibration).
 - **Semantic types, not primitives:** `references/rust-semantic-types.md`
   (`Duration`/`Path`/`SocketAddr` over primitives, newtyping identifiers and units
   like `UserId(Uuid)`/`Meters(f64)`, why a type alias isn't a semantic type, and

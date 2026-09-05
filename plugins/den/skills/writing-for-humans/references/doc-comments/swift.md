@@ -6,7 +6,7 @@ the summary test all still apply.
 ## The summary is a fragment
 
 Begin with a summary describing the entity being declared. Use a single
-sentence fragment where possible, ending with a period — not a complete
+sentence fragment where possible, ending with a period, not a complete
 sentence.
 
 ```swift

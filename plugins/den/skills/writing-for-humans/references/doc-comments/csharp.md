@@ -5,7 +5,7 @@ the summary test all still apply.
 
 ## Tags delimit the summary
 
-The summary is not the first sentence or paragraph — it is whatever `<summary>`
+The summary is not the first sentence or paragraph: it is whatever `<summary>`
 contains, and that is the text IntelliSense and the Object Browser show. So the
 index boundary is explicit here; put the layered detail in `<remarks>` rather
 than letting it swell the tooltip.

@@ -69,8 +69,8 @@ test("a prompt expires on the lifetime its own preceding turn was billed under",
 
 test("a prompt is cached above a cold one where its own turn wrote a longer lifetime", () => {
 	// Older is not colder once the lifetime has switched. The 5m turn leaves the
-	// prompt just above it cold after five minutes, but the prompt above that one
-	// was written by a 1h turn and is still cached an hour on -- so a walk that
+	// prompt just above it cold after five minutes, but the prompt above that
+	// one was written by a 1h turn and is still cached an hour on. A walk that
 	// stops at the first cold prompt reports no cut point at all where a cheap
 	// one is sitting two entries further back.
 	const sent = at(55);
@@ -105,9 +105,9 @@ test("a prompt is cached above a cold one where its own turn wrote a longer life
 test("the prompt a session opened with counts as a cut point above the cached ones", () => {
 	// It is the one prompt with no assistant turn before it, so the walk never
 	// settles it and reaches the start of the file still holding it. Cold, it is
-	// still a selectable prompt above the cached ones -- which is the difference
+	// still a selectable prompt above the cached ones, which is the difference
 	// between "there are older cut points and they all cost" and "this is as far
-	// back as the session goes", and every real session over an hour old is this
+	// back as the session goes". Every real session over an hour old is this
 	// case.
 	const scan = scanCacheWindow(
 		transcript(
@@ -129,8 +129,9 @@ test("a compaction the walk cannot price is nothing above the cached ones", () =
 	// A session resumed into a transcript of its own: the summary of the
 	// compaction is the first entry, and the boundary it belongs to is in the
 	// file the session was resumed from. There is a compaction above the cached
-	// prompts and nothing to price it by, and nothing it kept to cut at either
-	// -- which is what the start of the file is, and is reported as.
+	// prompts with nothing to price it by, and nothing it kept to cut at. That
+	// is what reaching the start of the file looks like, and it is reported as
+	// that.
 	const scan = scanCacheWindow(
 		transcript(
 			COMPACT_SUMMARY,
@@ -157,9 +158,9 @@ const SEAMED = ["The prompt above the seam", STRADDLED, "The prompt below it"];
 /**
  * A transcript whose first seam falls inside `MARK`. The scan reads the file
  * end-first in fixed-size byte chunks, and that seam falls at
- * `size - CHUNK_BYTES` -- so a reader that treats each chunk on its own drops
- * the entry that straddles it, and one that decodes each chunk before joining
- * them mangles the character the seam runs through. Neither shows up in a
+ * `size - CHUNK_BYTES`. A reader that treats each chunk on its own drops the
+ * entry that straddles it, and one that decodes each chunk before joining them
+ * mangles the character the seam runs through. Neither shows up in a
  * transcript that happens to seam somewhere harmless, so the file is padded
  * until the seam lands inside a known character, and both failures are on
  * every run rather than on the runs that get unlucky.

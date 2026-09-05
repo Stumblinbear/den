@@ -1,7 +1,7 @@
 // Which transcript entries `/rewind` offers as cut points, and what its rows
 // read like. A prompt the picker will not list is no use as a recommendation,
 // however cheap a cut there would be, and a prompt quoted in words that do not
-// match its row is no use either -- the user has to find it in the list.
+// match its row is no use either, since the user has to find it in the list.
 //
 // The rules below have to match what the `/rewind` picker lists. Nothing in a
 // transcript entry marks whether the picker would offer it, so the rules are
@@ -16,8 +16,8 @@ const OPENING_CHARS = 72;
  * Wrapper forms the picker refuses to list: transcript-only records of what a
  * local command or a bash prompt printed, notifications from a finished
  * subagent, the periodic tick, and a message relayed from another session. A
- * slash command is *not* one of them -- the picker lists it, and it is as good
- * a cut point as any typed prompt, `/compact` excepted below.
+ * slash command is *not* one of them: the picker lists it, and it is as good a
+ * cut point as any typed prompt, `/compact` excepted below.
  */
 const WRAPPED: readonly string[] = [
 	"local-command-stdout",
@@ -29,8 +29,8 @@ const WRAPPED: readonly string[] = [
 ];
 
 /**
- * Markers the harness writes in the user's place -- an interrupt, a refused
- * tool call, a turn it wants no reply to. They are stored as user entries with
+ * Markers the harness writes in the user's place: an interrupt, a refused tool
+ * call, a turn it wants no reply to. They are stored as user entries with
  * none of the flags above, and the picker recognises them by their text alone,
  * which is the only thing that can: no prompt anyone types is one of these.
  */
@@ -109,8 +109,8 @@ function worthOffering(text: string): boolean {
 
 	// The compaction's own command. The harness stores it after the boundary it
 	// caused and stamps it from before it, so a scan reads it as the first
-	// prompt of the new context -- and a rewind there keeps that compaction as
-	// the first message of the context, redoing what the session has just done.
+	// prompt of the new context, and a rewind there keeps that compaction as the
+	// first message of the context, redoing what the session has just done.
 	// Every other slash command is as good a cut point as a typed prompt.
 	if (inner(text, "command-name")?.trim() === "/compact") {
 		return false;

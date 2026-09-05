@@ -1,4 +1,4 @@
-// What makes a resume worth refusing, exercised through the launcher -- the
+// What makes a resume worth refusing, exercised through the launcher, on the
 // exact command `hooks.json` runs. Real transcript files, real config files:
 // the wiring between them is where the guard lives, and the deny wording every
 // case asserts on is the wording that case wrote.
@@ -119,8 +119,8 @@ for (const runtime of runtimes()) {
 	// not always a file: with no session transcript there is no subagent
 	// transcript beside it either, so there is nothing to guard rather than a
 	// run to fail. Nothing is reported for it either, which the config fault
-	// after it is the proof of -- a session already told something would hear
-	// nothing more.
+	// after it proves: a session already told something would hear nothing
+	// more.
 	test(name("a transcript that is not there guards nothing"), () => {
 		const session = sid();
 
@@ -147,8 +147,6 @@ for (const runtime of runtimes()) {
 		);
 	});
 
-	// Under both limits with a warm cache: nothing about this resume is
-	// expensive, so the guard has to stay out of the way.
 	test(name("a warm subagent under both limits is left alone"), () => {
 		assert.equal(
 			decided(
@@ -238,7 +236,7 @@ for (const runtime of runtimes()) {
 
 	// A subagent whose newest entry is a failed request has a usage with every
 	// field zero, which measures its context at nothing and lets any resume
-	// through -- including the one this guard exists for, where every turn from
+	// through, including the one this guard exists for, where every turn from
 	// here on re-reads 162.3K tokens.
 	test(name("a request that failed is not the subagent's last turn"), () => {
 		assert.match(

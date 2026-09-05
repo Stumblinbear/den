@@ -5,12 +5,12 @@
 // It is a shipped file of its own (`pricing.toml`) rather than a section of
 // the configuration: a fact about the model and not a preference. It is a
 // table rather than a constant because the read is the one price in a cut with
-// a per-model exception -- the rest of that arithmetic is `payback.mts`.
+// a per-model exception; the rest of that arithmetic is `payback.mts`.
 //
 // Nothing here throws, nothing here stops a caller, and nothing here reports:
 // a price table that cannot be used is dropped whole and the caller is handed
-// the next-best one -- the shipped rates in place of a user file, the default
-// rate in place of the shipped file -- since a payback figure on the shipped
+// the next-best one (the shipped rates in place of a user file, the default
+// rate in place of the shipped file), since a payback figure on the shipped
 // rate is worth more to the agent than no figure at all.
 import { readFileSync } from "node:fs";
 import { compile, type ModelMatch, rowFor } from "./model-rows.mts";
@@ -20,8 +20,8 @@ import { fieldsOf, isTable } from "./shared/fields.mts";
  * The rate to assume where there is no model to price against: a transcript
  * whose turns name none, or no price table to ask. Claude Code's own price
  * table puts every tier here but Fable, so it is the likeliest answer as well
- * as the shipped one -- and a reading that has fallen back to it says so,
- * since a figure four times out is worth flagging.
+ * as the shipped one. A reading that has fallen back to it says so, since a
+ * figure four times out is worth flagging.
  */
 export const DEFAULT_READ_MULTIPLIER = 0.1;
 
@@ -101,7 +101,7 @@ export async function loadPricing(
 
 /**
  * What one cached input token costs the model the transcript names, from the
- * first row whose key matches it, and the table's default when none do -- an
+ * first row whose key matches it, and the table's default when none do, an
  * empty model id included, since that matches no row. Null where there is no
  * table to ask.
  */
@@ -133,8 +133,8 @@ async function tomlParser(): Promise<Parse | null> {
 /**
  * One price file, checked, or null: a file that is not there, one that cannot
  * be read or parsed, and one carrying a price the API cannot charge all come
- * back the same way, because they cost the caller the same thing -- the rates
- * in that file, and nothing else.
+ * back the same way, because they cost the caller the same thing: the rates in
+ * that file, and nothing else.
  */
 function read(parse: Parse, path: string): RawPricing | null {
 	let table: unknown;
@@ -161,9 +161,9 @@ const isRate = (value: unknown): value is number =>
 
 /**
  * The table if every price in it is one the API could charge and every key is
- * the regular expression it is meant to be, and null otherwise -- the whole
- * file, not the rows that passed: the half of a price list that parsed is not
- * a price list anybody wrote.
+ * the regular expression it is meant to be, and null otherwise. Null drops the
+ * whole file rather than the rows that passed: the half of a price list that
+ * parsed is not a price list anybody wrote.
  */
 function checked(table: unknown): RawPricing | null {
 	if (!isTable(table)) {

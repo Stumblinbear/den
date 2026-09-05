@@ -73,10 +73,11 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 ### Fixed
 
 - A compaction now resets the level whatever governs the model, so the notice
-  speaks again on the context rebuilt after it. With `[default]` switched off
-  and a per-model row -- the documented way to measure one model only -- the
-  compaction was read as a model with no row, `[default]`'s "off" answered for
-  it, and the record kept the level the discarded context was at.
+  speaks again on the context rebuilt after it. Switching `[default]` off and
+  writing a per-model row is the documented way to measure one model only.
+  Under it, the compaction was read as a model with no row, `[default]`'s
+  "off" answered for it, and the record kept the level the discarded context
+  was at.
 
 ### Removed
 

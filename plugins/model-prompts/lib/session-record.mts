@@ -4,8 +4,8 @@
 // reads it once, decides on the value, and writes back what it did.
 //
 // The injections exist for `on_switch = "once"`: switching away from a model
-// and back must not say the same thing twice. Every SessionStart reason --
-// startup, resume, clear, compact, fork -- builds the context again from
+// and back must not say the same thing twice. Every SessionStart reason
+// (startup, resume, clear, compact, fork) builds the context again from
 // nothing, so the injections are cleared then. The model is not part of the
 // context and outlives that: a session is still on the model its last input
 // named, whatever rebuilt the conversation.
@@ -54,9 +54,9 @@ export function readRecord(sessionId: string): SessionRecord {
  * stand here, rather than to the ones it read before it decided, so an
  * injection another run made in that gap survives.
  *
- * A write that does not land -- an unwritable temp directory, or the lock held
- * by another run of the session -- costs a repeated injection, which is not
- * worth failing a session start over.
+ * A write that does not land costs a repeated injection, which is not worth
+ * failing a session start over. Two things stop one: an unwritable temp
+ * directory, and the lock held by another run of the session.
  */
 export function writeRecord(sessionId: string, update: RecordUpdate): void {
 	SESSION_STATE.update(sessionId, (before) => {

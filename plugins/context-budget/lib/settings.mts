@@ -1,8 +1,9 @@
 // Everything the two hooks read out of the configuration file, checked once
 // here so neither carries a second opinion about what a usable value looks
 // like. Nothing is merged over anything, so a key the file does not carry is
-// missing rather than defaulted -- except `enabled`, which is what a table is
-// switched off with, and `[models]`, which a file need not have at all.
+// missing rather than defaulted. The exceptions are `enabled`, which is what a
+// table is switched off with, and `[models]`, which a file need not have at
+// all.
 import { compile, type ModelMatch, rowFor } from "./model-rows.mts";
 import { FAULTS } from "./plugin.mts";
 import { loadConfigFile } from "./shared/config.mts";

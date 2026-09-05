@@ -9,7 +9,7 @@ C-CTOR, C-CONV, C-CONV-TRAITS, C-COMMON-TRAITS, and C-DEREF.
 
 One correction to a common myth: **`new` is the primary constructor, but it is
 not required to be infallible.** `NonZero::new` returns `Option<Self>` and
-`Regex::new` returns `Result<Self, Error>` — both keep the name `new`. Don't
+`Regex::new` returns `Result<Self, Error>`. Both keep the name `new`. Don't
 mechanically rename a fallible constructor to `try_new` when `new` is already the
 one unsurprising way to build the type.
 
@@ -56,7 +56,7 @@ impl Service { fn new(addr: Addr) -> Self; }                     // after
 let service = Service::builder().tls(true).build()?;
 ```
 
-`new` may return `Self`, `Result<Self, E>`, or `Option<Self>` — return the
+`new` may return `Self`, `Result<Self, E>`, or `Option<Self>`: return the
 wrapper the fallibility demands (`Regex::new` is fallible; reqwest's
 `ClientBuilder::build` is fallible). Don't force `try_new` when `new` is already
 the unsurprising primary API, and don't introduce a builder for a small, stable
@@ -75,13 +75,13 @@ let opts = Options { verbose: true, ..Default::default() };
 ```
 
 Don't implement `Default` when no unsurprising valid baseline exists, required
-domain data would be missing, or the result would violate an invariant — a
+domain data would be missing, or the result would violate an invariant. A
 default that's an invalid state defeats the purpose (see `rust-invalid-states.md`).
 
 ## 3. `From` (and the free `Into`)
 
 Implement `From<T> for U`; the std blanket impl gives you `Into<U> for T`
-automatically — never hand-write `Into`. `From` is reflexive, and its contract is
+automatically. Never hand-write `Into`. `From` is reflexive, and its contract is
 infallible, lossless, value-preserving, and obvious. `?` relies on it to convert
 an underlying error into the function's error type.
 
@@ -118,7 +118,7 @@ Never let a fallible-conversion contract panic.
 
 `FromStr` returns `Result<Self, Self::Err>` and powers `"text".parse::<T>()`.
 Because the trait has no lifetime parameter, its output **cannot borrow from the
-input** — use a named parser when it must.
+input**. Use a named parser when it must.
 
 ```rust
 impl Point { fn parse(s: &str) -> Result<Self, ParseError>; }          // before
@@ -135,13 +135,13 @@ human-oriented `Display` need not round-trip.
 
 ## 6. Borrowing & ownership conversions
 
-- **`AsRef`/`AsMut`** — cheap reference conversions. Keep them cheap and
+- **`AsRef`/`AsMut`.** Cheap reference conversions. Keep them cheap and
   infallible; don't do costly or fallible work behind them.
-- **`Borrow`** — like `AsRef` but additionally promises the owned and borrowed
+- **`Borrow`.** Like `AsRef` but additionally promises the owned and borrowed
   forms agree on `Eq`, `Ord`, and `Hash` (this is what lets `HashMap<String, _>`
   look up by `&str`). Don't impl it when those semantics differ.
-- **`ToOwned`** — generalizes clone from borrowed to owned (`str` → `String`).
-- **`Cow`** — holds borrowed *or* owned, cloning lazily only when mutation or
+- **`ToOwned`.** Generalizes clone from borrowed to owned (`str` → `String`).
+- **`Cow`.** Holds borrowed *or* owned, cloning lazily only when mutation or
   ownership forces it.
 
 ```rust
@@ -150,13 +150,13 @@ fn inspect(s: impl AsRef<str>) { use_view(s.as_ref()); }               // after
 let text: Cow<'_, str> = Cow::Borrowed(input);
 ```
 
-`Deref` is *not* a conversion tool — it's reserved for genuine smart pointers
+`Deref` is *not* a conversion tool: it's reserved for genuine smart pointers
 (see `rust-semantic-types.md` §5). Reach for `Cow` only when avoiding conditional
 cloning materially simplifies the ownership boundary.
 
 ## 7. Contract-breaking anti-patterns
 
-Preserve the contracts the traits promise — clippy flags several directly:
+Preserve the contracts the traits promise. Clippy flags several directly:
 
 - Hand-written `Into` → implement `From` (`from_over_into`).
 - Inherent methods shaped like a standard trait → implement the trait
@@ -164,7 +164,7 @@ Preserve the contracts the traits promise — clippy flags several directly:
 - Zero-arg `new` with no `Default` → add `Default` (`new_without_default`).
 - A panicking `TryFrom` defeats "fail in a controlled way."
 - A panicking `new() -> Self` is wrong when invalid caller *input* is expected and
-  recoverable — return `Result`/`Option`.
+  recoverable: return `Result`/`Option`.
 - An invalid `Default` contradicts "useful default value."
 
 A panicking constructor is still defensible when misuse is a *programmer-contract*
@@ -184,7 +184,7 @@ silence a lint when the trait's semantics don't actually fit.
 
 ## Sources
 
-- Rust API Guidelines — checklist (C-CTOR, C-CONV, C-CONV-TRAITS, C-COMMON-TRAITS,
+- Rust API Guidelines, checklist (C-CTOR, C-CONV, C-CONV-TRAITS, C-COMMON-TRAITS,
   C-DEREF): https://rust-lang.github.io/api-guidelines/checklist.html
 - C-CTOR (constructors are static inherent methods):
   https://rust-lang.github.io/api-guidelines/predictability.html#constructors-are-static-inherent-methods-c-ctor

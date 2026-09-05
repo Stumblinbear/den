@@ -1,9 +1,9 @@
 // What the measurement hook injects and records, exercised through the
-// launcher -- the exact command `hooks.json` runs. Everything it reads is a
-// file path or stdin, so there is nothing to stub, and the bugs these cover --
-// a stale measurement, a level that never re-arms, a transcript the cut-point
-// skill cannot find -- live in the interaction between the transcript, the
-// session record and the configuration rather than in any one function. Every
+// launcher, on the exact command `hooks.json` runs. Everything it reads is a
+// file path or stdin, so there is nothing to stub. The bugs these cover live
+// in the interaction between the transcript, the session record and the
+// configuration rather than in any one function: a stale measurement, a level
+// that never re-arms, a transcript the cut-point skill cannot find. Every
 // expected message is written by the test that expects it.
 //
 // The record a case starts from is the one an earlier run of the same session
@@ -69,8 +69,8 @@ for (const runtime of runtimes()) {
 	// Claude Code names the path this hook reads, and a path it has named is
 	// not always a file: a transcript moved or deleted under the session is
 	// nothing to measure rather than a run to fail. Nothing is reported for it
-	// either, which the config fault after it is the proof of -- a session that
-	// had already been told something would hear nothing more.
+	// either, which the config fault after it proves: a session that had
+	// already been told something would hear nothing more.
 	test(name("a transcript that is not there measures nothing"), () => {
 		const session = sid();
 
@@ -171,9 +171,9 @@ for (const runtime of runtimes()) {
 
 	// Measuring one model only, the way the README documents it: `[default]`
 	// switched off and a row for that model. A compaction is measured as no
-	// model at all, so no row matches it and `[default]`'s null answers -- and a
-	// compaction still has to reset the level, or the record stays at `notice`
-	// through it and the rebuilt context climbs past notice in silence.
+	// model at all, so no row matches it and `[default]`'s null answers. It
+	// still has to reset the level, or the record stays at `notice` through it
+	// and the rebuilt context climbs past notice in silence.
 	test(
 		name("a compaction resets the level with [default] switched off"),
 		() => {
@@ -247,7 +247,7 @@ for (const runtime of runtimes()) {
 
 	// An empty model id is a transcript that says nothing about what it was
 	// sent to, and no row was written for that. A row keyed to match everything
-	// -- '.*', '^', '' -- would otherwise take it and fire on thresholds nobody
+	// ('.*', '^', '') would otherwise take it and fire on thresholds nobody
 	// chose for it, which on a row like this one is an urgent notice at a
 	// context that is not large.
 	test(

@@ -40,8 +40,8 @@ export interface Cut {
  * written at the write price where carrying on would have read it, so the
  * write costs only the difference; what it summarizes away is read once on the
  * way past, and the summary is written on top. Against that, every turn after
- * the cut saves what the prefix cost to read -- a saving that does not change
- * with time, since the context regrows cut or not, so the two divide.
+ * the cut saves what the prefix cost to read. That saving does not change with
+ * time, since the context regrows cut or not, so the two divide.
  *
  * Null where there is nothing above the prompt to stop re-reading: no saving
  * to divide by.

@@ -75,10 +75,10 @@ for (const runtime of runtimes()) {
 
 	test(name("a row the shipped table has no key for is tried after it"), () => {
 		// `'claude-'` matches every id there is, Fable's included, so where it is
-		// tried decides both readings. Behind the shipped rows -- which is where
-		// a key the shipped file does not have goes -- it prices Opus and leaves
-		// Fable on the row that was written for it; in front of them it would
-		// quietly take the exception away.
+		// tried decides both readings. A key the shipped file does not have goes
+		// behind the shipped rows, where it prices Opus and leaves Fable on the
+		// row that was written for it. In front of them it would quietly take
+		// that exception away.
 		const over = pricingOverride("[models]\n'claude-' = 0.5\n");
 		const opus = measured(paybackTranscript("claude-opus-5"));
 		const fable = measured(paybackTranscript("claude-fable-5-1"));
@@ -97,8 +97,8 @@ for (const runtime of runtimes()) {
 
 	test(name("a price the API cannot charge is dropped whole"), () => {
 		// 5 would price a cached token at five fresh ones and read as a cut
-		// paying for itself in a turn or two. The file goes, the reading stays --
-		// at the rates the plugin ships, and the figures the payback cases assert.
+		// paying for itself in a turn or two. The file goes and the reading stays,
+		// at the rates the plugin ships and the figures the payback cases assert.
 		assert.match(
 			reading(
 				script(
@@ -116,8 +116,8 @@ for (const runtime of runtimes()) {
 		() => {
 			// An empty model id is not a model a row can be written for: it is a
 			// transcript that says nothing about what it was sent to. A row keyed
-			// to match anything -- '.*', '^', '' -- would otherwise take an empty
-			// id as a match and price the reading at a rate the opening line then
+			// to match anything ('.*', '^', '') would otherwise take an empty id
+			// as a match and price the reading at a rate the opening line then
 			// calls the default.
 			const out = reading(
 				script(

@@ -88,13 +88,12 @@ tiers defects P0 to P3 and leaves quality and architecture findings untiered,
 because whether those must be fixed depends on the task's goal and history,
 which only this session has. A priority is the reviewer's estimate of impact,
 not evidence; the send-back test is the same at every tier. A finding that is
-unquestionably wrong -- a
-number the code demonstrably gets wrong, documented behavior that does not
-happen, a contradiction of a decision already made in the task -- goes
-straight back to the implementer or fixer without asking; the user's time is
-for judgment, not for confirming that a lie is a lie. Only findings that need
-judgment reach the user: edge cases, possible over-engineering, and calls that
-depend on expected usage.
+unquestionably wrong (a number the code demonstrably gets wrong, documented
+behavior that does not happen, a contradiction of a decision already made in
+the task) goes straight back to the implementer or fixer without asking; the
+user's time is for judgment, not for confirming that a lie is a lie. Only
+findings that need judgment reach the user: edge cases, possible
+over-engineering, and calls that depend on expected usage.
 
 What goes back is the defect and its discriminating check. The reviewer's
 repair is a sketch that becomes an instruction only once this session has

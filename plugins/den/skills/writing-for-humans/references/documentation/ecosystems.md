@@ -6,8 +6,8 @@ changes where a document goes or how its site is laid out.
 
 ## Python: kinds at the top level
 
-Python's own documentation splits at the top by kind — Tutorial, Library
-reference, Language reference, HOWTOs — and the major frameworks follow it,
+Python's own documentation splits at the top by kind (Tutorial, Library
+reference, Language reference, HOWTOs), and the major frameworks follow it,
 telling the reader what each kind assumes: a tutorial takes you by the hand
 through a series of steps, a reference guide gives technical detail on the API
 and assumes you already understand the key concepts.

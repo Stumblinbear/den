@@ -4,7 +4,7 @@
 // wrong on a machine that is not this one.
 //
 // What the example's row says is the user's to rewrite, so nothing here reads
-// its text -- only that a model it matches is injected for at all.
+// its text. All the case checks is that a model it matches gets an injection.
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";

@@ -1,6 +1,6 @@
 ---
 name: configure
-description: Use when the user asks how the model-prompts plugin works, why a prompt for a model did or did not appear at session start or after a /model switch, or wants to change what is injected — adding or editing a per-model row, keeping the text in a file, switching a row off, or choosing whether a row repeats on every switch.
+description: Use when the user asks how the model-prompts plugin works, why a prompt for a model did or did not appear at session start or after a /model switch, or wants to change what is injected. That covers adding or editing a per-model row, keeping the text in a file, switching a row off, and choosing whether a row repeats on every switch.
 ---
 
 # Configuring model-prompts
@@ -34,7 +34,7 @@ the file and a failed hook run.
 ## What fires and when
 
 A hook runs on two events in the main session: `SessionStart` (for every
-reason it fires — startup, resume, clear, compact, fork) and
+reason it fires: startup, resume, clear, compact, fork) and
 `PostModelSwitch`. It works out which model the session is now on, collects
 every configured row whose key matches that model id, and writes their text to
 stdout, which Claude Code adds to the agent's context.
@@ -70,7 +70,7 @@ Consequences that answer most "why did it" questions:
   `smol-toml` in the plugin's cache directory, `config error` names the file
   that cannot be read, parsed, or used, and `internal error` is a failure of
   the hook's own with nothing in the configuration to fix. The line is said
-  once per session, listed in the record above once it has been — delete the
+  once per session and listed in the record above once it has been. Delete the
   record to hear it again. Every run still reads the file, so a fix takes
   effect on the next one, without the line being repeated.
 

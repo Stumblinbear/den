@@ -17,8 +17,8 @@ const lockPath = (): string => join(fixtureDir("lock"), "record.lock");
 /**
  * A pid every probe answers ESRCH for, which is what a lock left by a killed
  * run names. Not the pid of a reaped child: the machine is free to hand that
- * one straight to something else -- the cases beside these spawn runs of
- * their own -- and a lock naming a pid in use is never taken over.
+ * one straight to something else, and the cases beside these spawn runs of
+ * their own. A lock naming a pid in use is never taken over.
  */
 const GONE = 2 ** 31 - 1;
 

@@ -10,10 +10,10 @@
 // fields cannot drop them.
 //
 // Claude Code runs tool calls in parallel, so two of a plugin's entries can be
-// writing at once. Every write here takes the record's own lock, whichever
-// writer makes it -- a plugin's own and the shared reporter's alike -- since a
-// merge that read the file outside that lock writes back over whatever landed
-// between its read and itself.
+// writing at once. Every write here takes the record's own lock, a plugin's own
+// writes and the shared reporter's alike, since a merge that read the file
+// outside that lock writes back over whatever landed between its read and
+// itself.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -65,9 +65,9 @@ export interface SessionState {
 export function sessionState(directory: string): SessionState {
 	const dir = join(tmpdir(), directory);
 	/**
-	 * A key arrives from a run's input -- a session id -- so it is sanitized
-	 * rather than trusted as a path component. One place builds both names, so
-	 * a record and the lock it is written under cannot drift apart.
+	 * A key is a session id off a run's input, so it is sanitized rather than
+	 * trusted as a path component. One place builds both names, so a record and
+	 * the lock it is written under cannot drift apart.
 	 */
 	const file = (key: string, suffix: string): string =>
 		join(dir, `${key.replace(/[^A-Za-z0-9._-]/g, "_")}.${suffix}`);

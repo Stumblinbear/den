@@ -1,8 +1,8 @@
 // What a transcript's entries mean, for the three readers that have to agree
 // about it: the measurement hook, the resume guard and the cache scan. Each of
-// them asks the same questions -- how big was the context, which cache
+// them asks the same three questions: how big was the context, which cache
 // lifetime was it written under, and is this the point where the context was
-// thrown away -- so the answers live here once rather than three times over.
+// thrown away. The answers live here once rather than three times over.
 //
 // A transcript's lines are whatever Claude Code wrote, and a line may be
 // half-written while the file is being appended to, so every entry and every
@@ -28,7 +28,7 @@ export const LONGEST_LIFETIME_MS = Math.max(...Object.values(LIFETIME_MS));
 /**
  * What `read` came back with, and null for a transcript that is not at the
  * path it was named at. Claude Code names the path a hook reads, and one it
- * names is not always there -- a session whose transcript has been moved or
+ * names is not always there: a session whose transcript has been moved or
  * deleted has nothing to measure and nothing to inspect, which is neither the
  * user's mistake nor this plugin's bug.
  *

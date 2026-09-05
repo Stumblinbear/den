@@ -93,7 +93,7 @@ data for the main session, not a summary essay.
   mechanism does, not the feature that first needed it. Near-duplicate types for one
   concept signal a missing generic primitive.
 - **Newtype unit-bearing primitives and ids.** Where a unit has a real unconditional
-  invariant, enforce it at construction — a label newtype whose hidden invariant
+  invariant, enforce it at construction: a label newtype whose hidden invariant
   surfaces 150 lines later, after unwrapping and a pile of math, is worse than
   failing where failure was inevitable. Role-level invariants (valid for the field,
   not the unit) stay with the owning type's setters.

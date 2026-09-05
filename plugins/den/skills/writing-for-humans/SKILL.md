@@ -15,8 +15,8 @@ alone, so read the one for the text in hand.
 
 ## Every kind of text
 
-- **Answer first.** The conclusion goes at the top of every unit — the page,
-  the section, the paragraph, the summary line — and headings, bullets and
+- **Answer first.** The conclusion goes at the top of every unit (the page,
+  the section, the paragraph, the summary line), and headings, bullets and
   sentences open on the information-carrying word. A scanning reader reads the
   third word of a line much less often than the first two.
 - **Cut to what the reader acts on.** Short sentences, concrete nouns, claims
@@ -25,7 +25,7 @@ alone, so read the one for the text in hand.
 - **Write what is, not what changed.** The reader never saw the change, and
   history has homes that stay accurate: version control, a changelog, a
   deprecation marker, a decision record. Rewrite a change narration into the
-  reason it left behind — `Uses a manual loop; iterator chains here unroll at
+  reason it left behind: `Uses a manual loop; iterator chains here unroll at
   -O2 and double the binary` rather than `no longer uses iter()`.
 - **Cite what the reader can still reach.** In two years they hold this
   repository and its trackers, so RFCs, standards, papers, stable URLs and

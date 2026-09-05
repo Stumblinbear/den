@@ -31,9 +31,9 @@ export interface HookRun {
 	readonly launcher: string;
 	readonly data: string;
 	/**
-	 * The child's own temp directory -- Node and bun both read `TMPDIR`,
-	 * `TEMP` and `TMP` for it -- so whatever state the entry keeps lands where
-	 * the case can see it, and never in the real temp directory.
+	 * The child's own temp directory. Node and bun both read `TMPDIR`, `TEMP`
+	 * and `TMP` for it, so whatever state the entry keeps lands where the case
+	 * can see it, and never in the real temp directory.
 	 */
 	readonly temp: string;
 	/** The entry's path relative to the plugin directory, then its arguments. */

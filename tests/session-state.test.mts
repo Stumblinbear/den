@@ -1,6 +1,6 @@
 // The lock every write of a session record takes, whichever writer makes it.
 // Nothing here can interleave two hook processes; what this covers is what one
-// process does when it finds another inside its change -- leave the record
+// process does when it finds another inside its change: leave the record
 // exactly as it was, rather than write back over a change it never read.
 import assert from "node:assert/strict";
 import { join } from "node:path";

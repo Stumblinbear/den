@@ -1,4 +1,4 @@
-// den's two relays, exercised through the launcher -- the exact command
+// den's two relays, exercised through the launcher, which is the exact command
 // `hooks.json` runs. What they assert is the structure of the relay: which
 // completions leave a flag, that one prompt turns every pending flag into one
 // injection naming the agents it was for, and that the files it read are gone.
@@ -57,7 +57,6 @@ function pending(temp: string, relay: string): readonly string[] {
 	try {
 		return readdirSync(join(temp, relay)).sort();
 	} catch {
-		// No directory yet, so nothing has ever been flagged.
 		return [];
 	}
 }

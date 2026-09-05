@@ -28,22 +28,22 @@ already settles, is looked up rather than asked: a turn spent confirming what
 you could have read is a turn not spent on a decision. Placement, module
 boundaries, interface depth, type shape and naming belong to the implementer,
 so they go in the brief as intent rather than to the user as a question. One
-of them that is itself a requirement -- a user-facing name, a CLI flag, a
-config key -- is a decision like any other, and is asked.
+of them that is itself a requirement (a user-facing name, a CLI flag, a
+config key) is a decision like any other, and is asked.
 
 ## One question at a time
 
 Dependencies first, then highest impact and uncertainty, so the budget is
-spent where the readings diverge most; branch across the ask's dimensions --
-scope, data, interaction, failure behavior, integration, what counts as done
--- rather than drilling one chain to the bottom. Keep the queue to yourself:
-each answer rewrites it, and a preview commits you to questions the next
-answer may retire.
+spent where the readings diverge most; branch across the ask's dimensions
+(scope, data, interaction, failure behavior, integration, what counts as
+done) rather than drilling one chain to the bottom. Keep the queue to
+yourself: each answer rewrites it, and a preview commits you to questions the
+next answer may retire.
 
 Every question carries your recommended answer with what it buys and what it
 costs, in the form `den:design-decisions` sets. When the work is expensive to
-undo, spend one question on a premortem -- assume it shipped and failed, and
-ask which failure the user fears -- because the walk forward through the
+undo, spend one question on a premortem, assuming it shipped and failed and
+asking which failure the user fears, because the walk forward through the
 decision tree cannot reach that answer.
 
 Ask through AskUserQuestion, the recommended option first, one question per

@@ -1,9 +1,9 @@
 // The failure policy: no quiet recovery, and no stand-in values. A parser that
 // will not import, or a configuration that cannot be parsed or used, is
-// reported once, and the rest of the session hears nothing more about it --
-// though every run still reads the file, so a fix takes effect on the next
-// one. A configuration that is simply not there is no failure: it is a plugin
-// nobody has configured yet.
+// reported once, and the rest of the session hears nothing more about it.
+// Every run still reads the file, so a fix takes effect on the next one. A
+// configuration that is simply not there is no failure: it is a plugin nobody
+// has configured yet.
 //
 // These run the real process through the launcher, because the whole contract
 // is out of band: an exit code, one line on stderr, and the class written into
@@ -196,7 +196,7 @@ for (const runtime of runtimes()) {
 		);
 
 		// A compact carries no model, so all the run has is the record and the
-		// settings file -- which names the model the session started on.
+		// settings file, which names the model the session started on.
 		const compacted = hook(
 			{
 				session_id: session,

@@ -6,7 +6,7 @@ the summary test all still apply.
 ## The summary is a fragment
 
 The summary is the **first sentence**, and it is a noun phrase or a verb phrase
-rather than a complete sentence — capitalized and punctuated as one, but not
+rather than a complete sentence, capitalized and punctuated as one, but not
 one.
 
 ```java
@@ -21,7 +21,7 @@ boundary is ambiguous.
 ## Block tags
 
 Any block tags used appear in the order `@param`, `@return`, `@throws`,
-`@deprecated`, and none of the four ever carries an empty description — an
+`@deprecated`, and none of the four ever carries an empty description: an
 empty tag renders as a blank row, which costs the reader a look and tells them
 nothing. `@deprecated` names the replacement; `@since` names the release an
 item landed in.
@@ -34,8 +34,8 @@ signature does not, and let inheritance cover an override.
 ## Coverage
 
 A doc comment is required on every visible class, member, and record component.
-The two exceptions in `doc-comments.md` — a member with nothing else worthwhile
-to say, and an override that inherits — hold here unchanged.
+The two exceptions in `doc-comments.md` (a member with nothing else worthwhile
+to say, and an override that inherits) hold here unchanged.
 
 Paragraphs after the first are separated by a blank line and opened with `<p>`
 immediately before the first word.

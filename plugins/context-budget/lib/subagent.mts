@@ -4,8 +4,8 @@
 //
 // The two are read off different turns. The context and the time come from the
 // newest turn it took; the lifetime comes from the newest turn that wrote to
-// the cache, which is not always the same one -- a request served entirely
-// from a warm cache writes nothing back and records no split.
+// the cache, which is not always the same one: a request served entirely from
+// a warm cache writes nothing back and records no split.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fieldsOf } from "./shared/fields.mts";

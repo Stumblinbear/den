@@ -8,14 +8,14 @@
 // holding it".
 //
 // A lock is taken over only on proof that the run holding it is gone. The
-// holder file names that run's pid, and a probe answering ESRCH -- no such
-// process -- is the proof; a probe that succeeds, one refused and one that
+// holder file names that run's pid, and a probe answering ESRCH (no such
+// process) is the proof; a probe that succeeds, one refused and one that
 // fails any other way are all a run still working. Age is no proof: a run
 // merely slow to finish and one that was killed are the same age.
 //
 // What that leaves: a pid the OS has since given to some other process reads
 // as a holder still running, and the lock stands until that process ends. It
-// is the direction to fail in -- the other one puts two runs inside the
+// is the direction to fail in, since the other one puts two runs inside the
 // section at once. A holder alive but hung holds its lock for as long as it
 // hangs, and deleting the session's files from the plugin's temp directory is
 // what clears either one.
@@ -53,9 +53,9 @@ const UNSIGNED_MS = 2000;
  * The file a run writes inside the lock it just made, naming that run: the
  * token it knows its own lock by, and the pid every other run judges it by. A
  * lock deleted by hand and made again by the next run is indistinguishable
- * from the one it replaced -- on a temp filesystem it can come back with the
- * same inode and timestamp -- so a run recognises its own lock only by the
- * token it wrote into it.
+ * from the one it replaced: on a temp filesystem it can come back with the
+ * same inode and timestamp. So a run recognises its own lock only by the token
+ * it wrote into it.
  *
  * JSON, so that half a file, read while the run is writing it, parses as
  * nothing at all rather than as a pid with its last digits missing, which is
@@ -90,8 +90,8 @@ interface Holder {
 	readonly pid: number | null;
 }
 
-// A waiting run has nothing else to do -- what it is waiting for is synchronous
-// file work -- so it sleeps rather than yielding to a loop it does not have.
+// What a waiting run waits for is synchronous file work, so it has nothing else
+// to do and sleeps rather than yielding to a loop it does not have.
 const IDLE = new Int32Array(new SharedArrayBuffer(4));
 
 /**
@@ -198,8 +198,8 @@ function reclaim(path: string): boolean {
 /**
  * Takes the break beside the lock at `path`, or says another run has it. A
  * break standing is that other run judging this same lock, and this run has
- * its own retries to spend on what that one decides -- unless it was left by
- * a run that died inside it, which nothing else here clears.
+ * its own retries to spend on what that one decides. The exception is a break
+ * left by a run that died inside it, which nothing else here clears.
  *
  * The retry is single, so two runs can come away holding the break, one of
  * them having cleared the other's fresh one. `removeAbandoned` judging the
@@ -332,9 +332,9 @@ const pidIn = (written: unknown): number | null =>
 
 function remove(path: string): void {
 	try {
-		// A scanner or an indexer with the holder file open -- written a moment
-		// ago, so the odds are highest right here -- fails the removal with a
-		// transient EBUSY or EPERM, which is the class Node retries for.
+		// A scanner or an indexer with the holder file open fails the removal
+		// with a transient EBUSY or EPERM, which is the class Node retries for.
+		// That file was written a moment ago, so the odds are highest here.
 		rmSync(path, {
 			recursive: true,
 			force: true,

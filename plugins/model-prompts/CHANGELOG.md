@@ -24,8 +24,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - `on_switch = "once"` per session per row, recorded in the session's one
   record, `<os temp dir>/claude-model-prompts/<session id>.json`, which every
   session start clears before injecting into the context it rebuilds. The
-  model a hook input last named for the session — `to_model` on a switch,
-  `model` at session start — is kept there too, and read back by a run whose
+  model a hook input last named for the session (`to_model` on a switch,
+  `model` at session start) is kept there too, and read back by a run whose
   own input carries none, along with the fault classes the session has already
   been told about.
 - Every write of that record is made under a lock directory beside it, which

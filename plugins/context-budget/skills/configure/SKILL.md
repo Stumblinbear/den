@@ -1,6 +1,6 @@
 ---
 name: configure
-description: Use when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, or wants to change when either fires — thresholds, per-model rows, switching a model off, the resume guard's limits, or the wording of any of the messages.
+description: Use when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, or wants to change when either fires. That covers thresholds, per-model rows, switching a model off, the resume guard's limits, and the wording of any of the messages.
 ---
 
 # Configuring context-budget
@@ -53,9 +53,9 @@ Consequences that answer most "why did it" questions:
 - The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,
   and it is the only file a session leaves there. Every run that measures
   anything rewrites it: the transcript path the hook read, the level it stands
-  at — which falls again with the context, so each level can fire on the next
-  climb — the resume answers it has spent, and any fault already reported
-  (below). Latest transcript only, no history. It is written even for a model
+  at, the resume answers it has spent, and any fault already reported (below).
+  That level falls again with the context, so each level can fire on the next
+  climb. Latest transcript only, no history. It is written even for a model
   whose row is switched off, and even when nothing was near a threshold,
   because the `cut-point` skill has only the session id to find the transcript
   by. Deleting it makes the current level fire again, which is the quickest
@@ -66,15 +66,15 @@ Consequences that answer most "why did it" questions:
   be read, parsed, or used, and `internal error` is a failure of the plugin's
   own with nothing in the configuration to fix. Nothing is measured and
   nothing is guarded until it is fixed; fixing it takes effect on the next
-  hook run. The line is said once per session, listed in the record above once
-  it has been — delete the record to hear it again.
+  hook run. The line is said once per session and listed in the record above once
+  it has been. Delete the record to hear it again.
 
 Neither message names a cut point. Each says how large the session is and
 sends the agent to the `cut-point` skill, `/context-budget:cut-point`, for
 one. That skill walks the transcript backward and prints which rewind cut
 points are still cached: a rewind at a prompt re-reads everything before that
 prompt, and that stretch is in the cache only while the prompt itself is
-younger than the cache lifetime — so it lists three cached prompts spread
+younger than the cache lifetime. So it lists three cached prompts spread
 across the context, the oldest, the newest and the one nearest halfway between
 them by size, each a row carrying when it stops being cached, how much a cut
 there summarizes away, how much it keeps verbatim, and how many more turns the
@@ -87,7 +87,7 @@ The payback is what turns two token counts into a decision: the rewind writes
 everything it keeps back to the cache at twice a fresh input token on the
 one-hour lifetime, where carrying on would have read that same stretch at the
 cache read rate, and it saves the read of what it summarized on every turn
-after that — so a cut in a session with little work left in it costs more than
+after that. So a cut in a session with little work left in it costs more than
 it ever returns. Every term is what the cut costs over carrying on, which is
 the only comparison worth making. It is priced at the model's cache read rate,
 which is the pricing file below and not configuration.
@@ -105,7 +105,7 @@ The resume guard is the second hook, on every `SendMessage` to a subagent of
 this session. It reads that subagent's own transcript, beside the session
 transcript under `subagents/`: its newest assistant turn for the context size
 and when it last ran, and the newest turn that wrote to the prompt cache for
-which lifetime that cache is on — a turn served entirely from the cache writes
+which lifetime that cache is on. A turn served entirely from the cache writes
 nothing and records no lifetime, so reading only the newest turn would make
 every such subagent look cold five minutes after it stopped. The resume is
 refused when the context is above `large`, or above `cold` with that cache
@@ -142,7 +142,7 @@ table of every key, its type and its default, along with how a row key is
 matched and what each message substitutes.
 
 One thing is deliberately not in that file. The rate a payback figure is
-priced at is not configuration — it is what the model charges — so it is a
+priced at is what the model charges and not configuration, so it is a
 shipped file of its own, `../../lib/pricing.toml` from here, holding what a
 token read from the prompt cache costs against one fresh input token:
 `default = 0.1`, which is every tier in Claude Code's own price table but one,
@@ -166,7 +166,7 @@ collect it.
 
 That file is optional and almost nobody has one, so a missing one changes
 nothing. One that cannot be read, parsed, or used is dropped whole and every
-payback is priced at the shipped rates — unlike a config fault it costs the
+payback is priced at the shipped rates. Unlike a config fault it costs the
 session nothing else, and nothing about the reading says it happened, so an
 edit that has no effect on the figures is the sign to look at the file.
 

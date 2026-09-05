@@ -1,8 +1,9 @@
 // End-to-end tests for the cut-point script: a real process, run the way the
-// skill's preamble runs it. What it has to get right is the list -- which
-// prompts a rewind could land on, in what order, and what each one moves --
-// and saying something useful when there is no list to give, since its output
-// is read as prose by an agent that has no other way to tell what went wrong.
+// skill's preamble runs it. What it has to get right is the list: which
+// prompts a rewind could land on, in what order, and what each one moves. It
+// has to say something useful when there is no list to give, too, since its
+// output is read as prose by an agent that has no other way to tell what went
+// wrong.
 //
 // How it finds the transcript is `session-record.test.mts`, what it says about
 // a compaction is `cut-point-compaction.test.mts`, and what it prices a cut at
@@ -74,7 +75,7 @@ for (const runtime of runtimes()) {
 	test(name("a prompt with no turn after it yet is not a cut point"), () => {
 		// The same session read while the newest prompt is still in flight: no
 		// turn has answered it, so its prefix is the whole current context and a
-		// cut there keeps nothing verbatim -- `/compact` by another name.
+		// cut there keeps nothing verbatim, which is `/compact` by another name.
 		const out = read(
 			...SESSION,
 			prompt("was there anything still pending?", at(2)),
@@ -123,8 +124,8 @@ for (const runtime of runtimes()) {
 		() => {
 			// The prompt that opens the context summarizes nothing away and the
 			// one in flight keeps nothing, so the list is empty for a reason that
-			// is not "the cache has expired" -- and a bare "every prompt in the
-			// context is cached" over an empty list reads as exactly that.
+			// is not "the cache has expired". A bare "every prompt in the context
+			// is cached" over an empty list reads as exactly that.
 			const out = read(
 				assistant(100_000, { minutesAgo: 45 }),
 				prompt("Start on the cache-aware cut points now", at(40)),
@@ -145,9 +146,9 @@ for (const runtime of runtimes()) {
 		() => {
 			// A busy stretch: five prompts, all in the cache. Listing every one is
 			// a page of rows that say the same thing, and the three worth choosing
-			// between are the ones that cut the context in different places --
-			// which is not where they fall in the hour. Prompt 3 is the middle by
-			// size and prompt 2 is the middle by clock.
+			// between are the ones that cut the context in different places
+			// rather than at different times. Prompt 3 is the middle by size and
+			// prompt 2 is the middle by clock.
 			const out = read(
 				assistant(50_000, { minutesAgo: 200 }),
 				prompt("The stale prompt from before lunch", at(190)),
@@ -261,7 +262,7 @@ for (const runtime of runtimes()) {
 		() => {
 			// The same empty list with a prompt still in flight: its prefix is the
 			// whole context, written a minute ago and cached, so the reading may not
-			// say no prompt is. What is empty is the choice -- every prompt anyone
+			// say no prompt is. What is empty is the choice: every prompt anyone
 			// would cut at has gone cold.
 			assert.match(
 				read(

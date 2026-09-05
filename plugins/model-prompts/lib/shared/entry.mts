@@ -1,7 +1,8 @@
 // What every configured entry does around its own work: read the input Claude
 // Code writes on stdin, find the session it is for, and end in one of the two
-// ways a hook may end -- what it has to say on stdout, or one line about why
-// it has nothing to say and will not have for the rest of the session.
+// ways a hook may end. It writes what it has to say on stdout, or it writes one
+// line about why it has nothing to say and will not have for the rest of the
+// session.
 import process from "node:process";
 import { Fault, type Faults } from "./fault.mts";
 import { hookInput } from "./hook-input.mts";

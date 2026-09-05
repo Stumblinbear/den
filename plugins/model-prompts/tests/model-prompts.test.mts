@@ -1,6 +1,6 @@
-// What the hook puts into a session's context, exercised through the launcher
-// -- the exact command `hooks.json` runs. Every expected text is written by
-// the test that expects it.
+// What the hook puts into a session's context, exercised through the launcher,
+// which is the exact command `hooks.json` runs. Every expected text is written
+// by the test that expects it.
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -102,7 +102,7 @@ for (const runtime of runtimes()) {
 		shows(run(start(session, OPUS), both), "OPUS");
 
 		// A compact carries no model and there is no settings.json to guess
-		// from, so all that is left is the record -- and the start above is what
+		// from, so all that is left is the record, and the start above is what
 		// last said what this session is on.
 		const compacted = {
 			session_id: session,

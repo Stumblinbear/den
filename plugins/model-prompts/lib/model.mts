@@ -26,8 +26,8 @@ export interface ActiveModel {
  *
  * A switch is about where it is going. SessionStart carries `model` only
  * sometimes; without it the model the session last named answers, and only a
- * session that has never named one falls through to the user's settings.json
- * -- a guess that misses project-level settings and aliases like "opus".
+ * session that has never named one falls through to the user's settings.json,
+ * a guess that misses project-level settings and aliases like "opus".
  */
 export function modelFor(
 	event: HookEvent,
