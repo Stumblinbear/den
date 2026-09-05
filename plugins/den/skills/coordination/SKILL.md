@@ -33,13 +33,15 @@ survives a real build.
 A brief pins behavior, external constraints, and the decisions already made,
 and states intent for everything else; wording is pinned only where the exact
 wording is the deliverable, since a pin is a decision the implementer can only
-question, not make. Placement, module boundaries, interface depth, type shape,
-and naming belong to the implementer, unless one of them is itself a
-requirement, and the brief says which. A question back from an implementer is
-the brief working, and it is weighed like a reviewer's finding: judged against
-the task's goal, taken to the user when the decision is theirs, and answered
-by changing the brief when the implementer is right. Text an agent will follow
-is instructions, not documentation, whoever writes it, and is audited under
+question, not make. Where the ask leaves one of those decisions open,
+`den:scoping` settles it with the user before the brief is written. Placement,
+module boundaries, interface depth, type shape, and naming belong to the
+implementer, unless one of them is itself a requirement, and the brief says
+which. A question back from an implementer is the brief working, and it is
+weighed like a reviewer's finding: judged against the task's goal, taken to
+the user when the decision is theirs, and answered by changing the brief when
+the implementer is right. Text an agent will follow is instructions, not
+documentation, whoever writes it, and is audited under
 `den:writing-for-agents` before it ships.
 
 ## Agents

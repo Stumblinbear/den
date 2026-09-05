@@ -12,6 +12,9 @@ Skills, invoked as `/den:<name>`:
   routing, launch authorization, review and commit gates, how to talk to you.
   Invoke it yourself; it is never loaded automatically, and it never reaches a
   subagent.
+- `scoping`: settles the decisions an ask leaves open before a brief is
+  written. One question at a time, each with a recommended answer and what it
+  costs; up to five, or as many as it takes when you ask for the pass.
 - `flag-review`: launches the flag-reviewer on a pending change. The argument
   is a git diff range and nothing else. Omit it for the working tree against
   HEAD.

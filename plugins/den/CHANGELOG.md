@@ -9,6 +9,11 @@ minor bump may change behavior.
 
 ### Added
 
+- Skill `scoping`: the decisions an ask leaves open are put to the user one at
+  a time before a brief is written, dependencies first and then highest impact
+  and uncertainty, each with a recommended answer and what it costs; facts are
+  looked up rather than asked, the answers land in the brief's decisions
+  already made, and anything left open is recorded as deferred.
 - Skill `design-decisions`: a recommendation names what it buys, what it
   costs and the alternative rejected; the codebase, the runtime and an
   established library are checked, in that order, before anything is written
