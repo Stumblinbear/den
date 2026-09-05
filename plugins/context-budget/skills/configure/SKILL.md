@@ -5,6 +5,23 @@ description: Use when the user asks how the context-budget plugin works, why a c
 
 # Configuring context-budget
 
+## Running it at all
+
+The hooks need **Node 22.6 or newer**, and run under bun instead when `bun
+--version` answers on `PATH`. On an older Node with no bun, one stderr line
+names the floor and the version it found, and nothing is injected or guarded.
+
+A file named `.runtime` in the data directory forces the choice for this
+plugin. It holds one word:
+
+```sh
+echo node > ~/.claude/plugins/data/context-budget-den/.runtime
+```
+
+`bun` and `node` are the two it takes; no file is the default above. `bun` on
+a machine with no bun on `PATH`, or any other word, is one stderr line naming
+the file and a failed hook run.
+
 ## What fires and when
 
 A hook runs after every tool call and every prompt in the main session. It
@@ -195,20 +212,3 @@ lifetime and kept prompts verbatim, the prompts it kept and the context it
 left behind; or, where there is no record, a line saying the hook has never
 measured that session. It always exits 0 and always prints prose: the agent
 reading it has no other way to tell what went wrong.
-
-## Running it at all
-
-The hooks need **Node 22.6 or newer**, and run under bun instead when `bun
---version` answers on `PATH`. On an older Node with no bun, one stderr line
-names the floor and the version it found, and nothing is injected or guarded.
-
-A file named `.runtime` in the data directory forces the choice for this
-plugin. It holds one word:
-
-```sh
-echo node > ~/.claude/plugins/data/context-budget-den/.runtime
-```
-
-`bun` and `node` are the two it takes; no file is the default above. `bun` on
-a machine with no bun on `PATH`, or any other word, is one stderr line naming
-the file and a failed hook run.

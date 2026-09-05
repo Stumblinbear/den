@@ -5,6 +5,26 @@ description: Use when the user asks how the model-prompts plugin works, why a pr
 
 # Configuring model-prompts
 
+## Running it at all
+
+The hook is TypeScript with no build step. `hooks.json` starts
+`lib/shared/launch.mjs` with plain `node`; that launcher runs the hook under
+bun when `bun --version` answers on `PATH`, and otherwise under Node's own
+type stripping, which needs **Node 22.6 or newer**. On an older Node the
+launcher prints one line naming the floor and the version it found, and
+nothing is injected.
+
+A file named `.runtime` in the data directory forces the choice for this
+plugin. It holds one word:
+
+```sh
+echo node > ~/.claude/plugins/data/model-prompts-den/.runtime
+```
+
+`bun` and `node` are the two it takes; no file is the default above. `bun` on
+a machine with no bun on `PATH`, or any other word, is one stderr line naming
+the file and a failed hook run.
+
 ## What fires and when
 
 A hook runs on two events in the main session: `SessionStart` (for every
@@ -97,23 +117,3 @@ Swap the input for a switch to see the other event:
         hooks/model-prompts --config ~/.claude/plugins/data/model-prompts-den/config.toml
 
 Delete `claude-model-prompts/check.json` from the temp directory afterwards.
-
-## Running it at all
-
-The hook is TypeScript with no build step. `hooks.json` starts
-`lib/shared/launch.mjs` with plain `node`; that launcher runs the hook under
-bun when `bun --version` answers on `PATH`, and otherwise under Node's own
-type stripping, which needs **Node 22.6 or newer**. On an older Node the
-launcher prints one line naming the floor and the version it found, and
-nothing is injected.
-
-A file named `.runtime` in the data directory forces the choice for this
-plugin. It holds one word:
-
-```sh
-echo node > ~/.claude/plugins/data/model-prompts-den/.runtime
-```
-
-`bun` and `node` are the two it takes; no file is the default above. `bun` on
-a machine with no bun on `PATH`, or any other word, is one stderr line naming
-the file and a failed hook run.
