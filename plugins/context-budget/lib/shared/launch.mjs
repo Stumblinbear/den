@@ -114,7 +114,9 @@ function main() {
 
 	const runtimeFile = join(data, ".runtime");
 	const requested = requestedRuntime(runtimeFile);
-	const bunFound = requested === "node" ? false : probeBun();
+	// A pin answers the probe's question, so neither pin spawns anything; a
+	// pinned bun that is missing surfaces when the entry itself fails to start.
+	const bunFound = requested === "" ? probeBun() : requested === "bun";
 	const selected = selectRuntime(
 		requested,
 		bunFound,
@@ -129,7 +131,13 @@ function main() {
 	const run = spawnEntry(selected.kind, name, argv.slice(3));
 
 	if (run.error) {
-		fail(`${name}: could not start ${selected.kind}: ${run.error.message}`);
+		const pinnedAndMissing = requested === "bun" && run.error.code === "ENOENT";
+
+		fail(
+			pinnedAndMissing
+				? `${name}: ${runtimeFile} says bun, but no bun was found on PATH.`
+				: `${name}: could not start ${selected.kind}: ${run.error.message}`,
+		);
 	}
 
 	// An entry killed by a signal has no exit code; treat that as a failure
