@@ -59,23 +59,29 @@ const opening = (scan, rate) =>
     ? `${header(scan, rate)}. ${compactedTo(scan.compaction)}. ${keptClause(scan.compaction, "since then")}`
     : `${header(scan, rate)}.`;
 
-// The whole of what there is to say when no prompt is left cached: a rewind
+// The whole of what there is to say when no cut point is left cached: a rewind
 // costs its whole prefix wherever it lands, which leaves `/compact` -- unless a
-// compaction has already bounded that price, and then what happened is that the
-// session compacted and has been idle since.
+// compaction has already bounded that price, and then the choice is the prompts
+// it kept and nothing newer.
+//
+// Both sentences speak only of cut points: an empty list means every prompt a
+// rewind would land on has gone cold, not that the context holds none cached
+// and not that nothing has been sent -- a prompt in flight is both.
 //
 // Neither of them quotes a payback, so neither has a rate to disclose.
 const emptyReading = (scan) =>
   scan.compaction
-    ? `${header(scan, null)}. ${compactedTo(scan.compaction)} and nothing has been sent since.${scan.compaction.kept.length > 0 ? ` ${keptClause(scan.compaction, "")}` : ""}`
-    : `${header(scan, null)}: no prompt is still cached, so any rewind re-reads its whole prefix at full price. Recommend \`/compact <focus line>\` instead.`;
+    ? `${header(scan, null)}. ${compactedTo(scan.compaction)}, and there is nothing newer to cut at.${scan.compaction.kept.length > 0 ? ` ${keptClause(scan.compaction, "")}` : ""}`
+    : `${header(scan, null)}: no cut point is still cached, so any rewind re-reads its whole prefix at full price. Recommend \`/compact <focus line>\` instead.`;
 
-// What the whole context comes to when the only prompt in it is its first: a
-// cut there summarizes nothing, so the list is empty for a reason that is not
-// "the cache has expired", and an unqualified "every prompt in the context is
-// cached" over an empty list reads as exactly that.
+// What the whole context comes to when the only prompt a turn has answered is
+// its first: a cut there summarizes nothing, so the list is empty for a reason
+// that is not "the cache has expired", and an unqualified "every prompt in the
+// context is cached" over an empty list reads as exactly that. The qualifier
+// counts turns because a prompt in flight is in the context too, and is no cut
+// point.
 const nothingToCutClause =
-  "Every prompt in the context is cached; the only one is its first, so there is nothing to cut at yet.";
+  "Every prompt in the context is cached; the only one with a turn after it is its first, so there is nothing to cut at yet.";
 
 // Whether the oldest cached prompt is the first prompt of the current context:
 // the walk reached the start of the file, or a compaction that kept no prompt
@@ -85,8 +91,8 @@ const opensTheContext = (scan) =>
   scan.compaction ? scan.compaction.kept.length === 0 : scan.above !== "colder";
 
 // When the compaction happened and what it left behind, without the full stop:
-// what follows it is either the prompts it kept or the fact that the session
-// has been idle since.
+// what follows it is either the prompts it kept or the fact that there is
+// nothing newer to cut at.
 const compactedTo = (compaction) =>
   `The session was compacted at ${clock(compaction.at)} down to ${formatTokens(compaction.postTokens)} tokens`;
 

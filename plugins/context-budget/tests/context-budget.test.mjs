@@ -268,6 +268,28 @@ test("the notice passes over a prompt that opens the context and says so", (t) =
   );
 });
 
+test("the notice passes over a prompt that has no turn after it yet", (t) => {
+  // The transcript ends on the prompt the session is answering now, so that
+  // prompt's prefix is the whole context and a cut there keeps nothing. Left
+  // off, the one prompt behind it opens the context -- the state the reading
+  // already has a sentence for.
+  const s = session(t);
+  const path = transcript(
+    assistant(100_000, { minutesAgo: 45 }),
+    prompt("Start on the cache-aware cut points now", at(40)),
+    assistant(200_000, { minutesAgo: 19 }),
+    prompt("was there anything still pending?", at(2)),
+  );
+  const text = injected(s.run(path)) ?? "";
+
+  assert.match(text, /this session is at 200K tokens/);
+  assert.doesNotMatch(text, /still pending/, "the prompt in flight is not a cut point");
+  assert.match(
+    text,
+    /Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one with a turn after it is its first, so there is nothing to cut at yet\./,
+  );
+});
+
 test("a failed request at the end of the transcript is not the current context", (t) => {
   // A request that never reached the model is written as an assistant entry
   // with every usage field zero. Read as the newest turn it says the context
@@ -331,7 +353,7 @@ test("the same transcript on a 5m lifetime has no cached prompt to name", (t) =>
   );
   const text = injected(s.run(path)) ?? "";
 
-  assert.match(text, /no prompt is still cached/);
+  assert.match(text, /no cut point is still cached/);
   assert.match(text, /Recommend `\/compact <focus line>` instead/);
   assert.doesNotMatch(text, /Start on the cache-aware cut points now/);
 });
@@ -453,12 +475,12 @@ test("a compaction boundary names the prompts it kept and the price of a rewind 
   );
   const text = injected(s.run(path)) ?? "";
 
-  assert.doesNotMatch(text, /no prompt is still cached/);
+  assert.doesNotMatch(text, /no cut point is still cached/);
   assert.match(
     text,
     new RegExp(
-      `The session was compacted at ${hhmm(compacted)} down to 48\\.6K tokens ` +
-        `and nothing has been sent since\\. ` +
+      `The session was compacted at ${hhmm(compacted)} down to 48\\.6K tokens, ` +
+        `and there is nothing newer to cut at\\. ` +
         `The 2 prompts kept verbatim, from "Read the brief and start on the scanner" on, ` +
         `can be rewound to for at most that price\\.`,
     ),
@@ -488,7 +510,7 @@ test("a compaction that kept nothing leaves a context with one prompt and nothin
   assert.doesNotMatch(text, /The session was compacted/);
   assert.match(
     text,
-    /Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one is its first, so there is nothing to cut at yet\./,
+    /Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one with a turn after it is its first, so there is nothing to cut at yet\./,
   );
 });
 

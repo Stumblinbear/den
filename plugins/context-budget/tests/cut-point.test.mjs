@@ -111,19 +111,27 @@ const opened = at(50);
 const started = at(35);
 
 // Two cached prompts an hour apart from expiry, with a cold one above them.
-const SESSION_TRANSCRIPT = () =>
-  transcript(
-    assistant(80_000, { minutesAgo: 200 }),
-    prompt("The prompt from before lunch", at(190)),
-    assistant(100_000, { minutesAgo: 55 }),
-    prompt("Read the brief and start on the scanner", opened),
-    assistant(150_000, { minutesAgo: 40 }),
-    prompt("Now add the skill that takes a fresh reading", started),
-    assistant(200_000, { minutesAgo: 30 }),
-  );
+const SESSION = [
+  assistant(80_000, { minutesAgo: 200 }),
+  prompt("The prompt from before lunch", at(190)),
+  assistant(100_000, { minutesAgo: 55 }),
+  prompt("Read the brief and start on the scanner", opened),
+  assistant(150_000, { minutesAgo: 40 }),
+  prompt("Now add the skill that takes a fresh reading", started),
+  assistant(200_000, { minutesAgo: 30 }),
+];
+
+// The rows that session comes to. Its context is 200K, so what a cut keeps is
+// 200K less what it summarizes away.
+const SESSION_ROWS = new RegExp(
+  `1\\. "Read the brief and start on the scanner"\\s+` +
+    `sent ${hhmm(opened)} \\| valid until ${hhmm(opened, HOUR)} \\| 100K tokens before it, keeps 100K, pays back after 22 turns\\s+` +
+    `2\\. "Now add the skill that takes a fresh reading"\\s+` +
+    `sent ${hhmm(started)} \\| valid until ${hhmm(started, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
+);
 
 test("lists the cached cut points oldest first, with what each one summarizes and keeps", () => {
-  const out = run(["--transcript", SESSION_TRANSCRIPT()]);
+  const out = run(["--transcript", transcript(...SESSION)]);
 
   // Read by hand from a path, and priced from that path all the same: the
   // transcript's own turns name the model, so nothing is being assumed and the
@@ -132,17 +140,31 @@ test("lists the cached cut points oldest first, with what each one summarizes an
     out,
     /Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Cached prompts, oldest first:/,
   );
+  assert.match(out, SESSION_ROWS);
+  assert.doesNotMatch(out, /before lunch/, "the cold prompt above them is not a cut point");
+  assert.match(out, /every prompt before it is not, and a rewind there re-reads its whole prefix at full price/);
+});
+
+test("a prompt with no turn after it yet is not a cut point", () => {
+  // The same session read while the newest prompt is still in flight: no turn
+  // has answered it, so its prefix is the whole current context and a cut there
+  // keeps nothing verbatim -- `/compact` by another name, and no cut point.
+  const out = run([
+    "--transcript",
+    transcript(...SESSION, prompt("was there anything still pending?", at(2))),
+  ]);
+
+  assert.doesNotMatch(
+    out,
+    /still pending/,
+    "a cut at the prompt in flight keeps nothing, so it is no choice at all",
+  );
   assert.match(
     out,
-    new RegExp(
-      `1\\. "Read the brief and start on the scanner"\\s+` +
-        `sent ${hhmm(opened)} \\| valid until ${hhmm(opened, HOUR)} \\| 100K tokens before it, keeps 100K, pays back after 22 turns\\s+` +
-        `2\\. "Now add the skill that takes a fresh reading"\\s+` +
-        `sent ${hhmm(started)} \\| valid until ${hhmm(started, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
-    ),
-    "the context is 200K, so what a cut keeps is 200K less what it summarizes",
+    SESSION_ROWS,
+    "the reading is the one the same session gives with nothing in flight",
   );
-  assert.doesNotMatch(out, /before lunch/, "the cold prompt above them is not a cut point");
+  assert.doesNotMatch(out, /^ *3\./m, "and there is no third row");
   assert.match(out, /every prompt before it is not, and a rewind there re-reads its whole prefix at full price/);
 });
 
@@ -213,7 +235,7 @@ test("the list is three prompts spread across the cached context, not across the
 
 test("finds the transcript from the session id in the environment", (t) => {
   const s = session(t);
-  const path = SESSION_TRANSCRIPT();
+  const path = transcript(...SESSION);
   s.measure(path);
 
   // Everything but the first line, which carries the clock and would differ
@@ -239,35 +261,54 @@ test("no session id in the environment reads the same way as no record", () => {
   assert.match(run([]), /^No measurement recorded for this session/);
 });
 
+// A session compacted twenty minutes ago, keeping two prompts verbatim above
+// its boundary, with one turn taken since. Nothing sent since that turn, so the
+// cached list is empty and the compaction is all the reading has to price.
+const compacted = at(20);
+const COMPACTED_SESSION = [
+  prompt("Read the brief and start on the scanner", at(120), { uuid: "kept-1" }),
+  assistant(150_000, { minutesAgo: 119 }),
+  prompt("Now add the skill that takes a fresh reading", at(100), { uuid: "kept-2" }),
+  assistant(160_000, { minutesAgo: 99 }),
+  compactBoundary({ minutesAgo: 20, postTokens: 48_631, kept: ["kept-1", "kept-2"] }),
+  COMPACT_SUMMARY,
+  assistant(200_000, { minutesAgo: 19 }),
+];
+
+// What that session's reading says either way: what the compaction cost, that
+// there is nothing newer to choose instead, and the prompts it kept.
+const COMPACTED_READING = new RegExp(
+  `The session was compacted at ${hhmm(compacted)} down to 48\\.6K tokens, ` +
+    `and there is nothing newer to cut at\\. ` +
+    `The 2 prompts kept verbatim, from "Read the brief and start on the scanner" on, ` +
+    `can be rewound to for at most that price\\.`,
+);
+
 test("a compaction boundary names the prompts it kept and the price of a rewind there", () => {
   // No prompt has been sent since the compaction, so the cached list is empty
   // on a context the session has just finished compacting. What is true in that
   // state is not "nothing is cached, use `/compact`": the compaction kept a
   // stretch of prompts verbatim above its own boundary, and a rewind at any of
   // them costs at most what it left behind.
-  const compacted = at(20);
+  const out = run(["--transcript", transcript(...COMPACTED_SESSION)]);
+
+  assert.doesNotMatch(out, /no cut point is still cached/);
+  assert.match(out, COMPACTED_READING);
+});
+
+test("a prompt in flight is not the session going quiet after a compaction", () => {
+  // The same session with the newest prompt still in flight. It is no cut
+  // point, so the cached list is empty here too -- but something was sent, so
+  // the reading may not infer from an empty list that nothing has been.
   const out = run([
     "--transcript",
-    transcript(
-      prompt("Read the brief and start on the scanner", at(120), { uuid: "kept-1" }),
-      assistant(150_000, { minutesAgo: 119 }),
-      prompt("Now add the skill that takes a fresh reading", at(100), { uuid: "kept-2" }),
-      assistant(160_000, { minutesAgo: 99 }),
-      compactBoundary({ minutesAgo: 20, postTokens: 48_631, kept: ["kept-1", "kept-2"] }),
-      COMPACT_SUMMARY,
-      assistant(200_000, { minutesAgo: 19 }),
-    ),
+    transcript(...COMPACTED_SESSION, prompt("was there anything still pending?", at(1))),
   ]);
 
-  assert.doesNotMatch(out, /no prompt is still cached/);
   assert.match(
     out,
-    new RegExp(
-      `The session was compacted at ${hhmm(compacted)} down to 48\\.6K tokens ` +
-        `and nothing has been sent since\\. ` +
-        `The 2 prompts kept verbatim, from "Read the brief and start on the scanner" on, ` +
-        `can be rewound to for at most that price\\.`,
-    ),
+    COMPACTED_READING,
+    "and what the agent is to recommend is what it was when the session was idle",
   );
 });
 
@@ -295,7 +336,7 @@ test("a reading with no payback figure in it discloses no rate", () => {
   );
   assert.match(
     out,
-    /The session was compacted at \d\d:\d\d down to 48\.6K tokens and nothing has been sent since\./,
+    /The session was compacted at \d\d:\d\d down to 48\.6K tokens, and there is nothing newer to cut at\./,
   );
 });
 
@@ -383,7 +424,7 @@ test("a prefix behind a turn that wrote nothing lives as long as the turn that w
 
   assert.match(
     cold,
-    /no prompt is still cached/,
+    /no cut point is still cached/,
     "its prefix was written under 5m, 39 minutes ago, so it is not cached at all",
   );
   assert.doesNotMatch(cold, /Now add the skill/);
@@ -423,8 +464,29 @@ test("a session with nothing cached left points at `/compact` instead", () => {
   ]);
 
   assert.match(out, /Prompt cache, read at.*5m lifetime/);
-  assert.match(out, /no prompt is still cached/);
+  assert.match(out, /no cut point is still cached/);
   assert.match(out, /Recommend `\/compact <focus line>` instead\./);
+});
+
+test("nothing cached counts cut points, not the prompt in flight above them", () => {
+  // The same empty list with a prompt still in flight: its prefix is the whole
+  // context, written a minute ago and cached, so the reading may not say no
+  // prompt is. What is empty is the choice -- every prompt anyone would cut at
+  // has gone cold.
+  const out = run([
+    "--transcript",
+    transcript(
+      assistant(100_000, { minutesAgo: 55, ttl: "5m" }),
+      prompt("Read the brief and start on the scanner", at(50)),
+      assistant(200_000, { minutesAgo: 1, ttl: "5m" }),
+      prompt("was there anything still pending?", at(0.5)),
+    ),
+  ]);
+
+  assert.match(
+    out,
+    /no cut point is still cached, so any rewind re-reads its whole prefix at full price\. Recommend `\/compact <focus line>` instead\./,
+  );
 });
 
 // --- what a cut costs and when it has paid for itself -----------------------
@@ -646,7 +708,7 @@ test("a hand run with no session id leaves no record behind", () => {
   rmSync(stray, { force: true });
 
   const out = spawn(
-    ["--transcript", SESSION_TRANSCRIPT()],
+    ["--transcript", transcript(...SESSION)],
     {},
     pricingOverride("default = 5\n"),
   );

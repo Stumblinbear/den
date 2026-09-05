@@ -116,11 +116,11 @@ function boundaryDetail(entry) {
 }
 
 // The cache window over `path` as of `now`: the lifetime in force, the model
-// the transcript is on, the picker-eligible prompts whose prefix is still
-// cached oldest first, and what lies above the oldest prompt -- a colder cut
-// point, a compaction, or the start of the file, which is the difference
-// between "there are older cut points and they all cost" and "this is as far
-// back as the session goes".
+// the transcript is on, the picker-eligible prompts a turn has answered whose
+// prefix is still cached oldest first, and what lies above the oldest prompt --
+// a colder cut point, a compaction, or the start of the file, which is the
+// difference between "there are older cut points and they all cost" and "this
+// is as far back as the session goes".
 //
 // A compaction above them is reported apart from the prompts: the first
 // request after it wrote everything it kept verbatim to the cache in one
@@ -266,6 +266,14 @@ export function scanCacheWindow(path, now = Date.now()) {
     }
 
     if (!eligible(entry)) {
+      continue;
+    }
+
+    // A prompt with no turn yet to answer it: walking backward, `context` is
+    // still null for exactly those. Its prefix is the whole current context, so
+    // a cut there keeps nothing verbatim -- `/compact` by another name -- and
+    // listing it would displace the newest prompt that is a cut point.
+    if (context === null) {
       continue;
     }
 

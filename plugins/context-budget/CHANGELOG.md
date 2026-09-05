@@ -12,7 +12,9 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - `{cache}` placeholder in both injected messages: a prompt-cache snapshot
   naming three cached cut points (oldest, middle, newest) with each one's
   expiry, what a cut there summarizes away and what it keeps, and what a
-  compaction kept verbatim.
+  compaction kept verbatim. A prompt no turn has answered yet is not among
+  them: a cut there keeps nothing verbatim, which is `/compact` by another
+  name.
 - Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mjs`:
   the same reading taken fresh, for when the snapshot in a message has aged
   out. The script finds the transcript through the session record, or takes
