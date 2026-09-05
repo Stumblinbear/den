@@ -37,6 +37,7 @@
 		"lib/**/*.mts",
 		"plugins/*/hooks/**/*.mts",
 		"plugins/*/lib/**/*.mts",
+		"plugins/*/scripts/**/*.mts",
 		"plugins/*/tests/**/*.mts",
 		"tests/**/*.mts",
 		"scripts/**/*.mts",

@@ -8,7 +8,8 @@
 // Nothing is merged under the configuration a hook is handed, so a case that
 // is about one section still has to write a whole file. The sections below are
 // what a case that has no opinion about the rest composes one from.
-import { mkdirSync, writeFileSync } from "node:fs";
+import assert from "node:assert/strict";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { faultChecks } from "../../../tests/fault-checks.mts";
@@ -32,7 +33,7 @@ export interface RunOptions {
 const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
 export const HOOKS = join(PLUGIN, "hooks");
-export const LAUNCHER = join(PLUGIN, "lib", "launch.mjs");
+export const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
 /** The failure policy both hooks report through, in this plugin's name. */
 export const { withoutParser, reported, quiet } = faultChecks(
@@ -77,30 +78,21 @@ export function transcript(...lines: readonly string[]): string {
 	return path;
 }
 
-/** An assistant turn whose usage sums to `tokens`, the shape a hook measures. */
-export const assistantTurn = (
-	tokens: number,
-	model = "claude-fable-5-1",
-): string =>
-	JSON.stringify({
-		type: "assistant",
-		isSidechain: false,
-		message: { model, usage: usage(tokens) },
-	});
-
 /**
  * A session transcript with one subagent's transcript beside it, at the path
  * Claude Code writes: `<transcript without .jsonl>/subagents/agent-<name>.jsonl`.
  * `idleMin` past the 5m cache lifetime is what leaves that subagent's prompt
  * cache cold.
+ *
+ * `turns` are the subagent's own, oldest first, and `entries` are the session
+ * transcript's lines.
  */
 export function subagentSession(
 	name: string,
-	tokens: number,
-	idleMin: number,
+	turns: readonly string[],
 	entries: readonly string[],
 ): string {
-	const path = subagentBeside(name, tokens, idleMin);
+	const path = subagentBeside(name, turns);
 
 	writeFileSync(path, `${entries.join("\n")}\n`);
 
@@ -112,15 +104,18 @@ export function subagentSession(
  * belongs: what the guard is handed when Claude Code names a transcript that
  * has been moved away under it.
  */
-export const lostSession = (name: string, tokens: number): string =>
-	subagentBeside(name, tokens, 0);
+export const lostSession = (name: string, turns: readonly string[]): string =>
+	subagentBeside(name, turns);
 
 /**
  * The same again with a directory in the transcript's place, which is a read
  * that fails on something other than the file being absent.
  */
-export function unreadableSession(name: string, tokens: number): string {
-	const path = subagentBeside(name, tokens, 0);
+export function unreadableSession(
+	name: string,
+	turns: readonly string[],
+): string {
+	const path = subagentBeside(name, turns);
 
 	mkdirSync(path);
 
@@ -131,28 +126,18 @@ export function unreadableSession(name: string, tokens: number): string {
  * The subagent's transcript alone, and the path the session's own would be at
  * beside it, which is what a hook is handed and derives the other from.
  */
-function subagentBeside(name: string, tokens: number, idleMin: number): string {
+function subagentBeside(name: string, turns: readonly string[]): string {
 	const dir = fixtureDir("session");
 	const subagents = join(dir, "main", "subagents");
 
 	mkdirSync(subagents, { recursive: true });
 	writeFileSync(
 		join(subagents, `agent-${name}.jsonl`),
-		`${JSON.stringify({
-			type: "assistant",
-			timestamp: new Date(Date.now() - idleMin * 60_000).toISOString(),
-			message: { usage: usage(tokens) },
-		})}\n`,
+		`${turns.join("\n")}\n`,
 	);
 
 	return join(dir, "main.jsonl");
 }
-
-const usage = (tokens: number) => ({
-	input_tokens: 1000,
-	cache_creation_input_tokens: 1000,
-	cache_read_input_tokens: tokens - 2000,
-});
 
 /**
  * Runs a hook as `hooks.json` does, under one runtime: the launcher reads
@@ -178,6 +163,130 @@ export function hookRunner(
 			input,
 			stdin: options.stdin,
 		});
+}
+
+/**
+ * Runs the cut-point script the way the skill's preamble does: through the
+ * same launcher, with both pricing paths and the session id on the command
+ * line, which is what Claude Code substitutes into that preamble. An empty
+ * session id is a hand run, which passes no `--session` at all. The temp
+ * directory is the session's own, so the script reads the record the hook run
+ * before it wrote.
+ */
+export function scriptRunner(
+	runtime: Runtime,
+): (session: string, args?: readonly string[], overrides?: string) => Result {
+	const data = dataDir(runtime);
+
+	return (session, args = [], overrides = noPricing()) =>
+		runHook({
+			launcher: LAUNCHER,
+			data,
+			temp: childTemp("context-budget", { session_id: session }),
+			argv: [
+				"scripts/cut-point",
+				...(session === "" ? [] : ["--session", session]),
+				...args,
+				"--pricing",
+				join(PLUGIN, "lib", "pricing.toml"),
+				"--pricing-overrides",
+				overrides,
+			],
+			input: {},
+		});
+}
+
+/**
+ * A session record the way a real session gets one: by running the
+ * measurement hook. Writing the file by hand would let the two drift, and the
+ * script reading a shape the hook had stopped writing is exactly the failure
+ * the cut-point cases exist for.
+ */
+export function recorder(
+	runtime: Runtime,
+): (session: string, transcriptPath: string) => Result {
+	const hook = hookRunner(runtime);
+	const config = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+
+	return (session, transcriptPath) =>
+		hook(
+			"context-budget",
+			{
+				hook_event_name: "UserPromptSubmit",
+				session_id: session,
+				transcript_path: transcriptPath,
+			},
+			config,
+		);
+}
+
+/** The reading alone, from a script run that had nothing to report. */
+export function reading(result: Result): string {
+	assert.equal(result.stderr, "", "nothing to report on a shipped price table");
+	assert.equal(
+		result.status,
+		0,
+		"the reading is prose, so the exit is always 0",
+	);
+
+	return result.stdout;
+}
+
+/**
+ * A pricing override file, or a path to one that is not there -- the normal
+ * case, since almost nobody corrects a published price.
+ */
+export function pricingOverride(toml: string): string {
+	const path = join(fixtureDir("pricing"), "pricing.toml");
+
+	writeFileSync(path, toml);
+
+	return path;
+}
+
+const noPricing = (): string =>
+	join(fixtureDir("no-pricing"), "never-written.toml");
+
+/** The session's record, as the file on disk spells it. */
+export function record(session: string): Record<string, unknown> {
+	const file = join(
+		childTemp("context-budget", { session_id: session }),
+		"claude-context-budget",
+		`${session}.json`,
+	);
+
+	return JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+}
+
+/**
+ * The record's lock, taken the way `file-lock.mts` takes one and never
+ * released: what a run finds when another run of the same session is inside
+ * its own change of the record.
+ */
+export function holdLock(session: string): void {
+	const lock = join(
+		childTemp("context-budget", { session_id: session }),
+		"claude-context-budget",
+		`${session}.lock`,
+	);
+
+	mkdirSync(lock, { recursive: true });
+	writeFileSync(join(lock, "holder"), "another run");
+}
+
+/** Everything the session has left in the plugin's temp directory. */
+export function stateFiles(session: string): readonly string[] {
+	const dir = join(
+		childTemp("context-budget", { session_id: session }),
+		"claude-context-budget",
+	);
+
+	try {
+		return readdirSync(dir).sort();
+	} catch {
+		// Nothing has been written for this session at all.
+		return [];
+	}
 }
 
 /** A session id nothing else in this run has used. */

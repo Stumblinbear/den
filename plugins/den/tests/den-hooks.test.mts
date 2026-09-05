@@ -21,7 +21,7 @@ import {
 
 const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
-const LAUNCHER = join(PLUGIN, "lib", "launch.mjs");
+const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
 // Spelled out rather than imported from the relays, so a relay that starts
 // writing its flags somewhere else fails a test instead of taking the tests

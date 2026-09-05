@@ -1,9 +1,10 @@
-// What the measurement hook injects, exercised through the launcher -- the
-// exact command `hooks.json` runs. Everything it reads is a file path or
-// stdin, so there is nothing to stub, and the bugs these cover -- a stale
-// measurement, a level that never re-arms -- live in the interaction between
-// the transcript, the level record and the configuration rather than in any
-// one function. Every expected text is written by the test that expects it.
+// What the measurement hook injects and records, exercised through the
+// launcher -- the exact command `hooks.json` runs. Everything it reads is a
+// file path or stdin, so there is nothing to stub, and the bugs these cover --
+// a stale measurement, a level that never re-arms, a transcript the cut-point
+// skill cannot find -- live in the interaction between the transcript, the
+// session record and the configuration rather than in any one function. Every
+// expected message is written by the test that expects it.
 //
 // The record a case starts from is the one an earlier run of the same session
 // left, so no case writes into the hook's own state.
@@ -11,7 +12,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { type Result, runtimes } from "../../../tests/harness.mts";
 import {
-	assistantTurn,
+	apiError,
+	assistant,
+	COMPACT_SUMMARY,
+	compactBoundary,
+} from "./fixtures.mts";
+import {
 	configFile,
 	DEFAULTS,
 	GUARD,
@@ -24,23 +30,6 @@ import {
 	sessionId,
 	transcript,
 } from "./harness.mts";
-
-// What `/compact`, auto-compact and a rewind summarize all append: a boundary
-// entry and a summary entry, with no assistant entry after them.
-const COMPACT_BOUNDARY = JSON.stringify({
-	type: "system",
-	subtype: "compact_boundary",
-	content: "Conversation compacted",
-	level: "info",
-	compactMetadata: { trigger: "manual", preTokens: 260000, postTokens: 11304 },
-});
-
-const COMPACT_SUMMARY = JSON.stringify({
-	type: "user",
-	isSidechain: false,
-	isCompactSummary: true,
-	message: { role: "user", content: "This session is being continued..." },
-});
 
 interface Injection {
 	readonly hookSpecificOutput?: { readonly additionalContext?: string };
@@ -87,14 +76,14 @@ for (const runtime of runtimes()) {
 
 		quiet(run(session, noTranscript()));
 		reported(
-			run(session, transcript(assistantTurn(200_000)), BROKEN_CONFIG),
+			run(session, transcript(assistant(200_000)), BROKEN_CONFIG),
 			"config",
 		);
 	});
 
 	test(name("injects once when the context first crosses notice"), () => {
 		const session = sid();
-		const path = transcript(assistantTurn(200_000));
+		const path = transcript(assistant(200_000));
 
 		assert.equal(injected(run(session, path)), "NOTICE 200K over 150K");
 		assert.equal(
@@ -110,12 +99,21 @@ for (const runtime of runtimes()) {
 		const session = sid();
 
 		assert.equal(
-			injected(run(session, transcript(assistantTurn(200_000)))),
+			injected(run(session, transcript(assistant(200_000)))),
 			"NOTICE 200K over 150K",
 		);
 		assert.equal(
-			injected(run(session, transcript(assistantTurn(260_000)))),
+			injected(run(session, transcript(assistant(260_000)))),
 			"URGENT 260K over 250K",
+		);
+	});
+
+	// The measurement is substituted into the message and nothing else of the
+	// hook's own goes with it, on a number that is not a round one.
+	test(name("the crossing that fires is the one the message carries"), () => {
+		assert.equal(
+			injected(run(sid(), transcript(assistant(200_400)))),
+			"NOTICE 200.4K over 150K",
 		);
 	});
 
@@ -127,18 +125,14 @@ for (const runtime of runtimes()) {
 			const session = sid();
 
 			assert.equal(
-				injected(run(session, transcript(assistantTurn(200_000)))),
+				injected(run(session, transcript(assistant(200_000)))),
 				"NOTICE 200K over 150K",
 			);
 			assert.equal(
 				injected(
 					run(
 						session,
-						transcript(
-							assistantTurn(260_000),
-							COMPACT_BOUNDARY,
-							COMPACT_SUMMARY,
-						),
+						transcript(assistant(260_000), compactBoundary(), COMPACT_SUMMARY),
 					),
 				),
 				null,
@@ -147,7 +141,7 @@ for (const runtime of runtimes()) {
 			// The record is back to nothing, so the rebuilt context announces
 			// itself from `notice`.
 			assert.equal(
-				injected(run(session, transcript(assistantTurn(200_000)))),
+				injected(run(session, transcript(assistant(200_000)))),
 				"NOTICE 200K over 150K",
 			);
 		},
@@ -160,55 +154,127 @@ for (const runtime of runtimes()) {
 		const session = sid();
 
 		assert.equal(
-			injected(run(session, transcript(assistantTurn(200_000)))),
+			injected(run(session, transcript(assistant(200_000)))),
 			"NOTICE 200K over 150K",
 		);
 		assert.equal(
-			injected(
-				run(session, transcript(assistantTurn(260_000), COMPACT_SUMMARY)),
-			),
+			injected(run(session, transcript(assistant(260_000), COMPACT_SUMMARY))),
 			null,
 			"the summarized-away turn is not this context",
 		);
 		assert.equal(
-			injected(run(session, transcript(assistantTurn(200_000)))),
+			injected(run(session, transcript(assistant(200_000)))),
 			"NOTICE 200K over 150K",
 			"the record is back to nothing, so notice speaks again",
 		);
 	});
 
+	// Measuring one model only, the way the README documents it: `[default]`
+	// switched off and a row for that model. A compaction is measured as no
+	// model at all, so no row matches it and `[default]`'s null answers -- and a
+	// compaction still has to reset the level, or the record stays at `notice`
+	// through it and the rebuilt context climbs past notice in silence.
+	test(
+		name("a compaction resets the level with [default] switched off"),
+		() => {
+			const session = sid();
+			const oneModel = configFile(
+				"[default]\nenabled = false\n",
+				"[models.'opus']\nnotice = 150_000\nurgent = 250_000\n",
+				MESSAGES,
+				GUARD,
+				GUARD_MESSAGES,
+			);
+			const measured = (tokens: number) =>
+				injected(run(session, transcript(assistant(tokens)), oneModel));
+
+			assert.equal(measured(200_000), "NOTICE 200K over 150K");
+			assert.equal(
+				injected(
+					run(
+						session,
+						transcript(assistant(260_000), compactBoundary(), COMPACT_SUMMARY),
+						oneModel,
+					),
+				),
+				null,
+				"a compaction announces nothing, whatever governs the model",
+			);
+			assert.equal(
+				measured(200_000),
+				"NOTICE 200K over 150K",
+				"the compaction left the record at nothing, so notice speaks again",
+			);
+		},
+	);
+
 	test(name("urgent re-arms after the context falls back to notice"), () => {
 		const session = sid();
 
 		assert.equal(
-			injected(run(session, transcript(assistantTurn(260_000)))),
+			injected(run(session, transcript(assistant(260_000)))),
 			"URGENT 260K over 250K",
 		);
 		assert.equal(
-			injected(run(session, transcript(assistantTurn(200_000)))),
+			injected(run(session, transcript(assistant(200_000)))),
 			null,
 			"a fall injects nothing",
 		);
 		assert.equal(
-			injected(run(session, transcript(assistantTurn(260_000)))),
+			injected(run(session, transcript(assistant(260_000)))),
 			"URGENT 260K over 250K",
 			"climbing past urgent again must inject again",
 		);
 	});
 
-	// A row switched off is the whole plugin off for the models it matches.
-	test(name("a row with `enabled = false` measures nothing"), () => {
-		const off = configFile(
-			DEFAULTS,
-			"[models.'fable']\nenabled = false\n",
-			MESSAGES,
-			GUARD,
-			GUARD_MESSAGES,
+	// A request that never reached the model is written as an assistant entry
+	// all the same, with every usage field zero. Read as the newest turn it
+	// says the context is empty, and a session just measured at 200K crosses
+	// nothing, falls back to none, and announces itself all over again.
+	test(name("a failed request is not the current context"), () => {
+		const session = sid();
+		const path = transcript(
+			assistant(200_000, { minutesAgo: 19 }),
+			apiError({ minutesAgo: 5 }),
 		);
 
 		assert.equal(
-			injected(run(sid(), transcript(assistantTurn(260_000)), off)),
-			null,
+			injected(run(session, path)),
+			"NOTICE 200K over 150K",
+			"the turn above the failure is the context",
 		);
 	});
+
+	// An empty model id is a transcript that says nothing about what it was
+	// sent to, and no row was written for that. A row keyed to match everything
+	// -- '.*', '^', '' -- would otherwise take it and fire on thresholds nobody
+	// chose for it, which on a row like this one is an urgent notice at a
+	// context that is not large.
+	test(
+		name("a transcript that names no model takes [default], not a row"),
+		() => {
+			const rows = configFile(
+				DEFAULTS,
+				"[models.'.*']\nnotice = 10_000\nurgent = 20_000\n",
+				MESSAGES,
+				GUARD,
+				GUARD_MESSAGES,
+			);
+
+			assert.equal(
+				injected(
+					run(sid(), transcript(assistant(120_000, { model: "" })), rows),
+				),
+				null,
+				"120K is under [default]'s 150K notice, and [default] governs it",
+			);
+			// The same row against an id there is one for: still tried, still
+			// wins, so the rule is about the empty id and not about the row.
+			assert.equal(
+				injected(run(sid(), transcript(assistant(120_000)), rows)),
+				"URGENT 120K over 20K",
+				"a row keyed to match everything still governs a model with an id",
+			);
+		},
+	);
 }

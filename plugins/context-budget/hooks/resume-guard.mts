@@ -5,13 +5,13 @@
 // resuming, so the guard denies the resume with the numbers in the reason,
 // leaving Claude to put the choice to the user before it retries.
 import process from "node:process";
-import { runEntry } from "../lib/entry.mts";
-import { fieldsOf } from "../lib/fields.mts";
-import { consume, resumeApproval } from "./approval.mts";
-import { fill, formatTokens } from "./messages.mts";
-import { FAULTS } from "./plugin.mts";
-import { type GuardLimits, loadSettings } from "./settings.mts";
-import { type Resumed, resumedAgent } from "./subagent.mts";
+import { consume, resumeApproval } from "../lib/approval.mts";
+import { fill, formatTokens } from "../lib/messages.mts";
+import { FAULTS } from "../lib/plugin.mts";
+import { type GuardLimits, loadSettings } from "../lib/settings.mts";
+import { runEntry } from "../lib/shared/entry.mts";
+import { fieldsOf } from "../lib/shared/fields.mts";
+import { type Resumed, resumedAgent } from "../lib/subagent.mts";
 
 const args = process.argv.slice(2);
 

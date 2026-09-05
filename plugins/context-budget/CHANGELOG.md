@@ -15,7 +15,7 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   compaction kept verbatim. A prompt no turn has answered yet is not among
   them: a cut there keeps nothing verbatim, which is `/compact` by another
   name.
-- Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mjs`,
+- Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mts`,
   which print that reading on demand. The script finds the transcript through
   the session record, or takes `--transcript <path>`, and takes `--pricing`
   and `--pricing-overrides` for the rate it prices at.
@@ -35,12 +35,17 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   a brief written or an agent launched is a step inside an arc and the step
   after it still needs the detail a summary would thin; the urgent message acts
   at the end of the step in hand.
-- Shipped `fable` model row at 400K notice and 700K urgent: Fable's cache
-  reads cost a quarter of other models', so a compaction at 150K takes about
-  35 turns to pay back.
-- The per-session record is written on every run and carries
-  `transcript_path`; fault reports go into it instead of marker files, so a
-  session leaves one file.
+- The example configuration's `fable` model row sits at 400K notice and 700K
+  urgent: Fable's cache reads cost a quarter of other models', so a compaction
+  at 150K takes about 35 turns to pay back.
+- One file per session, `<os temp dir>/claude-context-budget/<session id>.json`,
+  and everything about the session in it: the level it has been told about,
+  the resume answers it has spent, the fault classes it has already been told
+  about, and the transcript the last measuring run read. The measuring hook
+  writes that path on every run, so the `cut-point` skill can find the
+  transcript from the session's first tool call onwards. A spent answer is no
+  longer recorded as an empty file named after it, and a reported fault class
+  no longer as a marker file beside the record.
 - The resume guard reads the cache lifetime from the subagent's newest turn
   that wrote to the cache, so a turn served from cache no longer makes it
   look cold.
@@ -56,9 +61,14 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   copy into the data directory. Neither hook reads it, so a plugin update
   cannot change what a configured session runs on.
 - The hooks need Node 22.6 or newer.
-- Both hooks keep one file per session in the temp directory, holding the
-  level the session has been told about and the resume answers it has spent.
-  A spent answer is no longer recorded as an empty file named after it.
+
+### Fixed
+
+- A compaction now resets the level whatever governs the model, so the notice
+  speaks again on the context rebuilt after it. With `[default]` switched off
+  and a per-model row -- the documented way to measure one model only -- the
+  compaction was read as a model with no row, `[default]`'s "off" answered for
+  it, and the record kept the level the discarded context was at.
 
 ### Removed
 

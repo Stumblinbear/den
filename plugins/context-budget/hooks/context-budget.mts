@@ -5,23 +5,26 @@
 //
 // Subagents are out of scope, as they are short-lived and cannot compact.
 import process from "node:process";
-import { runEntry } from "../lib/entry.mts";
-import { crossing } from "./level.mts";
-import { type Measured, measure } from "./measure.mts";
-import { fill, formatTokens } from "./messages.mts";
-import { FAULTS } from "./plugin.mts";
-import { updateRecord } from "./session-record.mts";
+import { type Crossing, crossing, type Level } from "../lib/level.mts";
+import { type Measured, measure } from "../lib/measure.mts";
+import { fill, formatTokens } from "../lib/messages.mts";
+import { FAULTS } from "../lib/plugin.mts";
+import { updateRecord } from "../lib/session-record.mts";
 import {
 	loadSettings,
 	type NoticeLevel,
 	type Settings,
 	type Thresholds,
 	thresholdsFor,
-} from "./settings.mts";
+} from "../lib/settings.mts";
+import { runEntry } from "../lib/shared/entry.mts";
 
 const EVENTS: readonly string[] = ["PostToolUse", "UserPromptSubmit"];
 
 const args = process.argv.slice(2);
+
+/** Where a compaction leaves the session: at no level, with nothing said. */
+const RESET: Crossing = { level: "none", notice: null };
 
 /**
  * What this run injects into the session's context, or null for a run with
@@ -41,46 +44,64 @@ async function outcome(
 		return null;
 	}
 
-	const measured = measure(transcript);
+	const reading = measure(transcript);
 
-	if (measured === null) {
+	if (reading === null) {
 		return null;
 	}
 
-	const limits = thresholdsFor(settings, measured.model);
+	// A compaction leaves the session at no level at all, and it is recorded as
+	// that before any threshold is consulted: the context it replaced is gone,
+	// so every rung is armed again whether or not this model has thresholds to
+	// cross. Nothing is announced for it -- what the summary costs is measured
+	// on the first turn sent it.
+	if (reading.kind === "compacted") {
+		recorded(sessionId, transcript, () => RESET);
 
-	if (limits === null) {
 		return null;
 	}
 
-	const notice = crossed(sessionId, measured, limits);
+	// Null for a model whose row is switched off: it has no threshold to cross,
+	// and the transcript below is recorded for it all the same.
+	const limits = thresholdsFor(settings, reading.model);
+	const notice = recorded(sessionId, transcript, (told) =>
+		limits === null ? null : crossing(told, reading, limits),
+	);
 
-	return notice === null
+	return limits === null || notice === null
 		? null
-		: injection(event, notice, settings, measured, limits);
+		: injection(event, notice, settings, reading, limits);
 }
 
 /**
- * The level to announce, and null for one this session has already heard.
+ * The transcript written to the session's record, and the level the run
+ * announces -- null for one this session has already heard, and for a run with
+ * nothing to say about the level.
+ *
+ * `crossed` is handed the level the session has already been told about, which
+ * is only readable under the lock, and answers with where this run leaves it
+ * or null to leave it where it is.
  *
  * The record is read, changed and written back under its lock, after the
  * measurement rather than around it: the resume guard spends the user's
  * answers in that same record, and reading the level under the lock is also
  * what stops two runs measuring at once from both announcing one crossing.
  */
-function crossed(
+function recorded(
 	sessionId: string,
-	measured: Measured,
-	limits: Thresholds,
+	transcript: string,
+	crossed: (told: Level) => Crossing | null,
 ): NoticeLevel | null {
 	const level = updateRecord(sessionId, (before) => {
-		const now = crossing(before.level, measured, limits);
+		const now = crossed(before.level);
 
 		return {
-			// Null when the level did not move: the record already says this.
-			record:
-				now.level === before.level ? null : { ...before, level: now.level },
-			result: now.notice,
+			// Written on every run, injected or not: the cut-point skill is
+			// handed a session id and nothing else, and this is where it finds
+			// the transcript. A model whose row is switched off crosses nothing,
+			// so the level it leaves is the one it was handed.
+			fields: { level: now?.level ?? before.level, transcript },
+			result: now?.notice ?? null,
 		};
 	});
 

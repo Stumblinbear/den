@@ -1,14 +1,15 @@
 // UserPromptSubmit half of the implementer-diagnostics relay: every flag
 // `implementer-diagnostics-flag` left becomes one reminder that the IDE's
 // diagnostics are stale, and the files it read are deleted.
-import { stdinText } from "../lib/hook-input.mts";
+
 import {
 	type Flag,
 	IMPLEMENTER_DIAGNOSTICS_DIR,
 	inject,
 	takeFlags,
 	who,
-} from "./relay.mts";
+} from "../lib/relay.mts";
+import { stdinText } from "../lib/shared/hook-input.mts";
 
 function reminder(pending: readonly Flag[]): string {
 	const named = who(pending);

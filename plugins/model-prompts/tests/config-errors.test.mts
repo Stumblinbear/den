@@ -6,7 +6,8 @@
 // nobody has configured yet.
 //
 // These run the real process through the launcher, because the whole contract
-// is out of band: an exit code, one line on stderr, and a marker file.
+// is out of band: an exit code, one line on stderr, and the class written into
+// the session's record.
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";

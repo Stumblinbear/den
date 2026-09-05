@@ -7,18 +7,19 @@
 // no hook can read as input is nothing to act on.
 //
 // These run the real processes through the launcher, because the whole
-// contract is out of band: an exit code, one line on stderr, and a marker file
-// shared across two hooks.
+// contract is out of band: an exit code and one line on stderr. Where the
+// class already said is written down is `session-record.test.mts`.
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
+import { assistant } from "./fixtures.mts";
 import {
-	assistantTurn,
 	configFile,
 	DEFAULTS,
 	GUARD,
 	GUARD_MESSAGES,
+	holdLock,
 	hookRunner,
 	MESSAGES,
 	noConfig,
@@ -124,7 +125,7 @@ for (const runtime of runtimes()) {
 			{
 				hook_event_name: "UserPromptSubmit",
 				session_id: session,
-				transcript_path: transcript(assistantTurn(200_000)),
+				transcript_path: transcript(assistant(200_000)),
 			},
 			config,
 			options,
@@ -152,7 +153,7 @@ for (const runtime of runtimes()) {
 	const guard = (session: string, config: string, options?: RunOptions) =>
 		guardOn(
 			session,
-			subagentSession("big", 162_300, 0, ["{}"]),
+			subagentSession("big", [assistant(162_300)], ["{}"]),
 			config,
 			options,
 		);
@@ -193,7 +194,7 @@ for (const runtime of runtimes()) {
 		const session = sid();
 		const path = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
 		const crash = () =>
-			guardOn(session, unreadableSession("big", 162_300), path);
+			guardOn(session, unreadableSession("big", [assistant(162_300)]), path);
 
 		reported(crash(), "internal");
 		quiet(crash());
@@ -237,7 +238,7 @@ for (const runtime of runtimes()) {
 		});
 	}
 
-	// The two hooks report through one marker, so a session hears about a
+	// The two hooks report through one record, so a session hears about a
 	// broken file once however many hooks meet it.
 	test(
 		name("a fault reported by the guard silences the measurement hook"),
@@ -249,6 +250,21 @@ for (const runtime of runtimes()) {
 			quiet(measure(session, path));
 		},
 	);
+
+	// Which classes the session has been told about is in the record, and the
+	// record is only read under its own lock. A run that cannot take that lock
+	// is handed no answer, and says the line again rather than swallow one
+	// nobody may have heard: the lock costs the silence, not the report.
+	test(name("a fault met under a held lock is reported again"), () => {
+		const session = sid();
+		const path = configFile("[resume-guard\nlarge = 10\n");
+
+		reported(measure(session, path), "config");
+		quiet(measure(session, path));
+
+		holdLock(session);
+		reported(measure(session, path), "config");
+	});
 
 	test(name("a fixed config takes effect on the very next run"), () => {
 		const session = sid();

@@ -34,20 +34,19 @@ Consequences that answer most "why did it" questions:
   nothing, nothing is injected.
 - **Subagents never see any of this.** `SessionStart` does not fire for them,
   and input carrying an `agent_id` is ignored.
-- The per-session record of what has been injected, and of the model an input
-  last named, is
-  `<os temp dir>/claude-model-prompts/<session id>.json`. Deleting it makes a
-  `once` row fire again, which is the quickest way to see an edit take effect
-  without restarting.
+- The session's record is `<os temp dir>/claude-model-prompts/<session id>.json`,
+  and it is the only file a session leaves there: what has been injected, the
+  model an input last named, and the faults it has been told about (below).
+  Deleting it makes a `once` row fire again, which is the quickest way to see
+  an edit take effect without restarting.
 - One stderr line starting `model-prompts:` says what the hook could not use,
   and nothing is injected while that stands: `parser error` is a missing
   `smol-toml` in the plugin's cache directory, `config error` names the file
   that cannot be read, parsed, or used, and `internal error` is a failure of
   the hook's own with nothing in the configuration to fix. The line is said
-  once per session, marked by `<session id>.parser`, `<session id>.config` or
-  `<session id>.internal` beside the record above — delete the marker to hear
-  it again. Every run still reads the file, so a fix takes effect on the next
-  one, without the line being repeated.
+  once per session, listed in the record above once it has been — delete the
+  record to hear it again. Every run still reads the file, so a fix takes
+  effect on the next one, without the line being repeated.
 
 ## Where changes go
 
@@ -87,27 +86,26 @@ the hook by hand from the plugin root to see what it will inject, or what it
 objects to:
 
     printf '%s' '{"session_id":"check","hook_event_name":"SessionStart","session_start_reason":"startup","model":"claude-opus-5"}' \
-      | node lib/launch.mjs --data ~/.claude/plugins/data/model-prompts-den \
+      | node lib/shared/launch.mjs --data ~/.claude/plugins/data/model-prompts-den \
         hooks/model-prompts --config ~/.claude/plugins/data/model-prompts-den/config.toml
 
 Output is the header and the matching text, or nothing when no row matches.
 Swap the input for a switch to see the other event:
 
     printf '%s' '{"session_id":"check","hook_event_name":"PostModelSwitch","to_model":"claude-opus-5"}' \
-      | node lib/launch.mjs --data ~/.claude/plugins/data/model-prompts-den \
+      | node lib/shared/launch.mjs --data ~/.claude/plugins/data/model-prompts-den \
         hooks/model-prompts --config ~/.claude/plugins/data/model-prompts-den/config.toml
 
-Delete `claude-model-prompts/check.json` from the temp directory afterwards,
-along with any `check.parser` or `check.config` marker beside it.
+Delete `claude-model-prompts/check.json` from the temp directory afterwards.
 
 ## Running it at all
 
 The hook is TypeScript with no build step. `hooks.json` starts
-`lib/launch.mjs` with plain `node`; that launcher runs the hook under bun
-when `bun --version` answers on `PATH`, and otherwise under Node's own type
-stripping, which needs **Node 22.6 or newer**. On an older Node the launcher
-prints one line naming the floor and the version it found, and nothing is
-injected.
+`lib/shared/launch.mjs` with plain `node`; that launcher runs the hook under
+bun when `bun --version` answers on `PATH`, and otherwise under Node's own
+type stripping, which needs **Node 22.6 or newer**. On an older Node the
+launcher prints one line naming the floor and the version it found, and
+nothing is injected.
 
 A file named `.runtime` in the data directory forces the choice for this
 plugin. It holds one word:

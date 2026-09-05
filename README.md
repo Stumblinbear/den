@@ -35,13 +35,15 @@ asks for it.
 ## Repository structure
 
 - `plugins/<name>/`: one plugin, with its own manifest, changelog, README,
-  dependencies and tests. What Claude Code installs, the hooks and the `lib/`
-  copy, imports nothing from outside the plugin directory; only the tests
-  reach out, to the shared harness.
+  dependencies and tests. `hooks/` holds `hooks.json`, the entry points it
+  runs and the example configuration; `lib/` holds the plugin's own modules,
+  and `lib/shared/` the copy of the sources below. What Claude Code installs
+  imports nothing from outside the plugin directory; only the tests reach
+  out, to the shared harness.
 - `lib/`: the sources every plugin shares, including the launcher that picks
   an interpreter, the reader for what Claude Code writes on a hook's stdin,
   and the configuration loader. Each plugin carries a committed copy under its
-  own `lib/`.
+  own `lib/shared/`.
 - `scripts/`: the copy that keeps those in step, and the root install step
   that points git at the tracked hooks and installs each plugin's
   dependencies.
@@ -67,8 +69,8 @@ The toolchain wants **Node 22.6 or newer**, and CI runs the tests on that
 floor as well as on the current release, under both bun and Node.
 
 After editing anything in `lib/`, run `npm run plugin-lib`. `npm run check`
-fails and names any copy that has drifted, and any file in a plugin's `lib/`
-that nothing puts there.
+fails and names any copy that has drifted, and any file in a plugin's
+`lib/shared/` that nothing puts there.
 
 `npm install` also points `core.hooksPath` at `.githooks`, so `git commit`
 runs `biome check --staged`, `tsc --noEmit` and the copy check before it

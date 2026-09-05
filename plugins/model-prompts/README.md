@@ -42,9 +42,10 @@ row points at, and, only when it has nothing else to go on, the `model` field
 of `~/.claude/settings.json`. It never reads your source or your transcript.
 
 What the hook writes: one JSON file per session under `claude-model-prompts/`
-in the OS temp directory, holding which rows are already in this context and
-the model an input last named, plus a fault marker beside it. Nothing is
-written to your project.
+in the OS temp directory, holding which rows are already in this context, the
+model an input last named, and the faults the session has been told about,
+plus a lock directory beside it while it is writing. Nothing is written to
+your project.
 
 What the hook can do to a session: add text to the main session's context at
 session start and on a model switch.
@@ -140,16 +141,22 @@ switch.
 stopped on something the hook does not account for, and the line ends in where
 to report it.
 
-That line is said once per session. The marker that silences it is
-`<session id>.config`, `<session id>.parser` or `<session id>.internal`, under
-`claude-model-prompts/` in the OS temp directory. Delete the marker to hear it
-again.
+That line is said once per session. The class it was said for is listed in the
+session's record, `<session id>.json` under `claude-model-prompts/` in the OS
+temp directory. Delete that file to hear it again.
 
 On Node older than 22.6 with no bun on `PATH`, the hook prints one line naming
 the floor and the version it found, and injects nothing.
 
-To make a `once` row inject again without restarting, delete
-`<session id>.json` from that same directory.
+Deleting that file is also how you make a `once` row inject again without
+restarting.
+
+A run killed while it held the record's lock, or one whose release failed even
+after its retries, leaves the directory `<session id>.lock` beside it, and
+until that directory is deleted every later run of the session skips its own
+update of the file without a word: a `once` row says its text again, and a
+session start carrying no model id falls back to the model the record held
+before the lock stuck, and to `~/.claude/settings.json` if it never held one.
 
 ## Contributing
 

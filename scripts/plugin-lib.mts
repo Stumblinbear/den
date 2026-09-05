@@ -19,6 +19,10 @@ const PLUGIN_DIR = join(ROOT, "plugins");
 // a plugin that reads a TOML configuration: den reads none, so it declares no
 // dependency and ships no lockfile for Claude Code to install from, and the
 // loader's parser import would resolve to nothing there.
+//
+// A plugin takes a shared source when what it runs imports it, directly or
+// through another shared source: every write of a session record takes a lock,
+// so `file-lock.mts` comes with `session-state.mts`.
 const EVERY_PLUGIN: readonly string[] = [
 	"fields.mts",
 	"hook-input.mts",
@@ -30,13 +34,9 @@ const CONFIGURED: readonly string[] = [
 	"config.mts",
 	"entry.mts",
 	"fault.mts",
+	"file-lock.mts",
 	"session-state.mts",
 ];
-
-// A plugin takes a shared source when its own hooks import it and not before,
-// so what is copied into a plugin is what that plugin runs: only
-// context-budget keeps a record two of its entries write.
-const LOCKING: readonly string[] = [...CONFIGURED, "file-lock.mts"];
 
 interface Plugin {
 	readonly name: string;
@@ -44,7 +44,7 @@ interface Plugin {
 }
 
 const PLUGINS: readonly Plugin[] = [
-	{ name: "context-budget", files: LOCKING },
+	{ name: "context-budget", files: CONFIGURED },
 	{ name: "den", files: EVERY_PLUGIN },
 	{ name: "model-prompts", files: CONFIGURED },
 ];
@@ -56,7 +56,13 @@ const sources = (): readonly string[] =>
 
 const source = (file: string): string => readFileSync(join(LIB, file), "utf8");
 
-const libOf = (plugin: Plugin): string => join(PLUGIN_DIR, plugin.name, "lib");
+/**
+ * The copies sit in `lib/shared/` rather than in `lib/` itself, so that a
+ * plugin's own modules have `lib/` to live in and nothing here has to tell the
+ * two apart by name.
+ */
+const libOf = (plugin: Plugin): string =>
+	join(PLUGIN_DIR, plugin.name, "lib", "shared");
 
 const copyOf = (plugin: Plugin, file: string): string =>
 	join(libOf(plugin), file);
@@ -96,10 +102,11 @@ function drift(): readonly string[] {
 }
 
 /**
- * Anything in a plugin's `lib/` this script did not put there: a source
+ * Anything in a plugin's `lib/shared/` this script did not put there: a source
  * withdrawn from that plugin and left behind, or a file nobody meant to
  * commit. Read off the directory, since a copy of nothing has no source here
- * to notice it by.
+ * to notice it by. Only that directory: `lib/` beside it is the plugin's own,
+ * and nothing here has any opinion about what a plugin keeps in it.
  */
 function strays(plugin: Plugin): readonly string[] {
 	let entries: readonly string[];
@@ -138,8 +145,8 @@ const unlisted = (): readonly string[] =>
 
 function copy(): void {
 	for (const plugin of PLUGINS) {
-		// A plugin listed here for the first time has no `lib/` yet, and the
-		// copies are what puts one there.
+		// A plugin listed here for the first time has no `lib/shared/` yet, and
+		// the copies are what puts one there.
 		mkdirSync(libOf(plugin), { recursive: true });
 
 		for (const file of plugin.files) {

@@ -12,64 +12,95 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { parse } from "smol-toml";
-import { runtimes } from "../../../tests/harness.mts";
-import { fieldsOf } from "../lib/fields.mts";
-import {
-	assistantTurn,
-	HOOKS,
-	hookRunner,
-	sessionId,
-	transcript,
-} from "./harness.mts";
+import { type Result, runtimes } from "../../../tests/harness.mts";
+import { fieldsOf } from "../lib/shared/fields.mts";
+import { assistant } from "./fixtures.mts";
+import { HOOKS, hookRunner, sessionId, transcript } from "./harness.mts";
 
 const EXAMPLE = join(HOOKS, "config.example.toml");
+
+/** The model id the example's `fable` row is written to match. */
+const FABLE = "claude-fable-5-1";
 
 interface Injection {
 	readonly hookSpecificOutput?: { readonly additionalContext?: string };
 }
 
-/** The example's own `[default] notice`, so no case here can drift from it. */
-function noticeThreshold(): number {
-	const table = fieldsOf(parse(readFileSync(EXAMPLE, "utf8")));
-	const notice = fieldsOf(table["default"])["notice"];
+const example = (): Record<string, unknown> =>
+	fieldsOf(parse(readFileSync(EXAMPLE, "utf8")));
 
-	assert.equal(
-		typeof notice,
-		"number",
-		"the example has to set [default] notice",
-	);
+/** A threshold the example itself sets, so no case here can drift from it. */
+function threshold(table: unknown, key: string, named: string): number {
+	const value = fieldsOf(table)[key];
 
-	return Number(notice);
+	assert.equal(typeof value, "number", `the example has to set ${named}`);
+
+	return Number(value);
+}
+
+/** The example's `[default]` pair, which every model without a row takes. */
+const fallback = () => example()["default"];
+
+/** The example's `[models.'fable']` row, whose key has to match Fable's id. */
+const fableRow = () => fieldsOf(example()["models"])["fable"];
+
+function injected(result: Result): string | null {
+	assert.equal(result.status, 0, result.stderr);
+	assert.equal(result.stderr, "");
+
+	if (result.stdout === "") {
+		return null;
+	}
+
+	const output = JSON.parse(result.stdout) as Injection;
+
+	return output.hookSpecificOutput?.additionalContext ?? null;
 }
 
 for (const runtime of runtimes()) {
 	const hook = hookRunner(runtime);
-
-	test(`${runtime}: the example config injects over its own threshold`, () => {
-		// The threshold read above is `[default]`'s, so the turn names a model
-		// the example has no row for; a row's own thresholds would apply instead.
-		const result = hook(
+	const run = (tokens: number, model: string) =>
+		hook(
 			"context-budget",
 			{
 				hook_event_name: "UserPromptSubmit",
 				session_id: sessionId(runtime),
-				transcript_path: transcript(
-					assistantTurn(noticeThreshold() + 1000, "claude-opus-5"),
-				),
+				transcript_path: transcript(assistant(tokens, { model })),
 			},
 			EXAMPLE,
 		);
 
-		assert.equal(result.status, 0, result.stderr);
-		assert.equal(result.stderr, "");
-		assert.notEqual(result.stdout, "", "the crossing has to inject something");
-
-		const output = JSON.parse(result.stdout) as Injection;
+	test(`${runtime}: the example config injects over its own threshold`, () => {
+		// The threshold read here is `[default]`'s, so the turn names a model the
+		// example has no row for; a row's own thresholds would apply instead.
+		const notice = threshold(fallback(), "notice", "[default] notice");
 
 		assert.equal(
-			typeof output.hookSpecificOutput?.additionalContext,
+			typeof injected(run(notice + 1000, "claude-opus-5")),
 			"string",
-			result.stdout,
+			"the crossing has to inject something",
 		);
+	});
+
+	// A row key that stopped matching the id the transcript records would hand
+	// Fable the example's `[default]` thresholds without a word, and those sit
+	// far below the ones written for it.
+	test(`${runtime}: the example's fable row governs Fable's own id`, () => {
+		const row = fableRow();
+		const notice = threshold(row, "notice", "[models.'fable'] notice");
+		const urgent = threshold(row, "urgent", "[models.'fable'] urgent");
+		const under = threshold(fallback(), "urgent", "[default] urgent");
+
+		assert.ok(
+			under < notice,
+			`the row has to sit above [default] for this to prove anything: ${under} < ${notice}`,
+		);
+		assert.equal(
+			injected(run(under + 1000, FABLE)),
+			null,
+			"past [default]'s urgent and under the row's notice, which governs",
+		);
+		assert.equal(typeof injected(run(notice, FABLE)), "string");
+		assert.equal(typeof injected(run(urgent, FABLE)), "string");
 	});
 }

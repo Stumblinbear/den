@@ -7,9 +7,13 @@
 // between the agent's report and the diagnostics that does not exist.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { fieldsOf } from "../lib/fields.mts";
-import { hookInput } from "../lib/hook-input.mts";
-import { bareType, IMPLEMENTER_DIAGNOSTICS_DIR, raiseFlag } from "./relay.mts";
+import {
+	bareType,
+	IMPLEMENTER_DIAGNOSTICS_DIR,
+	raiseFlag,
+} from "../lib/relay.mts";
+import { fieldsOf } from "../lib/shared/fields.mts";
+import { hookInput } from "../lib/shared/hook-input.mts";
 
 // Agents that edit the working tree and report a finished state. Any of them
 // leaves rust-analyzer lagging, so all of them get the reminder.

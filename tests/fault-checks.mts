@@ -1,10 +1,10 @@
 // The out-of-band contract a configured plugin's failure policy is: an exit
-// code, one line on stderr, and a marker file that silences the rest of the
-// session. Everything about it but the plugin's own name and directory is the
-// same for every plugin that has one, and a plugin that reads no
-// configuration -- den -- has none of it, which is why this is not in the
-// harness every plugin's tests import. Importing this registers no test of
-// its own.
+// code, one line on stderr, and the class written into the session's record,
+// which silences the rest of that session. Everything about it but the
+// plugin's own name and directory is the same for every plugin that has one,
+// and a plugin that reads no configuration -- den -- has none of it, which is
+// why this is not in the harness every plugin's tests import. Importing this
+// registers no test of its own.
 import assert from "node:assert/strict";
 import { cpSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -39,21 +39,34 @@ function withoutParser(dir: string): string {
 	const copy = fixtureDir("no-parser");
 
 	writeFileSync(join(copy, "package.json"), JSON.stringify({ type: "module" }));
-	copySources(copy, join(dir, "hooks"), "hooks");
-	copySources(copy, join(dir, "lib"), "lib");
+	copySources(copy, dir, "hooks");
+	copySources(copy, dir, "lib");
+	copySources(copy, dir, join("lib", "shared"));
 
-	return join(copy, "lib", "launch.mjs");
+	return join(copy, "lib", "shared", "launch.mjs");
 }
 
 // Read off the directory, so a source added to a plugin is carried into the
-// copy without anyone remembering to add it here.
+// copy without anyone remembering to add it here. One directory at a time
+// rather than a recursive copy, so a plugin's `node_modules` is never dragged
+// into a fixture whose whole point is that the parser cannot be resolved.
 function copySources(dir: string, from: string, name: string): void {
+	const source = join(from, name);
 	const into = join(dir, name);
 
 	mkdirSync(into, { recursive: true });
 
-	for (const file of readdirSync(from).filter((f) => /\.m[tj]s$/.test(f))) {
-		cpSync(join(from, file), join(into, file));
+	let files: readonly string[];
+
+	try {
+		files = readdirSync(source);
+	} catch {
+		// A directory this plugin does not have is nothing to copy.
+		return;
+	}
+
+	for (const file of files.filter((f) => /\.m[tj]s$/.test(f))) {
+		cpSync(join(source, file), join(into, file));
 	}
 }
 

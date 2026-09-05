@@ -9,49 +9,31 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
-import { runEntry } from "../lib/entry.mts";
 import {
 	type ActiveModel,
 	type HookEvent,
 	isHookEvent,
 	matchingRows,
 	modelFor,
-} from "./model.mts";
-import { FAULTS } from "./plugin.mts";
-import { loadRows, type Row } from "./rows.mts";
+} from "../lib/model.mts";
+import { FAULTS } from "../lib/plugin.mts";
+import { loadRows, type Row } from "../lib/rows.mts";
 import {
 	hasInjected,
 	readRecord,
 	type SessionRecord,
-	withInjections,
-	withModel,
-	withoutInjections,
 	writeRecord,
-} from "./session-record.mts";
+} from "../lib/session-record.mts";
+import { runEntry } from "../lib/shared/entry.mts";
 
 const SETTINGS = join(homedir(), ".claude", "settings.json");
 
 const args = process.argv.slice(2);
 
-/**
- * The record as this run leaves it before anything can fail: a session start
- * has rebuilt the context this record described, and a model the input named
- * is the one a later run with nothing of its own to go on reads back.
- */
-function noted(
-	event: HookEvent,
-	model: ActiveModel | null,
-	record: SessionRecord,
-): SessionRecord {
-	const rebuilt = event === "SessionStart" ? withoutInjections(record) : record;
-
-	return model?.named ? withModel(rebuilt, model.id) : rebuilt;
-}
-
-/** What this hook run puts into the session's context, and the record saying so. */
+/** What this hook run puts into the session's context, and the rows it is from. */
 interface Injection {
 	readonly text: string;
-	readonly record: SessionRecord;
+	readonly keys: readonly string[];
 }
 
 /** Null for a run with nothing to say. */
@@ -77,10 +59,7 @@ async function injection(
 
 	return {
 		text: `Rules for the current model (${model.id}):\n\n${firing.map((row) => row.text).join("\n\n")}\n`,
-		record: withInjections(
-			record,
-			firing.map((row) => row.key),
-		),
+		keys: firing.map((row) => row.key),
 	};
 }
 
@@ -129,25 +108,27 @@ await runEntry(FAULTS, async ({ input, session }) => {
 
 	const before = readRecord(session);
 	const model = modelFor(event, input, before.model, SETTINGS);
-
-	// Settled before the configuration is read: what the session is on, and
-	// that it has rebuilt its context, are facts about the session whether or
-	// not there is a usable configuration to act on them with. Written back
-	// however this run ends, so a switch made while the config is broken is
-	// still the model a later run reads back.
-	let record = noted(event, model, before);
+	let injected: readonly string[] = [];
 
 	try {
-		const injected = await injection(event, model, record);
+		const firing = await injection(event, model, before);
 
-		if (injected === null) {
+		if (firing === null) {
 			return null;
 		}
 
-		record = injected.record;
+		injected = firing.keys;
 
-		return injected.text;
+		return firing.text;
 	} finally {
-		writeRecord(session, record);
+		// What the session is on, and that it has rebuilt its context, are facts
+		// about the session whether or not there is a usable configuration to act
+		// on them with, so they are written however this run ends: a switch made
+		// while the config is broken is still the model a later run reads back.
+		writeRecord(session, {
+			rebuilt: event === "SessionStart",
+			injected,
+			model: model?.named ? model.id : null,
+		});
 	}
 });

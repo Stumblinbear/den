@@ -6,7 +6,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/context-budget --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/context-budget --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
 					}
 				]
 			}
@@ -16,7 +16,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/context-budget --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/context-budget --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
 					}
 				]
 			}
@@ -27,7 +27,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/resume-guard --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/resume-guard --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
 					}
 				]
 			}

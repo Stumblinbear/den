@@ -1,17 +1,15 @@
-// What the resume guard decides, exercised through the launcher -- the exact
-// command `hooks.json` runs. Real transcript files, real config files, a real
-// session record: the wiring between the three is where the guard lives, and
-// the deny wording every case asserts on is the wording that case wrote.
+// What makes a resume worth refusing, exercised through the launcher -- the
+// exact command `hooks.json` runs. Real transcript files, real config files:
+// the wiring between them is where the guard lives, and the deny wording every
+// case asserts on is the wording that case wrote.
+//
+// The user's answer to a refusal, and how it is spent, is
+// `resume-approval.test.mts`.
 import assert from "node:assert/strict";
-import process from "node:process";
 import { test } from "node:test";
+import { type Result, runtimes } from "../../../tests/harness.mts";
+import { apiError, assistant } from "./fixtures.mts";
 import {
-	type Result,
-	type Runtime,
-	runtimes,
-} from "../../../tests/harness.mts";
-import {
-	assistantTurn,
 	configFile,
 	DEFAULTS,
 	GUARD,
@@ -24,7 +22,6 @@ import {
 	reported,
 	sessionId,
 	subagentSession,
-	transcript,
 } from "./harness.mts";
 
 interface Decision {
@@ -43,27 +40,6 @@ const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
 
 /** A config fault is what a run that has reported nothing yet still reports. */
 const BROKEN = configFile("[resume-guard\nlarge = 10\n");
-
-// The user's answer to an AskUserQuestion, as it lands in the transcript: one
-// answer approves one resume, and the guard remembers the entry's uuid.
-const answer = (uuid: string) =>
-	JSON.stringify({
-		type: "user",
-		uuid,
-		message: {
-			role: "user",
-			content: [
-				{
-					type: "tool_result",
-					content: 'Your questions have been answered: "Resume big?"="Resume"',
-				},
-			],
-		},
-	});
-
-/** An answer id nothing else has used. */
-const answerId = (runtime: Runtime): string =>
-	`resume-guard-test-${process.pid}-${runtime}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 function decided(result: Result): Decision["hookSpecificOutput"] | null {
 	assert.equal(result.status, 0, result.stderr);
@@ -113,7 +89,7 @@ for (const runtime of runtimes()) {
 	test(
 		name("a resume above `large` is denied, and `enabled = false` allows it"),
 		() => {
-			const transcript = subagentSession("big", 162_300, 0, [PROMPT]);
+			const transcript = subagentSession("big", [assistant(162_300)], [PROMPT]);
 
 			assert.match(
 				reason(run(sid(), transcript, "big")),
@@ -150,7 +126,12 @@ for (const runtime of runtimes()) {
 
 		quiet(run(session, noTranscript(), "big"));
 		reported(
-			run(session, subagentSession("big", 162_300, 0, [PROMPT]), "big", BROKEN),
+			run(
+				session,
+				subagentSession("big", [assistant(162_300)], [PROMPT]),
+				"big",
+				BROKEN,
+			),
 			"config",
 		);
 	});
@@ -161,7 +142,7 @@ for (const runtime of runtimes()) {
 	// find rather than a run to stop, and an unfindable answer is no answer.
 	test(name("a session transcript that is not there still decides"), () => {
 		assert.match(
-			reason(run(sid(), lostSession("big", 162_300), "big")),
+			reason(run(sid(), lostSession("big", [assistant(162_300)]), "big")),
 			/^DENIED big: context 162\.3K tokens is above the 150K resume limit/,
 		);
 	});
@@ -171,7 +152,11 @@ for (const runtime of runtimes()) {
 	test(name("a warm subagent under both limits is left alone"), () => {
 		assert.equal(
 			decided(
-				run(sid(), subagentSession("medium", 100_000, 0, [PROMPT]), "medium"),
+				run(
+					sid(),
+					subagentSession("medium", [assistant(100_000)], [PROMPT]),
+					"medium",
+				),
 			),
 			null,
 		);
@@ -182,72 +167,96 @@ for (const runtime of runtimes()) {
 	test(name("an expired cache denies a resume above `cold`"), () => {
 		assert.match(
 			reason(
-				run(sid(), subagentSession("napping", 60_000, 10, [PROMPT]), "napping"),
+				run(
+					sid(),
+					subagentSession(
+						"napping",
+						[assistant(60_000, { minutesAgo: 10, ttl: "5m" })],
+						[PROMPT],
+					),
+					"napping",
+				),
 			),
 			/last active 10 min ago, 5m cache expired: cold full-price replay of 60K tokens/,
 		);
 	});
 
-	// The user approves each resume, not just the first: the guard reads the
-	// answer out of the transcript itself, and spends it once.
+	// A request served entirely from a warm cache writes nothing back to it, so
+	// both its cache-creation splits are zero and it says nothing about the
+	// lifetime in force. Reading that silence as 5m makes every subagent whose
+	// last turn was a cache hit look cold minutes after it stopped, and refuses
+	// a resume whose cache in fact has most of an hour left.
 	test(
-		name("one Resume answer approves one resume, and the next is denied"),
+		name("a turn that wrote nothing takes its lifetime from one that did"),
 		() => {
-			const uuid = answerId(runtime);
-			const transcript = subagentSession("big", 162_300, 0, [
-				PROMPT,
-				answer(uuid),
-			]);
-			const session = sid();
-
 			assert.equal(
-				decided(run(session, transcript, "big")),
+				decided(
+					run(
+						sid(),
+						subagentSession(
+							"dozing",
+							[
+								assistant(60_000, { minutesAgo: 90, ttl: "1h" }),
+								assistant(60_000, { minutesAgo: 20, ttl: null }),
+							],
+							[PROMPT],
+						),
+						"dozing",
+					),
+				),
 				null,
-				"the user's answer approves one resume",
+				"20 minutes into the 1h lifetime that turn wrote under, and 60K is under `large`",
 			);
-			assert.match(
-				reason(run(session, transcript, "big")),
-				/^USED big: context 162\.3K tokens is above the 150K resume limit/,
-			);
+		},
+	);
 
-			// With that answer spent, a transcript carrying none reaches `denied`.
+	// The lifetime comes from the writing turn; how long ago the subagent
+	// stopped does not. Its cache was refreshed by every turn since, so the one
+	// that says when it last ran is the newest.
+	test(
+		name("the cache age is measured from the last turn, not the writing one"),
+		() => {
 			assert.match(
 				reason(
-					run(session, subagentSession("big", 162_300, 0, [PROMPT]), "big"),
+					run(
+						sid(),
+						subagentSession(
+							"dozed-off",
+							[
+								assistant(60_000, { minutesAgo: 200, ttl: "1h" }),
+								assistant(60_000, { minutesAgo: 70, ttl: null }),
+							],
+							[PROMPT],
+						),
+						"dozed-off",
+					),
 				),
-				/^DENIED big:/,
+				/last active 70 min ago, 1h cache expired: cold full-price replay of 60K tokens/,
 			);
 		},
 	);
 
-	// Both hooks keep one record per session, so what one of them writes must
-	// not undo what the other did. The fall back to nothing is the sharp case:
-	// that is where a session which has been told nothing and spent nothing
-	// has its record dropped.
-	test(
-		name("a measurement between two resumes leaves the answer spent"),
-		() => {
-			const uuid = answerId(runtime);
-			const approved = subagentSession("big", 162_300, 0, [
-				PROMPT,
-				answer(uuid),
-			]);
-			const session = sid();
-			const measure = (tokens: number) =>
-				hook(
-					"context-budget",
-					{
-						hook_event_name: "UserPromptSubmit",
-						session_id: session,
-						transcript_path: transcript(assistantTurn(tokens)),
-					},
-					CONFIG,
-				);
-
-			assert.equal(decided(run(session, approved, "big")), null);
-			assert.ok(measure(200_000).stdout.includes("NOTICE"));
-			assert.equal(measure(100_000).stdout, "", "a fall injects nothing");
-			assert.match(reason(run(session, approved, "big")), /^USED big:/);
-		},
-	);
+	// A subagent whose newest entry is a failed request has a usage with every
+	// field zero, which measures its context at nothing and lets any resume
+	// through -- including the one this guard exists for, where every turn from
+	// here on re-reads 162.3K tokens.
+	test(name("a request that failed is not the subagent's last turn"), () => {
+		assert.match(
+			reason(
+				run(
+					sid(),
+					subagentSession(
+						"stalled",
+						[
+							assistant(162_300, { minutesAgo: 3, ttl: "1h" }),
+							apiError({ minutesAgo: 1 }),
+						],
+						[PROMPT],
+					),
+					"stalled",
+				),
+			),
+			/context 162\.3K tokens is above the 150K resume limit/,
+		);
+	});
 }

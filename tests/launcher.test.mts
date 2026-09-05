@@ -158,11 +158,11 @@ for (const runtime of runtimes()) {
 			rmSync(dir, { recursive: true, force: true });
 		});
 
-		mkdirSync(join(plugin, "lib"));
+		mkdirSync(join(plugin, "lib", "shared"), { recursive: true });
 		mkdirSync(join(plugin, "hooks"));
 
 		for (const file of ["launch.mjs", "select-runtime.mjs"]) {
-			cpSync(join(LIB, file), join(plugin, "lib", file));
+			cpSync(join(LIB, file), join(plugin, "lib", "shared", file));
 		}
 
 		writeFileSync(join(plugin, "hooks", "echo.mts"), ENTRY);
@@ -176,7 +176,7 @@ for (const runtime of runtimes()) {
 		const result = spawnSync(
 			process.execPath,
 			[
-				join(link, "lib", "launch.mjs"),
+				join(link, "lib", "shared", "launch.mjs"),
 				"--data",
 				data,
 				"hooks/echo",

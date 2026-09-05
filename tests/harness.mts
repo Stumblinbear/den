@@ -100,9 +100,8 @@ export function dataDir(runtime: Runtime): string {
 }
 
 /**
- * The temp directory a run is given, one per session id, so the record and the
- * once-per-session markers a run leaves behind are reachable by the case that
- * caused them and by no other.
+ * The temp directory a run is given, one per session id, so the record a run
+ * leaves behind is reachable by the case that caused it and by no other.
  */
 export function childTemp(
 	plugin: string,

@@ -1,7 +1,8 @@
 // SubagentStop half of the review-triage relay: a finished flag-reviewer
 // leaves a flag, and nothing else. `review-triage-inject` does the injecting.
-import { hookInput } from "../lib/hook-input.mts";
-import { bareType, REVIEW_TRIAGE_DIR, raiseFlag } from "./relay.mts";
+
+import { bareType, REVIEW_TRIAGE_DIR, raiseFlag } from "../lib/relay.mts";
+import { hookInput } from "../lib/shared/hook-input.mts";
 
 try {
 	const input = await hookInput();

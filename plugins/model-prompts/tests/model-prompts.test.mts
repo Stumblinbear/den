@@ -134,10 +134,27 @@ for (const runtime of runtimes()) {
 		shows(run(switched(session, OPUS), only), "ONCE");
 		silent(run(switched(session, OPUS), only));
 
-		// The start clears the record, so the row speaks again -- and the switch
-		// after it is quiet again, because the text is in the context.
+		// The start injects since `on_start` is on by default, and the switch
+		// after it is quiet again, because the text is in the context. That the
+		// start also cleared the record is proved by the case below, not here.
 		shows(run(start(session, OPUS), only), "ONCE");
 		silent(run(switched(session, OPUS), only));
+	});
+
+	test(name("a start re-arms `once` for a row that is silent on it"), () => {
+		const session = sid();
+		const onSwitch = configFile(
+			'[models.\'opus-5\\b\']\non_start = false\non_switch = "once"\nprompt = "ONCE"\n',
+		);
+
+		shows(run(switched(session, OPUS), onSwitch), "ONCE");
+		silent(run(switched(session, OPUS), onSwitch));
+
+		// The start injects nothing of its own here, so what re-arms the row is
+		// the context the start rebuilt and nothing else: `once` means the text
+		// is in this context, and this is a new one.
+		silent(run(start(session, OPUS), onSwitch));
+		shows(run(switched(session, OPUS), onSwitch), "ONCE");
 	});
 
 	test(name("`never` and `on_start = false` block opposite events"), () => {

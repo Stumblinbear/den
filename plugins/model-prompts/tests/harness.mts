@@ -28,7 +28,7 @@ export interface RunOptions {
 const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
 export const HOOKS = join(PLUGIN, "hooks");
-export const LAUNCHER = join(PLUGIN, "lib", "launch.mjs");
+export const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
 /** The failure policy the hook reports through, in this plugin's name. */
 export const { withoutParser, reported, quiet } = faultChecks(

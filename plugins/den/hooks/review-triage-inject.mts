@@ -1,14 +1,15 @@
 // UserPromptSubmit half of the review-triage relay: every flag
 // `review-triage-flag` left becomes one reminder to triage what the reviewers
 // found, and the files it read are deleted.
-import { stdinText } from "../lib/hook-input.mts";
+
 import {
 	type Flag,
 	inject,
 	REVIEW_TRIAGE_DIR,
 	takeFlags,
 	who,
-} from "./relay.mts";
+} from "../lib/relay.mts";
+import { stdinText } from "../lib/shared/hook-input.mts";
 
 // A pointer, not a restatement: the rules live in the coordination skill's
 // Review section, and this fires many turns after that skill was loaded.
