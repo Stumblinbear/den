@@ -16,9 +16,27 @@ minor bump may change behavior.
 - `writing-for-agents` gains `references/configuration-skills.md`: what a
   plugin's configure skill covers and in what order, so the shape is not
   re-derived per plugin.
+- Skill `writing-for-humans`: what a README, a document outside the code, a doc
+  comment and a comment inside a body owe the person reading them, with a
+  reference per kind, per render target, and per language.
 
 ### Changed
 
+- The comment-reviewer presumes a comment in the diff fails its reference's
+  test until it passes, and cuts a borderline one rather than leaving it
+  standing; a public item's doc that falls short is completed instead of cut.
+- The comment-reviewer reports a public item with no example instead of writing
+  one: the snippet is code, and which call it shows is the author's judgment.
+- The comment-reviewer adds a summary above a phase of a long function, and
+  above a loop whose job the code beside it does not yield.
+- The comment-reviewer consolidates an explanation repeated at several sites
+  into one full comment where the decision hangs, and a one-line pointer at each
+  of the others.
+- The comment-reviewer judges a doc comment by the size of the contract it owes
+  a caller, and holds it to no length ceiling.
+- The comment-reviewer removes an ID into this project's own tracker from a
+  comment the change adds, leaving a pre-existing one and any reference to
+  another project's tracker.
 - The review-triage and implementer-diagnostics hooks are TypeScript, and need
   Node 22.6 or newer.
 - The coordination skill launches a review, and the comment pass once the

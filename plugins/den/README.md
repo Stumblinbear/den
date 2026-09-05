@@ -23,6 +23,8 @@ Skills, invoked as `/den:<name>`:
   a tool rather than a lean.
 - `writing-for-agents`: principles for writing instructions an agent will
   follow.
+- `writing-for-humans`: what a README, a document, a doc comment, or a comment
+  inside a body owes the person who reads it.
 - `unsafety-author`: Rust `# Safety` contracts and unsafe documentation.
 
 Agents, launched through the Agent tool as `den:<name>`:
