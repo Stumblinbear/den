@@ -83,6 +83,18 @@ for judgment, not for confirming that a lie is a lie. Only findings that need
 judgment reach the user: edge cases, possible over-engineering, and calls that
 depend on expected usage.
 
+What goes back is the defect and its discriminating check. The reviewer's
+repair is a sketch that becomes an instruction only once this session has
+traced it against that check; otherwise the repair is the implementer's.
+
+Each finding that reaches the user carries this session's fix, defer or skip
+call and the reasoning behind it, weighed by real-world impact against the
+cost of fixing it now, and is explained for a reader who has not read the
+code. Set the scene first: what is in play, what changes, what goes observably
+wrong, and only then the mechanism. A proposed test earns a fix when it catches a bug class that
+survives reading the code; a boundary check on a pure function or a test of
+single-path plumbing gets a skip.
+
 ## Fixes
 
 Fixes of observable behavior go to `den:red-green-fixer`, which writes the

@@ -11,7 +11,8 @@ import { join } from "node:path";
 
 const DIR = join(tmpdir(), "claude-review-triage");
 
-// Guidance on fix/defer/skip only -- never license to omit or soften a finding.
+// A pointer, not a restatement: the rules live in the coordination skill's
+// Review section, and this fires many turns after that skill was loaded.
 function reminder(pending) {
   const who = pending
     .map((p) => p.agent_type)
@@ -19,28 +20,11 @@ function reminder(pending) {
     .join(", ");
   return [
     `${pending.length} review agent(s) completed${who ? ` (${who})` : ""}.`,
-    "Reviewers surface every finding they can; deciding what actually gets fixed",
-    "is the coordinating session's judgment, judged against the task's goal.",
-    "Defects arrive tiered P0 to P3; quality and architecture findings arrive",
-    "untiered because whether they must be fixed depends on context only this",
-    "session has.",
-    "A finding that is unquestionably wrong (a number the code demonstrably gets",
-    "wrong, documented behavior that does not happen, a contradiction of a",
-    "decision already made in the task) goes straight back to the implementer or",
-    "fixer now, without asking; the report to the user says it was sent back.",
-    "Relay the rest, the findings that need judgment (edge cases, possible",
-    "over-engineering, calls that depend on expected usage), each with your own",
-    "fix/defer/skip recommendation and the reasoning behind it, weighing",
-    "real-world impact against the cost and risk of addressing it now. Never",
-    "omit or soften a finding.",
-    "Explain each finding in plain concrete language: set the scene first (what",
-    "is on screen or in play, what changes, what goes observably wrong) before",
-    "naming any mechanism, and write for a reader who has not read the code --",
-    "translate the reviewer's jargon, never relay it.",
-    "Filter test-gap findings through the discrimination bar before recommending",
-    "them: a proposed test must catch a bug class that survives direct code",
-    "reading -- trivial pure-function boundary tests and tests of",
-    "visibly-single-path plumbing get a skip recommendation, not a fix.",
+    "Triage their findings under the coordination skill's review rules: every",
+    "finding reaches the user with your fix, defer or skip call and its",
+    "reasoning, explained for someone who has not read the code; what is",
+    "unquestionably wrong goes back to its agent as the defect, not the",
+    "reviewer's repair.",
   ].join(" ");
 }
 

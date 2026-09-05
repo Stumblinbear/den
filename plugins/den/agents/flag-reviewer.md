@@ -141,7 +141,10 @@ Cite the smallest range that shows the problem, overlapping the reviewed diff.
 Follow the line with one short paragraph: the affected scenario and why the
 behavior or the code is wrong. Then, one sentence each:
 
-- Defects: the discriminating check predicted to fail.
+- Defects: the discriminating check predicted to fail. A sketched repair is
+  walked against that same check before it is written down, and one that has
+  not been is named a direction rather than a fix, because the session
+  forwards a finding with the reviewer's authority.
 - Engineering quality: the concrete evidence and the smallest coherent repair.
   Do not demand an artificial red test.
 - Architecture: the growth cost, the concrete alternative, and its rough scope
