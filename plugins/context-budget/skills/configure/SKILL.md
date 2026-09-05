@@ -209,5 +209,6 @@ plugin. It holds one word:
 echo node > ~/.claude/plugins/data/context-budget-den/.runtime
 ```
 
-`bun` and `node` are the two it takes; no file is the default above, and
-anything else is one stderr line naming the file and a failed hook run.
+`bun` and `node` are the two it takes; no file is the default above. `bun` on
+a machine with no bun on `PATH`, or any other word, is one stderr line naming
+the file and a failed hook run.
