@@ -45,7 +45,12 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   writes that path on every run, so the `cut-point` skill can find the
   transcript from the session's first tool call onwards. A spent answer is no
   longer recorded as an empty file named after it, and a reported fault class
-  no longer as a marker file beside the record.
+  no longer as a marker file beside the record. Every write of the record is
+  made under a lock directory beside it, which the next run takes over when
+  the run holding it is gone: the lock names that run's pid, and the OS
+  answering that there is no such process is the proof. A lock whose holder is
+  still running is left standing, so a run killed mid-write costs the next one
+  a probe rather than costing the session every update after it.
 - The resume guard reads the cache lifetime from the subagent's newest turn
   that wrote to the cache, so a turn served from cache no longer makes it
   look cold.

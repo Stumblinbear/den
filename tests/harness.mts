@@ -10,6 +10,7 @@
 // strip types differently and only running both proves the sources are the
 // syntax they both accept.
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -69,6 +70,23 @@ export function fixtureDir(prefix: string): string {
 	mkdirSync(dir, { recursive: true });
 
 	return dir;
+}
+
+/**
+ * A lock directory standing at `path`, made and signed the way
+ * `file-lock.mts` makes and signs one: the token a run knows its own lock by,
+ * and the pid every other run judges that run by. A null pid leaves it
+ * unsigned, which is a lock made a moment ago and not yet written into.
+ */
+export function standingLock(path: string, pid: number | null): void {
+	mkdirSync(path, { recursive: true });
+
+	if (pid !== null) {
+		writeFileSync(
+			join(path, "holder"),
+			JSON.stringify({ token: randomUUID(), pid }),
+		);
+	}
 }
 
 /**

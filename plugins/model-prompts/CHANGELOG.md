@@ -26,6 +26,12 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   `model` at session start — is kept there too, and read back by a run whose
   own input carries none, along with the fault classes the session has already
   been told about.
+- Every write of that record is made under a lock directory beside it, which
+  the next run takes over when the run holding it is gone: the lock names that
+  run's pid, and the OS answering that there is no such process is the proof.
+  A lock whose holder is still running is left standing, so a run killed
+  mid-write costs the next one a probe rather than costing the session every
+  injection after it.
 - Skill `configure`: what fires and when, where the configuration lives, how
   rows compose, and how to check an edit by hand.
 - `smol-toml` as the plugin's one dependency, installed by Claude Code's

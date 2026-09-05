@@ -11,6 +11,7 @@
 import assert from "node:assert/strict";
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { faultChecks } from "../../../tests/fault-checks.mts";
 import {
@@ -21,6 +22,7 @@ import {
 	type Result,
 	type Runtime,
 	runHook,
+	standingLock,
 } from "../../../tests/harness.mts";
 
 export interface RunOptions {
@@ -261,17 +263,19 @@ export function record(session: string): Record<string, unknown> {
 /**
  * The record's lock, taken the way `file-lock.mts` takes one and never
  * released: what a run finds when another run of the same session is inside
- * its own change of the record.
+ * its own change of the record. The holder named is this process, which is a
+ * run still working; a lock naming a run that has ended is taken over by the
+ * hook rather than waited on.
  */
 export function holdLock(session: string): void {
-	const lock = join(
-		childTemp("context-budget", { session_id: session }),
-		"claude-context-budget",
-		`${session}.lock`,
+	standingLock(
+		join(
+			childTemp("context-budget", { session_id: session }),
+			"claude-context-budget",
+			`${session}.lock`,
+		),
+		process.pid,
 	);
-
-	mkdirSync(lock, { recursive: true });
-	writeFileSync(join(lock, "holder"), "another run");
 }
 
 /** Everything the session has left in the plugin's temp directory. */

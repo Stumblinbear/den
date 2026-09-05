@@ -65,7 +65,8 @@ What is written: one JSON file per session under `claude-context-budget/` in
 the OS temp directory, holding the transcript the last measuring run read, the
 level this session has been told about, the resume answers it has spent and the
 faults it has been told about, plus a lock directory beside it while a hook is
-writing. Nothing is written to your project.
+writing, and a second one for the moment a run spends taking over a lock left
+by a run that died. Nothing is written to your project.
 
 What they can do to a session: add a message to the agent's context, and deny
 a `SendMessage` to a subagent.
@@ -247,11 +248,15 @@ to it that changes no figure is the sign to look at the file.
 On Node older than 22.6 with no bun on `PATH`, the hooks print one line naming
 the floor and the version they found, and do nothing.
 
-A run killed while it held the record's lock, or one whose release failed even
-after its retries, leaves the directory `<session id>.lock` beside it, and
-until that directory is deleted every later run of the session skips its own
-update of the file without a word: the notice never fires again, and a resume
-answer is never marked spent.
+A run killed while it held the record's lock leaves the directory `<session
+id>.lock` beside the record, and the next run of the session takes it over:
+the lock names the run that made it, and a process the OS no longer knows is
+the proof that nobody is coming back for it. A lock whose holder is still a
+running process is never taken over -- a run hung rather than dead, or one
+whose pid the machine has since given to something else -- and while it stands
+every later run of the session skips its own update of the file without a
+word: the notice never fires again, and a resume answer is never marked spent.
+Deleting `<session id>.lock` is what clears it.
 
 ## Contributing
 

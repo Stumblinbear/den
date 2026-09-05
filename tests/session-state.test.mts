@@ -3,12 +3,11 @@
 // process does when it finds another inside its change -- leave the record
 // exactly as it was, rather than write back over a change it never read.
 import assert from "node:assert/strict";
-import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { test } from "node:test";
 import { sessionState } from "../lib/session-state.mts";
-import { fixtureDir } from "./harness.mts";
+import { fixtureDir, standingLock } from "./harness.mts";
 
 /** The directory name the records under the case's temp directory go in. */
 const PLUGIN = "claude-session-state-test";
@@ -40,12 +39,10 @@ test("a lock another run holds leaves the record as it was", () => {
 		"the first run has nobody to wait for, and its change lands",
 	);
 
-	// The lock a hook run of the same session is inside, made the way
-	// `file-lock.mts` makes one: the directory, and the file naming its holder.
-	const lock = join(temp, PLUGIN, `${session}.lock`);
-
-	mkdirSync(lock, { recursive: true });
-	writeFileSync(join(lock, "holder"), "another run");
+	// The lock a hook run of the same session is inside, signed by this
+	// process, which is a run still working: a lock naming a run that has
+	// ended is taken over rather than waited on.
+	standingLock(join(temp, PLUGIN, `${session}.lock`), process.pid);
 
 	assert.deepEqual(
 		state.update(session, () => ({

@@ -44,8 +44,9 @@ of `~/.claude/settings.json`. It never reads your source or your transcript.
 What the hook writes: one JSON file per session under `claude-model-prompts/`
 in the OS temp directory, holding which rows are already in this context, the
 model an input last named, and the faults the session has been told about,
-plus a lock directory beside it while it is writing. Nothing is written to
-your project.
+plus a lock directory beside it while it is writing, and a second one for the
+moment a run spends taking over a lock left by a run that died. Nothing is
+written to your project.
 
 What the hook can do to a session: add text to the main session's context at
 session start and on a model switch.
@@ -151,12 +152,17 @@ the floor and the version it found, and injects nothing.
 Deleting that file is also how you make a `once` row inject again without
 restarting.
 
-A run killed while it held the record's lock, or one whose release failed even
-after its retries, leaves the directory `<session id>.lock` beside it, and
-until that directory is deleted every later run of the session skips its own
-update of the file without a word: a `once` row says its text again, and a
-session start carrying no model id falls back to the model the record held
-before the lock stuck, and to `~/.claude/settings.json` if it never held one.
+A run killed while it held the record's lock leaves the directory `<session
+id>.lock` beside the record, and the next run of the session takes it over:
+the lock names the run that made it, and a process the OS no longer knows is
+the proof that nobody is coming back for it. A lock whose holder is still a
+running process is never taken over -- a run hung rather than dead, or one
+whose pid the machine has since given to something else -- and while it stands
+every later run of the session skips its own update of the file without a
+word: a `once` row says its text again, and a session start carrying no model
+id falls back to the model the record held before the lock stuck, and to
+`~/.claude/settings.json` if it never held one. Deleting `<session id>.lock`
+is what clears it.
 
 ## Contributing
 
