@@ -28,6 +28,8 @@ Skills, invoked as `/den:<name>`:
   follow.
 - `writing-for-humans`: what a README, a document, a doc comment, or a comment
   inside a body owes the person who reads it.
+- `voice`: how to keep text a person reads from sounding machine-written. The
+  rules that keep it out, and a catalog of the tells with their fixes.
 - `unsafety-author`: Rust `# Safety` contracts and unsafe documentation.
 
 Agents, launched through the Agent tool as `den:<name>`:

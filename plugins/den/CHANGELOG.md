@@ -9,6 +9,11 @@ minor bump may change behavior.
 
 ### Added
 
+- Skill `voice`: the rules that keep text a person reads from sounding
+  machine-written, character subjects and positive statements and sourced
+  claims and varied sentence shape, with a grep run over the text first and a
+  catalog of every tell with its fix, the vocabulary banded by date so it can
+  go stale one band at a time.
 - Skill `scoping`: the decisions an ask leaves open are put to the user one at
   a time before a brief is written, dependencies first and then highest impact
   and uncertainty, each with a recommended answer and what it costs; facts are
@@ -27,6 +32,9 @@ minor bump may change behavior.
 
 ### Changed
 
+- The comment-reviewer loads the `voice` skill and runs its grep twice, over
+  the comments in scope before it reads them and over its own edits before it
+  reports.
 - The comment-reviewer presumes a comment in the diff fails its reference's
   test until it passes, and cuts a borderline one rather than leaving it
   standing; a public item's doc that falls short is completed instead of cut.

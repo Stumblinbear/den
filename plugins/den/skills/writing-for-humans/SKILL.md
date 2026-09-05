@@ -38,9 +38,9 @@ alone, so read the one for the text in hand.
   rather than restate it.
 - **One term per concept.** A reader who meets two words for one thing spends
   the reread deciding whether they differ.
-- **No AI voice.** Self-justifying tone, parenthetical examples that add
-  nothing, a sentence narrating the next one. Humans write terse; fragments
-  are fine.
+- **No AI voice.** `den:voice` carries the rules that keep a draft from
+  reading as machine-written, and a catalog of the tells with the fix for
+  each.
 
 ## References
 
