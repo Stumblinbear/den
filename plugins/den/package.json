@@ -3,6 +3,7 @@
 	"private": true,
 	"type": "module",
 	"description": "Test entry point for the den Claude Code plugin. It declares no dependencies and ships no lockfile, so Claude Code installs nothing for it when it caches the plugin.",
+	"license": "MIT OR Apache-2.0",
 	"engines": {
 		"node": ">=22.6"
 	},

@@ -3,6 +3,7 @@
 	"private": true,
 	"type": "module",
 	"description": "Runtime dependency for the context-budget Claude Code plugin hooks. Claude Code installs it with `npm ci --ignore-scripts` when it caches the plugin.",
+	"license": "MIT OR Apache-2.0",
 	"engines": {
 		"node": ">=22.6"
 	},

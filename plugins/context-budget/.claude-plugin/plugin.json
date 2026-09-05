@@ -2,6 +2,7 @@
 	"name": "context-budget",
 	"version": "0.3.0",
 	"description": "Tells the agent when the session's context crosses a per-model token threshold, so it waits for the arc it is in to end and then recommends /compact or a rewind summarize before auto-compact picks the cut point itself.",
+	"license": "MIT OR Apache-2.0",
 	"author": {
 		"name": "Trevin Miller"
 	}

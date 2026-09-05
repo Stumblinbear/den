@@ -3,6 +3,7 @@
 	"private": true,
 	"type": "module",
 	"description": "Development toolchain for the den plugin marketplace: TypeScript, Biome, the git hook path, and the test entry point. Nothing here is installed for plugin users; each plugin carries its own runtime dependencies.",
+	"license": "MIT OR Apache-2.0",
 	"engines": {
 		"node": ">=22.6"
 	},

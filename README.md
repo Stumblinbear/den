@@ -113,3 +113,9 @@ workflow releases one plugin per run.
 
 Changes go through `npm run check` and `npm test`, and every notable one is
 added to the `Unreleased` section of the plugin's changelog.
+
+## License
+
+Licensed under either of the Apache License, Version 2.0 (`LICENSE-APACHE`)
+or the MIT license (`LICENSE-MIT`), at your option. A contribution you submit
+for inclusion is licensed the same way, without further terms.
