@@ -1,14 +1,7 @@
 ---
 name: unsafety-author
 description: "Write and audit Rust `# Safety` contracts and unsafe docs to the std/bevy bar: state UB directly, name the obligation by category, no mechanism filler, and put the obligation on the party that can actually break it."
-triggers:
-  - safety docs
-  - "# Safety"
-  - safety contract
-  - unsafe audit
-  - audit unsafe
-  - soundness
-  - writing unsafe
+when_to_use: Use for a "# Safety" section, an unsafe block or function, a soundness argument, or an audit of unsafe code. Trigger phrases - "safety docs", "safety contract", "unsafe audit", "soundness", "writing unsafe".
 ---
 
 # Unsafety Author

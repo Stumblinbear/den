@@ -39,6 +39,18 @@ Hunt vacuous tests, direction-blind assertions, narrative/code mismatches,
 silently weakened refactors, missed edge cases, incorrect state transitions,
 and unexplained thresholds or formulas.
 
+Every defect carries a priority, so the coordinator knows where to look first:
+
+- P0: release blocker or critical failure.
+- P1: urgent defect, fixed next.
+- P2: ordinary defect, fixed.
+- P3: low-impact defect, still worth fixing.
+
+Priorities are for defects only. Engineering-quality and architecture findings
+carry no priority: whether one of those must be fixed depends on the task's
+goal and history, which the coordinator has and you do not, so give the
+evidence and the repair and leave the verdict to them.
+
 ## Engineering-quality review (required, first-class)
 
 Inspect the changed code and adjacent owners, callers, persistence boundary,
@@ -118,22 +130,35 @@ ruling for the user to triage, never an optional aside.
 
 ## Output contract
 
-Return one ranked list mixing all kinds by impact. Per finding:
+Defects first, ordered by priority; then engineering-quality and architecture
+findings, ordered by impact. One entry per finding, opened by one line:
 
-- KIND: behavioral | engineering quality | architecture.
-- File:line and the specific code or assertion.
-- The claim: what is wrong, misleading, misplaced, unnecessarily exposed, or
-  unproven.
-- Behavioral findings: the discriminating check predicted to fail.
-- Engineering-quality findings: concrete evidence and the smallest coherent
-  repair. Do not demand an artificial red test.
-- Architecture findings: the growth cost, the concrete alternative, and its
-  rough scope (files, call sites).
-- Confidence and the relevant contract, repository convention, invariant, or
-  code path.
+`[P1] Imperative finding title -- path/to/file.mjs:line`
+`[quality] Imperative finding title -- path/to/file.mjs:line`
+`[architecture] Imperative finding title -- path/to/file.mjs:line`
 
-Then list what you examined and cleared. If nothing is wrong, say so plainly.
-Never manufacture findings.
+Cite the smallest range that shows the problem, overlapping the reviewed diff.
+Follow the line with one short paragraph: the affected scenario and why the
+behavior or the code is wrong. Then, one sentence each:
+
+- Defects: the discriminating check predicted to fail. A sketched repair is
+  walked against that same check before it is written down, and one that has
+  not been is named a direction rather than a fix, because the session
+  forwards a finding with the reviewer's authority.
+- Engineering quality: the concrete evidence and the smallest coherent repair.
+  Do not demand an artificial red test.
+- Architecture: the growth cost, the concrete alternative, and its rough scope
+  (files, call sites).
+- Confidence and the contract, repository convention, invariant, or code path
+  it rests on.
+
+Mark a finding `pre-existing` when the reviewed change did not introduce it, and
+`deliberate` when the change reads as intended and the finding only asks the
+user to confirm; both still get reported, since the coordinator decides what
+they are worth.
+
+Then list what you examined and cleared. If nothing is wrong, say
+`No findings.` Never manufacture findings.
 
 Separate behavioral clears from engineering-quality and architecture clears.
 Every quality clear must cite concrete caller, ownership, type, and persistence
@@ -144,4 +169,5 @@ good naming, cohesion, representation, or necessity.
 ## Closure rounds
 
 For fixes to your findings, verdict each CLOSED or REOPENED against the original
-evidence and report anything new. Do not treat the fixer's description as proof.
+evidence, keeping its priority or kind, and report anything new in the same
+form. Do not treat the fixer's description as proof.

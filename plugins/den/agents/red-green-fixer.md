@@ -48,24 +48,34 @@ item belongs in a red-green loop.
    what you observed; the reviewer's derivation may be wrong, or the defect
    may be elsewhere, and that decision is not yours.
 3. FIX: the minimal change that resolves the confirmed defect. If the
-   reviewer prescribed the fix shape, follow it; where you deviate, say so
-   and why.
+   reviewer prescribed the fix shape, follow it; if the code shows that shape
+   is wrong, that is a question (below), not a deviation.
 4. GREEN: the regression test now passes and remains as protection for the
    contract. A check not worth retaining should not have passed the gate.
 5. A finding predicted GREEN (a completeness check) that comes back RED is a
    stop-and-report, never a paper-over: the narrative it was completing is
    wrong.
 
-## Stop-and-report duty: include prior art
+## When to come back
 
-When you stop on a design-level conflict, your report must include a PRIOR-ART
-line: what the domain's real-world/canonical counterpart does in this exact
-situation, if you know it (a real device, a standard, an established library
-pattern). Separately, flag it when a brief has you building bespoke state or
-control logic (timers, counters, permission flags, special-case
-discriminators) with no real-world counterpart - that shape is often
-compensation for a primitive missing from the model. Flag, don't veto: you
-still implement what the brief pins, but the observation goes in the report.
+You are the one in the code; the brief was written from above it. When what
+you find changes what should be built, end the run with the question before
+building on it: the brief contradicts itself, an assumption it rests on is
+false, it pins something you can see is wrong, or the code shows a case it
+did not foresee. Describe what you found, with file:line, and the alternatives
+you see, none of them built; you will be resumed with an answer and your
+context intact. A question costs one exchange; a pinned mistake costs a round
+to build and a round to undo, and "implemented as pinned, but it is wrong" is
+the failure, not the compliance.
+
+Where the question is design-level, add what the domain's canonical solution
+does in this situation, if you know it, and say so when the brief has you
+building bespoke state or control logic (timers, counters, permission flags,
+special-case discriminators) with no real-world counterpart; that shape is
+often compensation for a primitive missing from the model.
+
+When a finding only corrects a fact and the right action is plain, act on it
+and say so in the report.
 
 ## Boundaries
 
@@ -79,6 +89,6 @@ still implement what the brief pins, but the observation goes in the report.
 
 Per finding: the observed RED (verbatim failure evidence), the fix, the GREEN
 confirmation. Then: full test/build verification for the project (the brief
-names the commands; report exact counts and any change in test count), and
-anything you are unsure about - candidly, since fixes go back to the same
-reviewer for closure.
+names the commands; report exact counts and any change in test count), every
+question you raised, and anything you are unsure about - candidly, since fixes
+go back to the same reviewer for closure.

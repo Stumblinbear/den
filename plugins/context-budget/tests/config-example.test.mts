@@ -46,12 +46,16 @@ for (const runtime of runtimes()) {
 	const hook = hookRunner(runtime);
 
 	test(`${runtime}: the example config injects over its own threshold`, () => {
+		// The threshold read above is `[default]`'s, so the turn names a model
+		// the example has no row for; a row's own thresholds would apply instead.
 		const result = hook(
 			"context-budget",
 			{
 				hook_event_name: "UserPromptSubmit",
 				session_id: sessionId(runtime),
-				transcript_path: transcript(assistantTurn(noticeThreshold() + 1000)),
+				transcript_path: transcript(
+					assistantTurn(noticeThreshold() + 1000, "claude-opus-5"),
+				),
 			},
 			EXAMPLE,
 		);
