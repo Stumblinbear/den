@@ -23,7 +23,7 @@ const EVENTS: readonly string[] = ["PostToolUse", "UserPromptSubmit"];
 
 const args = process.argv.slice(2);
 
-/** Where a compaction leaves the session: at no level, with nothing said. */
+/** Where a compaction leaves the session. */
 const RESET: Crossing = { level: "none", notice: null };
 
 /**
@@ -50,19 +50,16 @@ async function outcome(
 		return null;
 	}
 
-	// A compaction leaves the session at no level at all, and it is recorded as
-	// that before any threshold is consulted: the context it replaced is gone,
-	// so every rung is armed again whether or not this model has thresholds to
-	// cross. Nothing is announced for it -- what the summary costs is measured
-	// on the first turn sent it.
+	// Reset before any threshold is consulted, so a model with no thresholds is
+	// reset too: the context it replaced is gone, and every rung is armed
+	// again. Nothing is announced, since what the summary costs is measured on
+	// the first turn sent it.
 	if (reading.kind === "compacted") {
 		recorded(sessionId, transcript, () => RESET);
 
 		return null;
 	}
 
-	// Null for a model whose row is switched off: it has no threshold to cross,
-	// and the transcript below is recorded for it all the same.
 	const limits = thresholdsFor(settings, reading.model);
 	const notice = recorded(sessionId, transcript, (told) =>
 		limits === null ? null : crossing(told, reading, limits),
@@ -74,18 +71,13 @@ async function outcome(
 }
 
 /**
- * The transcript written to the session's record, and the level the run
- * announces -- null for one this session has already heard, and for a run with
- * nothing to say about the level.
+ * The level this run announces, and null both for a level this session has
+ * already heard and for a run with nothing to say about the level. The
+ * transcript is written to the record either way.
  *
  * `crossed` is handed the level the session has already been told about, which
  * is only readable under the lock, and answers with where this run leaves it
  * or null to leave it where it is.
- *
- * The record is read, changed and written back under its lock, after the
- * measurement rather than around it: the resume guard spends the user's
- * answers in that same record, and reading the level under the lock is also
- * what stops two runs measuring at once from both announcing one crossing.
  */
 function recorded(
 	sessionId: string,
@@ -96,10 +88,8 @@ function recorded(
 		const now = crossed(before.level);
 
 		return {
-			// Written on every run, injected or not: the cut-point skill is
-			// handed a session id and nothing else, and this is where it finds
-			// the transcript. A model whose row is switched off crosses nothing,
-			// so the level it leaves is the one it was handed.
+			// Written on every run, injected or not. See the header of
+			// `session-record.mts` for the reader that depends on it.
 			fields: { level: now?.level ?? before.level, transcript },
 			result: now?.notice ?? null,
 		};
@@ -132,8 +122,7 @@ function injection(
 }
 
 // The run itself, last in the file and below every binding it reads: a `const`
-// read from here before its own declaration throws a ReferenceError, which the
-// runner would report as the bug it is.
+// read from here before its own declaration throws a ReferenceError.
 await runEntry(FAULTS, async ({ input, session }) => {
 	// The main session: a subagent's input names the agent it is for.
 	if (input["agent_id"]) {
