@@ -133,9 +133,9 @@ ruling for the user to triage, never an optional aside.
 Defects first, ordered by priority; then engineering-quality and architecture
 findings, ordered by impact. One entry per finding, opened by one line:
 
-`[P1] Imperative finding title -- path/to/file.mjs:line`
-`[quality] Imperative finding title -- path/to/file.mjs:line`
-`[architecture] Imperative finding title -- path/to/file.mjs:line`
+`[P1] Imperative finding title | path/to/file.mjs:line`
+`[quality] Imperative finding title | path/to/file.mjs:line`
+`[architecture] Imperative finding title | path/to/file.mjs:line`
 
 Cite the smallest range that shows the problem, overlapping the reviewed diff.
 Follow the line with one short paragraph: the affected scenario and why the

@@ -67,7 +67,7 @@ export function faults(
 		fix: string,
 		cause?: unknown,
 	) =>
-		new Fault(`${plugin}: ${cls} error -- ${detail}. ${consequence}; ${fix}.`, {
+		new Fault(`${plugin}: ${cls} error: ${detail}. ${consequence}; ${fix}.`, {
 			cls,
 			cause,
 		});

@@ -75,7 +75,7 @@ function reported(result: Result, plugin: string, cls: string): string {
 	assert.equal(result.status, 1, "a reported fault exits 1");
 	assert.equal(result.stdout, "", "a hook that reports must not also act");
 	assert.ok(
-		result.stderr.startsWith(`${plugin}: ${cls} error `),
+		result.stderr.startsWith(`${plugin}: ${cls} error: `),
 		result.stderr,
 	);
 	assert.equal(
