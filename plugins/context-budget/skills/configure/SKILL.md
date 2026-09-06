@@ -48,7 +48,7 @@ Consequences that answer most "why did it" questions:
   the line, and a fresh session reads as empty until its first reply.
 - Subagents are never measured; only the main session is.
 - Haiku is switched off in the example configuration, because its 200K window
-  sits below the 250K urgent threshold and auto-compact would always win.
+  sits below the 450K urgent threshold and auto-compact would always win.
 - Auto-compact is Claude Code's own mechanism and runs regardless of this
   plugin; the plugin only tries to get a recommendation made before it does.
 - The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,

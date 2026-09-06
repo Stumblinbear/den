@@ -124,7 +124,7 @@ cp <plugin root>/hooks/config.example.toml \
   ~/.claude/plugins/data/context-budget-den/config.toml
 ```
 
-Nothing else is needed. When a session passes 150K tokens, the agent finishes
+Nothing else is needed. When a session passes 250K tokens, the agent finishes
 what it is doing and then tells you it recommends `/compact` or a rewind
 summarize, and which. To see it sooner, lower `notice` under `[default]`.
 
@@ -233,8 +233,9 @@ cache-creation and cache-read tokens added together. So the number is one turn
 old, and the notice lands after the reply that crossed the line.
 
 Thresholds are absolute token counts, not fractions of a context window. The
-hook cannot see the window size. The example's 150K comes from Anthropic's
-server-side compaction default on 1M-window models.
+hook cannot see the window size. The example's `[default]` pair is the catch-all
+for a model with no `[models]` row, set against the 1M window every current
+model carries.
 
 Subagents are never measured, and the notice is never injected into one.
 
@@ -310,7 +311,7 @@ each count was taken in, and an answer or a verdict about a context the session
 no longer has is dropped rather than delivered against the one it has now.
 
 The example configuration switches Haiku off, because its 200K window sits
-below the 250K urgent threshold and auto-compact would always win.
+below the 450K urgent threshold and auto-compact would always win.
 
 Auto-compact is Claude Code's own mechanism and runs regardless of this
 plugin. All the plugin does is try to get a recommendation made first.

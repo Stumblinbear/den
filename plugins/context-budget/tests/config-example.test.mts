@@ -85,21 +85,25 @@ for (const runtime of runtimes()) {
 
 	// A row key that stopped matching the id the transcript records would hand
 	// Fable the example's `[default]` thresholds without a word, and those sit
-	// far below the ones written for it.
+	// below the ones written for it.
 	test(`${runtime}: the example's fable row governs Fable's own id`, () => {
 		const row = fableRow();
 		const notice = threshold(row, "notice", "[models.'fable'] notice");
 		const urgent = threshold(row, "urgent", "[models.'fable'] urgent");
-		const under = threshold(fallback(), "urgent", "[default] urgent");
+		// A context `[default]` speaks at and the row says nothing about, so
+		// silence there is the row having governed. That window runs from
+		// `[default]`'s notice up to the row's, and it closes if either number
+		// moves toward the other.
+		const between = threshold(fallback(), "notice", "[default] notice") + 1000;
 
 		assert.ok(
-			under < notice,
-			`the row has to sit above [default] for this to prove anything: ${under} < ${notice}`,
+			between < notice,
+			`the row has to leave a window above [default]'s notice for this to prove anything: ${between} < ${notice}`,
 		);
 		assert.equal(
-			injected(run(under + 1000, FABLE)),
+			injected(run(between, FABLE)),
 			null,
-			"past [default]'s urgent and under the row's notice, which governs",
+			"past [default]'s notice and under the row's, which governs",
 		);
 		assert.equal(typeof injected(run(notice, FABLE)), "string");
 		assert.equal(typeof injected(run(urgent, FABLE)), "string");

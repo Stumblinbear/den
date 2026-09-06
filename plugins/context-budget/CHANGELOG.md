@@ -79,6 +79,11 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   implementer about 230K and a fixer about 70K, and refusing a resume worth
   taking costs that whole rediscovery. The old numbers refused resumes on Fable
   that were still the cheaper of the two by a wide margin.
+- The example configuration's `[default]` thresholds sit at 250K `notice` and
+  450K `urgent` rather than 150K and 250K. Every current model carries a 1M
+  window, so the old pair fired while the session still held most of its room.
+  `[default]` is the catch-all for a model with no `[models]` row, whose window
+  the hook cannot see, and a model worth other numbers takes a row of its own.
 
 ## [0.4.0] - 2026-09-06
 

@@ -18,8 +18,8 @@
 # Thresholds are absolute input token counts: prompt plus cache creation plus
 # cache read on the session's last assistant turn.
 [default]
-notice = 150_000
-urgent = 250_000
+notice = 250_000
+urgent = 450_000
 
 # Per-model rows, tried before [default]. Each table key is a regular expression
 # matched against the model id as the transcript records it ("claude-opus-5",
@@ -35,10 +35,10 @@ enabled = false
 # Fable reads a cached context at a quarter of the usual price, while a
 # compaction writes back what it keeps at twice a fresh input token on the
 # one-hour lifetime. With the 45K or so a compaction writes back, as measured
-# on real sessions, a compaction at 150K pays for itself only after about 35
-# more turns; at 400K it takes about 11. That is why these two sit so much
-# higher than [default]'s. The urgent level leaves 300K before the 1M window
-# fills.
+# on real sessions, a compaction low in the context, at 150K, pays for itself
+# only after about 35 more turns; at the 400K below it takes about 11. That is
+# why both of these sit above [default]'s. The urgent level leaves 300K before
+# the 1M window fills.
 [models.'fable']
 notice = 400_000
 urgent = 700_000
