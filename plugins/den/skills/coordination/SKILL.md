@@ -6,7 +6,9 @@ disable-model-invocation: true
 
 # Coordinating session
 
-This session designs, briefs, delegates, integrates, and talks to the user.
+This session designs, briefs, delegates, integrates, and talks to the user,
+and reads every agent's report as an adversary reads a claim: checked before
+it moves, never stamped.
 Production work (implementation, review, research) goes to a standing agent
 unless the task is so small that delegation would cost more than doing it.
 
@@ -82,43 +84,32 @@ brief goes back to its agent at once, and the report says so.
 
 ## Review
 
-Every change gets a fresh reviewer. The same reviewer is resumed only within
-that task's fix cycle, because fixes go back to the one who raised the
-findings. `den:flag-reviewer`, launched with `/den:flag-review`, owns architecture
-rulings; a finding that the whole decomposition is wrong is a design question
-for the user, not a fix-round item. Several reviewers on one diff run as one
-Workflow with a `den:synthesizer`, so the session gets one consolidated report;
-that changes the packaging only, not the launch rules.
+Every change gets a fresh reviewer, resumed only within that task's fix cycle,
+because fixes go back to the one who raised the findings.
+`den:flag-reviewer`, launched with `/den:flag-review`, is that reviewer.
 
-Findings split by certainty, judged against the task's goal. The reviewer
-tiers defects P0 to P3 and leaves quality and architecture findings untiered,
-because whether those must be fixed depends on the task's goal and history,
-which only this session has. A priority is the reviewer's estimate of impact,
-not evidence; the send-back test is the same at every tier. A finding that is
-unquestionably wrong (a number the code demonstrably gets wrong, documented
-behavior that does not happen, a contradiction of a decision already made in
-the task) goes straight back to the implementer or fixer without asking; the
-user's time is for judgment, not for confirming that a lie is a lie. Only
-findings that need judgment reach the user: edge cases, possible
-over-engineering, and calls that depend on expected usage.
+A finding that is unquestionably wrong (a number the code demonstrably gets
+wrong, documented behavior that does not happen, a contradiction of a decision
+already made in the task) goes straight back to its agent; a tier is the
+reviewer's estimate of impact, not evidence, so the send-back test is the same
+at every tier. What goes back is the defect and its discriminating check; the
+reviewer's repair is a sketch that becomes an instruction only once this
+session has traced it against that check. Route a bug, a finding, a repair or
+a declared choice at its root cause, found by asking why one or two levels
+above the report: what made this the natural mistake, and what else that
+answer touches. An agent's diagnosis and remedy are the report, not the cause.
+A fix at the cause replaces a patch at the symptom, because each patch is a
+condition the next reader carries; a cause in the design reaches the user as a
+design question with its rough scope.
 
-What goes back is the defect and its discriminating check. The reviewer's
-repair is a sketch that becomes an instruction only once this session has
-traced it against that check; otherwise the repair is the implementer's.
-
-Before a finding, a repair or a declared choice is routed, ask what it points
-at. Landing the fix in hand because the task is moving is the failure mode: a
-fix that adds a case where a cause could be removed, a defect seen before, a
-guard for a situation the design created, each points one level up, and that
-reaches the user as a design question with its rough scope, not as a fix item.
-
-Each finding that reaches the user carries this session's fix, defer or skip
-call and the reasoning behind it, weighed by real-world impact against the
-cost of fixing it now, and is explained for a reader who has not read the
-code. Set the scene first: what is in play, what changes, what goes observably
-wrong, and only then the mechanism. A proposed test earns a fix when it
-catches a bug class that survives reading the code; a boundary check on a pure
-function or a test of single-path plumbing gets a skip.
+Only findings that need judgment reach the user (edge cases, possible
+over-engineering, calls that depend on expected usage), each with this
+session's fix, defer or skip call and its reasoning, weighed by real-world
+impact against the cost of fixing it now, and explained for a reader who has
+not read the code: what is in play, what changes, what goes observably wrong,
+then the mechanism. A proposed test earns a fix when it catches a bug class
+that survives reading the code; a boundary check on a pure function or a test
+of single-path plumbing gets a skip.
 
 ## Fixes
 

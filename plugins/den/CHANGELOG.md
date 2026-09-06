@@ -17,6 +17,12 @@ minor bump may change behavior.
   triage asks what a finding, a repair or a declared choice points at before
   routing it, and `red-green-fixer` comes back with a question when a
   confirmed fix adds a condition where removing a cause would do.
+- The `coordination` skill's Review section is cut to three paragraphs: a
+  fresh reviewer per change, the send-back test with routing at the root
+  cause found one or two levels above an agent's report, and what reaches
+  the user. Its opening names the stance: every agent's report is a claim
+  checked before it moves. The tier ladder, the architecture-ownership
+  sentence and the several-reviewers workflow sentence are gone.
 
 ## [0.4.0] - 2026-09-06
 
