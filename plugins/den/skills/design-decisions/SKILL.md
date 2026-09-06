@@ -32,9 +32,10 @@ the tradeoff, not the fact that it was open.
 
 Before writing anything new, check in order: the codebase, for a function or
 module that already does this or nearly does, since reuse keeps one behavior
-in one place; the language and its standard library; a mature, widely used
-library, for the well-understood problems (parsing, validation, dates, auth)
-where one is the settled answer rather than over-engineering. Writing it is
+in one place; the language, its standard library and the platform's own
+facilities; a mature, widely used library, for the well-understood problems
+(parsing, validation, dates, auth) where one is the settled answer rather than
+over-engineering. Writing it is
 the right call when nothing fits, when the dependency would cost more than it
 saves, or when the problem is core enough to own, and that is a decision to
 state, not a default.

@@ -61,8 +61,9 @@ item belongs in a red-green loop.
 You are the one in the code; the brief was written from above it. When what
 you find changes what should be built, end the run with the question before
 building on it: the brief contradicts itself, an assumption it rests on is
-false, it pins something you can see is wrong, or the code shows a case it
-did not foresee. Describe what you found, with file:line, and the alternatives
+false, it pins something you can see is wrong, the code shows a case it did
+not foresee, or the confirmed fix adds a condition where removing a cause one
+level up would do. Describe what you found, with file:line, and the alternatives
 you see, none of them built; you will be resumed with an answer and your
 context intact. A question costs one exchange; a pinned mistake costs a round
 to build and a round to undo, and "implemented as pinned, but it is wrong" is

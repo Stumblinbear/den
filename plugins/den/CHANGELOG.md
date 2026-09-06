@@ -7,6 +7,17 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+
+- The `flag-reviewer` evidence pass gains a decisions step: inheriting the
+  change's decisions, the brief's pins included, and reviewing only their
+  execution is named as a failure mode, and each decision is asked why this
+  way. The `design-decisions` skill's reuse order names the platform's own
+  facilities beside the language and its library. The `coordination` skill's
+  triage asks what a finding, a repair or a declared choice points at before
+  routing it, and `red-green-fixer` comes back with a question when a
+  confirmed fix adds a condition where removing a cause would do.
+
 ## [0.4.0] - 2026-09-06
 
 ### Removed

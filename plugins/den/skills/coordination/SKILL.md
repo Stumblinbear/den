@@ -106,6 +106,12 @@ What goes back is the defect and its discriminating check. The reviewer's
 repair is a sketch that becomes an instruction only once this session has
 traced it against that check; otherwise the repair is the implementer's.
 
+Before a finding, a repair or a declared choice is routed, ask what it points
+at. Landing the fix in hand because the task is moving is the failure mode: a
+fix that adds a case where a cause could be removed, a defect seen before, a
+guard for a situation the design created, each points one level up, and that
+reaches the user as a design question with its rough scope, not as a fix item.
+
 Each finding that reaches the user carries this session's fix, defer or skip
 call and the reasoning behind it, weighed by real-world impact against the
 cost of fixing it now, and is explained for a reader who has not read the
