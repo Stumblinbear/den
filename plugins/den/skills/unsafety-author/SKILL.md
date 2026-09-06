@@ -2,6 +2,7 @@
 name: unsafety-author
 description: Rust `# Safety` contracts and unsafe docs to the std and bevy bar, with UB stated directly, the obligation named by category, no mechanism filler, and the obligation on the party that can break it.
 when_to_use: ALWAYS invoke this skill when writing or auditing a `# Safety` section, an unsafe block or function, or a soundness argument. Do not write or review unsafe docs directly; use this skill first.
+user-invocable: false
 ---
 
 # Unsafety Author

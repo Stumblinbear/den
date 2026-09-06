@@ -4,6 +4,7 @@ description: Launch the flag-reviewer (fable, flag-only code and architecture re
 argument-hint: "[git diff range only, e.g. HEAD~1 or main..HEAD; omit for the working tree]"
 context: fork
 agent: den:flag-reviewer
+user-invocable: false
 ---
 
 Scope: the change rendered below.

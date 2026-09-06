@@ -2,6 +2,7 @@
 name: voice
 description: How prose a person will read stays out of the machine-written register, with character subjects, positive statements, sourced claims, varied sentence shape, and a grep for the phrases that give a draft away.
 when_to_use: ALWAYS invoke this skill before drafting a commit message or a report for a person, when reviewing text an agent drafted for a person, and when the user says a draft sounds like AI, reads as machine-written, or is slop. Do not polish the register directly; use this skill first.
+user-invocable: false
 ---
 
 # Voice

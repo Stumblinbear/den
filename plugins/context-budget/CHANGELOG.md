@@ -49,6 +49,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   on what may be summarized away before any figure is read, price picks among
   what is left with `/compact` taking a tie, and carrying on wins where every
   payback is longer than the work the arc has left.
+- The `context-budget` skill is hidden from the `/` menu (`user-invocable:
+  false`): it fires on the context notice, not on a command.
 - The three skills carry a `when_to_use` directive and a description that
   says what each skill is, so the model routes to them rather than acting on
   its own.

@@ -7,8 +7,20 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+
+- Skill `writing-a-skill`, on how a Claude Code skill is written: the listing
+  line the model routes on, the description and `when_to_use` fields in the
+  measured shape, the rest of the frontmatter, what a body is, and the test
+  that shows a trigger fires. The configuration-skills reference moves under
+  it from `writing-for-agents`.
+
 ### Changed
 
+- `code-architecture`, `design-decisions`, `voice`, `unsafety-author` and the
+  two review launchers are hidden from the `/` menu (`user-invocable: false`):
+  Claude applies them when their trigger fires, and typing them was no action
+  a person takes.
 - Every skill the model routes to itself carries a `when_to_use` directive
   ("ALWAYS invoke this skill when ...", with the thing the model would do
   instead named) and a description that says what the skill is, so the two

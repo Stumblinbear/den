@@ -2,6 +2,7 @@
 name: code-architecture
 description: Where a new type, function, or module belongs, whether a file is still one concept, whether a module's interface is deep enough to earn its place, and whether a type can represent states that should not exist.
 when_to_use: ALWAYS invoke this skill before creating or splitting a file, module, type, or public function, while its place is still open. Do not place new code directly; use this skill first.
+user-invocable: false
 ---
 
 # Code architecture

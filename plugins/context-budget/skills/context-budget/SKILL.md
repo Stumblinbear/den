@@ -2,6 +2,7 @@
 name: context-budget
 description: How a session's context is shrunk, covering what `/compact` and a rewind summarize each keep, how to name a cut point and write a focus line, and how to tell the end of an arc from a step inside one.
 when_to_use: ALWAYS invoke this skill when a "Context budget:" notice appears, before deciding what to recommend, and when the user asks whether to compact, rewind, or keep going. Do not recommend a compact or a rewind directly; use this skill first.
+user-invocable: false
 ---
 
 # Context budget

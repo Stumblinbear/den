@@ -6,7 +6,9 @@ on its own.
 
 ## What it provides
 
-Skills, invoked as `/den:<name>`:
+Skills, applied by Claude when their trigger fires. The ones a person can
+also run as `/den:<name>` are scoping, writing-for-agents, writing-for-humans
+and writing-a-skill; the rest are hidden from the `/` menu:
 
 - `coordination`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
@@ -26,6 +28,8 @@ Skills, invoked as `/den:<name>`:
   a tool rather than a lean.
 - `writing-for-agents`: principles for writing instructions an agent will
   follow.
+- `writing-a-skill`: how a Claude Code skill is written, from the listing
+  line the model routes on to the test that shows its trigger fires.
 - `writing-for-humans`: what a README, a document, a doc comment, or a comment
   inside a body owes the person who reads it.
 - `voice`: how to keep text a person reads from sounding machine-written. The

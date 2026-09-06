@@ -15,21 +15,18 @@ starts.
 
 ## One shape, promised by the description
 
-Claude Code's skills reference names two kinds of content. Reference content
-is prose the agent reasons with, loaded inline. Task content is a numbered
-procedure: declare the tools it uses in `allowed-tools`, read what is
+A task-shaped configure skill is the procedure in this order: read what is
 configured now, ask with the current value shown in each option, write,
 confirm what changed, and end with the hand-edit fallback for when a step
-cannot run. A description that promises "change it" over a body that only
-explains it mixes the two, and a write step grafted onto prose is the usual
-result. Pick one; a second, task-shaped skill is how the other is added.
+cannot run, with the tools those steps run pre-approved in `allowed-tools`.
+A description that promises "change it" over a body that only explains it
+mixes the two kinds, and a write step grafted onto prose is the usual result.
+Pick one; a second, task-shaped skill is how the other is added.
 
 ## Arrive knowing the state
 
-A `!` preamble runs before the skill reaches the model, so the skill can
-report whether the configuration file exists and what the settings hold
-rather than name a path and leave the agent to look. Paths in a plugin
-skill are written as `${CLAUDE_PLUGIN_DATA}` and `${CLAUDE_PLUGIN_ROOT}`,
+The preamble reports whether the configuration file exists and what the
+settings hold. Paths in a plugin skill are written as `${CLAUDE_PLUGIN_DATA}` and `${CLAUDE_PLUGIN_ROOT}`,
 which Claude Code substitutes in plugin skills; a literal directory is right
 for one marketplace name only.
 

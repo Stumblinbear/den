@@ -1,7 +1,7 @@
 ---
 name: writing-for-agents
 description: Principles for instructions an LLM agent will follow, with the calibration for current models.
-when_to_use: ALWAYS invoke this skill before writing or editing any text an agent will follow, whether a SKILL.md, an agent definition, a CLAUDE.md or rules file, a hook's injected text, a brief or launch prompt for a subagent, or a message a plugin prints to the model, and when an agent keeps ignoring an instruction, before strengthening it. Do not write or edit such text directly; use this skill first.
+when_to_use: ALWAYS invoke this skill before writing or editing any text an agent will follow, whether an agent definition, a CLAUDE.md or rules file, a hook's injected text, a brief or launch prompt for a subagent, or a message a plugin prints to the model, and when an agent keeps ignoring an instruction, before strengthening it. Do not write or edit such text directly; use this skill first.
 ---
 
 # Writing for agents
@@ -89,9 +89,3 @@ For each rule in an existing instruction set, in order:
 6. Duplicates or contradicts another rule anywhere in the hierarchy?
    (Keep one home.)
 
-## Platform-specific guidance
-
-- **Configuration skills for Claude Code plugins:**
-  `references/configuration-skills.md` (what a plugin's configure skill
-  covers and in what order: prerequisites first, one shape, arriving with
-  the state read, where a setting lives, the standing cost of every line).
