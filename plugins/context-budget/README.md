@@ -22,7 +22,9 @@ auto-compact choose one for you.
   lifetime, so the reading lists three still-cached prompts spread across the
   context: each with the clock time it falls out, what a cut there summarizes
   away, what it keeps verbatim, and how many more turns the session has to
-  take before the cut has paid for what it cost.
+  take before the cut has paid for what it cost. `/compact` is priced above
+  them on the same arithmetic and carrying on unchanged below them, so the
+  three are read against one another rather than one against two blanks.
 - The `context-budget` skill, which the agent loads when it makes that
   recommendation: how a rewind summarize differs from `/compact`, how to pick
   a cut point and a focus line, and how to judge a stopping point.
@@ -196,6 +198,23 @@ token on the one-hour lifetime, where carrying on would have read that same
 stretch at the cache read rate, and only then starts saving that read on every
 turn after it. So a cut in a session with little work left in it costs more
 than it ever returns.
+
+Two rows sit around those cut points, on the same arithmetic, so that the
+paybacks have something to be read against. `/compact` comes first, priced as
+a cut at the tail Claude Code keeps rather than at a prompt anyone selects;
+that tail is sized by Claude Code and never known in advance, so the row is an
+estimate, taken from what this session's own compaction left behind where
+there is one and from a typical 15K where there is not, and it says which.
+Only a `/compact` or an auto-compact counts as one there: a rewind summarize
+writes the same kind of boundary and kept the stretch the user chose, which
+measures no tail, so a session whose only boundary came out of the picker
+takes the 15K like a session with no boundary at all.
+
+Carrying on comes last: the whole context read back every turn, at the cache
+read rate, which is what every payback above it is measured against. The
+reading prices these; it recommends none of them. Which one to take is the
+`cut-point` skill's, and it weighs what the work ahead still needs verbatim
+before it reads a figure at all.
 
 The example configuration switches Haiku off, because its 200K window sits
 below the 250K urgent threshold and auto-compact would always win.

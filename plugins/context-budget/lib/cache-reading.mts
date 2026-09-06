@@ -1,13 +1,18 @@
-// What a cache scan reads like: the cut points still cached, what a cut at
-// each of them summarizes away, what it keeps, how many turns it takes to pay
-// for itself, and what sits above them.
+// What a cache scan reads like: the ways the session can carry on from here,
+// priced on one set of figures. `/compact`, each cut point still cached, and
+// carrying on unchanged, with what each summarizes away, what it keeps and how
+// many turns it takes to pay for itself. What sits above them all closes it.
+//
+// It prices; it does not choose. Which of them to recommend is the `cut-point`
+// skill's call, and the price is only half of that: what the work ahead still
+// needs verbatim rules options out before any figure is read.
 //
 // The cut-point script prints it, and nothing else does: the injected messages
 // say the size and send the agent here, so a reading is never older than the
 // moment the agent asked for one.
 import type { Compaction } from "./compaction.mts";
 import { formatTokens } from "./messages.mts";
-import { paybackTurns } from "./payback.mts";
+import { compactCut, paybackTurns, TYPICAL_COMPACT_TAIL } from "./payback.mts";
 import {
 	DEFAULT_READ_MULTIPLIER,
 	type Pricing,
@@ -87,27 +92,46 @@ function opening(scan: CacheWindow, rate: number | null): string {
 
 /**
  * The whole of what there is to say when no cut point is left cached: a rewind
- * costs its whole prefix wherever it lands, which leaves `/compact`, unless a
- * compaction has already bounded that price; then the choice is the prompts it
- * kept and nothing newer.
+ * costs its whole prefix wherever it lands, so what is left to weigh is the two
+ * rows below. Unless a compaction kept prompts verbatim; then the choice is
+ * those prompts and nothing newer, and pricing `/compact` beside them would put
+ * a figure on the dearer of the two and none on the cheaper.
  *
- * Both sentences speak only of cut points: an empty list means every prompt a
- * rewind would land on has gone cold, not that the context holds none cached
- * and not that nothing has been sent, since a prompt in flight is both.
- * Neither quotes a payback, so neither has a rate to disclose.
+ * Every opening here speaks only of cut points: an empty list means every
+ * prompt a rewind would land on has gone cold, not that the context holds none
+ * cached and not that nothing has been sent, since a prompt in flight is both.
  */
-function emptyReading(scan: CacheWindow): string {
+function emptyReading(scan: CacheWindow, price: Price): string {
 	const compaction = compactionIn(scan);
 
-	if (compaction === null) {
-		return `${header(scan, null)}: no cut point is still cached, so any rewind re-reads its whole prefix at full price. Recommend \`/compact <focus line>\` instead.`;
+	if (compaction !== null && compaction.kept.length > 0) {
+		return `${header(scan, null)}. ${compactedTo(compaction)}, and there is nothing newer to cut at. ${keptClause(compaction, "")}`;
 	}
 
-	const kept =
-		compaction.kept.length > 0 ? ` ${keptClause(compaction, "")}` : "";
+	const context = scan.contextTokens;
+	const whole =
+		context === null ? null : wholeContext(scan, context, price.read);
+	const rows = whole === null ? [] : [whole.compact, whole.carry];
+	const opened = `${header(scan, disclosedRate(price, quotesPayback(rows)))}${
+		compaction === null
+			? `: ${NO_CUT_POINT}`
+			: `. ${compactedTo(compaction)}, and there is nothing newer to cut at.`
+	}`;
 
-	return `${header(scan, null)}. ${compactedTo(compaction)}, and there is nothing newer to cut at.${kept}`;
+	return rows.length === 0
+		? opened
+		: `${opened} ${NO_CUTS_LEAD}\n\n${listing(rows)}`;
 }
+
+/**
+ * What is true of every prompt the picker still offers once the cache behind
+ * them has gone: the rewind is a full read of everything above whichever one
+ * the user picks. Stated and left there rather than turned into a
+ * recommendation, because what chooses between the two rows under it is what
+ * the work ahead still needs verbatim, which no figure here knows.
+ */
+const NO_CUT_POINT =
+	"no cut point is still cached, so a rewind re-reads its whole prefix at full price wherever it lands.";
 
 /**
  * What the whole context comes to when the only prompt a turn has answered is
@@ -215,18 +239,112 @@ function listedPrompts(scan: CacheWindow): readonly CachedPrompt[] {
 const paybackClause = (turns: number | null): string =>
 	turns === null ? "" : `, pays back after ${plural(turns, "turn")}`;
 
-const row = (
-	prompt: CachedPrompt,
-	index: number,
-	turns: number | null,
-): readonly string[] => [
-	`  ${index + 1}. "${prompt.text}"`,
-	`     sent ${clock(prompt.sentAt)} | valid until ${clock(prompt.expiresAt)} | ${formatTokens(prompt.prefixTokens)} tokens before it, keeps ${formatTokens(prompt.keptTokens)}${paybackClause(turns)}`,
-];
+/** One thing the session can do, and what doing it costs. */
+interface Row {
+	/** The prompt to select in the picker, or the command to run. */
+	readonly head: string;
+	/** What it moves and what that comes to, in fields the reading separates. */
+	readonly detail: string;
+	/** The payback it quotes, and null for a row that quotes none. */
+	readonly turns: number | null;
+}
+
+/** Whether any row came to a payback figure, which is what a rate governs. */
+const quotesPayback = (rows: readonly Row[]): boolean =>
+	rows.some((row) => row.turns !== null);
+
+/** The rows as the numbered list the reading prints them as. */
+const listing = (rows: readonly Row[]): string =>
+	rows
+		.flatMap(({ head, detail }, index) => [
+			`  ${index + 1}. ${head}`,
+			`     ${detail}`,
+		])
+		.join("\n");
+
+/** What the list holds and in what order, where every option is in it. */
+const OPTIONS_LEAD =
+	"Options, `/compact` first, the cached cut points oldest first after it, and carrying on last, which every payback is measured against:";
+
+/** The same where the session has no cut point left to weigh them against. */
+const NO_CUTS_LEAD =
+	"Options, `/compact` and carrying on, which its payback is measured against:";
+
+const cutRow = (prompt: CachedPrompt, turns: number | null): Row => ({
+	head: `"${prompt.text}"`,
+	detail: `sent ${clock(prompt.sentAt)} | valid until ${clock(prompt.expiresAt)} | ${formatTokens(prompt.prefixTokens)} tokens before it, keeps ${formatTokens(prompt.keptTokens)}${paybackClause(turns)}`,
+	turns,
+});
 
 /**
- * The reading itself: an opening paragraph, the cut points as numbered rows,
- * and what the rest of the session is, above and below them.
+ * The `/compact` row: the same arithmetic as a cut, at a line Claude Code
+ * draws rather than one the user picks out of the cache. Nothing here expires,
+ * since it selects no prompt and needs none cached, so the field the cut rows
+ * spend on a lifetime says where its tail figure came from instead.
+ *
+ * That tail is Claude Code's to size and is never known in advance. A
+ * compaction this session has already run is the best evidence there is for
+ * what the next one would leave, and what it left is what the request after it
+ * wrote back to the cache in one piece, its summary included, which is exactly
+ * the term this row prices. The constant stands in wherever there is no such
+ * compaction to measure, a rewind summarize's boundary included: that one kept
+ * the stretch below a prompt the user picked, so pricing it as a tail would
+ * quote the rewind the user has already taken and call it `/compact`.
+ */
+function compactRow(scan: CacheWindow, context: number, read: number): Row {
+	const compaction = compactionIn(scan);
+	const measured = compaction?.summarize === "compact" ? compaction : null;
+	const tail =
+		measured === null
+			? {
+					tokens: TYPICAL_COMPACT_TAIL,
+					from: "tail assumed, none measured here",
+				}
+			: {
+					tokens: measured.postTokens,
+					from: `tail from the compaction at ${clock(measured.at)}`,
+				};
+	const cut = compactCut(context, tail.tokens);
+	const turns = paybackTurns(cut, scan.ttl, read);
+
+	return {
+		head: "`/compact <focus line>`",
+		detail: `${tail.from} | summarizes ${formatTokens(cut.prefixTokens)} tokens, keeps about ${formatTokens(cut.keptTokens)}${paybackClause(turns)}`,
+		turns,
+	};
+}
+
+/**
+ * What carrying on costs: the whole context read back, every turn, at the rate
+ * the reading is priced by. Per turn rather than over a stretch of them,
+ * because it is the base the paybacks above it are counted in turns of and
+ * nothing here knows how many turns the work has left.
+ */
+const carryRow = (context: number, read: number): Row => ({
+	head: "carry on",
+	detail: `nothing summarized, nothing written back | ${formatTokens(context * read)} tokens a turn, ${formatTokens(context)} of context at the cache read rate`,
+	turns: null,
+});
+
+/** The two options that are about the whole context rather than a prompt. */
+interface WholeContext {
+	readonly compact: Row;
+	readonly carry: Row;
+}
+
+/** Those two, which stand whether or not a cut point is left cached. */
+const wholeContext = (
+	scan: CacheWindow,
+	context: number,
+	read: number,
+): WholeContext => ({
+	compact: compactRow(scan, context, read),
+	carry: carryRow(context, read),
+});
+
+/**
+ * The reading itself: an opening paragraph, the options as numbered rows, and
+ * what the rest of the session is, above and below the cut points among them.
  *
  * `pricing` is the price table, and the model it is asked about is the one the
  * scan read off the transcript it is reading, so a reading of another
@@ -238,37 +356,37 @@ export function cacheReading(
 	pricing: Pricing | null = null,
 ): string {
 	const price = priceOf(scan, pricing);
+	const context = scan.contextTokens;
 
-	if (scan.prompts.length === 0) {
-		return emptyReading(scan);
+	// One condition in two spellings: the walk records a prompt only once it
+	// has met the turn that priced it, so a scan with no context size has no
+	// prompts to list either.
+	if (context === null || scan.prompts.length === 0) {
+		return emptyReading(scan, price);
 	}
 
 	const listed = listedPrompts(scan);
+	// Priced before anything is written, since whether the opening line has a
+	// rate to disclose turns on whether any row came to a figure.
+	const whole = wholeContext(scan, context, price.read);
+	const cuts = listed.map((prompt) =>
+		cutRow(prompt, paybackTurns(prompt, scan.ttl, price.read)),
+	);
+	const rows = [whole.compact, ...cuts, whole.carry];
+	const rate = disclosedRate(price, quotesPayback(rows));
 
 	if (listed.length === 0) {
-		return `${opening(scan, null)} ${NOTHING_TO_CUT}`;
+		// Nothing was listed, so the rows are the two whole-context ones alone.
+		return `${opening(scan, rate)} ${NOTHING_TO_CUT} ${NO_CUTS_LEAD}\n\n${listing(rows)}`;
 	}
-
-	// Priced before anything is written, since whether the opening line has a
-	// rate to disclose turns on whether any of these came to a figure.
-	const payback = listed.map((prompt) =>
-		paybackTurns(prompt, scan.ttl, price.read),
-	);
-	const rate = disclosedRate(
-		price,
-		payback.some((turns) => turns !== null),
-	);
-	const rows = listed.flatMap((prompt, i) =>
-		row(prompt, i, payback[i] ?? null),
-	);
 
 	// The compaction gets a paragraph of its own: the rows below it are the
 	// choice, and it is not one of them.
 	const paragraphs = namesCompaction(scan)
-		? [opening(scan, rate), "Cached prompts, oldest first:"]
-		: [`${opening(scan, rate)} Cached prompts, oldest first:`];
+		? [opening(scan, rate), OPTIONS_LEAD]
+		: [`${opening(scan, rate)} ${OPTIONS_LEAD}`];
 
-	paragraphs.push(rows.join("\n"), cachedRangeClause(scan));
+	paragraphs.push(listing(rows), cachedRangeClause(scan));
 
 	return paragraphs.join("\n\n");
 }

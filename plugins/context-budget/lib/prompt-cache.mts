@@ -68,6 +68,15 @@ export interface CacheWindow {
 	 * nothing but a compaction, or a transcript whose entries name no model.
 	 */
 	readonly model: string;
+	/**
+	 * The context the newest turn was sent with, which every option a reading
+	 * offers is measured against: what carrying on re-reads every turn, and what
+	 * a cut divides into the part it summarizes away and the part it keeps. Null
+	 * where the walk met no turn to take it from, as `model` is empty there, and
+	 * never null where `prompts` holds anything: the walk records a prompt only
+	 * once it has met the turn that priced it.
+	 */
+	readonly contextTokens: number | null;
 	/** The picker-eligible prompts whose prefix is still cached, oldest first. */
 	readonly prompts: readonly CachedPrompt[];
 	readonly above: Above;
@@ -287,6 +296,7 @@ function ended(walk: Walk, now: number): CacheWindow {
 	return {
 		ttl: walk.ttl ?? DEFAULT_TTL,
 		model: walk.model,
+		contextTokens: context,
 		prompts: walk.warm.reverse().map((prompt) => ({
 			...prompt,
 			keptTokens: Math.max(

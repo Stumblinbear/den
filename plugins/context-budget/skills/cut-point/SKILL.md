@@ -1,6 +1,6 @@
 ---
 name: cut-point
-description: A priced reading of the session's prompt cache, listing the rewind cut points still cached with what each keeps and when it pays back.
+description: A priced reading of the session's prompt cache, listing the rewind cut points still cached, `/compact`, and carrying on, each with what it keeps and when it pays back.
 when_to_use: ALWAYS invoke this skill when naming where to rewind to or which prompt to select in `/rewind` or when a cut point named earlier has expired. Do not name a cut point or quote a payback from memory; use this skill first.
 ---
 
@@ -12,10 +12,12 @@ A rewind at a prompt re-reads everything before it, cached only while the prompt
 
 ## Choosing
 
-Name the oldest listed prompt at or after the start of the arc: older, and the cut keeps the end of the previous arc verbatim as dead weight, so the next threshold comes sooner; newer, and the summary swallows setup the arc still leans on. If the arc began after every listed prompt, it began at the prompt in hand, and a cut there keeps nothing verbatim: recommend `/compact <focus line>` instead.
+The arc rules on what is admissible before any figure is read: whatever the next steps still lean on has to survive verbatim. That rules `/compact` out where the tail it keeps would not hold that setup, however cheap the row looks, and it admits a rewind only at a prompt the arc began at or after, the oldest listed one that qualifies; the `context-budget` skill's "Naming the cut point" says which prompt that is. If the arc began after every listed prompt, no cut point is admissible, and the choice is `/compact <focus line>` or carrying on, on the figures below.
 
-The payback is how many more turns the work must take before the cut has saved more than it cost. Prefer a cut whose payback sits well inside that; when every listed payback is beyond it, say so and recommend carrying on, or `/compact <focus line>` if the context has to come down anyway. The figure assumes the session keeps working, so it is pessimistic for one that pauses past the cache lifetime, where the next turn rewrites the whole context either way.
+Price then chooses among what the arc admits: the lowest payback, and `/compact` where two of them tie. The payback is how many more turns the work must take before the option has saved more than it cost, so carrying on, the last row, wins whenever every payback is longer than the arc has left to run; say so rather than recommending a cut the session will not live to earn back. The `/compact` row is priced on an estimated tail, so a turn or two between it and a cut is inside that estimate. Every figure assumes the session keeps working, so all of them are pessimistic for one that pauses past the cache lifetime, where the next turn rewrites the whole context either way.
 
 ## Saying it
 
-Give the user, in one short passage: the direction by name, "Summarize up to here"; the prompt's opening words quoted verbatim, since the picker lists their prompts and a position like "three prompts ago" does not survive scrolling; "valid until HH:MM" from the list; and that they can ask you for another cut point if they miss it. Only the user can run `/rewind`; the direction is chosen in its picker after the prompt is selected. A user working from Remote Control cannot open that picker at all, so recommend `/compact <focus line>` there instead; the `context-budget` skill has the shape of that line.
+Give the user, in one short passage: the direction by name, "Summarize up to here"; the prompt's opening words quoted verbatim, since the picker lists their prompts and a position like "three prompts ago" does not survive scrolling; "valid until HH:MM" from the list; and that they can ask you for another cut point if they miss it. Only the user can run `/rewind`; the direction is chosen in its picker after the prompt is selected. A user working from Remote Control cannot open that picker at all, so recommend `/compact <focus line>` there instead.
+
+Say a `/compact` as the command with its focus line written out, whose shape is in the `context-budget` skill, and one clause of why: what it summarizes away against what carrying on costs a turn. Quote no expiry and name no prompt, since it selects none and nothing about it goes stale, and either of you can run it.

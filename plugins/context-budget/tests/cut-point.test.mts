@@ -6,38 +6,36 @@
 // wrong.
 //
 // How it finds the transcript is `session-record.test.mts`, what it says about
-// a compaction is `cut-point-compaction.test.mts`, and what it prices a cut at
-// is `cut-point-pricing.test.mts`.
+// a compaction is `cut-point-compaction.test.mts`, what it prices a cut at is
+// `cut-point-pricing.test.mts`, and the two rows in the list that are not cut
+// points are `cut-point-options.test.mts`.
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fixtureDir, runtimes } from "../../../tests/harness.mts";
-import { assistant, at, HOUR, hhmm, prompt, toolResult } from "./fixtures.mts";
+import {
+	assistant,
+	at,
+	CACHED_OPENED,
+	CACHED_SESSION,
+	CACHED_STARTED,
+	HOUR,
+	hhmm,
+	prompt,
+	toolResult,
+} from "./fixtures.mts";
 import { reading, scriptRunner, transcript } from "./harness.mts";
 
-const opened = at(50);
-const started = at(35);
-
-/** Two cached prompts an hour apart from expiry, with a cold one above them. */
-const SESSION: readonly string[] = [
-	assistant(80_000, { minutesAgo: 200 }),
-	prompt("The prompt from before lunch", at(190)),
-	assistant(100_000, { minutesAgo: 55 }),
-	prompt("Read the brief and start on the scanner", opened),
-	assistant(150_000, { minutesAgo: 40 }),
-	prompt("Now add the skill that takes a fresh reading", started),
-	assistant(200_000, { minutesAgo: 30 }),
-];
-
 /**
- * The rows that session comes to. Its context is 200K, so what a cut keeps is
- * 200K less what it summarizes away.
+ * The cut rows `CACHED_SESSION` comes to, numbered from 2 because `/compact`
+ * is row 1. Its context is 200K, so what a cut keeps is 200K less what it
+ * summarizes away.
  */
 const SESSION_ROWS = new RegExp(
-	`1\\. "Read the brief and start on the scanner"\\s+` +
-		`sent ${hhmm(opened)} \\| valid until ${hhmm(opened, HOUR)} \\| 100K tokens before it, keeps 100K, pays back after 22 turns\\s+` +
-		`2\\. "Now add the skill that takes a fresh reading"\\s+` +
-		`sent ${hhmm(started)} \\| valid until ${hhmm(started, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
+	`2\\. "Read the brief and start on the scanner"\\s+` +
+		`sent ${hhmm(CACHED_OPENED)} \\| valid until ${hhmm(CACHED_OPENED, HOUR)} \\| 100K tokens before it, keeps 100K, pays back after 22 turns\\s+` +
+		`3\\. "Now add the skill that takes a fresh reading"\\s+` +
+		`sent ${hhmm(CACHED_STARTED)} \\| valid until ${hhmm(CACHED_STARTED, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
 );
 
 const COLD_ABOVE =
@@ -53,14 +51,14 @@ for (const runtime of runtimes()) {
 	test(
 		name("lists the cached cut points oldest first, with what each one moves"),
 		() => {
-			const out = read(...SESSION);
+			const out = read(...CACHED_SESSION);
 
 			// Read by hand from a path, and priced from that path all the same:
 			// the transcript's own turns name the model, so nothing is being
 			// assumed and the opening line has no rate to disclose.
 			assert.match(
 				out,
-				/Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Cached prompts, oldest first:/,
+				/Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Options, `\/compact` first, the cached cut points oldest first after it, and carrying on last, which every payback is measured against:/,
 			);
 			assert.match(out, SESSION_ROWS);
 			assert.doesNotMatch(
@@ -77,7 +75,7 @@ for (const runtime of runtimes()) {
 		// turn has answered it, so its prefix is the whole current context and a
 		// cut there keeps nothing verbatim, which is `/compact` by another name.
 		const out = read(
-			...SESSION,
+			...CACHED_SESSION,
 			prompt("was there anything still pending?", at(2)),
 		);
 
@@ -91,7 +89,7 @@ for (const runtime of runtimes()) {
 			SESSION_ROWS,
 			"the reading is the one the same session gives with nothing in flight",
 		);
-		assert.doesNotMatch(out, /^ *3\./m, "and there is no third row");
+		assert.doesNotMatch(out, /^ *5\./m, "and no row under carrying on");
 	});
 
 	test(name("a prompt that opens the context is left off the list"), () => {
@@ -102,15 +100,15 @@ for (const runtime of runtimes()) {
 			assistant(100_000, { minutesAgo: 55 }),
 			prompt("Read the brief and start on the scanner", at(50)),
 			assistant(150_000, { minutesAgo: 40 }),
-			prompt("Now add the skill that takes a fresh reading", started),
+			prompt("Now add the skill that takes a fresh reading", CACHED_STARTED),
 			assistant(200_000, { minutesAgo: 30 }),
 		);
 
 		assert.match(
 			out,
 			new RegExp(
-				`1\\. "Now add the skill that takes a fresh reading"\\s+` +
-					`sent ${hhmm(started)} \\| valid until ${hhmm(started, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
+				`2\\. "Now add the skill that takes a fresh reading"\\s+` +
+					`sent ${hhmm(CACHED_STARTED)} \\| valid until ${hhmm(CACHED_STARTED, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
 			),
 		);
 		assert.doesNotMatch(out, /Read the brief and start on the scanner/);
@@ -137,6 +135,16 @@ for (const runtime of runtimes()) {
 			assert.match(
 				out,
 				/Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one with a turn after it is its first, so there is nothing to cut at yet\./,
+			);
+			// No cut point to weigh does not mean nothing to weigh: the two
+			// options that are not a rewind stand whatever the list came to.
+			assert.match(
+				out,
+				/1\. `\/compact <focus line>`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+			);
+			assert.match(
+				out,
+				/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
 			);
 		},
 	);
@@ -214,7 +222,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. "The one prompt the user actually typed"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 100K, pays back after 22 turns/,
+				/2\. "The one prompt the user actually typed"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 100K, pays back after 22 turns/,
 			);
 
 			for (const ineligible of [
@@ -245,18 +253,6 @@ for (const runtime of runtimes()) {
 		},
 	);
 
-	test(name("a session with nothing cached left points at `/compact`"), () => {
-		const out = read(
-			assistant(100_000, { minutesAgo: 55, ttl: "5m" }),
-			prompt("Read the brief and start on the scanner", at(50)),
-			assistant(200_000, { minutesAgo: 30, ttl: "5m" }),
-		);
-
-		assert.match(out, /Prompt cache, read at.*5m lifetime/);
-		assert.match(out, /no cut point is still cached/);
-		assert.match(out, /Recommend `\/compact <focus line>` instead\./);
-	});
-
 	test(
 		name("nothing cached counts cut points, not the prompt in flight"),
 		() => {
@@ -271,7 +267,7 @@ for (const runtime of runtimes()) {
 					assistant(200_000, { minutesAgo: 1, ttl: "5m" }),
 					prompt("was there anything still pending?", at(0.5)),
 				),
-				/no cut point is still cached, so any rewind re-reads its whole prefix at full price\. Recommend `\/compact <focus line>` instead\./,
+				/no cut point is still cached, so a rewind re-reads its whole prefix at full price wherever it lands\./,
 			);
 		},
 	);

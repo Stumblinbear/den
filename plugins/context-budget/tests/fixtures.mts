@@ -4,7 +4,9 @@
 // lifetime, and a prompt carries a `promptId`, an `origin` and a `timestamp`.
 //
 // Every time is relative to now, because every question these fixtures are
-// built to ask is "how long ago". Importing this registers no test of its own.
+// built to ask is "how long ago". The one whole session at the end is here for
+// the same reason the entries are: two files price it, and building it twice
+// would let the two drift. Importing this registers no test of its own.
 export const MINUTE = 60_000;
 export const HOUR = 60 * MINUTE;
 
@@ -80,8 +82,16 @@ export const prompt = (
 		...extra,
 	});
 
-/** The other user entry: a tool result, which the picker never lists. */
-export const toolResult = (text: string, timestamp: string): string =>
+/**
+ * The other user entry: a tool result, which the picker never lists. `extra`
+ * is how a test gives one the `uuid` a compaction preserves it by, which is
+ * most of what a compaction preserves and none of what it offers to cut at.
+ */
+export const toolResult = (
+	text: string,
+	timestamp: string,
+	extra: Readonly<Record<string, unknown>> = {},
+): string =>
 	JSON.stringify({
 		type: "user",
 		isSidechain: false,
@@ -93,6 +103,7 @@ export const toolResult = (text: string, timestamp: string): string =>
 			],
 		},
 		toolUseResult: { stdout: text },
+		...extra,
 	});
 
 export interface BoundaryOptions {
@@ -105,6 +116,19 @@ export interface BoundaryOptions {
 	 * reads past the boundary.
 	 */
 	readonly kept?: readonly string[];
+	/**
+	 * Written the way "summarize up to here" writes one: the summary went in
+	 * above the stretch it kept, so the boundary carries on from the entry
+	 * above that stretch rather than from the end of it. `/compact` and
+	 * auto-compact append theirs after the last entry there was, which is what
+	 * this is false for. `trigger` says "manual" either way.
+	 *
+	 * The other rewind direction is no shape of this entry: "summarize from
+	 * here" appends its summary too, and what marks it is that the stretch it
+	 * kept opens the conversation, which a test writes by naming the first
+	 * prompt of the transcript in `kept`.
+	 */
+	readonly splicedAbove?: boolean;
 }
 
 /**
@@ -115,21 +139,32 @@ export const compactBoundary = ({
 	minutesAgo = 0,
 	postTokens = 11304,
 	kept = [],
-}: BoundaryOptions = {}): string =>
-	JSON.stringify({
+	splicedAbove = false,
+}: BoundaryOptions = {}): string => {
+	// The stretch it kept, named by its last entry. A test that names none
+	// still gets a boundary whose two uuid fields agree, as a compaction's do;
+	// what it does not get is an entry above that stretch for the reader to
+	// walk to, so a boundary written that way measures nothing.
+	const tailUuid = kept[kept.length - 1] ?? "tail-entry";
+
+	return JSON.stringify({
 		type: "system",
 		subtype: "compact_boundary",
 		content: "Conversation compacted",
 		level: "info",
 		timestamp: at(minutesAgo),
+		logicalParentUuid: splicedAbove
+			? "the-entry-above-the-kept-stretch"
+			: tailUuid,
 		compactMetadata: {
 			trigger: "manual",
 			preTokens: 260000,
 			postTokens,
-			preservedSegment: { headUuid: kept[0], tailUuid: kept[kept.length - 1] },
+			preservedSegment: { headUuid: kept[0] ?? tailUuid, tailUuid },
 			preservedMessages: { uuids: kept, allUuids: kept },
 		},
 	});
+};
 
 export const COMPACT_SUMMARY = JSON.stringify({
 	type: "user",
@@ -172,3 +207,29 @@ export const apiError = ({
 		isApiErrorMessage: true,
 		error: "timeout",
 	});
+
+/** When the older of the two cut points in `CACHED_SESSION` was sent. */
+export const CACHED_OPENED = at(50);
+
+/** When the newer of them was sent. */
+export const CACHED_STARTED = at(35);
+
+/**
+ * A session with those two cut points still cached and a prompt above them
+ * that has gone cold, which keeps the older of the two from opening the
+ * context. Its newest turn is 200K, so what a cut keeps is 200K less what it
+ * summarizes away, and the reading numbers it `/compact`, the two of them, and
+ * carrying on.
+ *
+ * Two files price it: one for the rows the cut points come to, one for the two
+ * options priced around them. Building it twice would let the two drift.
+ */
+export const CACHED_SESSION: readonly string[] = [
+	assistant(80_000, { minutesAgo: 200 }),
+	prompt("The prompt from before lunch", at(190)),
+	assistant(100_000, { minutesAgo: 55 }),
+	prompt("Read the brief and start on the scanner", CACHED_OPENED),
+	assistant(150_000, { minutesAgo: 40 }),
+	prompt("Now add the skill that takes a fresh reading", CACHED_STARTED),
+	assistant(200_000, { minutesAgo: 30 }),
+];

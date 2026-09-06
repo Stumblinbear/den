@@ -21,7 +21,9 @@ picker, which lists their own prompts. Your part is the recommendation.
 ## Choosing between them
 
 Plain `/compact` already preserves a recent tail, so reach for rewind only when
-you can name a cut point better than "the last little while".
+you can name a cut point better than "the last little while". The `cut-point`
+skill's reading prices all three ways forward on one set of figures: `/compact`,
+each cut point still cached, and carrying on unchanged.
 
 - **`/compact` with a focus line.** The session is one continuous thread and
   the recent work is the work. The default; it costs one command and no picker.

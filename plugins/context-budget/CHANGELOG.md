@@ -9,6 +9,23 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
+- The cut-point reading prices `/compact` and carrying on beside the rewind cut
+  points, on the same arithmetic, so the three can be read against one another.
+  `/compact` comes first, as a cut at the tail Claude Code keeps rather than at
+  a selected prompt; that tail is an estimate, taken from what a `/compact` or
+  auto-compact in this session left behind where there has been one and from a
+  typical 15K where there has not, and the row says which. A rewind summarize
+  writes the same kind of boundary but kept the stretch the user chose, so it
+  measures no tail, and a session whose only boundary came from the picker
+  takes the 15K too. Carrying on comes last, as what one more turn costs at the
+  size the context is now, which is what every payback is measured against. A
+  reading with no cut point to offer prices those two on their own, whether the
+  cache behind every prompt ran out or a compaction kept none of them verbatim,
+  so a session with no rewind on offer still has two figures to choose between.
+- The `cut-point` skill chooses between the three in that order: the arc rules
+  on what may be summarized away before any figure is read, price picks among
+  what is left with `/compact` taking a tie, and carrying on wins where every
+  payback is longer than the work the arc has left.
 - The three skills carry a `when_to_use` directive and a description that
   says what each skill is, so the model routes to them rather than acting on
   its own.

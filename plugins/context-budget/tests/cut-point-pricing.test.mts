@@ -69,11 +69,11 @@ for (const runtime of runtimes()) {
 
 		assert.match(
 			out,
-			/1\. "Read the brief and start on the scanner"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 110K tokens before it, keeps 90K, pays back after 19 turns/,
+			/2\. "Read the brief and start on the scanner"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 110K tokens before it, keeps 90K, pays back after 19 turns/,
 		);
 		assert.match(
 			out,
-			/2\. "Now add the skill that takes a fresh reading"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 160K tokens before it, keeps 40K, pays back after 7 turns/,
+			/3\. "Now add the skill that takes a fresh reading"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 160K tokens before it, keeps 40K, pays back after 7 turns/,
 			"a cut that keeps less costs less to write back and comes good sooner",
 		);
 		assert.doesNotMatch(
@@ -82,6 +82,48 @@ for (const runtime of runtimes()) {
 			"the record names the model, so the rate is that model's row and not a guess",
 		);
 	});
+
+	test(name("`/compact` is priced on the same figures as the cuts"), () => {
+		// The three rows are only worth reading together if one arithmetic
+		// produced them. `/compact` keeps the least of anything on offer here,
+		// the 15K tail it is assumed to keep against 40K and 90K, so it
+		// summarizes the most away and comes good soonest of the three.
+		const out = reading(script(measured(paybackTranscript("claude-opus-5"))));
+
+		assert.match(
+			out,
+			/1\. `\/compact <focus line>`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+		);
+		assert.match(out, /keeps 90K, pays back after 19 turns/);
+		assert.match(out, /keeps 40K, pays back after 7 turns/);
+	});
+
+	test(
+		name("a cut point newer than that tail pays back sooner than `/compact`"),
+		() => {
+			// A prompt from two turns ago keeps 5K where `/compact` is reckoned to
+			// keep 15K, so the cut writes less back and summarizes more away: 3
+			// turns against 4. The reading prices the rows and ranks nothing; that
+			// the cheapest is usually `/compact` is a fact about the figures and
+			// not something the wording arranges.
+			const out = read(
+				assistant(100_000, { minutesAgo: 55 }),
+				prompt("Read the brief and start on the scanner", at(50)),
+				assistant(195_000, { minutesAgo: 6 }),
+				prompt("Fix the lint rule the check is failing on", at(5)),
+				assistant(200_000, { minutesAgo: 4 }),
+			);
+
+			assert.match(
+				out,
+				/1\. `\/compact <focus line>`[\s\S]*?summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+			);
+			assert.match(
+				out,
+				/2\. "Fix the lint rule the check is failing on"[\s\S]*?195K tokens before it, keeps 5K, pays back after 3 turns/,
+			);
+		},
+	);
 
 	test(
 		name("the same cut points on Fable take about four times as long"),
@@ -190,7 +232,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. "Now add the skill that takes a fresh reading"[\s\S]*?100K tokens before it, keeps 100K, pays back after 22 turns/,
+				/2\. "Now add the skill that takes a fresh reading"[\s\S]*?100K tokens before it, keeps 100K, pays back after 22 turns/,
 				"the 100K turn wrote the prefix a cut there re-reads, and the context is 200K",
 			);
 		},
@@ -239,7 +281,7 @@ for (const runtime of runtimes()) {
 					prompt("The prompt still inside the five minutes", at(3)),
 					assistant(200_000, { minutesAgo: 2, ttl: "5m" }),
 				),
-				/1\. "The prompt still inside the five minutes"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 150K tokens before it, keeps 50K, pays back after 7 turns/,
+				/2\. "The prompt still inside the five minutes"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 150K tokens before it, keeps 50K, pays back after 7 turns/,
 			);
 		},
 	);

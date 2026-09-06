@@ -4,6 +4,9 @@
 // even when nothing newer is cached. A boundary that kept nothing leaves a
 // context with no cut point in it at all, which is not the same as a cache
 // that has expired.
+//
+// What a compaction is worth as a measurement of the tail the next `/compact`
+// would keep is `cut-point-options.test.mts`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
@@ -14,6 +17,7 @@ import {
 	compactBoundary,
 	hhmm,
 	prompt,
+	toolResult,
 } from "./fixtures.mts";
 import { reading, scriptRunner, transcript } from "./harness.mts";
 
@@ -110,7 +114,7 @@ for (const runtime of runtimes()) {
 		);
 		assert.match(
 			out,
-			/1\. "The first prompt after the compaction"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 120K tokens before it, keeps 80K, pays back after 16 turns/,
+			/2\. "The first prompt after the compaction"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 120K tokens before it, keeps 80K, pays back after 16 turns/,
 		);
 		assert.doesNotMatch(
 			out,
@@ -120,17 +124,24 @@ for (const runtime of runtimes()) {
 	});
 
 	test(name("a compaction that kept nothing leaves nothing to cut at"), () => {
-		// The boundary kept no prompt verbatim, so the only prompt in the context
-		// is the first one sent after it, and a cut there summarizes nothing
-		// away. Saying what the compaction cost adds nothing, because there is no
-		// choice to make. What the agent needs to hear is that there is nothing
-		// to cut at yet, rather than a bare "every prompt in the context is
-		// cached" that reads as an empty list.
+		// The boundary kept entries verbatim but no prompt among them, so the
+		// only prompt in the context is the first one sent after it, and a cut
+		// there summarizes nothing away. Saying what the compaction cost adds
+		// nothing, because there is no choice to make. What the agent needs to
+		// hear is that there is nothing to cut at yet, rather than a bare "every
+		// prompt in the context is cached" that reads as an empty list.
 		const out = read(
 			assistant(80_000, { minutesAgo: 60 }),
 			prompt("A prompt the compaction summarized away", at(55)),
 			assistant(100_000, { minutesAgo: 50 }),
-			compactBoundary({ minutesAgo: 40, postTokens: 31_212, kept: [] }),
+			toolResult("The result the compaction kept verbatim", at(45), {
+				uuid: "kept-1",
+			}),
+			compactBoundary({
+				minutesAgo: 40,
+				postTokens: 31_212,
+				kept: ["kept-1"],
+			}),
 			COMPACT_SUMMARY,
 			assistant(60_000, { minutesAgo: 39 }),
 			prompt("The only prompt in the new context", at(35)),
@@ -141,6 +152,17 @@ for (const runtime of runtimes()) {
 		assert.match(
 			out,
 			/Prompt cache, read at \d\d:\d\d \(1h lifetime\)\. Every prompt in the context is cached; the only one with a turn after it is its first, so there is nothing to cut at yet\./,
+		);
+		// The compaction is worth no sentence and its tail is worth a figure all
+		// the same: what it left behind is the measurement the row below prices
+		// the next `/compact` on.
+		assert.match(
+			out,
+			/1\. `\/compact <focus line>`\s+tail from the compaction at \d\d:\d\d \| summarizes 168\.8K tokens, keeps about 31\.2K, pays back after 6 turns/,
+		);
+		assert.match(
+			out,
+			/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
 		);
 	});
 
@@ -199,14 +221,18 @@ for (const runtime of runtimes()) {
 			assistant(140_000, { minutesAgo: 29 }),
 		);
 
-		assert.doesNotMatch(out, /"\/compact"|command-name/);
-		assert.match(
+		assert.doesNotMatch(
 			out,
-			/1\. "Ordinary prompt one"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 60K tokens before it, keeps 80K, pays back after 30 turns/,
+			/"\/compact"|command-name/,
+			"the row that offers `/compact` is a command to run, not a prompt to select",
 		);
 		assert.match(
 			out,
-			/2\. "Ordinary prompt two"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 40K, pays back after 11 turns/,
+			/2\. "Ordinary prompt one"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 60K tokens before it, keeps 80K, pays back after 30 turns/,
+		);
+		assert.match(
+			out,
+			/3\. "Ordinary prompt two"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 40K, pays back after 11 turns/,
 		);
 	});
 }
