@@ -17,6 +17,11 @@ and writing-a-skill; the rest are hidden from the `/` menu:
 - `scoping`: settles the decisions an ask leaves open before a brief is
   written. One question at a time, each with a recommended answer and what it
   costs; up to five, or as many as it takes when you ask for the pass.
+- `design-exploration`: runs the design-exploration workflow before a brief is
+  written for a change that adds a module, a persisted format, a public
+  surface or a new mechanism: three explorers propose decompositions against
+  the code, a judge ranks them, and you choose. The script ships under
+  `workflows/`.
 - `flag-review`: launches the flag-reviewer on a pending change. The argument
   is a git diff range and nothing else. Omit it for the working tree against
   HEAD.
@@ -54,6 +59,10 @@ Agents, launched through the Agent tool as `den:<name>`:
   targeted extraction from files too large to read whole.
 - `synthesizer` (opus): one ranked decision document from proposals and
   verdicts.
+- `design-explorer` (opus): one decomposition for a change, from the angle it
+  is given. Read-only.
+- `design-judge` (opus): ranks the explorers' decompositions on the
+  code-architecture tests; the choice stays yours.
 - `localizer` and `localization-reviewer` (opus): natural target-language
   localization, and its review.
 

@@ -32,17 +32,20 @@ survives a real build.
 
 ## Briefs
 
-A brief pins behavior, external constraints, and the decisions already made,
-and states intent for everything else; wording is pinned only where the exact
+A brief pins behavior, external constraints, and the decisions already made, and
+states intent for everything else; wording is pinned only where the exact
 wording is the deliverable, since a pin is a decision the implementer can only
 question, not make. Where the ask leaves one of those decisions open,
-`den:scoping` settles it with the user before the brief is written. Placement,
-module boundaries, interface depth, type shape, and naming belong to the
-implementer, unless one of them is itself a requirement, and the brief says
-which. A question back from an implementer is the brief working, and the brief
-changes when the implementer is right. Text an agent will follow is
-instructions, not documentation, whoever writes it, and is audited under
-`den:writing-for-agents` before it ships.
+`den:scoping` settles it with the user before the brief is written. A change
+that adds a module, a persisted format, a public surface or a new mechanism has
+its decomposition chosen before the brief by `den:design-exploration`: a few
+explorers propose shapes against the code and a judge ranks them, the user
+chooses, and the brief pins the choice. The rest of placement, interface depth, type shape,
+and naming belongs to the implementer, unless one of them is itself a
+requirement, and the brief says which. A question back from an implementer is
+the brief working, and the brief changes when the implementer is right. Text an
+agent will follow is instructions, not documentation, whoever writes it, and is
+audited under `den:writing-for-agents` before it ships.
 
 ## Agents
 
@@ -83,7 +86,9 @@ declared choice, question back, deviation from the brief and left-undone item
 reaches the user with your accept, answer, send back or defer call and its
 reasoning, explained for someone who has not read the code, since a choice
 absorbed silently is one the user never gets to overturn. What contradicts the
-brief goes back to its agent at once, and the report says so.
+brief goes back to its agent at once, and the report says so. Where the brief
+pinned a decomposition, the tree is checked against it at triage, because the
+deviation that matters is the one the report did not declare.
 
 ## Review
 

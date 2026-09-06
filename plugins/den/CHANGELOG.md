@@ -7,8 +7,22 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+
+- A `design-exploration` workflow under `workflows/`, run by the new
+  `design-exploration` skill through the Workflow tool: three
+  `design-explorer` agents (opus) each propose a decomposition for one change
+  from their own angle, blind to each other, and a `design-judge` agent
+  (opus) ranks them on the code-architecture tests for the user to choose
+  from.
+
 ### Changed
 
+- The `coordination` skill chooses a change's decomposition before the brief
+  for any change that adds a module, a persisted format, a public surface or
+  a new mechanism: a workflow of explorers proposes shapes against the code,
+  a judge ranks them, the user chooses, and the brief pins the choice. A
+  pinned decomposition is checked against the tree at triage.
 - The `coordination` skill's launch authorization names approval by
   adjacency: a reply that does not answer a pending go is not the go, what
   it asks for is done, and the launch still waits.

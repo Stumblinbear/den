@@ -6,7 +6,14 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**", "!**/package-lock.json"],
+		// A workflow script is the body of a function, with a top-level
+		// return, which Biome cannot parse as a module.
+		"includes": [
+			"**",
+			"!**/package-lock.json",
+			"!plugins/*/workflows",
+			"!.claude/workflows"
+		],
 		"ignoreUnknown": true
 	},
 	"formatter": {
