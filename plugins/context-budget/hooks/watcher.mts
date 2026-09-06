@@ -206,9 +206,24 @@ async function prompted(
 }
 
 /**
+ * What a cut is owed, carried by the line itself: it arrives many turns after
+ * any skill was loaded, and a recommendation left inside a paragraph was
+ * never seen.
+ */
+const RELAY = [
+	"Put that to the user in your next reply, the command in a fenced block on",
+	"its own line at the end, since a recommendation inside a paragraph is one",
+	"they never see. If the work in hand should finish first, say so beside it,",
+	"and raise it again at each later pause where a cut would keep what the work",
+	"still needs, with a command written for that moment from the",
+	"`context-budget:cut-point` skill, until the user runs one or says they want",
+	"none.",
+].join(" ");
+
+/**
  * What the session is told: where the judge looked, what it recommends and
- * why, and the skill that rules on all three. The reason is the judge's own
- * sentence, since advice a coordinator cannot weigh is an instruction.
+ * why, and what a cut is owed. The reason is the judge's own sentence, since
+ * advice a coordinator cannot weigh is an instruction.
  */
 const advice = (
 	answer: Extract<Answer, { kind: "good" }>,
@@ -217,7 +232,7 @@ const advice = (
 	[
 		`Context watcher: after the turn that began "${where}", the arc looked over: ${answer.reason}.`,
 		`It recommends ${recommendation(answer)}.`,
-		"Invoke the `context-budget` skill and answer it there.",
+		...(answer.option === "carry-on" ? [] : [RELAY]),
 	].join(" ");
 
 const recommendation = (answer: Extract<Answer, { kind: "good" }>): string => {

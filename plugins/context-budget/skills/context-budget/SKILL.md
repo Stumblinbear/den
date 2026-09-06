@@ -81,15 +81,3 @@ That puts the end of an arc a good deal higher than the end of a step:
 At the urgent threshold the arc is no longer affordable to wait for: the
 stopping point is the end of the step in hand. Do not open a new file, launch a
 subagent, or start a step you cannot finish.
-
-## A watcher verdict
-
-A "Context watcher:" line is a small model's reading of the same figures and
-the last few turns, and it carries the reason it arrived at. It is advice: it
-names a moment, and you can see the work in hand that it cannot. Where the
-reason holds, relay the recommendation to the user in one line, with the focus
-line or the opening words of the prompt the verdict names. A verdict that
-recommends carrying on unchanged needs nothing relayed: it says this arc's end
-is not worth cutting at. Where the arc is not over, decline the verdict, say so
-in one clause, and carry on; nothing looks again until the context climbs a rung
-or the work lands something.

@@ -40,6 +40,12 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   resume.
 ### Changed
 
+- The watcher's advice tells the agent to put the recommended command to the
+  user in its next reply, in a fenced block on its own line, to add its own
+  caveat where the work in hand should finish first, and to raise a delayed
+  cut again at each later pause until the user runs one or says they want
+  none. The `context-budget` skill's section on answering a verdict is gone,
+  since the line carries its own instructions.
 - The default `[watcher] command` carries `--tools ""`, which is what keeps the
   judge from acting: it is a Claude Code session of its own, and a sentence of
   advice is the whole of what it is asked for.

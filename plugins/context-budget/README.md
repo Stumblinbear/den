@@ -15,9 +15,10 @@ auto-compact choose one for you.
   hook asks a small model whether the session has just reached a good moment to
   compact or rewind. Its answer reaches the agent on the next turn as advice:
   where the boundary was, what it recommends with the focus line or the prompt
-  to rewind to, and why. The agent may decline it. It runs on your own Claude
-  subscription's allowance, a few calls in a session; `[watcher] enabled =
-  false` switches it off.
+  to rewind to, and why. The agent puts it to you every time, and where it
+  would rather finish the work first it says so and raises it again at each
+  pause after. It runs on your own Claude subscription's allowance, a few
+  calls in a session; `[watcher] enabled = false` switches it off.
 - A resume guard. Before a message is sent to a subagent, a hook denies
   resuming one whose context is large, or whose prompt cache has expired, and
   tells the agent to put the numbers to you first. A fresh launch is never

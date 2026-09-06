@@ -43,7 +43,13 @@ const ADVICE = [
 	'Context watcher: after the turn that began "Now wire the verdict into the',
 	'session record", the arc looked over: the record change is landed and its',
 	"tests are green. It recommends `/compact wiring the watcher into the session",
-	"record, task #30`. Invoke the `context-budget` skill and answer it there.",
+	"record, task #30`. Put that to the user in your next reply, the command in a",
+	"fenced block on its own line at the end, since a recommendation inside a",
+	"paragraph is one they never see. If the work in hand should finish first,",
+	"say so beside it, and raise it again at each later pause where a cut would",
+	"keep what the work still needs, with a command written for that moment from",
+	"the `context-budget:cut-point` skill, until the user runs one or says they",
+	"want none.",
 ].join(" ");
 
 for (const runtime of runtimes()) {
@@ -109,6 +115,7 @@ for (const runtime of runtimes()) {
 		const said = String(injected(stop(session(), conversation(NOTICE))));
 
 		assert.ok(said.includes("It recommends carrying on unchanged."), said);
+		assert.ok(!said.includes("Put that to the user"), said);
 	});
 
 	// The model's own full stop would land beside the sentence's.
