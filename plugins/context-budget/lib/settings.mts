@@ -1,9 +1,23 @@
-// Everything the two hooks read out of the configuration file, checked once
-// here so neither carries a second opinion about what a usable value looks
-// like. Nothing is merged over anything, so a key the file does not carry is
-// missing rather than defaulted. The exceptions are `enabled`, which is what a
-// table is switched off with, and `[models]`, which a file need not have at
-// all.
+// Everything the entries read out of the configuration file, checked once here
+// so none of them carries a second opinion about what a usable value looks
+// like. A key the file carries is the value; a key it leaves out is a missing
+// key and a fault naming it, except where the table below says the key has a
+// default. `enabled` has one wherever it appears, `[models]` may be left out,
+// and `[watcher]` may be left out with each of its keys defaulted, so a file
+// that names none of them still gets a watcher.
+import { dirname } from "node:path";
+import {
+	child,
+	countOr,
+	defaulted,
+	enabled,
+	fault,
+	number,
+	type Section,
+	text,
+	textOr,
+} from "./config-table.mts";
+import { fill } from "./messages.mts";
 import { compile, type ModelMatch, rowFor } from "./model-rows.mts";
 import { FAULTS } from "./plugin.mts";
 import { loadConfigFile } from "./shared/config.mts";
@@ -39,6 +53,28 @@ export interface Guard {
 	readonly used: string;
 }
 
+/** What the watcher runs on. Every key has a default; see the header. */
+export interface Watcher {
+	readonly enabled: boolean;
+	/**
+	 * The judge itself, which is the first word of `command` with `{model}`
+	 * filled in. A user whose judge is another runtime writes the whole of that
+	 * key, which is why the model reaches the default through a placeholder
+	 * rather than being appended to it.
+	 */
+	readonly program: string;
+	/** The rest of `command`, filled in the same way. */
+	readonly args: readonly string[];
+	/**
+	 * Where the judge runs, which is the directory this file was read from. A
+	 * judge left in the hook's own working directory would load the project's
+	 * CLAUDE.md, hooks and MCP servers on every consultation.
+	 */
+	readonly cwd: string;
+	readonly tailTurns: number;
+	readonly tailTokens: number;
+}
+
 export interface Settings {
 	/** Tried in the order they are written, before `fallback`. */
 	readonly models: readonly ModelRow[];
@@ -46,16 +82,28 @@ export interface Settings {
 	readonly fallback: Thresholds | null;
 	readonly messages: NoticeMessages;
 	readonly guard: Guard;
+	readonly watcher: Watcher;
 }
 
-/** One table of the configuration, and what a fault about it names. */
-interface Section {
-	readonly path: string;
-	readonly label: string;
-	readonly table: Record<string, unknown>;
-}
+/**
+ * What the judge is asked with where the file names no command of its own:
+ * one turn, no session left behind, and the answer as JSON on stdout. It runs
+ * on the user's subscription, which is why it is `claude` rather than an API
+ * call.
+ */
+const JUDGE: readonly string[] = [
+	"claude",
+	"-p",
+	"--model",
+	"{model}",
+	"--max-turns",
+	"1",
+	"--output-format",
+	"json",
+	"--no-session-persistence",
+];
 
-/** Null when there is no configuration file: both hooks then do nothing. */
+/** Null when there is no configuration file: every entry then does nothing. */
 export async function loadSettings(
 	args: readonly string[],
 ): Promise<Settings | null> {
@@ -94,7 +142,61 @@ function settingsIn(root: Section): Settings {
 			urgent: text(messages, "urgent"),
 		},
 		guard: guard(root),
+		watcher: watcher(root),
 	};
+}
+
+function watcher(root: Section): Watcher {
+	const section = defaulted(root, "watcher");
+	const [program, ...args] = command(
+		section,
+		textOr(section, "model", "haiku"),
+	);
+
+	return {
+		enabled: enabled(section),
+		program,
+		args,
+		cwd: dirname(section.path),
+		tailTurns: countOr(section, "tail_turns", 16),
+		tailTokens: countOr(section, "tail_tokens", 20_000),
+	};
+}
+
+/**
+ * The judge invocation, whether the file wrote one or took the default, as the
+ * program and its arguments: a command with no first word is nothing to spawn,
+ * and the check that rules it out belongs where the value is read.
+ */
+function command(
+	section: Section,
+	model: string,
+): readonly [string, ...string[]] {
+	const written = section.table["command"] ?? JUDGE;
+	const argv: string[] = [];
+
+	if (Array.isArray(written)) {
+		for (const word of written) {
+			if (typeof word === "string" && word !== "") {
+				argv.push(fill(word, { model }));
+			}
+		}
+	}
+
+	const [program, ...args] = argv;
+
+	if (
+		!Array.isArray(written) ||
+		argv.length !== written.length ||
+		program === undefined
+	) {
+		fault(
+			section,
+			`has ${section.label} command that is not a non-empty array of non-empty strings`,
+		);
+	}
+
+	return [program, ...args];
 }
 
 function modelRows(root: Section): readonly ModelRow[] {
@@ -147,70 +249,3 @@ const thresholds = (section: Section): Thresholds | null =>
 	enabled(section)
 		? { notice: number(section, "notice"), urgent: number(section, "urgent") }
 		: null;
-
-function child(parent: Section, key: string): Section {
-	const label = labelled(parent.label, key);
-	const table = parent.table[key];
-
-	if (table === undefined) {
-		fault(parent, `is missing ${label}`);
-	}
-
-	if (!isTable(table)) {
-		fault(parent, `has ${label}, which is not a table`);
-	}
-
-	return { path: parent.path, label, table };
-}
-
-function enabled(section: Section): boolean {
-	const value = section.table["enabled"] ?? true;
-
-	if (typeof value !== "boolean") {
-		fault(section, `has ${section.label} enabled that is not a boolean`);
-	}
-
-	return value;
-}
-
-function number(section: Section, key: string): number {
-	const value = section.table[key];
-
-	if (value === undefined) {
-		fault(section, `is missing ${section.label} ${key}`);
-	}
-
-	if (typeof value !== "number" || !Number.isFinite(value)) {
-		fault(section, `has ${section.label} ${key} that is not a number`);
-	}
-
-	return value;
-}
-
-function text(section: Section, key: string): string {
-	const value = section.table[key];
-
-	if (value === undefined) {
-		fault(section, `is missing ${section.label} ${key}`);
-	}
-
-	if (typeof value !== "string" || value.trim() === "") {
-		fault(
-			section,
-			`has ${section.label} ${key} that is not a non-empty string`,
-		);
-	}
-
-	return value;
-}
-
-/** How a fault names a table: `[key]` at the root, `[parent.key]` under one. */
-const labelled = (parent: string, key: string): string =>
-	parent === "" ? `[${key}]` : `[${parent.slice(1, -1)}.${key}]`;
-
-const fault: (section: Section, detail: string) => never = (
-	section,
-	detail,
-) => {
-	throw FAULTS.configFault(section.path, detail);
-};

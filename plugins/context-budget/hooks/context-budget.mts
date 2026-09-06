@@ -8,7 +8,7 @@ import process from "node:process";
 import { type Crossing, crossing, type Level } from "../lib/level.mts";
 import { type Measured, measure } from "../lib/measure.mts";
 import { fill, formatTokens } from "../lib/messages.mts";
-import { FAULTS } from "../lib/plugin.mts";
+import { FAULTS, insideJudge } from "../lib/plugin.mts";
 import { updateRecord } from "../lib/session-record.mts";
 import {
 	loadSettings,
@@ -126,7 +126,7 @@ function injection(
 await runEntry(
 	{ name: "context-budget", faults: FAULTS, promptEvent: PROMPT },
 	async ({ input, session, event }) => {
-		if (!EVENTS.includes(event) || session === "") {
+		if (!EVENTS.includes(event) || session === "" || insideJudge()) {
 			return LEFT_BEFORE_CONFIG;
 		}
 

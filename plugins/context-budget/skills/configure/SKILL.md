@@ -1,7 +1,7 @@
 ---
 name: configure
-description: How the context-budget plugin works and how it is configured, covering thresholds, per-model rows, switching a model off, the resume guard's limits, and the wording of its messages.
-when_to_use: ALWAYS invoke this skill when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, or wants to change when either fires. Do not edit the plugin's config.toml or explain its behavior from memory; use this skill first.
+description: How the context-budget plugin works and how it is configured, covering thresholds, per-model rows, switching a model off, the watcher and the model it asks, the resume guard's limits, and the wording of its messages.
+when_to_use: ALWAYS invoke this skill when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, why the watcher advised what it did, or wants to change when any of them fires. Do not edit the plugin's config.toml or explain its behavior from memory; use this skill first.
 ---
 
 # Configuring context-budget
@@ -54,15 +54,16 @@ Consequences that answer most "why did it" questions:
 - The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,
   and it is the only file a session leaves there. Every run that measures
   anything rewrites it: the transcript path the hook read, the level it stands
-  at, the resume answers it has spent, and any fault already reported (below).
+  at, the resume answers it has spent, where the watcher's pace stands, and any
+  fault already reported (below).
   That level falls again with the context, so each level can fire on the next
   climb. Latest transcript only, no history. It is written even for a model
   whose row is switched off, and even when nothing was near a threshold,
   because the `cut-point` skill has only the session id to find the transcript
   by. Deleting it makes the current level fire again, which is the quickest
   way to see a message after editing it.
-- One stderr line starting `context-budget:` means both the notice and the
-  resume guard are off, and says why: `parser error` is a missing `smol-toml`
+- One stderr line starting `context-budget:` means the notice, the watcher and
+  the resume guard are off, and says why: `parser error` is a missing `smol-toml`
   in the plugin's cache directory, `config error` names the file that cannot
   be read, parsed, or used, and `internal error` is a failure of the plugin's
   own with nothing in the configuration to fix. Nothing is measured and
@@ -71,7 +72,7 @@ Consequences that answer most "why did it" questions:
   has stood through, ending in how many prompts that is, whichever hook first
   met it; the record above lists each fault meanwhile, with the line it was said
   in and that count. A fault of the same kind in different words is a report of
-  its own, and each hook's `internal error` is listed apart from the other's.
+  its own, and each hook's `internal error` is listed apart from the others'.
   The first prompt that works again says the fault is gone and drops it from the
   record. It drops only what its own run got through, so an `internal error`
   only the resume guard can meet stays listed, and goes on repeating, until the
@@ -109,8 +110,8 @@ session's first tool call and says so plainly in a session this plugin has
 never measured. The hook itself reads only the fixed 512 KB tail it measures,
 on every run, and walks nothing.
 
-The resume guard is the second hook, on every `SendMessage` to a subagent of
-this session. It reads that subagent's own transcript, beside the session
+The resume guard runs on every `SendMessage` to a subagent of this session. It
+reads that subagent's own transcript, beside the session
 transcript under `subagents/`: its newest assistant turn for the context size
 and when it last ran, and the newest turn that wrote to the prompt cache for
 which lifetime that cache is on. A turn served entirely from the cache writes
@@ -125,9 +126,25 @@ can stand in for it. One answer approves one resume, whose uuid is then in the
 session record above; a second retry on the same answer is refused with the
 `used` message.
 
+The watcher runs on `Stop`, in the background, and only while the context sits
+past `notice` and under `urgent`. It asks a small model, on the last sixteen
+turns of conversation and the same priced reading the `cut-point` skill prints,
+whether the session has just reached a good moment to compact or rewind; Claude
+Code hands the answer to the agent on its next turn, as advice the agent may
+decline. It paces itself: an answer of "not yet" names a wait of one, three or
+eight turns, halved past the midpoint between the two thresholds, and a commit,
+a push or a task marked completed cuts a wait short. Turns there are the user's
+own prompts, so an agent woken again inside one turn runs no wait down. A
+`command` of your own is handed the prompt on stdin and writes one JSON object
+on stdout, bare or in the `result` field of a `claude --output-format json`
+envelope; anything else reads as no verdict and costs the session nothing, while
+a command that will not start at all is one `internal error` line, said once. It
+runs in the data directory with `CONTEXT_BUDGET_JUDGE=1` set, which is what
+keeps these hooks quiet inside a judge that is itself a Claude Code run.
+
 ## Where changes go
 
-Both hooks read one file and only one:
+Every hook reads one file and only one:
 
     ${CLAUDE_PLUGIN_DATA}/config.toml
 
@@ -143,7 +160,7 @@ it, so the copy is where edits go:
 It is read on every hook run, so an edit takes effect on the next tool call
 with no reload.
 
-Nothing is merged under it, so it carries every key both hooks read, and a
+Nothing is merged under it, so it carries every key without a default, and a
 missing one is a `config error` naming the section and the key. Read the
 Configuration section of `../../README.md` before writing an edit: it is the
 table of every key, its type and its default, along with how a row key is
@@ -180,8 +197,8 @@ edit that has no effect on the figures is the sign to look at the file.
 
 ## Checking a change
 
-A TOML typo, a missing key, or a value neither hook can use is not quietly
-dropped: it switches both of them off while it stands and says so on stderr,
+A TOML typo, a missing key, or a value no hook can use is not quietly
+dropped: it switches all of them off while it stands and says so on stderr,
 again on every tenth prompt it goes on standing through. Run a hook by hand
 from the plugin root against a real transcript to see what it will inject, or
 what it objects to:

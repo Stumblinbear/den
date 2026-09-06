@@ -10,14 +10,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
 import { assistant, at, prompt } from "./fixtures.mts";
-import {
-	pricingOverride,
-	reading,
-	recorder,
-	scriptRunner,
-	sessionId,
-	transcript,
-} from "./harness.mts";
+import { recorder, sessionId, transcript } from "./harness.mts";
+import { pricingOverride, reading, scriptRunner } from "./script-runs.mts";
 
 /**
  * The same nine turns the payback cases are read against, so the figures here

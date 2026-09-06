@@ -1,6 +1,17 @@
 {
-	"description": "Per-model context-budget notice, measured from the transcript on every tool call and prompt, and the resume guard on SendMessage.",
+	"description": "Per-model context-budget notice, measured from the transcript on every tool call and prompt, the watcher's judge on Stop, and the resume guard on SendMessage.",
 	"hooks": {
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"async": true,
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/watcher --config \"${CLAUDE_PLUGIN_DATA}/config.toml\" --pricing \"${CLAUDE_PLUGIN_ROOT}/lib/pricing.toml\" --pricing-overrides \"${CLAUDE_PLUGIN_DATA}/pricing.toml\""
+					}
+				]
+			}
+		],
 		"PostToolUse": [
 			{
 				"hooks": [

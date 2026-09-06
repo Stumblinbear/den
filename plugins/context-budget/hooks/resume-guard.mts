@@ -7,7 +7,7 @@
 import process from "node:process";
 import { consume, resumeApproval } from "../lib/approval.mts";
 import { fill, formatTokens } from "../lib/messages.mts";
-import { FAULTS } from "../lib/plugin.mts";
+import { FAULTS, insideJudge } from "../lib/plugin.mts";
 import { type GuardLimits, loadSettings } from "../lib/settings.mts";
 import { runEntry } from "../lib/shared/entry.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
@@ -124,7 +124,11 @@ await runEntry(
 	async ({ input, session }) => {
 		// Without a session id there is no record to spend an answer in: every
 		// input carrying none would share one file named for no session at all.
-		if (input["tool_name"] !== "SendMessage" || session === "") {
+		if (
+			input["tool_name"] !== "SendMessage" ||
+			session === "" ||
+			insideJudge()
+		) {
 			return LEFT_BEFORE_CONFIG;
 		}
 

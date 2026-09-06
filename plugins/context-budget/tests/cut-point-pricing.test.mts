@@ -14,13 +14,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
 import { apiError, assistant, at, prompt } from "./fixtures.mts";
-import {
-	reading,
-	recorder,
-	scriptRunner,
-	sessionId,
-	transcript,
-} from "./harness.mts";
+import { recorder, sessionId, transcript } from "./harness.mts";
+import { reading, scriptRunner } from "./script-runs.mts";
 
 /**
  * Nine turns, with two prompts priced against different points in them: the

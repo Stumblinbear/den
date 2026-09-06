@@ -7,6 +7,7 @@
 // transcript entry marks whether the picker would offer it, so the rules are
 // kept in step with the picker's own or not at all.
 import { fieldsOf, isTable } from "./shared/fields.mts";
+import { textIn, withoutReminders } from "./transcript.mts";
 
 // Long enough to be unique among the user's prompts in the picker, short
 // enough to quote inside a sentence.
@@ -42,21 +43,6 @@ const MARKERS: ReadonlySet<string> = new Set([
 	"The user doesn't want to take this action right now. STOP what you are doing and wait for the user to tell you how to proceed.",
 	"No response requested.",
 ]);
-
-const textOf = (content: unknown): string => {
-	if (typeof content === "string") {
-		return content;
-	}
-
-	if (!Array.isArray(content)) {
-		return "";
-	}
-
-	return content
-		.filter((block) => fieldsOf(block)["type"] === "text")
-		.map((block) => String(fieldsOf(block)["text"] ?? ""))
-		.join("\n");
-};
 
 const inner = (text: string, tag: string): string | null =>
 	text.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`))?.[1] ?? null;
@@ -95,7 +81,7 @@ export function eligible(entry: Record<string, unknown>): boolean {
 		return false;
 	}
 
-	return worthOffering(textOf(content).trim());
+	return worthOffering(textIn(content).trim());
 }
 
 function worthOffering(text: string): boolean {
@@ -120,19 +106,34 @@ function worthOffering(text: string): boolean {
 }
 
 /**
- * What the picker's row for this entry reads like, so the user can match the
- * quoted words against the list in front of them. A slash command is listed by
- * its name and arguments rather than by the XML the transcript stores it as,
- * and a prompt the harness prefixed with system reminders is listed from the
- * user's own first word.
+ * A prompt as the user typed it rather than as the transcript stores it: a
+ * slash command by its name and arguments rather than by the XML around them,
+ * and a prompt the harness prefixed with system reminders from the user's own
+ * first word. Every reader that quotes a prompt back goes through this, so the
+ * words a recommendation carries are the words its row in the picker carries.
  */
-export function openingWords(entry: Record<string, unknown>): string {
-	const text = textOf(fieldsOf(entry["message"])["content"]);
+export function asTyped(text: string): string {
 	const command = inner(text, "command-name");
-	const shown = command
+
+	return command
 		? `${command} ${inner(text, "command-args") ?? ""}`
-		: stripReminders(text);
-	const line = shown.replace(/\s+/g, " ").trim();
+		: withoutReminders(text);
+}
+
+/**
+ * What the picker's row for this entry reads like, so the user can match the
+ * quoted words against the list in front of them.
+ */
+export const openingWords = (entry: Record<string, unknown>): string =>
+	opening(asTyped(textIn(fieldsOf(entry["message"])["content"])));
+
+/**
+ * The same row from the words themselves, for a reader that has the prompt's
+ * text and not the entry it came in: one line, cut at a word, and long enough
+ * to be unique among the prompts the picker lists beside it.
+ */
+export function opening(text: string): string {
+	const line = text.replace(/\s+/g, " ").trim();
 
 	if (line.length <= OPENING_CHARS) {
 		return line;
@@ -144,20 +145,4 @@ export function openingWords(entry: Record<string, unknown>): string {
 
 	// Trailing punctuation before the ellipsis reads as a typo ("forwards....").
 	return `${kept.replace(/[\s.,;:!?-]+$/, "")}...`;
-}
-
-function stripReminders(text: string): string {
-	let rest = text.trimStart();
-
-	while (rest.startsWith("<system-reminder>")) {
-		const close = rest.indexOf("</system-reminder>");
-
-		if (close < 0) {
-			break;
-		}
-
-		rest = rest.slice(close + "</system-reminder>".length).trimStart();
-	}
-
-	return rest;
 }

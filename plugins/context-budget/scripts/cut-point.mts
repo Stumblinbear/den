@@ -16,6 +16,7 @@
 // agent, so an explanation of why there is no list is more use than a stack
 // trace.
 import process from "node:process";
+import { argValue } from "../lib/args.mts";
 import { cacheReading } from "../lib/cache-reading.mts";
 import { loadPricing } from "../lib/pricing.mts";
 import { scanCacheWindow } from "../lib/prompt-cache.mts";
@@ -24,13 +25,6 @@ import { errorCode, errorMessage } from "../lib/shared/fields.mts";
 
 const NO_RECORD =
 	"No measurement recorded for this session: the context-budget hook is not running here, or this run was passed no `--session`. Pass `--transcript <path to the session's .jsonl>` to read one directly.";
-
-/** The value a flag was given, or null for a flag this run was not passed. */
-const argValue = (args: readonly string[], flag: string): string | null => {
-	const at = args.indexOf(flag);
-
-	return at < 0 ? null : (args[at + 1] ?? null);
-};
 
 /**
  * The transcript this run is to read. The measurement hook writes the path on

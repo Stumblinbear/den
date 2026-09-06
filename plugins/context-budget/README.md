@@ -11,6 +11,13 @@ auto-compact choose one for you.
   first time it crosses each of two thresholds. The first says how large the
   session is and to raise it at the end of the arc in hand. The second says to
   raise it at the end of the step in hand instead. Neither names a cut point.
+- A watcher. Past the first threshold, at the end of every turn, a background
+  hook asks a small model whether the session has just reached a good moment to
+  compact or rewind. Its answer reaches the agent on the next turn as advice:
+  where the boundary was, what it recommends with the focus line or the prompt
+  to rewind to, and why. The agent may decline it. It runs on your own Claude
+  subscription's allowance, a few calls in a session; `[watcher] enabled =
+  false` switches it off.
 - A resume guard. Before a message is sent to a subagent, a hook denies
   resuming one whose context is large, or whose prompt cache has expired, and
   tells the agent to put the numbers to you first. A fresh launch is never
@@ -54,24 +61,43 @@ TOML has no parser in Node, so the hooks depend on `smol-toml`. Claude Code
 installs it when it caches the plugin. There is nothing to build and nothing
 to run by hand.
 
-What is read: both hooks read your configuration file in the data directory,
+What it sends off the machine: the watcher runs `claude -p` at the end of a
+turn, and only while the context sits between the two thresholds. That run gets
+your recent prompts, the agent's replies with every tool result stripped out,
+the names of the tools it called, and the token figures below. It goes to the
+model named by `[watcher] model`, `haiku`, on your own subscription and out of
+that subscription's allowance; the judge paces itself, so a session sees a
+handful of calls. It starts in the plugin's data directory rather than in your
+project, so no CLAUDE.md, hook or MCP server of that project loads inside it.
+The ones you have installed at the user level do load, which is what running on
+your subscription rather than on an API key costs. `enabled = false` under
+`[watcher]` stops it, and nothing is sent. Nothing else here leaves your
+machine.
+
+What is read: every hook reads your configuration file in the data directory,
 on every run. The notice hook reads the last 512 KB of the session transcript,
 after every tool call and every prompt. The guard reads, on every message to a
 subagent, that subagent's whole transcript and its metadata file, and, only
 when the resume is past one of the limits, the whole session transcript, for
 your latest answer. The `cut-point` skill's command reads the session
 transcript backward from its end, as far back as the cached stretch goes, and
-the two price files below. Nothing here reads your source.
+the two price files below. The watcher reads the same 512 KB tail at the end of
+a turn and, past the first threshold, the transcript backward to the last
+compaction, for the turn that has just ended and a count of your prompts behind
+it; only when it is about to ask the judge does it read the last sixteen turns
+and the same cached stretch the skill reads. Nothing here reads your source.
 
 What is written: one JSON file per session under `claude-context-budget/` in
 the OS temp directory, holding the transcript the last measuring run read, the
-level this session has been told about, the resume answers it has spent and the
-faults it has been told about, plus a lock directory beside it while a hook is
-writing, and a second one for the moment a run spends taking over a lock left
-by a run that died. Nothing is written to your project.
+level this session has been told about, the resume answers it has spent, where
+the watcher's pace stands and the verdict standing, and the faults the session
+has been told about, plus a lock directory beside it while a hook is writing,
+and a second one for the moment a run spends taking over a lock left by a run
+that died. Nothing is written to your project.
 
-What they can do to a session: add a message to the agent's context, and deny
-a `SendMessage` to a subagent.
+What they can do to a session: add a message to the agent's context, deny a
+`SendMessage` to a subagent, and start one short `claude -p` run at the end of
+a turn.
 
 ## Installation
 
@@ -100,7 +126,7 @@ summarize, and which. To see it sooner, lower `notice` under `[default]`.
 
 ## Configuration
 
-Both hooks read one file and only one:
+Every hook reads one file and only one:
 
     ~/.claude/plugins/data/context-budget-den/config.toml
 
@@ -110,8 +136,8 @@ session runs on. `/context-budget:configure` is the guided path through an
 edit.
 
 The file is read on every hook run, so an edit takes effect on the next tool
-call with no reload. Nothing is merged under it, so it carries every key
-below. A missing key is a config error naming it.
+call with no reload. Nothing is merged under it, so it carries every key below
+that has no default. A missing key is a config error naming it.
 
 | Key | Type | Default | What it does |
 |---|---|---|---|
@@ -128,9 +154,23 @@ below. A missing key is a config error naming it.
 | `[resume-guard] cold` | tokens | required | the context above which a resume is denied once the subagent's prompt cache has expired |
 | `[resume-guard.messages] denied` | string | required | the deny reason on a first attempt |
 | `[resume-guard.messages] used` | string | required | the deny reason when the user's latest answer has already been spent |
+| `[watcher] enabled` | bool | `true` | `false` stops the watcher: no model call, and nothing done on Stop past reading this file |
+| `[watcher] model` | string | `haiku` | the model the judge runs on, substituted into `command` wherever it writes `{model}` |
+| `[watcher] command` | list | the `claude -p` line the example spells out | the judge invocation, as an argument list rather than a shell line; replace it whole to run the judge on something else |
+| `[watcher] tail_turns` | count | `16` | how many recent turns the judge is shown |
+| `[watcher] tail_tokens` | count | `20000` | how much of those turns it is shown, cut from the oldest end |
 
-`[models]` may be absent altogether. The other four tables are always read,
-including `[resume-guard.messages]` when the guard is off.
+`[models]` may be left out altogether, and so may `[watcher]`: each of its keys
+has the default above, so a file written before the watcher existed keeps
+working and gains it. The other four tables are always read, including
+`[resume-guard.messages]` when the guard is off.
+
+The judge is handed its prompt on stdin and read for one JSON object on stdout,
+either bare or in the `result` field of a `claude --output-format json`
+envelope, which is what a `command` of your own has to write. An answer that
+will not parse is silence: the watcher advises, so an answer nobody can read is
+worth what no answer is worth. A command whose first word nothing can start is
+the one failure you hear about, once, on stderr.
 
 Row keys are regular expressions in single quotes, matched against the model
 id as the transcript records it: `claude-opus-5`, `claude-fable-5-1`,
@@ -216,6 +256,29 @@ reading prices these; it recommends none of them. Which one to take is the
 `cut-point` skill's, and it weighs what the work ahead still needs verbatim
 before it reads a figure at all.
 
+The watcher paces itself, and the judge sets the pace. Past the notice
+threshold and under the urgent one it is asked whether the session has just
+reached a good moment, and an answer of "not yet" says when to ask again: the
+next turn, three turns, or eight, halved to four once the context is past the
+midpoint between the two thresholds. Turns there are your own prompts, so an
+agent woken half a dozen times inside one turn by background work runs nothing
+down. A commit, a push or a task marked completed cuts a wait short, since each
+is the sort of thing that ends an arc. Nothing else is read as one: what an arc
+is is the judge's to say, and a hook guessing it from the shape of a turn is the
+design this one replaced. Past the urgent threshold the judge is never asked,
+because the urgent notice has already said what a verdict there would say. One
+call runs at a time, and one that has answered nothing inside three minutes is
+killed.
+
+The answer reaches the agent on its next turn, which is when Claude Code hands
+over what a background hook wrote. Once the agent has heard it the watcher goes
+quiet until the context climbs a rung or the work lands a commit, a push or a
+completed task: the agent never reports that it declined, so a new signal is
+what reopens the question. A compaction or a rewind ends it too, and so does one
+that lands while the judge is still reading: the watcher notes which context
+each count was taken in, and an answer or a verdict about a context the session
+no longer has is dropped rather than delivered against the one it has now.
+
 The example configuration switches Haiku off, because its 200K window sits
 below the 250K urgent threshold and auto-compact would always win.
 
@@ -235,23 +298,24 @@ looks for.
 ## Troubleshooting
 
 A configuration the hooks cannot use prints one line on stderr, starting
-`context-budget:`, and switches both the notice and the guard off while it
-stands. `config error` names the file and what is wrong with it;
+`context-budget:`, and switches the notice, the watcher and the guard off while
+it stands. `config error` names the file and what is wrong with it;
 `parser error` means `smol-toml` is missing from the plugin's cache
 directory. Every run still reads the file, so a fix takes effect on the next
 tool call.
 
-`internal error` is the third of them and is not yours to fix: the run
-stopped on something the plugin does not account for, and the line ends in
-where to report it.
+`internal error` is the third of them, and usually it is not yours to fix: the
+run stopped on something the plugin does not account for, and the line ends in
+where to report it. One of them is yours: a judge `command` the watcher cannot
+start is listed under the same class, and that line ends in the key to correct.
 
 You hear that line again on every tenth prompt the fault has stood through,
 ending in how many prompts that is, and nothing at all in between: `Standing
 for 10 prompts.`, then `Standing for 20 prompts.`, and on from there. The
-prompt is what says it, whichever of the two hooks met the fault first, since
-what it repeats is what the record already holds. Nothing switches the repeat
-off: a plugin has nowhere to put a light saying it is off, and a context nobody
-is measuring goes on growing by the turn. Every fault the session has been told
+prompt is what says it, whichever hook met the fault first, since what it
+repeats is what the record already holds. Nothing switches the repeat off: a
+plugin has nowhere to put a light saying it is off, and a context nobody is
+measuring goes on growing by the turn. Every fault the session has been told
 about is listed in its record, `<session id>.json` under
 `claude-context-budget/` in the OS temp directory, with the line you heard and
 the prompts it has stood through. Delete that file to hear the line again at
@@ -268,12 +332,12 @@ the file counts as fixing it, since nothing is measured or guarded without one.
 A tool call takes nothing back, whatever it read: only a prompt does.
 
 A prompt takes back only what its own run got through, which is not the same as
-what it reminds you of. Both hooks read one file through one parser, so a
+what it reminds you of. Every hook reads one file through one parser, so a
 `config error` or a `parser error` is taken back whichever of them met it. An
 `internal error` is one hook's own run coming apart, so each hook's is listed
-apart from the other's: the measurement hook never opens the subagent transcript
-the resume guard reads, and one the guard met stays listed for the session,
-repeating every tenth prompt like the rest.
+apart from the others': the measurement hook never opens the subagent transcript
+the resume guard reads, and one the guard or the watcher met stays listed for
+the session, repeating every tenth prompt like the rest.
 
 A prompt that ends early takes back less still. One from a subagent, or one
 Claude Code names no transcript in, has read the configuration and done nothing
@@ -293,6 +357,15 @@ read one directly.
 A pricing file that cannot be read, parsed or used is dropped whole and every
 payback is figured at the shipped rates, with nothing said about it. An edit
 to it that changes no figure is the sign to look at the file.
+
+The watcher's failures are quiet but for one. A judge that answers nothing
+inside its three minutes, and one whose answer will not parse, both read as no
+verdict, and the watcher takes its longest wait before asking again. A `command`
+whose first word nothing can start is the one you hear about, because a watcher
+that never runs looks exactly like a watcher with nothing to say: one `internal
+error` line, said once, naming the command. The notice and the resume guard go
+on working through it, and only the watcher is off. Delete the session record to
+see it start over.
 
 On Node older than 22.6 with no bun on `PATH`, the hooks print one line naming
 the floor and the version they found, and do nothing.

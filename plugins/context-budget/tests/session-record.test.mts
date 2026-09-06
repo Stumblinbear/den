@@ -19,17 +19,16 @@ import {
 	hookRunner,
 	MESSAGES,
 	quiet,
-	reading,
 	record,
 	recorder,
 	reported,
-	scriptRunner,
 	sessionId,
 	stateFiles,
 	subagentSession,
 	transcript,
 	withoutParser,
 } from "./harness.mts";
+import { reading, scriptRunner } from "./script-runs.mts";
 
 interface Injection {
 	readonly hookSpecificOutput?: { readonly additionalContext?: string };

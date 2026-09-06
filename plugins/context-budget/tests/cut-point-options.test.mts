@@ -25,7 +25,8 @@ import {
 	prompt,
 	toolResult,
 } from "./fixtures.mts";
-import { reading, scriptRunner, transcript } from "./harness.mts";
+import { transcript } from "./harness.mts";
+import { reading, scriptRunner } from "./script-runs.mts";
 
 for (const runtime of runtimes()) {
 	const script = scriptRunner(runtime);

@@ -19,7 +19,8 @@ import {
 	prompt,
 	toolResult,
 } from "./fixtures.mts";
-import { reading, scriptRunner, transcript } from "./harness.mts";
+import { transcript } from "./harness.mts";
+import { reading, scriptRunner } from "./script-runs.mts";
 
 // A session compacted twenty minutes ago, keeping two prompts verbatim above
 // its boundary, with one turn taken since. Nothing sent since that turn, so the

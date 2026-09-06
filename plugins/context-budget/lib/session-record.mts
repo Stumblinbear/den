@@ -1,10 +1,11 @@
 // What this session has been told and spent, kept in the plugin's one record
 // for it, `<os temp dir>/claude-context-budget/<session id>.json`: the level
 // the context notice last stood at, the resume answers the guard has already
-// spent, and the transcript the last measuring run read. That last is how the
-// cut-point script, handed a session id and nothing else, finds the transcript
-// to read. A hook run reads it, works on the value and writes it back, all of
-// that under the lock beside it; the script only reads, and takes no lock.
+// spent, where the watcher's own pace stands, and the transcript the last
+// measuring run read. That last is how the cut-point script, handed a session
+// id and nothing else, finds the transcript to read. A hook run reads it,
+// works on the value and writes it back, all of that under the lock beside it;
+// the script only reads, and takes no lock.
 //
 // Every write merges the fields it owns over the rest and takes that lock,
 // whichever writer makes it, so the transcript path, the spent answers and the
@@ -14,12 +15,14 @@
 import { LEVELS, type Level } from "./level.mts";
 import { SESSION_STATE } from "./plugin.mts";
 import type { Locked } from "./shared/file-lock.mts";
+import { type WatcherState, watcherIn } from "./watcher.mts";
 
-/** The two facts a change to the record is handed. */
+/** What a change to the record is handed. */
 export interface SessionRecord {
 	readonly level: Level;
 	/** The uuid of every resume answer this session has already spent. */
 	readonly consumed: readonly string[];
+	readonly watcher: WatcherState;
 }
 
 /** What one run writes back: the fields it owns, and none of anyone else's. */
@@ -28,6 +31,11 @@ export interface RecordFields {
 	readonly consumed?: readonly string[];
 	/** The transcript the run read, rewritten by every run that measures. */
 	readonly transcript?: string;
+	/**
+	 * Written whole, under the lock, by the Stop entry that owns it: what the
+	 * watcher keeps is one state rather than fields anyone merges into.
+	 */
+	readonly watcher?: WatcherState;
 }
 
 /** What a change to the record leaves behind, in this plugin's fields. */
@@ -87,6 +95,7 @@ function readFields(record: Record<string, unknown>): SessionRecord {
 		consumed: Array.isArray(consumed)
 			? consumed.filter((uuid): uuid is string => typeof uuid === "string")
 			: [],
+		watcher: watcherIn(record["watcher"]),
 	};
 }
 
@@ -108,6 +117,10 @@ function written(fields: RecordFields): Record<string, unknown> {
 
 	if (fields.transcript !== undefined) {
 		record["transcript_path"] = fields.transcript;
+	}
+
+	if (fields.watcher !== undefined) {
+		record["watcher"] = fields.watcher;
 	}
 
 	return record;

@@ -1,8 +1,9 @@
-// What a transcript's entries mean, for the three readers that have to agree
-// about it: the measurement hook, the resume guard and the cache scan. Each of
-// them asks the same three questions: how big was the context, which cache
-// lifetime was it written under, and is this the point where the context was
-// thrown away. The answers live here once rather than three times over.
+// What a transcript's entries mean, for the readers that have to agree about
+// it: the measurement hook, the resume guard, the cache scan and the watcher.
+// They ask the same questions of an entry, in different orders: how big was the
+// context, which cache lifetime was it written under, is this the point where
+// the context was thrown away, and what does it say happened. The answers live
+// here once rather than four times over.
 //
 // A transcript's lines are whatever Claude Code wrote, and a line may be
 // half-written while the file is being appended to, so every entry and every
@@ -115,6 +116,76 @@ export function cacheLifetime(usage: unknown): CacheTtl | null {
 export const isCompaction = (entry: Record<string, unknown>): boolean =>
 	(entry["type"] === "system" && entry["subtype"] === "compact_boundary") ||
 	(entry["type"] === "user" && entry["isCompactSummary"] === true);
+
+/**
+ * The text of a message's content, which a transcript writes either as a bare
+ * string or as a list of blocks. Blocks that are not text are left out: a tool
+ * call and a tool result are read by `toolUses` and by nothing else.
+ */
+export function textIn(content: unknown): string {
+	if (typeof content === "string") {
+		return content;
+	}
+
+	if (!Array.isArray(content)) {
+		return "";
+	}
+
+	return content
+		.filter((block) => fieldsOf(block)["type"] === "text")
+		.map((block) => String(fieldsOf(block)["text"] ?? ""))
+		.join("\n");
+}
+
+/**
+ * A prompt with the harness's own preamble taken off, which is what the user
+ * typed. Claude Code prefixes a prompt with system reminders it composed, and
+ * a reader that quotes the prompt or hands it to a model wants neither.
+ */
+export function withoutReminders(text: string): string {
+	let rest = text.trimStart();
+
+	while (rest.startsWith("<system-reminder>")) {
+		const close = rest.indexOf("</system-reminder>");
+
+		if (close < 0) {
+			break;
+		}
+
+		rest = rest.slice(close + "</system-reminder>".length).trimStart();
+	}
+
+	return rest;
+}
+
+/** One tool call an assistant turn made: what it called and what it passed. */
+export interface ToolUse {
+	readonly name: string;
+	readonly input: Record<string, unknown>;
+}
+
+/** The tool calls in an entry, oldest first, and none where it made none. */
+export function toolUses(entry: Record<string, unknown>): readonly ToolUse[] {
+	const content = fieldsOf(entry["message"])["content"];
+	const uses: ToolUse[] = [];
+
+	if (!Array.isArray(content)) {
+		return uses;
+	}
+
+	for (const block of content) {
+		const fields = fieldsOf(block);
+
+		if (fields["type"] === "tool_use") {
+			uses.push({
+				name: String(fields["name"] ?? ""),
+				input: fieldsOf(fields["input"]),
+			});
+		}
+	}
+
+	return uses;
+}
 
 /**
  * The transcript's entries from the newest back, skipping anything that is not

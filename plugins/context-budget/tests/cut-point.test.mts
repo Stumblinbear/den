@@ -24,7 +24,8 @@ import {
 	prompt,
 	toolResult,
 } from "./fixtures.mts";
-import { reading, scriptRunner, transcript } from "./harness.mts";
+import { transcript } from "./harness.mts";
+import { reading, scriptRunner } from "./script-runs.mts";
 
 /**
  * The cut rows `CACHED_SESSION` comes to, numbered from 2 because `/compact`

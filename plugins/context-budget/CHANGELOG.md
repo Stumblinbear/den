@@ -7,6 +7,25 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Added
+
+- A watcher. Past the notice threshold and under the urgent one, a Stop hook
+  asks a small model, in the background, whether the session has just reached a
+  good moment to compact or rewind. It is handed the same priced reading the
+  `cut-point` skill prints, the last sixteen turns of conversation with the tool
+  results stripped out and cut to 20K tokens from the oldest end, and where the
+  context stands against its thresholds; it answers with a recommendation and a
+  reason, or with how long to wait before the question is worth asking again.
+  Claude Code hands that answer to the agent on the next turn as advice it may
+  decline, and the `context-budget` skill says how to answer one. It runs on
+  your own subscription's allowance, a handful of calls in a session, and
+  `[watcher] enabled = false` switches it off.
+- `[watcher]` in the configuration file, with `enabled`, `model`, `command`,
+  `tail_turns` and `tail_tokens`. Every key has a default, so a configuration
+  written before this release gains the watcher without being edited. `command`
+  is the judge invocation as an argument list, and replacing it whole is how a
+  judge that is not `claude -p` is run.
+
 ### Changed
 
 - A fault that stops the hooks is said again on every tenth prompt it stands

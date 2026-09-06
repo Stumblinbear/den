@@ -34,87 +34,10 @@ import {
 	unreadableSession,
 	withoutParser,
 } from "./harness.mts";
+import { INVALID } from "./invalid-configs.mts";
 
 // The parser report has to name the package the user has to reinstall.
 const NAMES_THE_PACKAGE = /smol-toml/;
-
-// One row per fault the checker is responsible for, each phrased the way an
-// author would write the mistake, and what the report has to name for that
-// author to find it: the section, and the key too wherever one key is wrong.
-// Nothing is merged under the file, so a section or a key the file leaves out
-// is one of them.
-const INVALID: ReadonlyArray<readonly [string, string, readonly string[]]> = [
-	["no [default] at all", "[default]", [MESSAGES, GUARD, GUARD_MESSAGES]],
-	[
-		"a [default] with no urgent",
-		"[default] urgent",
-		["[default]\nnotice = 1\n", MESSAGES, GUARD, GUARD_MESSAGES],
-	],
-	[
-		"a [default] notice that is not a number",
-		"[default] notice",
-		[
-			'[default]\nnotice = "lots"\nurgent = 2\n',
-			MESSAGES,
-			GUARD,
-			GUARD_MESSAGES,
-		],
-	],
-	["no [messages] at all", "[messages]", [DEFAULTS, GUARD, GUARD_MESSAGES]],
-	[
-		"a [messages] with a blank notice",
-		"[messages] notice",
-		[
-			DEFAULTS,
-			'[messages]\nnotice = ""\nurgent = "u"\n',
-			GUARD,
-			GUARD_MESSAGES,
-		],
-	],
-	["no [resume-guard] at all", "[resume-guard]", [DEFAULTS, MESSAGES]],
-	[
-		"a [resume-guard] with no cold",
-		"[resume-guard] cold",
-		[DEFAULTS, MESSAGES, "[resume-guard]\nlarge = 1\n", GUARD_MESSAGES],
-	],
-	[
-		"a [resume-guard.messages] with a blank denied",
-		"[resume-guard.messages] denied",
-		[
-			DEFAULTS,
-			MESSAGES,
-			GUARD,
-			'[resume-guard.messages]\ndenied = ""\nused = "u"\n',
-		],
-	],
-	[
-		"a models row that is not a table",
-		"[models.'opus']",
-		[DEFAULTS, "[models]\nopus = 5\n", MESSAGES, GUARD, GUARD_MESSAGES],
-	],
-	[
-		"a models key that is not a regular expression",
-		"[models.'(']",
-		[
-			DEFAULTS,
-			"[models.'(']\nnotice = 1\nurgent = 2\n",
-			MESSAGES,
-			GUARD,
-			GUARD_MESSAGES,
-		],
-	],
-	[
-		"a models row enabled that is not a boolean",
-		"[models.'.'] enabled",
-		[
-			DEFAULTS,
-			"[models.'.']\nenabled = \"yes\"\n",
-			MESSAGES,
-			GUARD,
-			GUARD_MESSAGES,
-		],
-	],
-];
 
 for (const runtime of runtimes()) {
 	const hook = hookRunner(runtime);

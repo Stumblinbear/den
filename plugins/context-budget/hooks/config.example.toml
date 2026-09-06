@@ -6,11 +6,11 @@
 # Copy this file there to start from it. No file there means the context notice
 # and the resume guard are both off, which is the state a fresh install is in.
 #
-# Nothing is merged under your copy, so every key below has to be in it. The
-# two exceptions are `enabled`, which any table may leave out and which
-# defaults to true, and [models], which a file need not have at all. A key that
-# is missing, or a value neither hook can use, is one line on stderr and both
-# of them off for the session.
+# Nothing is merged under your copy, so every key below that has no default has
+# to be in it. `enabled` defaults to true wherever it appears, [models] may be
+# left out, and [watcher] may be left out with each of its keys defaulted. A key
+# that is missing, or a value the hooks cannot use, is one line on stderr and
+# all of them off for the session.
 #
 # What a cached token costs a model is not configuration: it is
 # ../lib/pricing.toml.
@@ -68,6 +68,49 @@ Context budget: this session is at {tokens} tokens. A summarize is worth it at t
 # affordable to wait for.
 urgent = """
 Context budget: this session is at {tokens} tokens, past the point where waiting for the arc to end is affordable. Finish the step in hand, then invoke the `context-budget:cut-point` skill and put the choice to the user before starting anything new."""
+
+# The watcher. Past the `notice` threshold, at the end of every turn, it asks a
+# small model whether the session has just reached a good moment to compact or
+# rewind, and hands the answer to the agent on its next turn as advice. It never
+# acts, and the agent may decline it.
+#
+# The model reads the same priced reading the `cut-point` skill prints, plus the
+# recent conversation with the tool results left out. It paces itself: a "not
+# yet" answer says how many turns to wait, and the wait is cut short by a
+# commit, a push or a task marked completed. Past the `urgent` threshold it is
+# never asked, since the urgent notice has already said what it would.
+#
+# Every key here has a default, and the whole table may be left out.
+[watcher]
+
+# `false` switches the watcher off: no Stop hook work beyond reading this file,
+# and no model call. The rest of the plugin is unaffected.
+enabled = true
+
+# The model the judge runs on. Substituted into `command` wherever it writes
+# {model}.
+model = "haiku"
+
+# The judge invocation, as an argument list rather than a shell line. A file
+# without the key gets this one:
+#
+# command = [
+#   "claude", "-p", "--model", "{model}", "--max-turns", "1",
+#   "--output-format", "json", "--no-session-persistence",
+# ]
+#
+# Write your own to run the judge on something else. It is handed the prompt on
+# stdin and read for one JSON object on stdout, either bare or in the `result`
+# field of a `claude --output-format json` envelope. It runs in this directory,
+# and CONTEXT_BUDGET_JUDGE=1 is set in it, which is what keeps this plugin's own
+# hooks quiet inside a judge that is a Claude Code run of its own.
+
+# How much conversation the judge is shown: this many recent turns, cut to this
+# many tokens from the oldest end. A turn is one of your prompts and the replies
+# to it, reduced to your words, the agent's words and the names of the tools it
+# called.
+tail_turns = 16
+tail_tokens = 20_000
 
 # Resuming a subagent makes it re-read its whole transcript on every turn it then
 # takes, so past a certain size a fresh launch that rebuilds only what it needs

@@ -23,6 +23,12 @@ export const hhmm = (iso: string, plus = 0): string =>
 
 let seq = 0;
 
+/** One tool call in an assistant entry, as the watcher's signals read one. */
+export interface ToolCall {
+	readonly name: string;
+	readonly input: Record<string, unknown>;
+}
+
 /** How a turn was billed, which is how the transcript records the lifetime. */
 export interface TurnOptions {
 	readonly minutesAgo?: number;
@@ -33,6 +39,12 @@ export interface TurnOptions {
 	 */
 	readonly ttl?: "5m" | "1h" | null;
 	readonly model?: string;
+	/** The entry's own uuid, which is how the watcher names the turn it read. */
+	readonly uuid?: string;
+	/** What the assistant said, which the watcher's tail carries. */
+	readonly text?: string;
+	/** What it called, which the watcher reads for a landing point. */
+	readonly calls?: readonly ToolCall[];
 }
 
 /**
@@ -41,14 +53,31 @@ export interface TurnOptions {
  */
 export const assistant = (
 	tokens: number,
-	{ minutesAgo = 0, ttl = "1h", model = "claude-opus-5" }: TurnOptions = {},
+	{
+		minutesAgo = 0,
+		ttl = "1h",
+		model = "claude-opus-5",
+		uuid = `assistant-${seq++}`,
+		text = "",
+		calls = [],
+	}: TurnOptions = {},
 ): string =>
 	JSON.stringify({
 		type: "assistant",
 		isSidechain: false,
 		timestamp: at(minutesAgo),
+		uuid,
 		message: {
 			model,
+			content: [
+				...(text === "" ? [] : [{ type: "text", text }]),
+				...calls.map((call) => ({
+					type: "tool_use",
+					id: `toolu_${seq++}`,
+					name: call.name,
+					input: call.input,
+				})),
+			],
 			usage: {
 				input_tokens: 1000,
 				cache_creation_input_tokens: ttl ? 1000 : 0,
@@ -75,6 +104,7 @@ export const prompt = (
 		type: "user",
 		isSidechain: false,
 		timestamp,
+		uuid: `prompt-${seq}`,
 		promptId: `prompt-${seq++}`,
 		origin: { kind: "human" },
 		promptSource: "typed",
