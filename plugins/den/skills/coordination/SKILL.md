@@ -71,8 +71,9 @@ no question open, the next pass launches at once, since the user's time is
 for the decisions and a wait for permission to look is a wait for nothing.
 Within an approved stage, returning unquestionably wrong work to the agent
 that produced it, obvious fixes (the unquestionably wrong and the mechanical),
-and the closure pass by the reviewer that raised the findings, are that stage
-continuing: they run at once and the report says so. After a stage lands:
+and the closure pass by a fresh `den:closure-verifier` given the findings
+and the scope, are that stage continuing: they run at once and the report
+says so. After a stage lands:
 report, and where the next stage needs a go-ahead, propose it (agent and
 scope) and wait. A reply that does not answer a pending go is not the go,
 however close its subject: what it asks for is done, and the launch still
@@ -92,9 +93,11 @@ deviation that matters is the one the report did not declare.
 
 ## Review
 
-Every change gets a fresh reviewer, resumed only within that task's fix cycle,
-because fixes go back to the one who raised the findings.
-`den:flag-reviewer`, launched with `/den:flag-review`, is that reviewer.
+Every change gets a fresh review, `/den:flag-review`, which runs three
+readers blind to each other and returns one report. A fix round is closed by
+a fresh `den:closure-verifier` given the findings as the report worded them
+and the scope of the fixed tree, which reads each fix for what it opened as
+well as what it closed.
 
 A finding that is unquestionably wrong (a number the code demonstrably gets
 wrong, documented behavior that does not happen, a contradiction of a decision

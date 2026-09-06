@@ -16,8 +16,24 @@ minor bump may change behavior.
   (opus) ranks them on the code-architecture tests for the user to choose
   from.
 
+- A `flag-review` workflow under `workflows/`, run by the `flag-review`
+  skill: a `bug-hunter` (fable), a `quality-reviewer` and a
+  `decisions-reviewer` (opus) each read the change given the scope alone, and
+  a `review-synthesizer` (opus) writes one ranked report in the flag-review
+  contract.
+- A `closure-verifier` agent (opus) that verdicts a review's findings against
+  the fixed tree, CLOSED or REOPENED, by deriving whether each fix removes the
+  cause and whether its test would catch the defect, and reports what the
+  fixes opened.
+
 ### Changed
 
+- The `flag-review` skill runs the flag-review workflow instead of launching
+  one reviewer, and the review-triage relay records a finished
+  `review-synthesizer` or `closure-verifier`.
+- The `coordination` skill sends the closure of a fix round to a fresh
+  `closure-verifier` given the findings and the scope, instead of resuming
+  the reviewer that raised them.
 - The `coordination` skill chooses a change's decomposition before the brief
   for any change that adds a module, a persisted format, a public surface or
   a new mechanism: a workflow of explorers proposes shapes against the code,

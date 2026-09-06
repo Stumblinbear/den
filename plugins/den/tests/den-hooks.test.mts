@@ -87,17 +87,23 @@ for (const runtime of runtimes()) {
 
 	// The SubagentStop matcher does not reliably scope the hook, so the type it
 	// was matched on is filtered again in the hook itself.
-	test(name("only a flag-reviewer's completion leaves a review flag"), () => {
+	test(name("only a review agent's completion leaves a review flag"), () => {
 		const temp = fixtureDir("review-flags");
 		const matched = run(
 			"review-triage-flag",
 			temp,
-			stop("den:flag-reviewer", "reviewer-1"),
+			stop("den:review-synthesizer", "reviewer-1"),
 		);
 
 		assert.equal(matched.status, 0, matched.stderr);
 		assert.equal(matched.stdout, "");
 		assert.deepEqual(pending(temp, REVIEW), ["reviewer-1.json"]);
+
+		run("review-triage-flag", temp, stop("den:closure-verifier", "closure-1"));
+		assert.deepEqual(pending(temp, REVIEW), [
+			"closure-1.json",
+			"reviewer-1.json",
+		]);
 
 		const other = run(
 			"review-triage-flag",
@@ -106,23 +112,30 @@ for (const runtime of runtimes()) {
 		);
 
 		assert.equal(other.status, 0, other.stderr);
-		assert.deepEqual(pending(temp, REVIEW), ["reviewer-1.json"]);
+		assert.deepEqual(pending(temp, REVIEW), [
+			"closure-1.json",
+			"reviewer-1.json",
+		]);
 	});
 
 	test(name("one prompt injects for every pending review flag, once"), () => {
 		const temp = fixtureDir("review-inject");
 
-		run("review-triage-flag", temp, stop("den:flag-reviewer", "reviewer-1"));
 		run(
 			"review-triage-flag",
 			temp,
-			stop("plugin_den_flag-reviewer", "reviewer-2"),
+			stop("den:review-synthesizer", "reviewer-1"),
+		);
+		run(
+			"review-triage-flag",
+			temp,
+			stop("plugin_den_review-synthesizer", "reviewer-2"),
 		);
 
 		const context = injected(run("review-triage-inject", temp, prompt()));
 
-		assert.ok(context.includes("den:flag-reviewer"), context);
-		assert.ok(context.includes("plugin_den_flag-reviewer"), context);
+		assert.ok(context.includes("den:review-synthesizer"), context);
+		assert.ok(context.includes("plugin_den_review-synthesizer"), context);
 		assert.deepEqual(pending(temp, REVIEW), []);
 
 		// The flags are consumed, so the next prompt has nothing to say.
@@ -149,7 +162,7 @@ for (const runtime of runtimes()) {
 		const reviewer = run(
 			"implementer-triage-flag",
 			temp,
-			stop("den:flag-reviewer", "reviewer-1"),
+			stop("den:review-synthesizer", "reviewer-1"),
 		);
 
 		assert.equal(reviewer.status, 0, reviewer.stderr);

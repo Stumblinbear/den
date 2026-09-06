@@ -22,9 +22,10 @@ and writing-a-skill; the rest are hidden from the `/` menu:
   surface or a new mechanism: three explorers propose decompositions against
   the code, a judge ranks them, and you choose. The script ships under
   `workflows/`.
-- `flag-review`: launches the flag-reviewer on a pending change. The argument
-  is a git diff range and nothing else. Omit it for the working tree against
-  HEAD.
+- `flag-review`: runs the flag-review workflow on a pending change: a bug
+  hunter, a quality reviewer and a decisions reviewer each read it blind to
+  the others, and a synthesizer writes one ranked report. The argument is a
+  git diff range and nothing else. Omit it for the working tree against HEAD.
 - `comment-review`: the same for the comment-reviewer.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
@@ -42,8 +43,14 @@ and writing-a-skill; the rest are hidden from the `/` menu:
 
 Agents, launched through the Agent tool as `den:<name>`:
 
-- `flag-reviewer` (fable): full code and architecture review of a pending
-  change. Reports findings; never edits.
+- `bug-hunter` (fable), `quality-reviewer` and `decisions-reviewer` (opus):
+  the flag-review workflow's readers, each given the scope alone. The hunter
+  returns defects with a discriminating check; the quality reviewer what a
+  senior engineer would question; the decisions reviewer each decision the
+  change embodies with the plainer route and its cost. None edits.
+- `review-synthesizer` (opus): one ranked report from the readers' findings.
+- `closure-verifier` (opus): verdicts a review's findings against the fixed
+  tree, CLOSED or REOPENED, and reports what the fixes opened.
 - `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
 - `implementer-opus` (opus): the default implementer. Executes a pinned brief,
@@ -57,8 +64,6 @@ Agents, launched through the Agent tool as `den:<name>`:
   approach is chosen. Read-only.
 - `surveyor` (sonnet) and `file-peek` (haiku): read-only evidence sweeps, and
   targeted extraction from files too large to read whole.
-- `synthesizer` (opus): one ranked decision document from proposals and
-  verdicts.
 - `design-explorer` (opus): one decomposition for a change, from the angle it
   is given. Read-only.
 - `design-judge` (opus): ranks the explorers' decompositions on the
@@ -68,7 +73,8 @@ Agents, launched through the Agent tool as `den:<name>`:
 
 Hooks, registered while the plugin is enabled:
 
-- Review triage: a finished `den:flag-reviewer` is recorded, and the next
+- Review triage: a finished `den:review-synthesizer` or
+  `den:closure-verifier` is recorded, and the next
   prompt you submit carries a reminder to relay every finding with a
   fix/defer/skip recommendation.
 - Implementer triage: a finished implementer or fixer is recorded, and the next
@@ -151,7 +157,7 @@ completion is recorded and a `UserPromptSubmit` hook injects it. Several
 agents finishing together produce one reminder naming all of them.
 
 Agent types are matched by bare name, so an agent of your own named
-`flag-reviewer` or `implementer-opus` raises the same reminder as den's.
+`review-synthesizer` or `implementer-opus` raises the same reminder as den's.
 
 The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:coordination`. The skills and agents do nothing until you invoke or
