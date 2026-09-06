@@ -9,6 +9,10 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
+- The example `denied` message of the resume guard puts the resume-or-fresh
+  choice to the user as theirs and acts on the answer. The old wording ended
+  with "otherwise launch fresh or stop", which an agent read as leave to launch
+  fresh without asking.
 - The `context-budget` skill writes a `/compact` focus line as one clause naming
   the arc and the task holding its state, after that state has gone to tasks,
   memory or files. Both it and the `cut-point` skill send a user on Remote

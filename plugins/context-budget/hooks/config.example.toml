@@ -109,7 +109,7 @@ cold = 50_000
 # containing the text "Resume", which is what the guard recognizes the user's
 # consent by.
 denied = """
-Resume of {type} {agent}: {reasons}. Guarded: state these numbers to the user, then call AskUserQuestion naming the agent in the question, with an option labeled "Resume" and an option "Fresh launch". Retry this call only if the user picks Resume; otherwise launch fresh or stop."""
+Resume of {type} {agent}: {reasons}. Whether to resume at that price or launch fresh is the user's choice, since a resume keeps what this agent holds and a fresh launch loses it. Put the numbers to them with AskUserQuestion, naming the agent, with an option labeled "Resume" and an option "Fresh launch", and act on their answer: retry this call when they pick Resume."""
 
 # The message sent to the agent if it attempts to resume an agent a second time.
 # The user is required to approve each resume attempt, not just the first one.
