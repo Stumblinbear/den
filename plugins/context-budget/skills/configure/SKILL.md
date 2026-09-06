@@ -67,8 +67,15 @@ Consequences that answer most "why did it" questions:
   be read, parsed, or used, and `internal error` is a failure of the plugin's
   own with nothing in the configuration to fix. Nothing is measured and
   nothing is guarded until it is fixed; fixing it takes effect on the next
-  hook run. The line is said once per session and listed in the record above once
-  it has been. Delete the record to hear it again.
+  hook run. The prompt hook says the line again on every tenth prompt the fault
+  has stood through, ending in how many prompts that is, whichever hook first
+  met it; the record above lists each fault meanwhile, with the line it was said
+  in and that count. A fault of the same kind in different words is a report of
+  its own, and each hook's `internal error` is listed apart from the other's.
+  The first prompt that works again says the fault is gone and drops it from the
+  record. It drops only what its own run got through, so an `internal error`
+  only the resume guard can meet stays listed, and goes on repeating, until the
+  session ends. Delete the record to hear the line again.
 
 Neither message names a cut point. Each says how large the session is and
 sends the agent to the `cut-point` skill, `/context-budget:cut-point`, for
@@ -174,9 +181,10 @@ edit that has no effect on the figures is the sign to look at the file.
 ## Checking a change
 
 A TOML typo, a missing key, or a value neither hook can use is not quietly
-dropped: it switches both of them off for the session and says so once on
-stderr. Run a hook by hand from the plugin root against a real transcript to
-see what it will inject, or what it objects to:
+dropped: it switches both of them off while it stands and says so on stderr,
+again on every tenth prompt it goes on standing through. Run a hook by hand
+from the plugin root against a real transcript to see what it will inject, or
+what it objects to:
 
     printf '%s' '{"session_id":"check","transcript_path":"<a .jsonl under ~/.claude/projects/>","hook_event_name":"UserPromptSubmit"}' \
       | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \

@@ -35,7 +35,9 @@ const CONFIGURED: readonly string[] = [
 	"entry.mts",
 	"fault.mts",
 	"file-lock.mts",
+	"run.mts",
 	"session-state.mts",
+	"standing.mts",
 ];
 
 interface Plugin {

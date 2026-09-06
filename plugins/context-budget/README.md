@@ -235,8 +235,8 @@ looks for.
 ## Troubleshooting
 
 A configuration the hooks cannot use prints one line on stderr, starting
-`context-budget:`, and switches both the notice and the guard off for the rest
-of that session. `config error` names the file and what is wrong with it;
+`context-budget:`, and switches both the notice and the guard off while it
+stands. `config error` names the file and what is wrong with it;
 `parser error` means `smol-toml` is missing from the plugin's cache
 directory. Every run still reads the file, so a fix takes effect on the next
 tool call.
@@ -245,9 +245,39 @@ tool call.
 stopped on something the plugin does not account for, and the line ends in
 where to report it.
 
-That line is said once per session. The class it was said for is listed in the
-session's record, `<session id>.json` under `claude-context-budget/` in the OS
-temp directory. Delete that file to hear it again.
+You hear that line again on every tenth prompt the fault has stood through,
+ending in how many prompts that is, and nothing at all in between: `Standing
+for 10 prompts.`, then `Standing for 20 prompts.`, and on from there. The
+prompt is what says it, whichever of the two hooks met the fault first, since
+what it repeats is what the record already holds. Nothing switches the repeat
+off: a plugin has nowhere to put a light saying it is off, and a context nobody
+is measuring goes on growing by the turn. Every fault the session has been told
+about is listed in its record, `<session id>.json` under
+`claude-context-budget/` in the OS temp directory, with the line you heard and
+the prompts it has stood through. Delete that file to hear the line again at
+once.
+
+Fix what the line named, leave a second mistake behind it, and the next run
+says the new line and starts a fresh count. A `config error` in other words is
+another fault rather than the one you are already being reminded of.
+
+The first prompt that works again says `context-budget: the config error is
+gone; on again for this session.` and drops the fault from the record, so the
+same fault later is a first report rather than the middle of a count. Deleting
+the file counts as fixing it, since nothing is measured or guarded without one.
+A tool call takes nothing back, whatever it read: only a prompt does.
+
+A prompt takes back only what its own run got through, which is not the same as
+what it reminds you of. Both hooks read one file through one parser, so a
+`config error` or a `parser error` is taken back whichever of them met it. An
+`internal error` is one hook's own run coming apart, so each hook's is listed
+apart from the other's: the measurement hook never opens the subagent transcript
+the resume guard reads, and one the guard met stays listed for the session,
+repeating every tenth prompt like the rest.
+
+A prompt that ends early takes back less still. One from a subagent, or one
+Claude Code names no transcript in, has read the configuration and done nothing
+else, so it answers for the file and for none of the work behind it.
 
 Deleting it is also how you make the current level fire again after editing a
 message. It clears the resume answers the session has spent along with it, and

@@ -1,22 +1,25 @@
-// What stops a run, and the once-per-session report that stands in place of
-// any recovery. There are no stand-in values: an entry that cannot do its job
-// says so, once, and then leaves the session alone.
-import process from "node:process";
+// What stops a run, and how one plugin words it. A report is one line and the
+// user's whole view of the failure, so every report is built in one shape and
+// there are no stand-in values behind any of them: an entry that cannot do its
+// job says so. How long the session goes on hearing it, and what it takes to
+// hear that it is over, is `standing.mts`.
 import { errorMessage, firstLine } from "./fields.mts";
+import type { Done, Run } from "./run.mts";
 import type { SessionState } from "./session-state.mts";
+import { type Recovery, recovered, report } from "./standing.mts";
 
 /**
- * What went wrong, and what the record lists once it is said: a class already
- * reported is one this session hears nothing more about. `internal` is the
- * plugin's own failure rather than the user's, and is on the same footing as
- * the rest so that a crash is said once and never on every run after it.
+ * What went wrong, and what the record lists while it stands: a fault already
+ * reported is one this session hears again only on the tenth prompt it has
+ * stood through, the twentieth, and so on. `internal` is the plugin's own
+ * failure rather than the user's, and is on the same footing as the rest.
  */
 export type FaultClass = "parser" | "config" | "internal";
 
 const REPORT_AT = "https://github.com/stumblinbear/den/issues";
 
 export interface FaultOptions extends ErrorOptions {
-	/** Which class the session's record lists once this has been said. */
+	/** Which class the session's record lists while this stands. */
 	readonly cls: FaultClass;
 }
 
@@ -30,9 +33,8 @@ export class Fault extends Error {
 }
 
 /**
- * How one plugin words a fault and where it marks having said it. A report is
- * one line and the user's whole view of the failure, so it is built in one
- * shape: who is speaking, what is wrong, what does not happen while it stands,
+ * How one plugin words a fault and where it marks having said it. A report
+ * names who is speaking, what is wrong, what does not happen while it stands,
  * and what to do about it.
  */
 export interface Faults {
@@ -45,11 +47,24 @@ export interface Faults {
 	 */
 	internalFault(cause: unknown): Fault;
 	/**
-	 * One report per class per session, then silence: false says this session
-	 * has already been told. The record outlives the process, so every run of
-	 * one session counts as one session, whichever entry gets there first.
+	 * Says the fault and whatever else has stood another ten prompts, or
+	 * leaves the session alone: false says nothing was written. A fault the
+	 * session has already been told about in these words is left to the
+	 * reminders.
+	 *
+	 * The record outlives the process, so every run of one session counts as
+	 * one session, whichever entry gets there first.
 	 */
-	reportOnce(sessionId: string, fault: Fault): boolean;
+	report(run: Run, fault: Fault): boolean;
+	/**
+	 * What a run that met no fault has for the user. Called by every such run;
+	 * only a prompt run answers with anything.
+	 *
+	 * A fault is taken back only by a run whose own work covers it, which is
+	 * what `reached` says: how far the entry got before it ended, and so what
+	 * its silence is evidence about.
+	 */
+	recovered(run: Run, reached: Done): Recovery;
 }
 
 /**
@@ -83,52 +98,7 @@ export function faults(
 				`report it at ${REPORT_AT}`,
 				cause,
 			),
-		reportOnce: (sessionId, reported) => reportOnce(state, sessionId, reported),
+		report: (run, reported) => report(state, run, reported),
+		recovered: (run, reached) => recovered(state, plugin, run, reached),
 	};
-}
-
-/**
- * The classes this session has already been told about, listed in its record.
- * The plugin's own fields share that record, so anything that is not a list of
- * names reads as an empty one.
- */
-const REPORTED = "reported";
-
-function reportOnce(
-	state: SessionState,
-	sessionId: string,
-	fault: Fault,
-): boolean {
-	// No session id is no session to record against: one record shared by every
-	// such run on the machine would silence all but the first of them.
-	if (sessionId !== "") {
-		// Whether the class is listed and the listing of it are one step under
-		// the record's lock, since two hooks of one session run at once.
-		const first = state.update(sessionId, (record) => {
-			const listed = reportedIn(record);
-
-			return listed.includes(fault.cls)
-				? { fields: null, result: false }
-				: { fields: { [REPORTED]: [...listed, fault.cls] }, result: true };
-		});
-
-		// A run that never got the lock has no answer to go on, and one whose
-		// write did not land has an answer nothing kept: either way what is
-		// lost is the silence, and saying it every time beats never saying it.
-		if (first.held && !first.result) {
-			return false;
-		}
-	}
-
-	process.stderr.write(`${fault.message}\n`);
-
-	return true;
-}
-
-function reportedIn(record: Record<string, unknown>): readonly string[] {
-	const listed = record[REPORTED];
-
-	return Array.isArray(listed)
-		? listed.filter((cls): cls is string => typeof cls === "string")
-		: [];
 }

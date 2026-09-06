@@ -22,6 +22,11 @@ export interface FaultChecks {
 	reported(result: Result, cls: string): string;
 	/** Asserts silence: the session has already been told. */
 	quiet(result: Result): void;
+	/**
+	 * Asserts one line per class named, in the field a hook says something to
+	 * the user in, and hands back what that field held.
+	 */
+	recovered(result: Result, ...classes: readonly string[]): string;
 }
 
 export function faultChecks(plugin: string, dir: string): FaultChecks {
@@ -29,6 +34,7 @@ export function faultChecks(plugin: string, dir: string): FaultChecks {
 		withoutParser: () => withoutParser(dir),
 		reported: (result, cls) => reported(result, plugin, cls),
 		quiet,
+		recovered: (result, ...classes) => recovered(result, plugin, classes),
 	};
 }
 
@@ -91,4 +97,35 @@ function quiet(result: Result): void {
 	assert.equal(result.status, 0);
 	assert.equal(result.stderr, "");
 	assert.equal(result.stdout, "");
+}
+
+/** What a hook writes when it has something for the user rather than Claude. */
+interface Said {
+	readonly systemMessage?: unknown;
+}
+
+// Exit 0 and the message in the JSON output, since good news is not a hook
+// error: stderr from a run that exits 0 reaches nobody but the debug log.
+function recovered(
+	result: Result,
+	plugin: string,
+	classes: readonly string[],
+): string {
+	assert.equal(result.status, 0, result.stderr);
+	assert.equal(result.stderr, "", "a recovery is not reported as a failure");
+
+	const output = JSON.parse(result.stdout) as Said;
+	const said = String(output.systemMessage ?? "");
+	const lines = said.split("\n").filter(Boolean);
+
+	assert.equal(lines.length, classes.length, said);
+
+	for (const [at, cls] of classes.entries()) {
+		assert.ok(
+			lines[at]?.startsWith(`${plugin}: the ${cls} error is gone`),
+			said,
+		);
+	}
+
+	return said;
 }

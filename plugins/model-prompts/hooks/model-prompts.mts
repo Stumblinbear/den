@@ -25,6 +25,7 @@ import {
 	writeRecord,
 } from "../lib/session-record.mts";
 import { runEntry } from "../lib/shared/entry.mts";
+import { LEFT_BEFORE_CONFIG } from "../lib/shared/run.mts";
 
 const SETTINGS = join(homedir(), ".claude", "settings.json");
 
@@ -94,41 +95,46 @@ function fires(event: HookEvent, row: Row, record: SessionRecord): boolean {
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError, which the
 // runner would report as the bug it is.
-await runEntry(FAULTS, async ({ input, session }) => {
-	// The main session: a subagent's input names the agent it is for.
-	if (input["agent_id"] || session === "") {
-		return null;
-	}
-
-	const event = String(input["hook_event_name"] ?? "");
-
-	if (!isHookEvent(event)) {
-		return null;
-	}
-
-	const before = readRecord(session);
-	const model = modelFor(event, input, before.model, SETTINGS);
-	let injected: readonly string[] = [];
-
-	try {
-		const firing = await injection(event, model, before);
-
-		if (firing === null) {
-			return null;
+//
+// No prompt event is named, because `hooks.json` puts this plugin on the start
+// of a session and on a model switch and on nothing the user types: nothing
+// here counts prompts, and nothing here takes a report back.
+await runEntry(
+	{ name: "model-prompts", faults: FAULTS },
+	async ({ input, session, event }) => {
+		// The main session: a subagent's input names the agent it is for.
+		if (input["agent_id"] || session === "") {
+			return LEFT_BEFORE_CONFIG;
 		}
 
-		injected = firing.keys;
+		if (!isHookEvent(event)) {
+			return LEFT_BEFORE_CONFIG;
+		}
 
-		return firing.text;
-	} finally {
-		// What the session is on, and that it has rebuilt its context, are facts
-		// about the session whether or not there is a usable configuration to act
-		// on them with, so they are written however this run ends: a switch made
-		// while the config is broken is still the model a later run reads back.
-		writeRecord(session, {
-			rebuilt: event === "SessionStart",
-			injected,
-			model: model?.named ? model.id : null,
-		});
-	}
-});
+		const before = readRecord(session);
+		const model = modelFor(event, input, before.model, SETTINGS);
+		let injected: readonly string[] = [];
+
+		try {
+			const firing = await injection(event, model, before);
+
+			if (firing === null) {
+				return null;
+			}
+
+			injected = firing.keys;
+
+			return firing.text;
+		} finally {
+			// What the session is on, and that it has rebuilt its context, are facts
+			// about the session whether or not there is a usable configuration to act
+			// on them with, so they are written however this run ends: a switch made
+			// while the config is broken is still the model a later run reads back.
+			writeRecord(session, {
+				rebuilt: event === "SessionStart",
+				injected,
+				model: model?.named ? model.id : null,
+			});
+		}
+	},
+);

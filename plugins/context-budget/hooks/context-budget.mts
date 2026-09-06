@@ -18,8 +18,16 @@ import {
 	thresholdsFor,
 } from "../lib/settings.mts";
 import { runEntry } from "../lib/shared/entry.mts";
+import { LEFT_AFTER_CONFIG, LEFT_BEFORE_CONFIG } from "../lib/shared/run.mts";
 
-const EVENTS: readonly string[] = ["PostToolUse", "UserPromptSubmit"];
+/**
+ * The user's own turn, which `hooks.json` registers this entry and no other
+ * on. It is the unit a standing fault is counted in, and a run of it is the
+ * one run whose success takes a report back.
+ */
+const PROMPT = "UserPromptSubmit";
+
+const EVENTS: readonly string[] = ["PostToolUse", PROMPT];
 
 const args = process.argv.slice(2);
 
@@ -34,16 +42,8 @@ async function outcome(
 	event: string,
 	sessionId: string,
 	transcript: string,
+	settings: Settings,
 ): Promise<string | null> {
-	// Read before any work, so a broken install or a broken config is reported
-	// on the session's first hook run rather than whenever the first threshold
-	// happens to be crossed.
-	const settings = await loadSettings(args);
-
-	if (settings === null) {
-		return null;
-	}
-
 	const reading = measure(transcript);
 
 	if (reading === null) {
@@ -123,23 +123,31 @@ function injection(
 
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError.
-await runEntry(FAULTS, async ({ input, session }) => {
-	// The main session: a subagent's input names the agent it is for.
-	if (input["agent_id"]) {
-		return null;
-	}
+await runEntry(
+	{ name: "context-budget", faults: FAULTS, promptEvent: PROMPT },
+	async ({ input, session, event }) => {
+		if (!EVENTS.includes(event) || session === "") {
+			return LEFT_BEFORE_CONFIG;
+		}
 
-	const event = String(input["hook_event_name"] ?? "");
-	const transcript = input["transcript_path"];
+		// Read before this run decides anything else, so that a broken install or
+		// a broken config is reported on the session's first hook run rather than
+		// whenever the first threshold happens to be crossed, and so that every
+		// prompt run meets a fault that stands whatever else its input says. A
+		// prompt run ending quietly is what takes a report back.
+		const settings = await loadSettings(args);
 
-	if (
-		!EVENTS.includes(event) ||
-		session === "" ||
-		typeof transcript !== "string" ||
-		transcript === ""
-	) {
-		return null;
-	}
+		// The main session: a subagent's input names the agent it is for.
+		if (settings === null || input["agent_id"]) {
+			return LEFT_AFTER_CONFIG;
+		}
 
-	return outcome(event, session, transcript);
-});
+		const transcript = input["transcript_path"];
+
+		if (typeof transcript !== "string" || transcript === "") {
+			return LEFT_AFTER_CONFIG;
+		}
+
+		return outcome(event, session, transcript, settings);
+	},
+);

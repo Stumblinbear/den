@@ -11,6 +11,11 @@ import { FAULTS } from "../lib/plugin.mts";
 import { type GuardLimits, loadSettings } from "../lib/settings.mts";
 import { runEntry } from "../lib/shared/entry.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
+import {
+	type Done,
+	LEFT_AFTER_CONFIG,
+	LEFT_BEFORE_CONFIG,
+} from "../lib/shared/run.mts";
 import { type Resumed, resumedAgent } from "../lib/subagent.mts";
 
 const args = process.argv.slice(2);
@@ -19,20 +24,20 @@ const args = process.argv.slice(2);
 async function decision(
 	sessionId: string,
 	input: Record<string, unknown>,
-): Promise<string | null> {
+): Promise<Done> {
 	// Read before anything else, so `enabled = false` costs no transcript read.
 	const settings = await loadSettings(args);
 	const limits = settings?.guard.limits ?? null;
 
 	if (settings === null || limits === null) {
-		return null;
+		return LEFT_AFTER_CONFIG;
 	}
 
 	const to = agentName(input["tool_input"]);
 	const transcript = String(input["transcript_path"] ?? "");
 
 	if (to === null || transcript === "") {
-		return null;
+		return LEFT_AFTER_CONFIG;
 	}
 
 	const resumed = resumedAgent(transcript, to);
@@ -114,12 +119,15 @@ function deny(reason: string): string {
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError, which the
 // runner would report as the bug it is.
-await runEntry(FAULTS, async ({ input, session }) => {
-	// Without a session id there is no record to spend an answer in: every
-	// input carrying none would share one file named for no session at all.
-	if (input["tool_name"] !== "SendMessage" || session === "") {
-		return null;
-	}
+await runEntry(
+	{ name: "resume-guard", faults: FAULTS },
+	async ({ input, session }) => {
+		// Without a session id there is no record to spend an answer in: every
+		// input carrying none would share one file named for no session at all.
+		if (input["tool_name"] !== "SendMessage" || session === "") {
+			return LEFT_BEFORE_CONFIG;
+		}
 
-	return decision(session, input);
-});
+		return decision(session, input);
+	},
+);

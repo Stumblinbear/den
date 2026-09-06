@@ -9,6 +9,29 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
+- A fault that stops the hooks is said again on every tenth prompt it stands
+  through, ending in how many prompts that is, where before it was said once
+  for the whole session. A line said once is easily missed, and one that
+  arrives mid-session leaves the context growing behind a plugin you believe is
+  watching it. Prompts are counted and tool calls are not, so a turn heavy with
+  them carries the fault no further. The prompt says the line again whichever
+  hook first met the fault, since what it repeats is the session's record. That
+  record lists every fault the session has been told about, each with the line
+  it was said in and the prompts it has stood through: a fault of the same kind
+  in different words is a report of its own, so fixing the key a report named
+  and leaving a second mistake behind it says the new line rather than nothing,
+  and each hook's internal error is listed apart from the other's.
+- The first prompt that works again says the fault is gone, in the field Claude
+  Code shows you rather than as a failed hook, and drops it from the session's
+  record, so the same fault later is a first report rather than the middle of a
+  count. Only a prompt of the measurement hook clears one: a tool call reaches the
+  hooks too and is no evidence of anything. It clears only what its own run got
+  through, too: both hooks read one file through one parser, so a config or
+  parser error goes whichever of them met it, while an internal error only the
+  resume guard can meet stays listed, and repeating, rather than being called
+  over by a run that never did the guard's work. A prompt that ends before its
+  own work, because it comes from a subagent or because no transcript was named
+  for it, answers for the configuration it read and for nothing behind it.
 - The cut-point reading prices `/compact` and carrying on beside the rewind cut
   points, on the same arithmetic, so the three can be read against one another.
   `/compact` comes first, as a cut at the tail Claude Code keeps rather than at
@@ -74,7 +97,7 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - One file per session, `<os temp dir>/claude-context-budget/<session id>.json`,
   and everything about the session in it: the level it has been told about,
   the resume answers it has spent, the fault classes it has already been told
-  about, and the transcript the last measuring run read. The measuring hook
+  about, and the transcript the last measuring run read. The measurement hook
   writes that path on every run, so the `cut-point` skill can find the
   transcript from the session's first tool call onwards. A spent answer is no
   longer recorded as an empty file named after it, and a reported fault class

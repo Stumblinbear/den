@@ -1,10 +1,12 @@
-// The failure policy both hooks share: no quiet recovery, and no stand-in
-// values. A parser that will not import, or a configuration that cannot be
-// read, parsed, or used, is reported once for the session by whichever hook
-// hits it first. After that every hook in that session does nothing at all,
-// silently. What is simply not there is no failure at all: a configuration
-// that is not there is a plugin nobody has configured yet, and text on stdin
-// that no hook can read as input is nothing to act on.
+// The failure policy both hooks share: no stand-in values, and no fault the
+// session is not told about. A parser that will not import, or a configuration
+// that cannot be read, parsed, or used, is reported by whichever hook hits it
+// first, and the runs after it do nothing at all, silently. How long that
+// silence lasts is `standing-faults.test.mts`, and how the session hears that
+// the fault is over is `fault-recovery.test.mts`. What is simply not there is
+// no failure at all: a configuration that is not there is a plugin nobody has
+// configured yet, and text on stdin that no hook can read as input is nothing
+// to act on.
 //
 // These run the real processes through the launcher, because the whole
 // contract is out of band: an exit code and one line on stderr. Where the

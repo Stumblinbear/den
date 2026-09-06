@@ -171,6 +171,29 @@ for (const runtime of runtimes()) {
 		assert.ok(result.stdout.includes("FIXED"), result.stdout);
 	});
 
+	// The shared reporter says a standing fault again every tenth prompt, and
+	// takes it back when a run works, but both are the work of a prompt hook,
+	// and this plugin has none: nothing here counts a session's prompts, so
+	// what it says once it says once.
+	test(name("a run that works again leaves the report where it was"), () => {
+		const session = sid();
+		const path = configFile("[models.'opus'\nprompt = \"x\"\n");
+
+		reported(run(session, path), "config");
+		writeFileSync(path, "[models.'opus-5\\b']\nprompt = \"FIXED\"\n");
+
+		const fixed = hook(input(session, "PostModelSwitch"), path);
+
+		assert.ok(fixed.stdout.includes("FIXED"), fixed.stdout);
+		assert.ok(
+			!fixed.stdout.includes("systemMessage"),
+			"a recovery is nothing this plugin announces",
+		);
+
+		writeFileSync(path, "[models.'opus'\nprompt = \"x\"\n");
+		quiet(hook(input(session, "PostModelSwitch"), path));
+	});
+
 	// Which model a session is on is a fact about the session, not about the
 	// configuration: a run that can inject nothing still has to record it, or
 	// the switch is lost and a later run falls back to a stale guess.

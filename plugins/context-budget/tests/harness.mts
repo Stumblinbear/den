@@ -38,7 +38,7 @@ export const HOOKS = join(PLUGIN, "hooks");
 export const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
 /** The failure policy both hooks report through, in this plugin's name. */
-export const { withoutParser, reported, quiet } = faultChecks(
+export const { withoutParser, reported, quiet, recovered } = faultChecks(
 	"context-budget",
 	PLUGIN,
 );
