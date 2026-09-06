@@ -47,12 +47,12 @@ export const bareType = (value: unknown): string =>
  */
 export const REVIEW_TRIAGE_DIR = join(tmpdir(), "claude-review-triage");
 /**
- * Where the implementer-diagnostics relay's pending flags wait;
- * REVIEW_TRIAGE_DIR carries the reasoning.
+ * Where the implementer-triage relay's pending flags wait; REVIEW_TRIAGE_DIR
+ * carries the reasoning.
  */
-export const IMPLEMENTER_DIAGNOSTICS_DIR = join(
+export const IMPLEMENTER_TRIAGE_DIR = join(
 	tmpdir(),
-	"claude-implementer-diagnostics",
+	"claude-implementer-triage",
 );
 
 /**

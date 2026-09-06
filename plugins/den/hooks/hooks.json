@@ -1,5 +1,5 @@
 {
-	"description": "Review-triage and implementer-diagnostics relays.",
+	"description": "Review-triage and implementer-triage relays.",
 	"hooks": {
 		"SubagentStop": [
 			{
@@ -16,7 +16,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-diagnostics-flag"
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-triage-flag"
 					}
 				]
 			}
@@ -30,7 +30,7 @@
 					},
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-diagnostics-inject"
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-triage-inject"
 					}
 				]
 			}

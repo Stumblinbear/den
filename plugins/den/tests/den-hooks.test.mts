@@ -7,7 +7,7 @@
 // Each case is given a temp directory of its own, which is where the relays
 // keep their flags, so nothing a case leaves behind reaches the next one.
 import assert from "node:assert/strict";
-import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -27,7 +27,7 @@ const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 // writing its flags somewhere else fails a test instead of taking the tests
 // with it.
 const REVIEW = "claude-review-triage";
-const DIAGNOSTICS = "claude-implementer-diagnostics";
+const IMPLEMENTER = "claude-implementer-triage";
 
 interface Injection {
 	readonly hookSpecificOutput?: {
@@ -36,15 +36,13 @@ interface Injection {
 	};
 }
 
-const stop = (
-	agentType: string,
-	agentId: string,
-	transcript?: string,
-): Record<string, unknown> => ({
+// `transcript_path` is fixed: neither relay reads it, and a SubagentStop
+// without it is not the shape a hook is handed.
+const stop = (agentType: string, agentId: string): Record<string, unknown> => ({
 	hook_event_name: "SubagentStop",
 	agent_type: agentType,
 	agent_id: agentId,
-	transcript_path: transcript ?? "",
+	transcript_path: "",
 });
 
 const prompt = () => ({
@@ -59,34 +57,6 @@ function pending(temp: string, relay: string): readonly string[] {
 	} catch {
 		return [];
 	}
-}
-
-/**
- * A session transcript with one subagent transcript beside it, at the path
- * Claude Code writes, whose only turn edits `edited`.
- */
-function transcriptEditing(agentId: string, edited: string): string {
-	const dir = fixtureDir("session");
-	const subagents = join(dir, "main", "subagents");
-
-	mkdirSync(subagents, { recursive: true });
-
-	const main = join(dir, "main.jsonl");
-
-	writeFileSync(main, "");
-	writeFileSync(
-		join(subagents, `agent-${agentId}.jsonl`),
-		`${JSON.stringify({
-			type: "assistant",
-			message: {
-				content: [
-					{ type: "tool_use", name: "Edit", input: { file_path: edited } },
-				],
-			},
-		})}\n`,
-	);
-
-	return main;
 }
 
 function injected(result: Result): string {
@@ -162,66 +132,59 @@ for (const runtime of runtimes()) {
 		assert.equal(again.stdout, "");
 	});
 
-	test(name("an implementer flag needs a .rs edit in its transcript"), () => {
+	test(name("every finished implementer leaves a flag"), () => {
 		const temp = fixtureDir("implementer-flags");
-		const prose = run(
-			"implementer-diagnostics-flag",
+		const matched = run(
+			"implementer-triage-flag",
 			temp,
-			stop(
-				"den:implementer-opus",
-				"prose-1",
-				transcriptEditing("prose-1", "docs/README.md"),
-			),
+			stop("den:implementer-opus", "opus-1"),
 		);
 
-		assert.equal(prose.status, 0, prose.stderr);
-		assert.deepEqual(pending(temp, DIAGNOSTICS), []);
+		assert.equal(matched.status, 0, matched.stderr);
+		assert.equal(matched.stdout, "");
+		assert.deepEqual(pending(temp, IMPLEMENTER), ["opus-1.json"]);
 
-		const rust = run(
-			"implementer-diagnostics-flag",
+		// A reviewer's completion belongs to the other relay, and this hook
+		// fires for it too.
+		const reviewer = run(
+			"implementer-triage-flag",
 			temp,
-			stop(
-				"den:implementer-opus",
-				"rust-1",
-				transcriptEditing("rust-1", "crates/thing/src/lib.rs"),
-			),
+			stop("den:flag-reviewer", "reviewer-1"),
 		);
 
-		assert.equal(rust.status, 0, rust.stderr);
-		assert.deepEqual(pending(temp, DIAGNOSTICS), ["rust-1.json"]);
+		assert.equal(reviewer.status, 0, reviewer.stderr);
+		assert.deepEqual(pending(temp, IMPLEMENTER), ["opus-1.json"]);
 	});
 
 	test(
-		name("the diagnostics reminder names every implementer it is for"),
+		name("one prompt injects for every pending implementer flag, once"),
 		() => {
 			const temp = fixtureDir("implementer-inject");
 
 			run(
-				"implementer-diagnostics-flag",
+				"implementer-triage-flag",
 				temp,
-				stop(
-					"den:red-green-fixer",
-					"fixer-1",
-					transcriptEditing("fixer-1", "src/main.rs"),
-				),
+				stop("den:red-green-fixer", "fixer-1"),
 			);
 			run(
-				"implementer-diagnostics-flag",
+				"implementer-triage-flag",
 				temp,
-				stop(
-					"den:implementer-fable",
-					"fable-1",
-					transcriptEditing("fable-1", "src/lib.rs"),
-				),
+				stop("plugin_den_implementer-fable", "fable-1"),
 			);
 
 			const context = injected(
-				run("implementer-diagnostics-inject", temp, prompt()),
+				run("implementer-triage-inject", temp, prompt()),
 			);
 
 			assert.ok(context.includes("den:red-green-fixer"), context);
-			assert.ok(context.includes("den:implementer-fable"), context);
-			assert.deepEqual(pending(temp, DIAGNOSTICS), []);
+			assert.ok(context.includes("plugin_den_implementer-fable"), context);
+			assert.deepEqual(pending(temp, IMPLEMENTER), []);
+
+			// The flags are consumed, so the next prompt has nothing to say.
+			const again = run("implementer-triage-inject", temp, prompt());
+
+			assert.equal(again.status, 0, again.stderr);
+			assert.equal(again.stdout, "");
 		},
 	);
 }

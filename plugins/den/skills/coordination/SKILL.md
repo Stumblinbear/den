@@ -37,11 +37,9 @@ question, not make. Where the ask leaves one of those decisions open,
 `den:scoping` settles it with the user before the brief is written. Placement,
 module boundaries, interface depth, type shape, and naming belong to the
 implementer, unless one of them is itself a requirement, and the brief says
-which. A question back from an implementer is the brief working, and it is
-weighed like a reviewer's finding: judged against the task's goal, taken to
-the user when the decision is theirs, and answered by changing the brief when
-the implementer is right. Text an agent will follow is instructions, not
-documentation, whoever writes it, and is audited under
+which. A question back from an implementer is the brief working, and the brief
+changes when the implementer is right. Text an agent will follow is
+instructions, not documentation, whoever writes it, and is audited under
 `den:writing-for-agents` before it ships.
 
 ## Agents
@@ -72,6 +70,15 @@ and the closure pass by the reviewer that raised the findings, are that stage
 continuing: they run at once and the report says so. After a stage lands:
 report, and where the next stage needs a go-ahead, propose it (agent and
 scope) and wait.
+
+## Implementer reports
+
+A finished implementer's or fixer's report is triaged like a review's: every
+declared choice, question back, deviation from the brief and left-undone item
+reaches the user with your accept, answer, send back or defer call and its
+reasoning, explained for someone who has not read the code, since a choice
+absorbed silently is one the user never gets to overturn. What contradicts the
+brief goes back to its agent at once, and the report says so.
 
 ## Review
 

@@ -9,6 +9,10 @@ minor bump may change behavior.
 
 ### Removed
 
+- The stale-diagnostics paragraph from the implementer reminder, and with it
+  the relay's read of a finished agent's transcript for `.rs` edits. The hooks
+  now read nothing in your project. The `coordination` skill still rules that a
+  diagnostic in a file an agent is editing is a mid-edit state.
 - Skill `voice`; its rules and catalog live in `writing-for-humans`. Drafting a
   commit message no longer routes through the register rules: its format is
   each person's own.
@@ -23,6 +27,16 @@ minor bump may change behavior.
 
 ### Changed
 
+- The implementer relay is now implementer triage: every finished implementer
+  and `red-green-fixer` is recorded, not only one that edited Rust, and its
+  reminder points at the `coordination` skill's new Implementer reports
+  section, where each declared choice, question back, deviation from the brief
+  and left-undone item reaches the user with an accept, answer, send back or
+  defer call and its reasoning, and what contradicts the brief goes back to its
+  agent at once. Its hooks are `implementer-triage-flag` and
+  `implementer-triage-inject`, and its flags now wait in
+  `claude-implementer-triage/`. The Briefs section keeps what a question back
+  does to the brief and hands the rest to the new section.
 - The `voice` skill is folded into `writing-for-humans`: the register rules
   are its own section, the grep line sits under them, the catalog of tells is
   `references/tells.md`, and a report or message for a person is one of the

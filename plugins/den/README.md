@@ -62,9 +62,10 @@ Hooks, registered while the plugin is enabled:
 - Review triage: a finished `den:flag-reviewer` is recorded, and the next
   prompt you submit carries a reminder to relay every finding with a
   fix/defer/skip recommendation.
-- Implementer diagnostics: a finished implementer that edited a Rust source is
-  recorded, and the next prompt you submit carries a reminder that IDE
-  diagnostics after those edits are a stale mid-edit state.
+- Implementer triage: a finished implementer or fixer is recorded, and the next
+  prompt you submit carries a reminder to put every choice it declared,
+  question it asked, deviation from the brief it made and item it left undone
+  to you with a call on each.
 
 Neither hook denies a tool call, reads your source, or changes a file in your
 project. Both add text to the main session's context and nothing else.
@@ -91,12 +92,11 @@ The plugin declares no dependencies, so Claude Code installs nothing for it.
 The `flag-review` and `comment-review` skills render the review scope with
 `git` through `bash`, so both have to be available where the session runs.
 
-What the hooks read: the transcript of a finished implementer, under the
-session transcript's `subagents/` directory, to see whether it edited a `.rs`
-file. Nothing else.
+What the hooks read: nothing of yours. Neither relay opens a source file, a
+transcript, or anything else in your project.
 
 What the hooks write: one small JSON file per finished agent, under
-`claude-review-triage/` and `claude-implementer-diagnostics/` in the OS temp
+`claude-review-triage/` and `claude-implementer-triage/` in the OS temp
 directory. Each file is deleted as its reminder is injected.
 
 What the hooks can do to a session: add one reminder per relay to the context
@@ -140,9 +140,6 @@ A reminder arrives on the next prompt you submit, not at the moment the agent
 finishes. A `SubagentStop` hook cannot write into the parent's context, so the
 completion is recorded and a `UserPromptSubmit` hook injects it. Several
 agents finishing together produce one reminder naming all of them.
-
-The implementer relay is Rust-specific. An implementer that touched no `.rs`
-file leaves no reminder, and neither does one whose transcript cannot be read.
 
 Agent types are matched by bare name, so an agent of your own named
 `flag-reviewer` or `implementer-opus` raises the same reminder as den's.
