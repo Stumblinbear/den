@@ -7,6 +7,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-06
+
 ### Changed
 
 - The `configure` skill carries a `when_to_use` directive and a description
@@ -55,5 +57,6 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   directory to force one. Under bun a dependency the plugin lacks is reported,
   never fetched on the fly.
 
-[Unreleased]: https://github.com/Stumblinbear/den/compare/model-prompts--v0.2.0...HEAD
+[Unreleased]: https://github.com/Stumblinbear/den/compare/model-prompts--v0.3.0...HEAD
+[0.3.0]: https://github.com/Stumblinbear/den/compare/model-prompts--v0.2.0...model-prompts--v0.3.0
 [0.2.0]: https://github.com/Stumblinbear/den/releases/tag/model-prompts--v0.2.0
