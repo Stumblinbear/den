@@ -38,6 +38,11 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   subagent's newest turn names, or "no recorded model" where it names none.
   `{large}` and `{cold}` now fill from whichever row or section governed that
   resume.
+### Changed
+
+- The default `[watcher] command` carries `--tools ""`, which is what keeps the
+  judge from acting: it is a Claude Code session of its own, and a sentence of
+  advice is the whole of what it is asked for.
 - An `internal error` line names only the hook that met it: "The context notice
   is off for this session", "The resume guard is off for this session", or "The
   watcher is off for this session". It used to say all three were off, which is
