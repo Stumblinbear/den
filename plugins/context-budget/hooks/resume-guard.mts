@@ -7,7 +7,7 @@
 import process from "node:process";
 import { consume, resumeApproval } from "../lib/approval.mts";
 import { fill, formatTokens } from "../lib/messages.mts";
-import { GUARD_FAULTS, insideJudge } from "../lib/plugin.mts";
+import { GUARD_FAULTS } from "../lib/plugin.mts";
 import {
 	type GuardLimits,
 	guardLimitsFor,
@@ -140,11 +140,7 @@ await runEntry(
 	async ({ input, session }) => {
 		// Without a session id there is no record to spend an answer in: every
 		// input carrying none would share one file named for no session at all.
-		if (
-			input["tool_name"] !== "SendMessage" ||
-			session === "" ||
-			insideJudge()
-		) {
+		if (input["tool_name"] !== "SendMessage" || session === "") {
 			return LEFT_BEFORE_CONFIG;
 		}
 

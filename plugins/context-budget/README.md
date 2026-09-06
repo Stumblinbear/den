@@ -15,10 +15,11 @@ auto-compact choose one for you.
   hook asks a small model whether the session has just reached a good moment to
   compact or rewind. Its answer reaches the agent on the next turn as advice:
   where the boundary was, what it recommends with the focus line or the prompt
-  to rewind to, and why. The agent puts it to you every time, and where it
-  would rather finish the work first it says so and raises it again at each
-  pause after. It runs on your own Claude subscription's allowance, a few
-  calls in a session; `[watcher] enabled = false` switches it off.
+  to rewind to, and why. Where it names a cut, the agent puts it to you every
+  time, and where it would rather finish the work first it says so and raises
+  it again at each pause after. It runs on your own Claude subscription's
+  allowance, a few calls in a session; `[watcher] enabled = false` switches it
+  off.
 - A resume guard. Before a message is sent to a subagent, a hook denies
   resuming one whose context is large, or whose prompt cache has expired, and
   tells the agent to put the numbers to you first. A fresh launch is never
@@ -69,13 +70,13 @@ the names of the tools it called, and the token figures below. It goes to the
 model named by `[watcher] model`, `haiku`, on your own subscription and out of
 that subscription's allowance; the judge paces itself, so a session sees a
 handful of calls. It runs with the built-in tools switched off, so it can
-answer and nothing else. It starts in the plugin's data directory rather than
-in your project, so no CLAUDE.md, hook or MCP server of that project loads
-inside it.
-The ones you have installed at the user level do load, which is what running on
-your subscription rather than on an API key costs. `enabled = false` under
-`[watcher]` stops it, and nothing is sent. Nothing else here leaves your
-machine.
+answer and nothing else, and under safe mode, so nothing you or the project has
+configured loads inside it: no CLAUDE.md, no plugins, no skills, no hooks, no
+MCP servers. Its system prompt is one sentence of the plugin's own in place of
+Claude Code's, so nothing of your project reaches it beyond what the prompt
+above carries: not the directory, not the branch, not what has changed there.
+`enabled = false` under `[watcher]` stops it, and nothing is sent. Nothing else
+here leaves your machine.
 
 What is read: every hook reads your configuration file in the data directory,
 on every run. The notice hook reads the last 512 KB of the session transcript,
@@ -165,7 +166,7 @@ that has no default. A missing key is a config error naming it.
 | `[resume-guard.messages] used` | string | required | the deny reason when the user's latest answer has already been spent |
 | `[watcher] enabled` | bool | `true` | `false` stops the watcher: no model call, and nothing done on Stop past reading this file |
 | `[watcher] model` | string | `haiku` | the model the judge runs on, substituted into `command` wherever it writes `{model}` |
-| `[watcher] command` | list | the `claude -p` line the example spells out, `--tools ""` and `--json-schema` included | the judge invocation, as an argument list rather than a shell line; replace it whole to run the judge on something else, schema and all |
+| `[watcher] command` | list | the `claude -p` line the example spells out, `--tools ""`, `--safe-mode`, `--system-prompt` and `--json-schema` included | the judge invocation, as an argument list rather than a shell line; replace it whole to run the judge on something else, schema and all |
 | `[watcher] tail_turns` | count | `16` | how many recent turns the judge is shown |
 | `[watcher] tail_tokens` | count | `20000` | how much of those turns it is shown, cut from the oldest end |
 

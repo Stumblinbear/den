@@ -49,6 +49,17 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - The default `[watcher] command` carries `--tools ""`, which is what keeps the
   judge from acting: it is a Claude Code session of its own, and a sentence of
   advice is the whole of what it is asked for.
+- The judge runs under safe mode and under a one-sentence system prompt of the
+  plugin's own, which the default `[watcher] command` carries as `--safe-mode`
+  and `--system-prompt`. No CLAUDE.md, plugin, skill, hook or MCP server of
+  yours or of the project loads inside it, this plugin's own entries included,
+  and nothing of your project reaches it beyond what the prompt carries:
+  Claude Code's default system prompt, which told the judge the directory it
+  was started in, its git branch, the files changed there and the recent
+  commit subjects, is gone with it, and with both a call loads little beyond
+  the prompt. The judge's own working directory and the `CONTEXT_BUDGET_JUDGE`
+  marker are gone; it is spawned where the hook stands and with the hook's
+  environment.
 - An `internal error` line names only the hook that met it: "The context notice
   is off for this session", "The resume guard is off for this session", or "The
   watcher is off for this session". It used to say all three were off, which is

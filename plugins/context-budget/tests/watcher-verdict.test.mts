@@ -6,27 +6,10 @@
 // The advice is the Stop's own output, which Claude Code hands to the model on
 // the next turn, so every case here reads it off the run that asked.
 import assert from "node:assert/strict";
-import { dirname } from "node:path";
 import { test } from "node:test";
-import {
-	type Result,
-	type Runtime,
-	runtimes,
-} from "../../../tests/harness.mts";
+import { runtimes } from "../../../tests/harness.mts";
 import { assistant, at, prompt as promptEntry } from "./fixtures.mts";
-import {
-	configFile,
-	DEFAULTS,
-	GUARD,
-	GUARD_MESSAGES,
-	hookRunner,
-	MESSAGES,
-	quiet,
-	sessionId,
-	subagentSession,
-	transcript,
-} from "./harness.mts";
-import { judge } from "./judge-fixture.mts";
+import { quiet, transcript } from "./harness.mts";
 import {
 	conversation,
 	GOOD,
@@ -34,7 +17,6 @@ import {
 	LATER,
 	NEWEST,
 	NOTICE,
-	PRICING,
 	watcherRuns,
 } from "./watcher-runs.mts";
 
@@ -169,95 +151,6 @@ for (const runtime of runtimes()) {
 			`20K tokens of tail and the rest of the prompt: ${shown.length}`,
 		);
 	});
-
-	// A judge left where the hook stands would load that project's CLAUDE.md,
-	// its hooks and its MCP servers on every consultation. The directory it is
-	// given instead is the one the configuration was read from, which is the
-	// plugin's data directory in every session Claude Code starts.
-	test(name("the judge runs where the configuration was read from"), () => {
-		const runs = watcherRuns(runtime);
-
-		runs.judge.answers(LATER);
-		quiet(runs.stop(runs.session(), conversation(NOTICE)));
-
-		assert.equal(runs.judge.cwd(), dirname(runs.config));
-	});
-
-	// Every entry of this plugin returns on the marker, including the watcher
-	// itself, so the judge child running a whole Claude Code session of its own
-	// fires none of them. The runs without it are what make the silence proof
-	// of the marker rather than of anything else.
-	test(name("the marker switches every entry off at once"), () => {
-		const seen = judge(runtime);
-		const every = entries(runtime, seen.config);
-
-		seen.answers(LATER);
-
-		const off = every(true);
-
-		quiet(off.measured);
-		quiet(off.watched);
-		quiet(off.denied);
-		assert.equal(seen.prompts().length, 0, "the judge was never consulted");
-
-		const on = every(false);
-
-		assert.equal(injected(on.measured), "NOTICE 160K over 150K");
-		quiet(on.watched);
-		assert.equal(seen.prompts().length, 1, "the judge answers without it");
-		assert.ok(on.denied.stdout.includes("DENIED"), on.denied.stdout);
-	});
-}
-
-/** One run of each of this plugin's entries, with the marker set or not. */
-interface Entries {
-	readonly measured: Result;
-	readonly watched: Result;
-	readonly denied: Result;
-}
-
-/**
- * All three entries of one session, each on input it has something to say
- * about: a crossing to inject, a turn to judge, and a resume to deny.
- */
-function entries(runtime: Runtime, watcher: string): (off: boolean) => Entries {
-	const hook = hookRunner(runtime);
-	const config = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES, watcher);
-	const id = sessionId(runtime);
-	const path = conversation(NOTICE);
-	const guarded = subagentSession("big", [assistant(162_300)], ["{}"]);
-
-	return (off) => {
-		const env = off ? { env: { CONTEXT_BUDGET_JUDGE: "1" } } : {};
-		const session = { session_id: id, transcript_path: path };
-
-		return {
-			measured: hook(
-				"context-budget",
-				{ ...session, hook_event_name: "UserPromptSubmit" },
-				config,
-				env,
-			),
-			watched: hook(
-				"watcher",
-				{ ...session, hook_event_name: "Stop" },
-				config,
-				{ ...env, args: PRICING },
-			),
-			denied: hook(
-				"resume-guard",
-				{
-					session_id: id,
-					hook_event_name: "PreToolUse",
-					tool_name: "SendMessage",
-					tool_input: { to: "big" },
-					transcript_path: guarded,
-				},
-				config,
-				env,
-			),
-		};
-	};
 }
 
 /**

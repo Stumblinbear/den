@@ -10,7 +10,6 @@ import { type SpawnSyncReturns, spawnSync } from "node:child_process";
 import process from "node:process";
 import { ANSWER, type Option, optionIn, type Wait, waitIn } from "./answer.mts";
 import { formatTokens } from "./messages.mts";
-import { JUDGE } from "./plugin.mts";
 import type { Turn } from "./recent-turns.mts";
 import { opening } from "./rewind-picker.mts";
 import type { Thresholds, Watcher } from "./settings.mts";
@@ -18,10 +17,8 @@ import { errorCode, firstLine, isTable } from "./shared/fields.mts";
 
 /**
  * How long a judge call may run before it is killed. Three minutes rather than
- * one because the judge is a Claude Code session of its own: it loads the
- * user's plugins and starts their MCP servers before it reads a word of the
- * prompt, and a bound tight enough to kill it there would leave the watcher
- * silent on exactly the machines that have the most to say.
+ * one because a call is a Claude Code startup and a model round trip, and a
+ * call killed at the bound is a turn the watcher says nothing on.
  */
 const JUDGE_BOUND_MS = 180_000;
 
@@ -149,8 +146,9 @@ export function askJudge(watcher: Watcher, prompt: string): Answer {
 }
 
 /**
- * The call itself, run in the directory `Watcher.cwd` names. See that field in
- * `settings.mts` for why the judge is not started where the hook stands.
+ * The call itself. The child inherits this process's directory and its
+ * environment: the command decides what a judge loads, and `DEFAULT_COMMAND`
+ * in `settings.mts` is where the default decides it.
  */
 function judged(watcher: Watcher, prompt: string): SpawnSyncReturns<string> {
 	const options = {
@@ -158,9 +156,6 @@ function judged(watcher: Watcher, prompt: string): SpawnSyncReturns<string> {
 		encoding: "utf8" as const,
 		timeout: JUDGE_BOUND_MS,
 		windowsHide: true,
-		cwd: watcher.cwd,
-		// biome-ignore lint/style/noProcessEnv: the judge is a Claude Code run of its own, so it fires this plugin's hooks; the marker is how they are told whose child they are in.
-		env: { ...process.env, [JUDGE]: "1" },
 	};
 	const run = spawnSync(watcher.program, watcher.args, options);
 

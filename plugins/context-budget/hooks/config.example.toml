@@ -97,7 +97,8 @@ model = "haiku"
 # command = [
 #   "claude", "-p", "--model", "{model}", "--tools", "",
 #   "--max-turns", "2", "--output-format", "json",
-#   "--no-session-persistence",
+#   "--no-session-persistence", "--safe-mode",
+#   "--system-prompt", "<one sentence: answer the prompt's question and stop>",
 #   "--json-schema", "<the two answer shapes, as a JSON Schema>",
 # ]
 #
@@ -111,9 +112,7 @@ model = "haiku"
 # Write your own to run the judge on something else. It replaces the whole list,
 # schema and all, so an answer from it is read out of the text: it is handed the
 # prompt on stdin and read for one JSON object on stdout, either bare or in the
-# `result` field of a `claude --output-format json` envelope. It runs in this
-# directory, and CONTEXT_BUDGET_JUDGE=1 is set in it, which is what keeps this
-# plugin's own hooks quiet inside a judge that is a Claude Code run of its own.
+# `result` field of a `claude --output-format json` envelope.
 
 # How much conversation the judge is shown: this many recent turns, cut to this
 # many tokens from the oldest end. A turn is one of your prompts and the replies

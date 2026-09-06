@@ -5,7 +5,6 @@
 // default. `enabled` has one wherever it appears, a table of keyed rows may be
 // left out, and `[watcher]` may be left out with each of its keys defaulted, so
 // a file that names none of them still gets a watcher.
-import { dirname } from "node:path";
 import { ANSWER_SCHEMA } from "./answer.mts";
 import {
 	child,
@@ -85,12 +84,6 @@ export interface Watcher {
 	readonly program: string;
 	/** The rest of `command`, filled in the same way. */
 	readonly args: readonly string[];
-	/**
-	 * Where the judge runs, which is the directory this file was read from. A
-	 * judge left in the hook's own working directory would load the project's
-	 * CLAUDE.md, hooks and MCP servers on every consultation.
-	 */
-	readonly cwd: string;
 	readonly tailTurns: number;
 	readonly tailTokens: number;
 }
@@ -106,12 +99,33 @@ export interface Settings {
 }
 
 /**
+ * The whole of what the judge is told before the prompt. It answers one
+ * question about a conversation it is not part of, and the prompt carries
+ * everything that question turns on, so the framing is the only work a system
+ * prompt has left to do.
+ */
+export const DEFAULT_SYSTEM_PROMPT =
+	"You are the judge a Claude Code plugin consults: answer the one question the prompt asks, from the prompt alone, and stop.";
+
+/**
  * What the judge is asked with where the file names no command of its own: no
- * tools, two turns, no session left behind, the answer as JSON on stdout, and
- * the answer shapes as a schema the CLI samples the model against and validates
- * for it. It runs on the user's subscription, which is why it is `claude`
- * rather than an API call. A `command` written out in full replaces this whole
- * list, schema and all.
+ * tools, two turns, safe mode, a system prompt of our own, no session left
+ * behind, the answer as JSON on stdout, and the answer shapes as a schema the
+ * CLI samples the model against and validates for it. It runs on the user's
+ * subscription, which is why it is `claude` rather than an API call. A
+ * `command` written out in full replaces this whole list, schema and all.
+ *
+ * `--safe-mode` is what keeps everything else out. Without it the child loads
+ * the user's plugins, hooks and MCP servers and the project's CLAUDE.md before
+ * it reads a word of the prompt: several times the prompt in tokens, this
+ * plugin's own hooks firing in a session that is not the user's, and a verdict
+ * that turns on whatever the machine happens to have installed.
+ *
+ * `--system-prompt` is what keeps the project out. Safe mode loads none of the
+ * configuration, and Claude Code's default system prompt arrives anyway,
+ * carrying the directory the judge was started in, its git branch, the names
+ * of the files changed there and the last few commit subjects. One sentence
+ * in its place leaves the judge the prompt and nothing else.
  *
  * `--tools ""` is what keeps the judge from acting. It is a Claude Code session
  * of its own, so without the flag it holds every tool this one holds, and a
@@ -137,6 +151,9 @@ const DEFAULT_COMMAND: readonly string[] = [
 	"--output-format",
 	"json",
 	"--no-session-persistence",
+	"--safe-mode",
+	"--system-prompt",
+	DEFAULT_SYSTEM_PROMPT,
 	"--json-schema",
 	ANSWER_SCHEMA,
 ];
@@ -213,7 +230,6 @@ function watcher(root: Section): Watcher {
 		enabled: enabled(section),
 		program,
 		args,
-		cwd: dirname(section.path),
 		tailTurns: countOr(section, "tail_turns", 16),
 		tailTokens: countOr(section, "tail_tokens", 20_000),
 	};

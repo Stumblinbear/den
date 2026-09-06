@@ -48,15 +48,12 @@ export interface Judge {
 	prompts(): readonly string[];
 	/** What it was last started with, and none for a judge never run. */
 	argv(): readonly string[];
-	/** The directory it was last started in, and empty for a judge never run. */
-	cwd(): string;
 	/** What it answers from here on. */
 	answers(answer: unknown): void;
 	/**
 	 * An entry run from inside the call, before it answers, which is how a case
 	 * reaches the moment a judge is in flight. The nested run is handed the
-	 * session's own temp directory, and the judge marker is taken out of its
-	 * environment, since a real Stop arriving mid-call is not inside a judge.
+	 * session's own temp directory, as the run around it was.
 	 */
 	nests(entry: string, input: Record<string, unknown>, config: string): void;
 	/**
@@ -79,7 +76,6 @@ export function judge(runtime: Runtime): Judge {
 	const file = (name: string) => join(dir, name);
 	const script = file("judge.mjs");
 	const log = file("prompts.jsonl");
-	const where = file("cwd.txt");
 	const answer = file("answer.json");
 	const nested = file("nested.json");
 	const rewritten = file("rewritten.json");
@@ -93,8 +89,6 @@ export function judge(runtime: Runtime): Judge {
 		script,
 		"--log",
 		log,
-		"--cwd",
-		where,
 		"--answer",
 		answer,
 		"--nested",
@@ -140,7 +134,6 @@ export function judge(runtime: Runtime): Judge {
 				? []
 				: (JSON.parse(written) as readonly string[]);
 		},
-		cwd: () => lines(where)[0] ?? "",
 		answers: (written) => {
 			writeFileSync(answer, JSON.stringify(written));
 		},
@@ -202,7 +195,6 @@ process.stdin.on("data", (chunk) => {
 });
 process.stdin.on("end", () => {
 	appendFileSync(value("--log"), JSON.stringify(prompt) + "\\n");
-	writeFileSync(value("--cwd"), process.cwd());
 	writeFileSync(value("--argv"), JSON.stringify(argv));
 
 	const rewrites = read(value("--rewrites"));
@@ -224,13 +216,10 @@ process.stdin.on("end", () => {
 		rmSync(value("--nested"), { force: true });
 
 		const run = JSON.parse(nested);
-		const env = { ...process.env };
 
-		delete env.CONTEXT_BUDGET_JUDGE;
 		spawnSync(process.execPath, run.argv, {
 			input: JSON.stringify(run.input),
 			encoding: "utf8",
-			env,
 		});
 	}
 

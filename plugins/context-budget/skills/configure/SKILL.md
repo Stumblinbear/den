@@ -168,23 +168,27 @@ The watcher runs on `Stop`, in the background, and only while the context sits
 past `notice` and under `urgent`. It asks a small model, on the last sixteen
 turns of conversation and the same priced reading the `cut-point` skill prints,
 whether the session has just reached a good moment to compact or rewind; Claude
-Code hands the answer to the agent on its next turn, as advice the agent may
-decline. It paces itself: an answer of "not yet" names a wait of one, three or
-eight turns, halved past the midpoint between the two thresholds, and a commit,
-a push or a task marked completed cuts a wait short. Turns there are the user's
-own prompts, so an agent woken again inside one turn runs no wait down. A
-`command` of your own is handed the prompt on stdin and writes one JSON object
-on stdout, bare or in the `result` field of a `claude --output-format json`
-envelope; anything else reads as no verdict and costs the session nothing, while
-a command that will not start at all is one `internal error` line, said once. It
-runs in the data directory with `CONTEXT_BUDGET_JUDGE=1` set, which is what
-keeps these hooks quiet inside a judge that is itself a Claude Code run.
+Code hands the answer to the agent on its next turn, and where it names a cut
+the agent puts it to the user every time, saying so where it would rather
+finish the work in hand first and raising it again at each pause after. It
+paces itself: an answer of "not yet" names a wait of one, three or eight
+turns, halved past the midpoint between the two thresholds, and a commit, a
+push or a task marked completed cuts a wait short. Turns there are the user's
+own prompts, so an agent woken again
+inside one turn runs no wait down. A `command` of your own is handed the prompt
+on stdin and writes one JSON object on stdout, bare or in the `result` field of
+a `claude --output-format json` envelope; anything else reads as no verdict and
+costs the session nothing, while a command that will not start at all is one
+`internal error` line, said once.
 
 The default command asks under a JSON Schema of the two answer shapes, so the
 CLI samples the model against it and hands back the object it validated in the
-envelope's `structured_output`, which is read before anything in the text. A
-`command` of your own replaces that list whole, schema and all, which is why the
-reading of the text above outlives it.
+envelope's `structured_output`, which is read before anything in the text. It
+also runs the judge under safe mode, so nothing the user or the project has
+configured loads inside it, these hooks included, and under a one-sentence
+system prompt of the plugin's own, so nothing of the project reaches the judge
+but what the prompt carries. A `command` of your own replaces that list whole,
+schema and all, which is why the reading of the text above outlives it.
 
 ## Where changes go
 
