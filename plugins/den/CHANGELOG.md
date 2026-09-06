@@ -7,6 +7,12 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Removed
+
+- Skill `voice`; its rules and catalog live in `writing-for-humans`. Drafting a
+  commit message no longer routes through the register rules: its format is
+  each person's own.
+
 ### Added
 
 - Skill `writing-a-skill`, on how a Claude Code skill is written: the listing
@@ -17,8 +23,12 @@ minor bump may change behavior.
 
 ### Changed
 
-- `code-architecture`, `design-decisions`, `voice`, `unsafety-author` and the
-  two review launchers are hidden from the `/` menu (`user-invocable: false`):
+- The `voice` skill is folded into `writing-for-humans`: the register rules
+  are its own section, the grep line sits under them, the catalog of tells is
+  `references/tells.md`, and a report or message for a person is one of the
+  kinds it covers. The comment-reviewer preloads `writing-for-humans` alone.
+- `code-architecture`, `design-decisions`, `unsafety-author` and the two
+  review launchers are hidden from the `/` menu (`user-invocable: false`):
   Claude applies them when their trigger fires, and typing them was no action
   a person takes.
 - Every skill the model routes to itself carries a `when_to_use` directive

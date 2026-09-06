@@ -1,7 +1,7 @@
 ---
 name: writing-for-humans
-description: How text a person will read is written, whichever of its four kinds it is.
-when_to_use: ALWAYS invoke this skill before writing or revising a README, a guide or reference page, an architecture or decision document, a doc comment or docstring, or a comment inside a function body. Do not write or revise such text directly; use this skill first.
+description: How text a person will read is written, in the register a person would use, whichever of its kinds it is.
+when_to_use: ALWAYS invoke this skill before writing or revising a README, a guide or reference page, an architecture or decision document, a doc comment or docstring, a comment inside a function body, or a report or message for a person, when reviewing text an agent drafted for a person, and when the user says a draft sounds like AI or is slop. Do not write, revise or polish such text directly; use this skill first.
 ---
 
 # Writing for humans
@@ -38,9 +38,50 @@ alone, so read the one for the text in hand.
   rather than restate it.
 - **One term per concept.** A reader who meets two words for one thing spends
   the reread deciding whether they differ.
-- **No AI voice.** `den:voice` carries the rules that keep a draft from
-  reading as machine-written, and a catalog of the tells with the fix for
-  each.
+
+## The register
+
+A reader who recognizes the machine register stops reading, and every sentence
+after that one is wasted. The register is a small set of habits, and each rule
+below replaces one of them with what a person would have written. They belong
+in the first draft: a cleanup pass over machine prose adds machine traits of
+its own.
+
+- **Put a character in the subject and the action in the verb.** `The parser
+  rejects a trailing comma`: the actor and the action reach the reader in the
+  first three words. Plain verbs, `is`, `has`, `wrote`, `used`, carry a
+  sentence that a dressed-up one only decorates.
+- **State it in positive form.** Say what holds, and keep `not` for a real
+  denial or antithesis, because an evasive `not` spends a clause and leaves the
+  reader without the fact.
+- **Name the source or drop the claim.** A number, a path, a line. A claim with
+  nothing behind it reads as padding, and it usually is padding.
+- **One idea per sentence, varied shapes across the paragraph.** Sentences of
+  one length and one build are themselves the register, so a short sentence
+  earns its place beside a long one. Fragments are fine.
+- **Break any rule sooner than write something worse.** A rule followed into an
+  awkward sentence costs the reader more than it saved.
+
+Before you read a draft, run one line over it:
+
+```sh
+grep -nEi '—| -- |emphasiz|enhanc|highlight|showcas|in (summary|conclusion)|overall,|important to note|worth noting|in this (section|guide|article)|let'?s dive|as of my last update|not just .+ but|serves as|stands as' FILE
+```
+
+The line carries the current vocabulary band and the phrasings that belong to
+the register itself. A hit marks a sentence to look at and settles nothing by
+itself: `highlight` is a real word, and a finding needs several signs sitting
+together in one passage. An em dash, or ` -- `, is the exception, and every one
+is a sentence to rewrite. A tell people were already writing before the
+register, `utilize`, `Note that`, `acts as`, hits too many real sentences to
+grep for and stays in `references/tells.md`, which is read with a hit in hand.
+
+When the text already exists, check the sentences the grep and the catalog
+name, rewrite those, and leave the rest alone: a polish pass over prose that is
+already fine puts the register back in. Text that is wrong throughout is
+rewritten from scratch in one step. A rewrite that removes only the sign
+leaves the substance where it was; a sourceless claim is still sourceless once
+the word `pivotal` is gone.
 
 ## References
 
@@ -48,6 +89,10 @@ Each entry file is complete for the common case; its siblings are read when
 the condition they name fires, and they are listed here so none is more than
 one hop away.
 
+- **The register's tells:** `references/tells.md` (every tell with the fix
+  that cures it, grouped by structure, phrasing, vocabulary and framing, the
+  vocabulary banded by date, and a closing list of the signs that do not
+  count).
 - **A README:** `references/readme/readme.md` (router or manual and the
   budget each carries, what the first screen holds, usage before
   installation, what the software does to the reader's machine, purpose and

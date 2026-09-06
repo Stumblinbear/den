@@ -30,17 +30,16 @@ and writing-a-skill; the rest are hidden from the `/` menu:
   follow.
 - `writing-a-skill`: how a Claude Code skill is written, from the listing
   line the model routes on to the test that shows its trigger fires.
-- `writing-for-humans`: what a README, a document, a doc comment, or a comment
-  inside a body owes the person who reads it.
-- `voice`: how to keep text a person reads from sounding machine-written. The
-  rules that keep it out, and a catalog of the tells with their fixes.
+- `writing-for-humans`: what a README, a document, a doc comment, a comment
+  inside a body, or a report owes the person who reads it, and the register
+  that keeps it from reading as machine-written, with a catalog of the tells.
 - `unsafety-author`: Rust `# Safety` contracts and unsafe documentation.
 
 Agents, launched through the Agent tool as `den:<name>`:
 
 - `flag-reviewer` (fable): full code and architecture review of a pending
   change. Reports findings; never edits.
-- `comment-reviewer` (opus): comment coverage and voice on a settled change.
+- `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
 - `implementer-opus` (opus): the default implementer. Executes a pinned brief,
   declares deviations, stops on broken assumptions.
