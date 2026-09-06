@@ -33,27 +33,37 @@ if (plugin === undefined || plugin === "") {
 }
 
 const source = join(ROOT, "plugins", plugin);
-const manifest = join(source, ".claude-plugin", "plugin.json");
 
-if (!existsSync(manifest)) {
-	process.stderr.write(`${plugin}: no plugin at ${source}\n`);
+if (!existsSync(join(source, ".claude-plugin", "plugin.json"))) {
+	process.stderr.write(`${plugin}: no plugin at ${source}
+`);
 	process.exit(1);
 }
 
-const version = String(JSON.parse(readFileSync(manifest, "utf8")).version);
-const target = join(
+// Claude Code's own record of what is installed and where. The manifest's
+// version is not the installed one whenever the checkout has bumped it ahead
+// of a release, so the registry is what names the directory to refresh.
+const registry = join(
 	homedir(),
 	".claude",
 	"plugins",
-	"cache",
-	MARKETPLACE,
-	plugin,
-	version,
+	"installed_plugins.json",
 );
+const installs: unknown = existsSync(registry)
+	? JSON.parse(readFileSync(registry, "utf8")).plugins?.[
+			`${plugin}@${MARKETPLACE}`
+		]
+	: undefined;
+const target = Array.isArray(installs)
+	? installs
+			.map((install) => String(install?.installPath ?? ""))
+			.find((path) => path !== "")
+	: undefined;
 
-if (!existsSync(target)) {
+if (target === undefined || !existsSync(target)) {
 	process.stderr.write(
-		`${plugin}: ${version} is not installed at ${target}; install it once with \`claude plugin install ${plugin}@${MARKETPLACE}\`\n`,
+		`${plugin}: not installed from the ${MARKETPLACE} marketplace; install it once with \`claude plugin install ${plugin}@${MARKETPLACE}\`
+`,
 	);
 	process.exit(1);
 }
@@ -69,9 +79,7 @@ cpSync(source, target, {
 	filter: (path) => path !== join(source, KEPT),
 });
 
-process.stdout.write(
-	`${plugin} ${version} refreshed at ${target}; run /reload-plugins\n`,
-);
+process.stdout.write(`${plugin} refreshed at ${target}; run /reload-plugins\n`);
 
 function files(dir: string): string[] {
 	const found: string[] = [];
