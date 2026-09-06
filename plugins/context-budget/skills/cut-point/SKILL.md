@@ -1,6 +1,7 @@
 ---
 name: cut-point
-description: Use when you need a prompt to name as a rewind cut point: the user asks where to rewind to or which prompt to select in `/rewind`, or the cut point you named earlier has expired.
+description: A priced reading of the session's prompt cache, listing the rewind cut points still cached with what each keeps and when it pays back.
+when_to_use: ALWAYS invoke this skill when naming where to rewind to or which prompt to select in `/rewind` or when a cut point named earlier has expired. Do not name a cut point or quote a payback from memory; use this skill first.
 ---
 
 # A current rewind cut point

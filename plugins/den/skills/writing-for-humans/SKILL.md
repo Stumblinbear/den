@@ -1,7 +1,7 @@
 ---
 name: writing-for-humans
-description: How to write text a person will read - a README, documentation outside the code, a doc comment on an item, or a comment inside a body. Use when writing or revising one of those four, where the reader is a person rather than an agent.
-when_to_use: Use before writing or reviewing a README, a guide or reference page, an architecture or decision document, a doc comment or docstring, or a comment inside a function body. Trigger phrases - "write the README", "document this", "add a doc comment", "explain this in a comment", "is this comment needed".
+description: How text a person will read is written, whichever of its four kinds it is.
+when_to_use: ALWAYS invoke this skill before writing or revising a README, a guide or reference page, an architecture or decision document, a doc comment or docstring, or a comment inside a function body. Do not write or revise such text directly; use this skill first.
 ---
 
 # Writing for humans

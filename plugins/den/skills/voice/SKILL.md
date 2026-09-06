@@ -1,7 +1,7 @@
 ---
 name: voice
-description: Keeps prose a person will read from sounding machine-written - character subjects, positive statements, sourced claims, varied sentence shape, and a grep for the phrases that give a draft away. Use when writing or reviewing a README, documentation, a comment, a commit message, or a report.
-when_to_use: Use before drafting any text a person will read, and when reviewing text an agent drafted. Trigger phrases - "sounds like AI", "reads as machine-written", "make this sound human", "AI voice", "slop".
+description: How prose a person will read stays out of the machine-written register, with character subjects, positive statements, sourced claims, varied sentence shape, and a grep for the phrases that give a draft away.
+when_to_use: ALWAYS invoke this skill before drafting a commit message or a report for a person, when reviewing text an agent drafted for a person, and when the user says a draft sounds like AI, reads as machine-written, or is slop. Do not polish the register directly; use this skill first.
 ---
 
 # Voice

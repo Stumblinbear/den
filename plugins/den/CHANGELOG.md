@@ -7,6 +7,13 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+
+- Every skill the model routes to itself carries a `when_to_use` directive
+  ("ALWAYS invoke this skill when ...", with the thing the model would do
+  instead named) and a description that says what the skill is, so the two
+  no longer restate each other.
+
 ## [0.3.0] - 2026-09-05
 
 ### Added

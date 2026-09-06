@@ -1,7 +1,7 @@
 ---
 name: context-budget
-description: Use when the session's context is filling and you need to recommend `/compact` or a rewind summarize to the user. It covers how a rewind summarize differs from `/compact`, how to pick a cut point and a focus line, and how to tell the end of an arc from a step inside one.
-when_to_use: Use the moment a "Context budget:" notice appears in the conversation, before deciding what to recommend, and when the user asks whether to compact, rewind, or keep going. Trigger phrases - "context budget", "should I compact", "rewind or compact".
+description: How a session's context is shrunk, covering what `/compact` and a rewind summarize each keep, how to name a cut point and write a focus line, and how to tell the end of an arc from a step inside one.
+when_to_use: ALWAYS invoke this skill when a "Context budget:" notice appears, before deciding what to recommend, and when the user asks whether to compact, rewind, or keep going. Do not recommend a compact or a rewind directly; use this skill first.
 ---
 
 # Context budget

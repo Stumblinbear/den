@@ -1,7 +1,7 @@
 ---
 name: scoping
-description: Settle the decisions an ask leaves open before a brief is written - one question at a time, each with a recommended answer, facts looked up rather than asked, and every answer written into the brief. The coordinating session runs this pass; subagents cannot ask the user.
-when_to_use: Use before writing a brief, when the ask leaves a decision whose readings would produce materially different work and the repository does not settle it. Trigger phrases - "scope this", "grill me", "interview me".
+description: A pass that settles the decisions an ask leaves open before a brief is written, one question at a time, each with a recommended answer, facts looked up rather than asked, and every answer written into the brief.
+when_to_use: ALWAYS invoke this skill before writing a brief whose ask leaves a decision the repository does not settle, and when the user says "scope this", "grill me", or "interview me". Do not write the brief or put the questions directly; use this skill first.
 ---
 
 # Scoping

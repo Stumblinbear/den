@@ -1,7 +1,7 @@
 ---
 name: design-decisions
-description: How an engineering choice is made and stated - the tradeoff a recommendation carries, the reuse ladder before anything new is written, and simplicity as a tool rather than a lean. Use when designing a fix, choosing between approaches, picking a library, or making a choice a brief left open.
-when_to_use: Use when a fix is being designed, an approach chosen, a library picked, or a choice a brief left open is being made; when a recommendation is written for the user or into a brief; when a report declares a choice. Trigger phrases - "which approach", "should we use", "my call", "the alternative", "we could either", "declared choice".
+description: How an engineering choice is made and stated, covering the tradeoff a recommendation carries, the reuse ladder before anything new is written, and simplicity as a tool rather than a lean.
+when_to_use: ALWAYS invoke this skill when designing a fix, choosing between approaches, picking a library, making a choice a brief left open, or writing a recommendation for the user or into a brief. Do not state a choice or a recommendation directly; use this skill first.
 ---
 
 # Design decisions

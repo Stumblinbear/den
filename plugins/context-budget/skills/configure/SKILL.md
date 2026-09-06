@@ -1,6 +1,7 @@
 ---
 name: configure
-description: Use when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, or wants to change when either fires. That covers thresholds, per-model rows, switching a model off, the resume guard's limits, and the wording of any of the messages.
+description: How the context-budget plugin works and how it is configured, covering thresholds, per-model rows, switching a model off, the resume guard's limits, and the wording of its messages.
+when_to_use: ALWAYS invoke this skill when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, or wants to change when either fires. Do not edit the plugin's config.toml or explain its behavior from memory; use this skill first.
 ---
 
 # Configuring context-budget

@@ -1,6 +1,7 @@
 ---
 name: configure
-description: Use when the user asks how the model-prompts plugin works, why a prompt for a model did or did not appear at session start or after a /model switch, or wants to change what is injected. That covers adding or editing a per-model row, keeping the text in a file, switching a row off, and choosing whether a row repeats on every switch.
+description: How the model-prompts plugin works and how it is configured, covering per-model rows, text kept in a file, switching a row off, and whether a row repeats on every model switch.
+when_to_use: ALWAYS invoke this skill when the user asks how the model-prompts plugin works, why a prompt for a model did or did not appear at session start or after a `/model` switch, or wants to change what is injected. Do not edit the plugin's config.toml or explain its behavior from memory; use this skill first.
 ---
 
 # Configuring model-prompts

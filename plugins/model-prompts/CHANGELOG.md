@@ -7,6 +7,12 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+
+- The `configure` skill carries a `when_to_use` directive and a description
+  that says what it is, so the model routes to it rather than editing the
+  configuration on its own.
+
 ## [0.2.0] - 2026-09-05
 
 ### Added
