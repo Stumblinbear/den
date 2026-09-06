@@ -9,6 +9,9 @@ minor bump may change behavior.
 
 ### Changed
 
+- The `coordination` skill's launch authorization names approval by
+  adjacency: a reply that does not answer a pending go is not the go, what
+  it asks for is done, and the launch still waits.
 - The `flag-reviewer` evidence pass gains a decisions step: inheriting the
   change's decisions, the brief's pins included, and reviewing only their
   execution is named as a failure mode, and each decision is asked why this

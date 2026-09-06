@@ -71,7 +71,10 @@ that produced it, obvious fixes (the unquestionably wrong and the mechanical),
 and the closure pass by the reviewer that raised the findings, are that stage
 continuing: they run at once and the report says so. After a stage lands:
 report, and where the next stage needs a go-ahead, propose it (agent and
-scope) and wait.
+scope) and wait. A reply that does not answer a pending go is not the go,
+however close its subject: what it asks for is done, and the launch still
+waits, because approval by adjacency is the failure mode where work starts
+on a reading rather than a decision.
 
 ## Implementer reports
 
