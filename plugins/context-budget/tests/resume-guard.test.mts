@@ -13,9 +13,9 @@ import { runtimes } from "../../../tests/harness.mts";
 import { apiError, assistant } from "./fixtures.mts";
 import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
 import {
+	BROKEN,
 	configFile,
 	DEFAULTS,
-	GUARD,
 	GUARD_MESSAGES,
 	lostSession,
 	MESSAGES,
@@ -24,12 +24,10 @@ import {
 	reported,
 	sessionId,
 	subagentSession,
+	USABLE,
 } from "./harness.mts";
 
-const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
-
-/** A config fault is what a run that has reported nothing yet still reports. */
-const BROKEN = configFile("[resume-guard\nlarge = 10\n");
+const CONFIG = configFile(USABLE);
 
 for (const runtime of runtimes()) {
 	const guard = guardRunner(runtime);
@@ -88,7 +86,7 @@ for (const runtime of runtimes()) {
 				session,
 				subagentSession("big", [assistant(162_300)], [PROMPT]),
 				"big",
-				BROKEN,
+				configFile(BROKEN),
 			),
 			"config",
 		);

@@ -1,19 +1,21 @@
-// The failure policy: no quiet recovery, and no stand-in values. A parser that
-// will not import, or a configuration that cannot be parsed or used, is
-// reported once, and the rest of the session hears nothing more about it.
-// Every run still reads the file, so a fix takes effect on the next one. A
-// configuration that is simply not there is no failure: it is a plugin nobody
-// has configured yet.
+// The failure policy: no stand-in values, and no fault the session is not told
+// about. A parser that will not import, or a configuration that cannot be
+// parsed or used, is reported by every run that meets it, on the field Claude
+// Code hands the agent. Every run reads the file, so a fix takes effect on the
+// next one and the reports stop with it. A configuration that is simply not
+// there is no failure: it is a plugin nobody has configured yet.
 //
 // These run the real process through the launcher, because the whole contract
-// is out of band: an exit code, one line on stderr, and the class written into
-// the session's record.
+// is out of band: what a run writes on stdout for the agent, and the exit of a
+// hook that has not failed.
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fixtureDir, runtimes } from "../../../tests/harness.mts";
 import {
+	addressedTo,
+	BROKEN,
 	configFile,
 	homeNaming,
 	hookRunner,
@@ -21,6 +23,7 @@ import {
 	type RunOptions,
 	reported,
 	sessionId,
+	USABLE,
 	withoutParser,
 } from "./harness.mts";
 
@@ -93,37 +96,25 @@ for (const runtime of runtimes()) {
 		hook(input(session), config, options);
 
 	test(name("a config file that is not there is not a fault"), () => {
-		const session = sid();
-
-		quiet(run(session, join(fixtureDir("no-config"), "never-written.toml")));
-
-		// Nothing was reported, so a real fault after it is still the first this
-		// session hears about.
-		reported(
-			run(session, configFile("[models.'opus'\nprompt = \"x\"\n")),
-			"config",
-		);
+		quiet(run(sid(), join(fixtureDir("no-config"), "never-written.toml")));
 	});
 
-	test(name("a missing parser is reported once, then it goes quiet"), () => {
+	test(name("a parser that will not import is a parser fault"), () => {
 		const launcher = withoutParser();
-		const session = sid();
 		const path = configFile("");
 
 		assert.match(
-			reported(run(session, path, { launcher }), "parser"),
+			reported(run(sid(), path, { launcher }), "parser"),
 			NAMES_THE_PACKAGE,
 		);
-		quiet(run(session, path, { launcher }));
 	});
 
-	test(name("a malformed config is reported once, naming the file"), () => {
+	test(name("a malformed config is reported, naming the file"), () => {
 		const session = sid();
-		const path = configFile("[models.'opus'\nprompt = \"x\"\n");
+		const path = configFile(BROKEN);
 		const line = reported(run(session, path), "config");
 
 		assert.ok(line.includes(path), line);
-		quiet(run(session, path));
 	});
 
 	for (const [what, names, contents] of INVALID) {
@@ -134,7 +125,6 @@ for (const runtime of runtimes()) {
 
 			assert.ok(line.includes(path), line);
 			assert.ok(line.includes(names), line);
-			quiet(run(session, path));
 		});
 	}
 
@@ -149,49 +139,51 @@ for (const runtime of runtimes()) {
 		assert.ok(line.includes(join(dir, "nowhere.md")), line);
 	});
 
-	test(name("a fault at session start silences the switch after it"), () => {
+	// Nothing is written down between runs, so what the session hears is what
+	// each run met: this plugin is on the start of a session and on a model
+	// switch, and neither fires twice inside one turn.
+	test(name("a standing fault is reported by every run that meets it"), () => {
 		const session = sid();
-		const path = configFile("[models.'opus'\nprompt = \"x\"\n");
+		const path = configFile(BROKEN);
 
 		reported(run(session, path), "config");
-		quiet(hook(input(session, "PostModelSwitch"), path));
+		reported(hook(input(session, "PostModelSwitch"), path), "config");
 	});
 
-	test(name("a fixed config injects on the very next run"), () => {
+	// The report travels in `hookSpecificOutput`, which Claude Code reads
+	// against the event the run was called for: a report addressed to any
+	// other event is one it drops.
+	test(name("a report is addressed to the event that ran"), () => {
 		const session = sid();
-		const path = configFile("[models.'opus'\nprompt = \"x\"\n");
+		const path = configFile(BROKEN);
 
-		reported(run(session, path), "config");
-		writeFileSync(path, "[models.'opus-5\\b']\nprompt = \"FIXED\"\n");
-
-		const result = hook(input(session, "PostModelSwitch"), path);
-
-		assert.equal(result.status, 0);
-		assert.equal(result.stderr, "");
-		assert.ok(result.stdout.includes("FIXED"), result.stdout);
+		assert.equal(addressedTo(run(session, path)), "SessionStart");
+		assert.equal(
+			addressedTo(hook(input(session, "PostModelSwitch"), path)),
+			"PostModelSwitch",
+		);
 	});
 
-	// The shared reporter says a standing fault again every tenth prompt, and
-	// takes it back when a run works, but both are the work of a prompt hook,
-	// and this plugin has none: nothing here counts a session's prompts, so
-	// what it says once it says once.
-	test(name("a run that works again leaves the report where it was"), () => {
+	// A fault the user has put right is one the session stops hearing about on
+	// the very next run, and one they break again is one it hears about afresh.
+	test(name("the reports stop when the fault does, and start again"), () => {
 		const session = sid();
-		const path = configFile("[models.'opus'\nprompt = \"x\"\n");
+		const path = configFile(BROKEN);
 
 		reported(run(session, path), "config");
-		writeFileSync(path, "[models.'opus-5\\b']\nprompt = \"FIXED\"\n");
+		writeFileSync(path, USABLE);
 
 		const fixed = hook(input(session, "PostModelSwitch"), path);
 
-		assert.ok(fixed.stdout.includes("FIXED"), fixed.stdout);
+		assert.equal(fixed.stderr, "");
+		assert.ok(fixed.stdout.includes("FINE"), fixed.stdout);
 		assert.ok(
-			!fixed.stdout.includes("systemMessage"),
-			"a recovery is nothing this plugin announces",
+			!fixed.stdout.includes("config error"),
+			`the fault is over: ${fixed.stdout}`,
 		);
 
-		writeFileSync(path, "[models.'opus'\nprompt = \"x\"\n");
-		quiet(hook(input(session, "PostModelSwitch"), path));
+		writeFileSync(path, BROKEN);
+		reported(hook(input(session, "PostModelSwitch"), path), "config");
 	});
 
 	// Which model a session is on is a fact about the session, not about the
@@ -199,7 +191,7 @@ for (const runtime of runtimes()) {
 	// the switch is lost and a later run falls back to a stale guess.
 	test(name("a switch made while the config is broken is remembered"), () => {
 		const session = sid();
-		const path = configFile("[models.'opus'\nprompt = \"x\"\n");
+		const path = configFile(BROKEN);
 
 		reported(
 			hook(
@@ -232,23 +224,5 @@ for (const runtime of runtimes()) {
 
 		assert.ok(compacted.stdout.includes("FABLE"), compacted.stdout);
 		assert.ok(!compacted.stdout.includes("OPUS"), compacted.stdout);
-	});
-
-	// A run with nothing to report must leave the session able to hear about
-	// the next thing that does go wrong.
-	test(name("a usable config silences nothing"), () => {
-		const session = sid();
-		const result = run(
-			session,
-			configFile("[models.'opus-5\\b']\nprompt = \"FINE\"\n"),
-		);
-
-		assert.equal(result.status, 0);
-		assert.equal(result.stderr, "");
-		assert.ok(result.stdout.includes("FINE"), result.stdout);
-		reported(
-			run(session, configFile("[models.'opus'\nprompt = \"x\"\n")),
-			"config",
-		);
 	});
 }

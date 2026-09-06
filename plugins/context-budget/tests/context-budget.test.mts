@@ -18,6 +18,7 @@ import {
 	compactBoundary,
 } from "./fixtures.mts";
 import {
+	BROKEN,
 	configFile,
 	DEFAULTS,
 	GUARD,
@@ -29,16 +30,14 @@ import {
 	reported,
 	sessionId,
 	transcript,
+	USABLE,
 } from "./harness.mts";
 
 interface Injection {
 	readonly hookSpecificOutput?: { readonly additionalContext?: string };
 }
 
-const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
-
-/** A config fault is what a run that has reported nothing yet still reports. */
-const BROKEN_CONFIG = configFile("[resume-guard\nlarge = 10\n");
+const CONFIG = configFile(USABLE);
 
 const prompt = (session: string, path: string) => ({
 	session_id: session,
@@ -76,7 +75,7 @@ for (const runtime of runtimes()) {
 
 		quiet(run(session, noTranscript()));
 		reported(
-			run(session, transcript(assistant(200_000)), BROKEN_CONFIG),
+			run(session, transcript(assistant(200_000)), configFile(BROKEN)),
 			"config",
 		);
 	});

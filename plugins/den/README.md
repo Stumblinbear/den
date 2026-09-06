@@ -98,8 +98,8 @@ this plugin. It holds one word, `bun` or `node`:
 echo node > ~/.claude/plugins/data/den-den/.runtime
 ```
 
-No file is the default above. Anything else is one stderr line naming the file
-and a hook run that does nothing. The data directory survives plugin updates.
+No file is the default above. Anything else shows you one line naming the
+file, and the hook run does nothing. The data directory survives plugin updates.
 `.runtime` is the only file den reads from it, and den writes nothing there.
 
 The plugin declares no dependencies, so Claude Code installs nothing for it.
@@ -165,13 +165,13 @@ launch them.
 
 ## Troubleshooting
 
-On Node older than 22.6 with no bun on `PATH`, a hook prints one line naming
-the floor and the version it found, and does nothing. Upgrade Node, or install
-bun.
+On Node older than 22.6 with no bun on `PATH`, a hook shows you one line
+naming the floor and the version it found, and does nothing. Upgrade Node, or
+install bun.
 
-A `.runtime` file holding anything but `bun` or `node` prints one line naming
-the file, and the hook run does nothing. Delete the file to go back to the
-default.
+A `.runtime` file holding anything but `bun` or `node` shows you one line
+naming the file, and the hook run does nothing. Delete the file to go back to
+the default.
 
 If a reminder never arrives, the two temp directories above hold the pending
 flags. Deleting them resets both relays; the next completion starts over.

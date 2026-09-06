@@ -18,8 +18,8 @@ The hook is TypeScript with no build step. `hooks.json` starts
 `lib/shared/launch.mjs` with plain `node`; that launcher runs the hook under
 bun when `bun --version` answers on `PATH`, and otherwise under Node's own
 type stripping, which needs **Node 22.6 or newer**. On an older Node the
-launcher prints one line naming the floor and the version it found, and
-nothing is injected.
+launcher shows the user one line naming the floor and the version it found,
+and nothing is injected.
 
 A file named `.runtime` in the data directory forces the choice for this
 plugin. It holds one word:
@@ -29,8 +29,8 @@ echo node > "${CLAUDE_PLUGIN_DATA}/.runtime"
 ```
 
 `bun` and `node` are the two it takes; no file is the default above. `bun` on
-a machine with no bun on `PATH`, or any other word, is one stderr line naming
-the file and a failed hook run.
+a machine with no bun on `PATH`, or any other word, is one line to the user
+naming the file, and a hook run that does nothing.
 
 ## What fires and when
 
@@ -62,18 +62,17 @@ Consequences that answer most "why did it" questions:
 - **Subagents never see any of this.** `SessionStart` does not fire for them,
   and input carrying an `agent_id` is ignored.
 - The session's record is `<os temp dir>/claude-model-prompts/<session id>.json`,
-  and it is the only file a session leaves there: what has been injected, the
-  model an input last named, and the faults it has been told about (below).
-  Deleting it makes a `once` row fire again, which is the quickest way to see
-  an edit take effect without restarting.
-- One stderr line starting `model-prompts:` says what the hook could not use,
-  and nothing is injected while that stands: `parser error` is a missing
+  and it is the only file a session leaves there: what has been injected, and
+  the model an input last named. Deleting it makes a `once` row fire again,
+  which is the quickest way to see an edit take effect without restarting.
+- One line starting `model-prompts:` goes into the agent's context, with an
+  instruction to put it to the user, and says what the hook could not use;
+  nothing is injected while that stands. `parser error` is a missing
   `smol-toml` in the plugin's cache directory, `config error` names the file
   that cannot be read, parsed, or used, and `internal error` is a failure of
-  the hook's own with nothing in the configuration to fix. The line is said
-  once per session and listed in the record above once it has been. Delete the
-  record to hear it again. Every run still reads the file, so a fix takes
-  effect on the next one, without the line being repeated.
+  the hook's own with nothing in the configuration to fix. Every run reads the
+  file and every run that meets the fault says the line, so a fix takes effect
+  on the next session start or model switch and the lines stop with it.
 
 ## Where changes go
 
@@ -107,7 +106,7 @@ which decide how a row is written:
 ## Checking a change
 
 A TOML typo, or a row the hook cannot use, is not quietly dropped: nothing is
-injected while it stands, and the hook says so once per session on stderr. Run
+injected while it stands, and every run that meets it says so to the agent. Run
 the hook by hand from the plugin root to see what it will inject, or what it
 objects to:
 
@@ -115,7 +114,8 @@ objects to:
       | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
         hooks/model-prompts --config "${CLAUDE_PLUGIN_DATA}/config.toml"
 
-Output is the header and the matching text, or nothing when no row matches.
+Output is the header and the matching text, the report of whatever it objects
+to as JSON, or nothing when no row matches.
 Swap the input for a switch to see the other event:
 
     printf '%s' '{"session_id":"check","hook_event_name":"PostModelSwitch","to_model":"claude-opus-5"}' \

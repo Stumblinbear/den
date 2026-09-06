@@ -50,10 +50,13 @@ export type Answer =
 	/** It ran and answered nothing this can act on, which is silence. */
 	| { readonly kind: "none" }
 	/**
-	 * It never ran, which is the one failure worth a word: silence there would
-	 * be a watcher the user believes is watching and a command nothing starts.
+	 * It failed rather than answered, which is the one end worth a word:
+	 * silence there is a watcher the user believes is watching and a judge that
+	 * never answers. What failed is in `detail` rather than in the kind, since
+	 * a command nothing starts and a call that came back an error cost the
+	 * session the same thing and are different news to the user.
 	 */
-	| { readonly kind: "unstarted"; readonly detail: string };
+	| { readonly kind: "fault"; readonly detail: string };
 
 const NONE: Answer = { kind: "none" };
 
@@ -135,14 +138,26 @@ const written = (turn: Turn): string =>
  * What the judge answered. Silence is the safe end of a call that did not
  * finish inside the bound or answered something this cannot act on: the
  * watcher advises, so an answer nobody can read is worth exactly as much as no
- * answer.
+ * answer. A call that failed rather than answered is the one end reported
+ * instead.
  */
 export function askJudge(watcher: Watcher, prompt: string): Answer {
 	const run = judged(watcher, prompt);
+	const envelope = objectIn(String(run.stdout ?? ""));
 
-	return unstarted(run)
-		? { kind: "unstarted", detail: detailOf(watcher.program, run) }
-		: answerIn(String(run.stdout ?? ""));
+	if (envelope === null) {
+		return unstarted(run)
+			? { kind: "fault", detail: unstartedDetail(watcher.program, run) }
+			: NONE;
+	}
+
+	// `is_error` and not the exit status, which a `command` of the user's own
+	// spends however it likes, and not `subtype`, which a failed call leaves at
+	// "success". A command handed no schema writes no `is_error` either, so an
+	// answer of its own that nothing can read stays silence.
+	return envelope["is_error"] === true
+		? { kind: "fault", detail: failedDetail(watcher.program, envelope) }
+		: answerIn(envelope);
 }
 
 /**
@@ -205,38 +220,83 @@ function unstarted(run: SpawnSyncReturns<string>): boolean {
 }
 
 /**
- * What the report says went wrong, in one line and naming the command. A
- * shell's own line about a command it could not find carries the punctuation
- * of a sentence that goes on, which this one does not.
+ * What the report says went wrong for a judge that never ran, in one line and
+ * naming the command.
  */
-const detailOf = (program: string, run: SpawnSyncReturns<string>): string =>
+const unstartedDetail = (
+	program: string,
+	run: SpawnSyncReturns<string>,
+): string =>
 	`the watcher's judge \`${program}\` did not start (${
-		errorCode(run.error) ||
-		firstLine(String(run.stderr ?? "")).replace(/[.,;:\s]+$/, "") ||
-		`exit ${run.status}`
+		errorCode(run.error) || readable(run.stderr) || `exit ${run.status}`
 	})`;
 
 /**
- * The answer inside whatever the command wrote. `claude --output-format json`
- * puts the object it validated against the schema in `structured_output`, which
- * is the answer where there is one: nothing has to go looking for a brace in
- * prose that may have been written around it. That object is the schema's own
- * wrapper, so the answer is what it holds under `answer`; a judge validated
- * against a schema of somebody else's writing has no wrapper, and what it wrote
- * is read as it stands.
+ * What the report says went wrong for a judge that ran and failed, in one line
+ * and naming the command. `claude -p` marks the envelope `is_error` and names
+ * the kind of failure in `terminal_reason`; a judge that marks one and says
+ * nothing about it leaves the report with the fact and nothing behind it.
+ */
+function failedDetail(
+	program: string,
+	envelope: Record<string, unknown>,
+): string {
+	const kind = readable(envelope["terminal_reason"]);
+	const sentence = sentenceIn(envelope);
+	const failed = `the watcher's judge \`${program}\` ran and failed`;
+
+	if (sentence === "") {
+		return kind === "" ? `${failed} without saying why` : `${failed} (${kind})`;
+	}
+
+	return kind === ""
+		? `${failed}: ${sentence}`
+		: `${failed} (${kind}): ${sentence}`;
+}
+
+/**
+ * What the failure came with, in one sentence. A call that reached the model
+ * and came back an error writes it in `result`; a call that ran out of turns,
+ * died inside its own execution, spent its budget or gave up re-asking for
+ * structured output writes no `result` at all and lists what went wrong in
+ * `errors` instead. Empty for an envelope carrying neither.
+ */
+function sentenceIn(envelope: Record<string, unknown>): string {
+	const said = readable(envelope["result"]);
+
+	if (said !== "") {
+		return said;
+	}
+
+	const errors = envelope["errors"];
+
+	return Array.isArray(errors) ? readable(errors[0]) : "";
+}
+
+/**
+ * A value as a report reads it out, and nothing for a value it cannot read. A
+ * shell's line about a command it could not find and a CLI's line about a call
+ * that failed both carry the punctuation of a sentence that goes on, and the
+ * report's own sentence goes on straight after this one.
+ */
+const readable = (value: unknown): string =>
+	typeof value === "string" ? firstLine(value).replace(/[.,;:\s]+$/, "") : "";
+
+/**
+ * The answer inside the envelope the command wrote. `claude --output-format
+ * json` puts the object it validated against the schema in `structured_output`,
+ * which is the answer where there is one: nothing has to go looking for a
+ * brace in prose that may have been written around it. That object is the
+ * schema's own wrapper, so the answer is what it holds under `answer`; a judge
+ * validated against a schema of somebody else's writing has no wrapper, and
+ * what it wrote is read as it stands.
  *
  * A `command` of the user's own is handed no schema, so the fallback is the
  * whole of what it gets: the model's text in the CLI's `result` field, or the
  * object written bare. Both are still read here, so the seam does not oblige a
  * user to imitate one CLI's envelope.
  */
-function answerIn(stdout: string): Answer {
-	const envelope = objectIn(stdout);
-
-	if (envelope === null) {
-		return NONE;
-	}
-
+function answerIn(envelope: Record<string, unknown>): Answer {
 	const validated = envelope["structured_output"];
 
 	if (isTable(validated)) {

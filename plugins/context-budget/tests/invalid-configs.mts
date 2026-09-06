@@ -7,7 +7,13 @@
 // Its own module because the list grows with every table the plugin reads,
 // while the cases that run it do not. Importing this registers no test of its
 // own.
-import { DEFAULTS, GUARD, GUARD_MESSAGES, MESSAGES } from "./harness.mts";
+import {
+	DEFAULTS,
+	GUARD,
+	GUARD_MESSAGES,
+	MESSAGES,
+	USABLE,
+} from "./harness.mts";
 
 /** The mistake, what the report has to name, and the file that carries it. */
 export type Invalid = readonly [string, string, readonly string[]];
@@ -144,18 +150,12 @@ export const INVALID: readonly Invalid[] = [
 	[
 		"a [watcher] tail_turns of zero",
 		"[watcher] tail_turns",
-		[DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES, "[watcher]\ntail_turns = 0\n"],
+		[USABLE, "[watcher]\ntail_turns = 0\n"],
 	],
 	[
 		"a [watcher] command written as a shell line",
 		"[watcher] command",
-		[
-			DEFAULTS,
-			MESSAGES,
-			GUARD,
-			GUARD_MESSAGES,
-			'[watcher]\ncommand = "claude -p"\n',
-		],
+		[USABLE, '[watcher]\ncommand = "claude -p"\n'],
 	],
 	// An empty word is an argument wherever it falls after the first, since
 	// the default command switches the judge's tools off with one. In the
@@ -163,12 +163,6 @@ export const INVALID: readonly Invalid[] = [
 	[
 		"a [watcher] command whose first word is empty",
 		"[watcher] command",
-		[
-			DEFAULTS,
-			MESSAGES,
-			GUARD,
-			GUARD_MESSAGES,
-			'[watcher]\ncommand = ["", "-p"]\n',
-		],
+		[USABLE, '[watcher]\ncommand = ["", "-p"]\n'],
 	],
 ];

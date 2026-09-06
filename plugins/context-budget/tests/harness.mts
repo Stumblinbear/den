@@ -10,7 +10,6 @@
 // what a case that has no opinion about the rest composes one from.
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { faultChecks } from "../../../tests/fault-checks.mts";
 import {
@@ -21,7 +20,6 @@ import {
 	type Result,
 	type Runtime,
 	runHook,
-	standingLock,
 } from "../../../tests/harness.mts";
 
 export interface RunOptions {
@@ -41,8 +39,8 @@ export const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 export const HOOKS = join(PLUGIN, "hooks");
 export const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
-/** The failure policy both hooks report through, in this plugin's name. */
-export const { withoutParser, reported, quiet, recovered } = faultChecks(
+/** The failure policy every entry reports through, in this plugin's name. */
+export const { withoutParser, reported, quiet, addressedTo } = faultChecks(
 	"context-budget",
 	PLUGIN,
 );
@@ -58,6 +56,19 @@ export const GUARD = "[resume-guard]\nlarge = 150_000\ncold = 50_000\n";
 
 export const GUARD_MESSAGES =
 	'[resume-guard.messages]\ndenied = "DENIED {agent}: {reasons}"\nused = "USED {agent}: {reasons}"\n';
+
+/**
+ * A whole file that does not parse, which is the same fault on every run.
+ * Config text, as every constant above is: a case writes it with `configFile`
+ * and hands a hook the path that comes back.
+ */
+export const BROKEN = "[resume-guard\nlarge = 10\n";
+
+/**
+ * A whole file every entry can use, which is that fault fixed. Config text
+ * too, and what a case with no opinion about any one section runs on.
+ */
+export const USABLE = [DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES].join("\n");
 
 /** The sections joined into one file, as the hooks read them. */
 export function configFile(...sections: readonly string[]): string {
@@ -206,7 +217,7 @@ export function recorder(
 	runtime: Runtime,
 ): (session: string, transcriptPath: string) => Result {
 	const hook = hookRunner(runtime);
-	const config = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+	const config = configFile(USABLE);
 
 	return (session, transcriptPath) =>
 		hook(
@@ -229,24 +240,6 @@ export function record(session: string): Record<string, unknown> {
 	);
 
 	return JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
-}
-
-/**
- * The record's lock, taken the way `file-lock.mts` takes one and never
- * released: what a run finds when another run of the same session is inside
- * its own change of the record. The holder named is this process, which is a
- * run still working; a lock naming a run that has ended is taken over by the
- * hook rather than waited on.
- */
-export function holdLock(session: string): void {
-	standingLock(
-		join(
-			childTemp("context-budget", { session_id: session }),
-			"claude-context-budget",
-			`${session}.lock`,
-		),
-		process.pid,
-	);
 }
 
 /** Everything the session has left in the plugin's temp directory. */

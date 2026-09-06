@@ -4,16 +4,14 @@
 // moment the session that wrote it ends.
 //
 // One record per session per plugin, whatever writes it: what a run has
-// measured, what it has already said, and which faults the session has been
-// told about are all facts about one session. Every writer merges the fields
-// it owns over what is there, so a writer that knows nothing about another's
-// fields cannot drop them.
+// measured and what it has already said are both facts about one session.
+// Every writer merges the fields it owns over what is there, so a writer that
+// knows nothing about another's fields cannot drop them.
 //
 // Claude Code runs tool calls in parallel, so two of a plugin's entries can be
-// writing at once. Every write here takes the record's own lock, a plugin's own
-// writes and the shared reporter's alike, since a merge that read the file
-// outside that lock writes back over whatever landed between its read and
-// itself.
+// writing at once. Every write here takes the record's own lock, since a merge
+// that read the file outside that lock writes back over whatever landed
+// between its read and itself.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

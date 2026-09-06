@@ -1,9 +1,9 @@
 // The launcher every plugin carries: the Node version floor on its own, since
 // nothing else can reach it, and spawns proving it starts an entry under the
-// interpreter it was asked for and prints its refusal on stderr when it
-// cannot, so a hook run it cannot make fails visibly instead of doing nothing.
+// interpreter it was asked for and says why on the screen when it cannot, so a
+// hook run it cannot make is one the user hears about instead of nothing.
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { type SpawnSyncReturns, spawnSync } from "node:child_process";
 import {
 	cpSync,
 	mkdirSync,
@@ -45,6 +45,23 @@ const kind: string = typeof Bun === "undefined" ? "node" : "bun";
 
 process.stdout.write(kind);
 `;
+
+/**
+ * What a launch that never happened put on the screen. Claude Code shows a
+ * `systemMessage` to the user and reads the output at all only from a run that
+ * exited 0 with one JSON object on stdout, so the exit and the parse are part
+ * of the line arriving.
+ */
+function said(result: SpawnSyncReturns<string>): string {
+	assert.equal(result.status, 0, result.stderr);
+	assert.equal(result.stderr, "");
+
+	const output = JSON.parse(result.stdout) as {
+		readonly systemMessage?: unknown;
+	};
+
+	return String(output.systemMessage ?? "");
+}
 
 const CASES: ReadonlyArray<{
 	readonly what: string;
@@ -101,16 +118,13 @@ test("an empty data directory is refused, not run with", () => {
 		{ input: "{}", encoding: "utf8" },
 	);
 
-	assert.equal(result.stdout, "");
-	assert.equal(result.status, 1);
-	assert.equal(
-		result.stderr.split("\n").filter(Boolean).length,
-		1,
-		result.stderr,
-	);
+	const line = said(result);
+
+	assert.equal(line.split("\n").length, 1, line);
+	assert.ok(line.includes("some-entry"), line);
 });
 
-test("a forced runtime that is not there fails the hook run with one line", (t) => {
+test("a forced runtime that is not there stops the run with one line", (t) => {
 	// A PATH with nothing on it, rather than no PATH at all: on Windows a child
 	// spawned without one still searches the parent's, and bun would be found.
 	const empty = mkdtempSync(join(tmpdir(), "launcher-test-"));
@@ -141,11 +155,9 @@ test("a forced runtime that is not there fails the hook run with one line", (t) 
 		{ input: "{}", encoding: "utf8", env },
 	);
 
-	assert.equal(result.status, 1);
-	assert.equal(result.stdout, "");
 	assert.equal(
-		result.stderr,
-		`some-entry: ${join(data, ".runtime")} says bun, but no bun was found on PATH.\n`,
+		said(result),
+		`some-entry: ${join(data, ".runtime")} says bun, but no bun was found on PATH.`,
 	);
 });
 

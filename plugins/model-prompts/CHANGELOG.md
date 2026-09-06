@@ -7,6 +7,21 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+
+- A fault that stops the hook goes to the agent, in the field Claude Code hands
+  it, carrying an instruction to put the line to you, and every run that meets
+  the fault says it: every session start and every model switch. It went to
+  stderr behind a hook that exited non-zero, which Claude Code folds away in the
+  transcript where nobody opens it, and it was said once for the whole session.
+  The faults the session had been told about are gone from its record.
+- The launcher says its own refusals on your screen: a Node under 22.6 with no
+  bun on `PATH`, an unset `CLAUDE_PLUGIN_DATA`, a `.runtime` asking for a bun
+  that is not there or holding any other word, and an interpreter that will not
+  start. Each is one line naming what is wrong, and that hook run does nothing.
+  They went to stderr behind a non-zero exit, which Claude Code folds away as a
+  hook error.
+
 ## [0.3.0] - 2026-09-06
 
 ### Changed

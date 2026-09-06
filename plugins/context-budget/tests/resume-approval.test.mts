@@ -13,17 +13,14 @@ import { assistant } from "./fixtures.mts";
 import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
 import {
 	configFile,
-	DEFAULTS,
-	GUARD,
-	GUARD_MESSAGES,
 	hookRunner,
-	MESSAGES,
 	sessionId,
 	subagentSession,
 	transcript,
+	USABLE,
 } from "./harness.mts";
 
-const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+const CONFIG = configFile(USABLE);
 
 // The user's answer to an AskUserQuestion, as it lands in the transcript: one
 // answer approves one resume, and the guard remembers the entry's uuid.

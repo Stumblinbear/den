@@ -1,33 +1,28 @@
-// The failure policy both hooks share: no stand-in values, and no fault the
+// The failure policy every entry shares: no stand-in values, and no fault the
 // session is not told about. A parser that will not import, or a configuration
-// that cannot be read, parsed, or used, is reported by whichever hook hits it
-// first, and the runs after it do nothing at all, silently. How long that
-// silence lasts is `standing-faults.test.mts`, and how the session hears that
-// the fault is over is `fault-recovery.test.mts`. What is simply not there is
-// no failure at all: a configuration that is not there is a plugin nobody has
-// configured yet, and text on stdin that no hook can read as input is nothing
-// to act on.
+// that cannot be read, parsed, or used, is reported by whichever entry meets
+// it. What is simply not there is no failure at all: a configuration that is
+// not there is a plugin nobody has configured yet, and text on stdin that no
+// hook can read as input is nothing to act on. How long a fault goes on being
+// reported is `report-runs.test.mts`.
 //
 // What each report says is off follows the same split: the file and the parser
 // stop every entry and the line names all three, while an entry's own run
 // coming apart stops that entry and the line names only it.
 //
 // These run the real processes through the launcher, because the whole
-// contract is out of band: an exit code and one line on stderr. Where the
-// class already said is written down is `session-record.test.mts`.
+// contract is out of band: what a run writes on stdout for the agent, and the
+// exit of a hook that has not failed.
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
 import { assistant } from "./fixtures.mts";
 import {
+	addressedTo,
+	BROKEN,
 	configFile,
-	DEFAULTS,
-	GUARD,
-	GUARD_MESSAGES,
-	holdLock,
 	hookRunner,
-	MESSAGES,
 	noConfig,
 	quiet,
 	type RunOptions,
@@ -35,6 +30,7 @@ import {
 	sessionId,
 	subagentSession,
 	transcript,
+	USABLE,
 	unreadableSession,
 	unreadableTranscript,
 	withoutParser,
@@ -47,7 +43,7 @@ const EVERY_ENTRY =
 	"The context notice, the watcher and the resume guard are off for this session";
 
 /** A file every entry can use, so what a case meets is not the configuration. */
-const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+const CONFIG = configFile(USABLE);
 
 // The parser report has to name the package the user has to reinstall.
 const NAMES_THE_PACKAGE = /smol-toml/;
@@ -110,67 +106,74 @@ for (const runtime of runtimes()) {
 
 		quiet(measure(session, path));
 		quiet(guard(session, path));
-
-		// Nothing was reported, so a real fault after it is still the first
-		// this session hears about.
-		reported(
-			measure(session, configFile("[resume-guard\nlarge = 10\n")),
-			"config",
-		);
 	});
 
-	test(name("a missing parser is reported once, then it goes quiet"), () => {
+	test(name("a parser that will not import is a parser fault"), () => {
 		const launcher = withoutParser();
-		const session = sid();
-		const path = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+		const path = configFile(USABLE);
 
 		assert.match(
-			reported(guard(session, path, { launcher }), "parser"),
+			reported(guard(sid(), path, { launcher }), "parser"),
 			NAMES_THE_PACKAGE,
 		);
-		quiet(guard(session, path, { launcher }));
 	});
 
 	// A directory where the session's transcript belongs: the read fails on
 	// something that is not the file's absence, which nothing here has a fault
 	// of its own for, so it stops the run as a plain error. The entry runner is
-	// what turns that into one report and then silence, rather than a failed
-	// hook on every tool call after it.
-	test(name("a run stopped by an error of its own is reported once"), () => {
-		const session = sid();
-		const path = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
-		const crash = () =>
-			guardOn(session, unreadableSession("big", [assistant(162_300)]), path);
+	// what turns that into one report on the run that met it.
+	test(
+		name("a run stopped by an error of its own is an internal fault"),
+		() => {
+			const session = sid();
+			const path = configFile(USABLE);
 
-		reported(crash(), "internal");
-		quiet(crash());
-	});
+			reported(
+				guardOn(session, unreadableSession("big", [assistant(162_300)]), path),
+				"internal",
+			);
+		},
+	);
 
 	// What a hook is handed on stdin is whatever started it. Text it cannot
 	// read as input leaves it with nothing to do, which is not the same as
 	// something to report.
 	test(name("stdin that is not JSON leaves both hooks silent"), () => {
 		const session = sid();
-		const path = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+		const path = configFile(USABLE);
 		const notJson: RunOptions = { stdin: "not json at all" };
 
 		quiet(measure(session, path, notJson));
 		quiet(guard(session, path, notJson));
-
-		reported(
-			measure(session, configFile("[resume-guard\nlarge = 10\n")),
-			"config",
-		);
 	});
 
-	test(name("a malformed config is reported once, naming the file"), () => {
+	test(name("a malformed config is reported, naming the file"), () => {
 		const session = sid();
-		const path = configFile("[resume-guard\nlarge = 10\n");
+		const path = configFile(BROKEN);
 		const line = reported(guard(session, path), "config");
 
 		assert.ok(line.includes(path), line);
 		assert.ok(line.includes(EVERY_ENTRY), line);
-		quiet(guard(session, path));
+	});
+
+	// The report asks whoever reads it to put the line to the user, and a
+	// subagent answers its coordinator. The coordinator's own runs read the same
+	// file through the same parser, so the line reaches the user from there.
+	test(name("a subagent's own tool call hears nothing"), () => {
+		quiet(
+			hook(
+				"resume-guard",
+				{
+					hook_event_name: "PreToolUse",
+					tool_name: "SendMessage",
+					session_id: sid(),
+					agent_id: "some-subagent",
+					tool_input: { to: "big" },
+					transcript_path: subagentSession("big", [assistant(162_300)], ["{}"]),
+				},
+				configFile(BROKEN),
+			),
+		);
 	});
 
 	// An internal error stops the entry that met it and nothing else, so its
@@ -213,44 +216,37 @@ for (const runtime of runtimes()) {
 
 			assert.ok(line.includes(path), line);
 			assert.ok(line.includes(names), line);
-			quiet(measure(session, path));
 		});
 	}
 
-	// The two hooks report through one record, so a session hears about a
-	// broken file once however many hooks meet it.
-	test(
-		name("a fault reported by the guard silences the measurement hook"),
-		() => {
-			const session = sid();
-			const path = configFile("[resume-guard\nlarge = 10\n");
-
-			reported(guard(session, path), "config");
-			quiet(measure(session, path));
-		},
-	);
-
-	// Which classes the session has been told about is in the record, and the
-	// record is only read under its own lock. A run that cannot take that lock
-	// is handed no answer, and says the line again rather than swallow one
-	// nobody may have heard: the lock costs the silence, not the report.
-	test(name("a fault met under a held lock is reported again"), () => {
+	// Both entries read one file through one parser, and a report is a fact
+	// about the run making it rather than about the session: a fault one entry
+	// has already met is one the next entry to meet it reports too.
+	test(name("each entry reports the broken file it meets"), () => {
 		const session = sid();
-		const path = configFile("[resume-guard\nlarge = 10\n");
+		const path = configFile(BROKEN);
 
+		reported(guard(session, path), "config");
 		reported(measure(session, path), "config");
-		quiet(measure(session, path));
+	});
 
-		holdLock(session);
-		reported(measure(session, path), "config");
+	// The report travels in `hookSpecificOutput`, which Claude Code reads
+	// against the event the run was called for: a report addressed to any
+	// other event is one it drops.
+	test(name("a report is addressed to the event that ran"), () => {
+		const session = sid();
+		const path = configFile(BROKEN);
+
+		assert.equal(addressedTo(measure(session, path)), "UserPromptSubmit");
+		assert.equal(addressedTo(guard(session, path)), "PreToolUse");
 	});
 
 	test(name("a fixed config takes effect on the very next run"), () => {
 		const session = sid();
-		const path = configFile("[resume-guard\nlarge = 10\n");
+		const path = configFile(BROKEN);
 
 		reported(measure(session, path), "config");
-		writeFileSync(path, [DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES].join("\n"));
+		writeFileSync(path, USABLE);
 
 		const result = measure(session, path);
 

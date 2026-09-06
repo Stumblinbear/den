@@ -13,13 +13,8 @@ import {
 	guardLimitsFor,
 	loadSettings,
 } from "../lib/settings.mts";
-import { runEntry } from "../lib/shared/entry.mts";
+import { type Done, runEntry } from "../lib/shared/entry.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
-import {
-	type Done,
-	LEFT_AFTER_CONFIG,
-	LEFT_BEFORE_CONFIG,
-} from "../lib/shared/run.mts";
 import { type Resumed, resumedAgent } from "../lib/subagent.mts";
 
 const args = process.argv.slice(2);
@@ -35,14 +30,14 @@ async function decision(
 	const tables = settings === null ? null : settings.guard.limits;
 
 	if (settings === null || tables === null) {
-		return LEFT_AFTER_CONFIG;
+		return null;
 	}
 
 	const to = agentName(input["tool_input"]);
 	const transcript = String(input["transcript_path"] ?? "");
 
 	if (to === null || transcript === "") {
-		return LEFT_AFTER_CONFIG;
+		return null;
 	}
 
 	const resumed = resumedAgent(transcript, to);
@@ -135,15 +130,19 @@ function deny(reason: string): string {
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError, which the
 // runner would report as the bug it is.
-await runEntry(
-	{ name: "resume-guard", faults: GUARD_FAULTS },
-	async ({ input, session }) => {
-		// Without a session id there is no record to spend an answer in: every
-		// input carrying none would share one file named for no session at all.
-		if (input["tool_name"] !== "SendMessage" || session === "") {
-			return LEFT_BEFORE_CONFIG;
-		}
+await runEntry({ faults: GUARD_FAULTS }, async ({ input, session }) => {
+	// Without a session id there is no record to spend an answer in: every
+	// input carrying none would share one file named for no session at all. A
+	// subagent's input names the agent it is for, and a report written on its
+	// run reaches its coordinator rather than the user; the coordinator's own
+	// runs read the same file through the same parser and report it there.
+	if (
+		input["tool_name"] !== "SendMessage" ||
+		session === "" ||
+		input["agent_id"]
+	) {
+		return null;
+	}
 
-		return decision(session, input);
-	},
-);
+	return decision(session, input);
+});

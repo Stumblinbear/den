@@ -10,8 +10,8 @@
 // context and outlives that: a session is still on the model its last input
 // named, whatever rebuilt the conversation.
 //
-// One record per session, shared with the faults the reporter records there,
-// so a write here carries only the fields it owns.
+// One record per session, holding those two fields and nothing else, written
+// by this plugin's one hook and by nothing beside it.
 import { SESSION_STATE } from "./plugin.mts";
 
 export interface SessionRecord {

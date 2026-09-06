@@ -12,14 +12,11 @@ import type { Result, Runtime } from "../../../tests/harness.mts";
 import { assistant, at, prompt, type TurnOptions } from "./fixtures.mts";
 import {
 	configFile,
-	DEFAULTS,
-	GUARD,
-	GUARD_MESSAGES,
 	hookRunner,
-	MESSAGES,
 	PLUGIN,
 	sessionId,
 	transcript,
+	USABLE,
 } from "./harness.mts";
 import { type Judge, judge, type Shim } from "./judge-fixture.mts";
 
@@ -98,13 +95,7 @@ export function watcherRuns(
 	const hook = hookRunner(runtime);
 	const seen = judge(runtime);
 	const shim = config.shim === true ? seen.shim() : null;
-	const written = configFile(
-		DEFAULTS,
-		MESSAGES,
-		GUARD,
-		GUARD_MESSAGES,
-		section(seen, config, shim),
-	);
+	const written = configFile(USABLE, section(seen, config, shim));
 
 	return {
 		judge: seen,

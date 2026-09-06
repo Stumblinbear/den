@@ -40,6 +40,25 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   resume.
 ### Changed
 
+- A fault that stops the hooks goes to the agent, in the field Claude Code hands
+  it, carrying an instruction to put the line to you, and arrives again on every
+  turn the fault stands. It went to stderr behind a hook that exited non-zero,
+  which Claude Code folds away in the transcript where nobody opens it. Nothing
+  is written down between runs any more: the repeat on every tenth prompt, the
+  line saying a fault is over, and the list of faults in the session's record
+  are gone with the bookkeeping they needed, and the reports stop on the run
+  that finds the fault gone. The measurement hook reports on your prompt rather
+  than on the tool calls it also runs on, since twenty copies of one line inside
+  a turn is a line nobody reads; the watcher reports at the end of every turn it
+  fails on and the guard on every resume it cannot judge.
+- The launcher says its own refusals on your screen: a Node under 22.6 with no
+  bun on `PATH`, an unset `CLAUDE_PLUGIN_DATA`, a `.runtime` asking for a bun
+  that is not there or holding any other word, and an interpreter that will not
+  start. Each is one line naming what is wrong, and that hook run does nothing.
+  The context notice and the resume guard carry them. The watcher runs in the
+  background, where Claude Code shows you nothing at all, so a launch of its own
+  that never happened stays quiet. They went to stderr behind a non-zero exit,
+  which Claude Code folds away as a hook error.
 - The watcher's advice tells the agent to put the recommended command to the
   user in its next reply, in a fenced block on its own line, to add its own
   caveat where the work in hand should finish first, and to raise a delayed
@@ -84,6 +103,33 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   window, so the old pair fired while the session still held most of its room.
   `[default]` is the catch-all for a model with no `[models]` row, whose window
   the hook cannot see, and a model worth other numbers takes a row of its own.
+
+### Fixed
+
+- A judge that ran and failed is reported, as a `command` nothing can start
+  already was: one `internal error` line, "the watcher's judge `claude` ran and
+  failed (api_error): Claude AI usage limit reached", carrying the kind of
+  failure and the sentence the call came back with. That sentence is the
+  envelope's `result`, or its `errors` where there is no `result`: a call that
+  ran out of turns, died inside its own execution, spent its budget or gave up
+  re-asking for structured output writes what went wrong there and nowhere
+  else. A failed `claude -p` call
+  writes its whole envelope on stdout, so it read as a judge that answered
+  nothing: the watcher booked a wait, said nothing, and went on failing every
+  call in silence. `is_error` on that envelope is what the reading turns on,
+  rather than the exit status or `subtype`, which a failed call leaves at
+  "success". A `command` of your own is handed no schema and writes no such
+  field, so an answer of its own that nothing can read is still silence rather
+  than a fault.
+- The fix those two lines end in says to change `[watcher] command` rather than
+  to fix it, since a judge whose model refused the call is not one you put right
+  by editing the key.
+- The resume guard says nothing at all on a SendMessage a subagent made. Its
+  deny asks Claude to put the choice to you before it retries, and its report of
+  a broken config file asks whoever reads it to pass the line on; a subagent
+  answers its coordinator rather than you, so both reached a reader who could do
+  nothing with either. A resume you set off is guarded as it was, and your own
+  turns report the same config file.
 
 ## [0.4.0] - 2026-09-06
 

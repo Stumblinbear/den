@@ -33,8 +33,7 @@ import {
 	thresholdsFor,
 	type Watcher,
 } from "../lib/settings.mts";
-import { runEntry } from "../lib/shared/entry.mts";
-import { LEFT_AFTER_CONFIG, LEFT_BEFORE_CONFIG } from "../lib/shared/run.mts";
+import { injected, runEntry } from "../lib/shared/entry.mts";
 import { ifPresent } from "../lib/transcript.mts";
 import {
 	consults,
@@ -245,36 +244,27 @@ const recommendation = (answer: Extract<Answer, { kind: "good" }>): string => {
 		: `a rewind summarize at "${answer.focus}"`;
 };
 
-/** Advice as Claude Code carries it, which it hands over on the next turn. */
-const injected = (context: string): string =>
-	JSON.stringify({
-		hookSpecificOutput: {
-			hookEventName: EVENT,
-			additionalContext: context,
-		},
-	});
-
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError.
 await runEntry(
-	{ name: "watcher", faults: WATCHER_FAULTS },
+	{ faults: WATCHER_FAULTS },
 	async ({ input, session, event }) => {
 		// Without a session id there is no record to pace the judge by.
 		if (event !== EVENT || session === "") {
-			return LEFT_BEFORE_CONFIG;
+			return null;
 		}
 
 		const settings = await loadSettings(args);
 
 		// The main session: a subagent's input names the agent it is for.
 		if (settings === null || !settings.watcher.enabled || input["agent_id"]) {
-			return LEFT_AFTER_CONFIG;
+			return null;
 		}
 
 		const transcript = input["transcript_path"];
 
 		if (typeof transcript !== "string" || transcript === "") {
-			return LEFT_AFTER_CONFIG;
+			return null;
 		}
 
 		const watcher = settings.watcher;
@@ -298,19 +288,22 @@ await runEntry(
 		const answer = askJudge(watcher, prompt);
 		const kept = recorded(session, transcript, turn, answer);
 
-		// Said once and then paced like any other answer, because a command that
-		// starts nothing starts nothing on the next turn either, and the session
-		// is owed the reason its watcher has gone quiet.
-		if (answer.kind === "unstarted") {
+		// Thrown on every consult, because a judge that failed this turn fails
+		// the next one too, and the session is owed the reason its watcher has
+		// gone quiet. An answer the session kept books a wait against the same
+		// command, which is what paces the repeat. The fix names the command
+		// rather than the failure: a mistyped word and a model refusing the call
+		// are both answered by editing that key or by switching the watcher off.
+		if (answer.kind === "fault") {
 			throw WATCHER_FAULTS.fault(
 				"internal",
 				answer.detail,
-				`fix \`[watcher] command\` in ${argValue(args, "--config") ?? ""}, or switch the watcher off with \`[watcher] enabled = false\``,
+				`change \`[watcher] command\` in ${argValue(args, "--config") ?? ""}, or switch the watcher off with \`[watcher] enabled = false\``,
 			);
 		}
 
 		return kept && answer.kind === "good"
-			? injected(advice(answer, opening(turn.newest.asked)))
+			? injected(event, advice(answer, opening(turn.newest.asked)))
 			: null;
 	},
 );

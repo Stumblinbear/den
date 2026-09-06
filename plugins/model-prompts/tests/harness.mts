@@ -30,13 +30,22 @@ export const HOOKS = join(PLUGIN, "hooks");
 export const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
 /** The failure policy the hook reports through, in this plugin's name. */
-export const { withoutParser, reported, quiet } = faultChecks(
+export const { withoutParser, reported, quiet, addressedTo } = faultChecks(
 	"model-prompts",
 	PLUGIN,
 );
 
 /** The entry `hooks.json` names, relative to the plugin directory. */
 const ENTRY = "hooks/model-prompts";
+
+/** A whole file that does not parse, which is the same fault on every run. */
+export const BROKEN = "[models.'opus'\nprompt = \"x\"\n";
+
+/**
+ * That file put right, which the hook can use. Its one row injects "FINE" on a
+ * session running Opus, so a run that read it says so on stdout.
+ */
+export const USABLE = "[models.'opus-5\\b']\nprompt = \"FINE\"\n";
 
 // A home with no settings.json, so a test that does not mean to exercise the
 // SessionStart fallback cannot accidentally pick up the real one.

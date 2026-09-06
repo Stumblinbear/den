@@ -16,8 +16,9 @@ the shipped rates.
 ## Running it at all
 
 The hooks need **Node 22.6 or newer**, and run under bun instead when `bun
---version` answers on `PATH`. On an older Node with no bun, one stderr line
-names the floor and the version it found, and nothing is injected or guarded.
+--version` answers on `PATH`. On an older Node with no bun, the user is shown
+one line naming the floor and the version it found, and nothing is injected or
+guarded.
 
 A file named `.runtime` in the data directory forces the choice for this
 plugin. It holds one word:
@@ -27,8 +28,8 @@ echo node > "${CLAUDE_PLUGIN_DATA}/.runtime"
 ```
 
 `bun` and `node` are the two it takes; no file is the default above. `bun` on
-a machine with no bun on `PATH`, or any other word, is one stderr line naming
-the file and a failed hook run.
+a machine with no bun on `PATH`, or any other word, is one line to the user
+naming the file, and a hook run that does nothing.
 
 ## What fires and when
 
@@ -54,31 +55,27 @@ Consequences that answer most "why did it" questions:
 - The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,
   and it is the only file a session leaves there. Every run that measures
   anything rewrites it: the transcript path the hook read, the level it stands
-  at, the resume answers it has spent, where the watcher's pace stands, and any
-  fault already reported (below).
+  at, the resume answers it has spent, and where the watcher's pace stands.
   That level falls again with the context, so each level can fire on the next
   climb. Latest transcript only, no history. It is written even for a model
   whose row is switched off, and even when nothing was near a threshold,
   because the `cut-point` skill has only the session id to find the transcript
   by. Deleting it makes the current level fire again, which is the quickest
   way to see a message after editing it.
-- One stderr line starting `context-budget:` says what is off and why, and the
-  line itself says how much: `parser error` is a missing `smol-toml` in the
-  plugin's cache directory and `config error` names the file that cannot be
-  read, parsed, or used, and either of those switches the notice, the watcher
-  and the resume guard off together, since all three read that file through that
-  parser. `internal error` is a failure of the plugin's own with nothing in the
-  configuration to fix, and it stops only the hook that met it, which is the one
-  its line names. Fixing it takes effect on the next hook run. The prompt hook
-  says the line again on every tenth prompt the fault has stood through, ending
-  in how many prompts that is, whichever hook first met it; the record above
-  lists each fault meanwhile, with the line it was said in and that count. A
-  fault of the same kind in different words is a report of its own, and each
-  hook's `internal error` is listed apart from the others'.
-  The first prompt that works again says the fault is gone and drops it from the
-  record. It drops only what its own run got through, so an `internal error`
-  only the resume guard can meet stays listed, and goes on repeating, until the
-  session ends. Delete the record to hear the line again.
+- One line starting `context-budget:` goes into the agent's context, with an
+  instruction to put it to the user, and says what is off and why: `parser
+  error` is a missing `smol-toml` in the plugin's cache directory and `config
+  error` names the file that cannot be read, parsed, or used, and either of
+  those switches the notice, the watcher and the resume guard off together,
+  since all three read that file through that parser. `internal error` is a
+  failure of the plugin's own with nothing in the configuration to fix, and it
+  stops only the hook that met it, which is the one its line names. Fixing it
+  takes effect on the next hook run. Every turn the fault stands, a run puts the
+  line up again, and once a turn: the measurement hook says it on the user's
+  prompt rather than on the tool calls it also runs on, the watcher at the end
+  of a turn, the guard on the resume it could not judge. Nothing is written down
+  between runs, so the reports stop on the run that finds the fault gone, and a
+  fault of the same kind in different words arrives in the new words.
 
 Neither message names a cut point. Each says how large the session is and
 sends the agent to the `cut-point` skill, `/context-budget:cut-point`, for
@@ -112,8 +109,8 @@ session's first tool call and says so plainly in a session this plugin has
 never measured. The hook itself reads only the fixed 512 KB tail it measures,
 on every run, and walks nothing.
 
-The resume guard runs on every `SendMessage` to a subagent of this session. It
-reads that subagent's own transcript, beside the session
+The resume guard runs on every `SendMessage` the main session sends a subagent
+of its own. It reads that subagent's own transcript, beside the session
 transcript under `subagents/`: its newest assistant turn for the context size
 and when it last ran, and the newest turn that wrote to the prompt cache for
 which lifetime that cache is on. A turn served entirely from the cache writes
@@ -174,12 +171,13 @@ finish the work in hand first and raising it again at each pause after. It
 paces itself: an answer of "not yet" names a wait of one, three or eight
 turns, halved past the midpoint between the two thresholds, and a commit, a
 push or a task marked completed cuts a wait short. Turns there are the user's
-own prompts, so an agent woken again
-inside one turn runs no wait down. A `command` of your own is handed the prompt
-on stdin and writes one JSON object on stdout, bare or in the `result` field of
-a `claude --output-format json` envelope; anything else reads as no verdict and
-costs the session nothing, while a command that will not start at all is one
-`internal error` line, said once.
+own prompts, so an agent woken again inside one turn runs no wait down. A
+`command` of your own is handed the prompt on stdin and writes one JSON object
+on stdout, bare or in the `result` field of a `claude --output-format json`
+envelope; anything else reads as no verdict and costs the session nothing. A
+command that will not start, and a `claude` call that comes back marked
+`is_error`, are each one `internal error` line on every turn that tries the
+judge, at the same pace.
 
 The default command asks under a JSON Schema of the two answer shapes, so the
 CLI samples the model against it and hands back the object it validated in the
@@ -246,18 +244,18 @@ edit that has no effect on the figures is the sign to look at the file.
 ## Checking a change
 
 A TOML typo, a missing key, or a value no hook can use is not quietly
-dropped: it switches all of them off while it stands and says so on stderr,
-again on every tenth prompt it goes on standing through. Run a hook by hand
-from the plugin root against a real transcript to see what it will inject, or
-what it objects to:
+dropped: it switches all of them off while it stands and says so to the agent,
+on every turn it goes on standing through. Run a hook by hand from the plugin
+root against a real transcript to see what it will inject, or what it objects
+to:
 
     printf '%s' '{"session_id":"check","transcript_path":"<a .jsonl under ~/.claude/projects/>","hook_event_name":"UserPromptSubmit"}' \
       | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
         hooks/context-budget --config "${CLAUDE_PLUGIN_DATA}/config.toml"
 
-Output is the injection JSON, or nothing when the transcript is below the
-first threshold. Delete `claude-context-budget/check.json` from the temp
-directory afterwards.
+Output is the injection JSON, the report of whatever it objects to in the same
+shape, or nothing when the transcript is below the first threshold. Delete
+`claude-context-budget/check.json` from the temp directory afterwards.
 
 The guard takes a `SendMessage` input naming a subagent of that transcript,
 one with an `agent-<name>.jsonl` under the transcript's `subagents/` directory:

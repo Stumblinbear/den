@@ -9,5 +9,4 @@ export const SESSION_STATE = sessionState("claude-model-prompts");
 export const FAULTS = faults(
 	"model-prompts",
 	"No prompts are injected while this stands",
-	SESSION_STATE,
 );

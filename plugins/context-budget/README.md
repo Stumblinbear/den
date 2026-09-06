@@ -56,8 +56,8 @@ this plugin. It holds one word, `bun` or `node`:
 echo node > ~/.claude/plugins/data/context-budget-den/.runtime
 ```
 
-No file is the default above. Anything else is one stderr line naming the file
-and a hook run that does nothing.
+No file is the default above. Anything else shows you one line naming the
+file, and the hook run does nothing.
 
 TOML has no parser in Node, so the hooks depend on `smol-toml`. Claude Code
 installs it when it caches the plugin. There is nothing to build and nothing
@@ -94,10 +94,9 @@ and the same cached stretch the skill reads. Nothing here reads your source.
 What is written: one JSON file per session under `claude-context-budget/` in
 the OS temp directory, holding the transcript the last measuring run read, the
 level this session has been told about, the resume answers it has spent, where
-the watcher's pace stands and the verdict standing, and the faults the session
-has been told about, plus a lock directory beside it while a hook is writing,
-and a second one for the moment a run spends taking over a lock left by a run
-that died. Nothing is written to your project.
+the watcher's pace stands and the verdict standing, plus a lock directory
+beside it while a hook is writing, and a second one for the moment a run spends
+taking over a lock left by a run that died. Nothing is written to your project.
 
 What they can do to a session: add a message to the agent's context, deny a
 `SendMessage` to a subagent, and start one short `claude -p` run at the end of
@@ -185,8 +184,9 @@ envelope's `structured_output`, which is where the answer is read from. A
 answer is read out of the text instead: one JSON object on stdout, either bare
 or in the `result` field of a `claude --output-format json` envelope. An answer
 that will not parse is silence: the watcher advises, so an answer nobody can
-read is worth what no answer is worth. A command whose first word nothing can
-start is the one failure you hear about, once, on stderr.
+read is worth what no answer is worth. The failures you hear about are a
+command whose first word nothing can start, and a `claude` call that came back
+marked `is_error`, which is a judge that failed rather than answered.
 
 Row keys are regular expressions in single quotes, matched against the model
 id as the transcript records it: `claude-opus-5`, `claude-fable-5-1`,
@@ -332,58 +332,42 @@ looks for.
 
 ## Troubleshooting
 
-A configuration the hooks cannot use prints one line on stderr, starting
-`context-budget:`, and switches the notice, the watcher and the guard off while
-it stands. `config error` names the file and what is wrong with it;
-`parser error` means `smol-toml` is missing from the plugin's cache
-directory. Every run still reads the file, so a fix takes effect on the next
-tool call.
+A configuration the hooks cannot use switches the notice, the watcher and the
+guard off while it stands, and puts one line starting `context-budget:` into
+Claude's context, asking it to pass the line on to you. `config error` names the
+file and what is wrong with it; `parser error` means `smol-toml` is missing from
+the plugin's cache directory. Every run still reads the file, so a fix takes
+effect on the next tool call.
 
 `internal error` is the third of them, and usually it is not yours to fix: the
 run stopped on something the plugin does not account for, and the line ends in
 where to report it. It names only what stopped, one of the three, because that
 is all an error of one hook's own costs: the other two go on measuring and
-guarding through it. One of them is yours: a judge `command` the watcher cannot
-start is listed under the same class, and that line ends in the key to correct.
+guarding through it. The watcher's judge is the exception. A `command` nothing
+can start and a call that came back an error are both listed under this class,
+and their lines name the key to change rather than where to report a bug.
 
-You hear that line again on every tenth prompt the fault has stood through,
-ending in how many prompts that is, and nothing at all in between: `Standing
-for 10 prompts.`, then `Standing for 20 prompts.`, and on from there. The
-prompt is what says it, whichever hook met the fault first, since what it
-repeats is what the record already holds. Nothing switches the repeat off: a
-plugin has nowhere to put a light saying it is off, and a context nobody is
-measuring goes on growing by the turn. Every fault the session has been told
-about is listed in its record, `<session id>.json` under
-`claude-context-budget/` in the OS temp directory, with the line you heard and
-the prompts it has stood through. Delete that file to hear the line again at
-once.
+A run puts the line up for as long as the fault stands, and the turn you fix it
+is the turn the line stops going up. Claude is asked to pass it on, and to say
+it again when the wording changes, so a fault you leave standing is one you hear
+about once. Nothing is written down between runs, so there is no repeat to
+switch off and no record to clear. A plugin has nowhere to put a light saying it
+is off, and a context nobody is measuring goes on growing by the turn.
+
+Once a turn, not once a tool call. The measurement hook runs on both and speaks
+on your prompt, since twenty copies of one line inside a turn is a line nobody
+reads; the watcher speaks at the end of a turn, and the guard on the resume it
+could not judge.
 
 Fix what the line named, leave a second mistake behind it, and the next run
-says the new line and starts a fresh count. A `config error` in other words is
-another fault rather than the one you are already being reminded of.
+says the new line. A `config error` in other words is another fault rather than
+the one you have already dealt with.
 
-The first prompt that works again says `context-budget: the config error is
-gone; on again for this session.` and drops the fault from the record, so the
-same fault later is a first report rather than the middle of a count. Deleting
-the file counts as fixing it, since nothing is measured or guarded without one.
-A tool call takes nothing back, whatever it read: only a prompt does.
-
-A prompt takes back only what its own run got through, which is not the same as
-what it reminds you of. Every hook reads one file through one parser, so a
-`config error` or a `parser error` is taken back whichever of them met it. An
-`internal error` is one hook's own run coming apart, so each hook's is listed
-apart from the others': the measurement hook never opens the subagent transcript
-the resume guard reads, and one the guard or the watcher met stays listed for
-the session, repeating every tenth prompt like the rest.
-
-A prompt that ends early takes back less still. One from a subagent, or one
-Claude Code names no transcript in, has read the configuration and done nothing
-else, so it answers for the file and for none of the work behind it.
-
-Deleting it is also how you make the current level fire again after editing a
-message. It clears the resume answers the session has spent along with it, and
-leaves the `cut-point` skill with no transcript to read until the next tool
-call writes a new record.
+Deleting the session's record, `<session id>.json` under
+`claude-context-budget/` in the OS temp directory, is how you make the current
+level fire again after editing a message. It clears the resume answers the
+session has spent along with it, and leaves the `cut-point` skill with no
+transcript to read until the next tool call writes a new record.
 
 `/context-budget:cut-point` prints "No measurement recorded for this
 session" when these hooks have not run in it, which is an unconfigured plugin
@@ -395,17 +379,20 @@ A pricing file that cannot be read, parsed or used is dropped whole and every
 payback is figured at the shipped rates, with nothing said about it. An edit
 to it that changes no figure is the sign to look at the file.
 
-The watcher's failures are quiet but for one. A judge that answers nothing
+The watcher's failures are quiet but for two. A judge that answers nothing
 inside its three minutes, and one whose answer will not parse, both read as no
-verdict, and the watcher takes its longest wait before asking again. A `command`
-whose first word nothing can start is the one you hear about, because a watcher
-that never runs looks exactly like a watcher with nothing to say: one `internal
-error` line, said once, naming the command. The notice and the resume guard go
-on working through it, and only the watcher is off. Delete the session record to
-see it start over.
+verdict, and the watcher takes its longest wait before asking again. What you
+hear about is a `command` whose first word nothing can start, and a judge that
+ran and failed, because a watcher that never answers looks exactly like a
+watcher with nothing to say. Each is one `internal error` line naming the
+command and what went wrong with it, and every turn that tries the judge puts
+that line up again. Those tries are paced the way any other answer is, so one
+comes when the wait runs out or when a commit cuts it short, rather than at the
+end of every turn. The notice and the resume guard go on working through it, and
+only the watcher is off.
 
-On Node older than 22.6 with no bun on `PATH`, the hooks print one line naming
-the floor and the version they found, and do nothing.
+On Node older than 22.6 with no bun on `PATH`, the hooks show you one line
+naming the floor and the version they found, and do nothing.
 
 A run killed while it held the record's lock leaves the directory `<session
 id>.lock` beside the record, and the next run of the session takes it over:

@@ -17,13 +17,11 @@ import {
 	type Thresholds,
 	thresholdsFor,
 } from "../lib/settings.mts";
-import { runEntry } from "../lib/shared/entry.mts";
-import { LEFT_AFTER_CONFIG, LEFT_BEFORE_CONFIG } from "../lib/shared/run.mts";
+import { injected, runEntry } from "../lib/shared/entry.mts";
 
 /**
- * The user's own turn, which `hooks.json` registers this entry and no other
- * on. It is the unit a standing fault is counted in, and a run of it is the
- * one run whose success takes a report back.
+ * The user's own turn, which `hooks.json` registers this entry on alongside
+ * every tool call. A fault is reported on the runs of this event alone.
  */
 const PROMPT = "UserPromptSubmit";
 
@@ -67,7 +65,7 @@ async function outcome(
 
 	return limits === null || notice === null
 		? null
-		: injection(event, notice, settings, reading, limits);
+		: injected(event, message(notice, settings, reading, limits));
 }
 
 /**
@@ -102,50 +100,43 @@ function recorded(
 	return level.held ? level.result : null;
 }
 
-function injection(
-	event: string,
+/** The user's own message for a level, on this run's figures. */
+const message = (
 	level: NoticeLevel,
 	settings: Settings,
 	measured: Measured,
 	limits: Thresholds,
-): string {
-	return JSON.stringify({
-		hookSpecificOutput: {
-			hookEventName: event,
-			additionalContext: fill(settings.messages[level], {
-				model: measured.model || "this model",
-				tokens: formatTokens(measured.tokens),
-				threshold: formatTokens(limits[level]),
-			}),
-		},
+): string =>
+	fill(settings.messages[level], {
+		model: measured.model || "this model",
+		tokens: formatTokens(measured.tokens),
+		threshold: formatTokens(limits[level]),
 	});
-}
 
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError.
 await runEntry(
-	{ name: "context-budget", faults: NOTICE_FAULTS, promptEvent: PROMPT },
+	{ faults: NOTICE_FAULTS, promptEvent: PROMPT },
 	async ({ input, session, event }) => {
 		if (!EVENTS.includes(event) || session === "") {
-			return LEFT_BEFORE_CONFIG;
+			return null;
 		}
 
 		// Read before this run decides anything else, so that a broken install or
 		// a broken config is reported on the session's first hook run rather than
 		// whenever the first threshold happens to be crossed, and so that every
-		// prompt run meets a fault that stands whatever else its input says. A
-		// prompt run ending quietly is what takes a report back.
+		// prompt run meets a fault that stands whatever else its input says.
 		const settings = await loadSettings(args);
 
 		// The main session: a subagent's input names the agent it is for.
 		if (settings === null || input["agent_id"]) {
-			return LEFT_AFTER_CONFIG;
+			return null;
 		}
 
 		const transcript = input["transcript_path"];
 
 		if (typeof transcript !== "string" || transcript === "") {
-			return LEFT_AFTER_CONFIG;
+			return null;
 		}
 
 		return outcome(event, session, transcript, settings);

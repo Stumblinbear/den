@@ -1,11 +1,10 @@
 // The one file a session leaves behind, and everything that reads or writes
 // it: the measurement hook writes the transcript it read into it on every run,
-// the resume guard spends answers in it, the shared reporter lists the faults
-// the session has been told about in it, and the cut-point script finds the
-// transcript through it. None of them knows the others' fields, so what any of
-// them writes must leave the rest of the file where it was. There must be
-// exactly one file too, since a fault class in a file of its own is a second
-// place to look and a second thing to delete.
+// the resume guard spends answers in it, the watcher paces its judge by it,
+// and the cut-point script finds the transcript through it. None of them knows
+// the others' fields, so what any of them writes must leave the rest of the
+// file where it was. There must be exactly one file too, since a second is a
+// second place to look and a second thing to delete.
 import assert from "node:assert/strict";
 import { rmSync, writeFileSync } from "node:fs";
 import { test } from "node:test";
@@ -18,15 +17,13 @@ import {
 	GUARD_MESSAGES,
 	hookRunner,
 	MESSAGES,
-	quiet,
 	record,
 	recorder,
 	reported,
 	sessionId,
 	stateFiles,
-	subagentSession,
 	transcript,
-	withoutParser,
+	USABLE,
 } from "./harness.mts";
 import { reading, scriptRunner } from "./script-runs.mts";
 
@@ -34,7 +31,7 @@ interface Injection {
 	readonly hookSpecificOutput?: { readonly additionalContext?: string };
 }
 
-const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+const CONFIG = configFile(USABLE);
 
 /** A file that parses and is missing everything but `[default]`. */
 const NO_MESSAGES = "[default]\nnotice = 1\nurgent = 2\n";
@@ -120,82 +117,36 @@ for (const runtime of runtimes()) {
 		},
 	);
 
-	test(name("a reported fault leaves the session one file, the record"), () => {
+	// A run stopped by a fault has done none of the work the record is written
+	// from, so what an earlier run measured is what the session still knows.
+	test(name("a run stopped by a fault leaves the record where it was"), () => {
 		const session = sid();
-		const path = transcript(assistant(200_000));
-		const broken = configFile(NO_MESSAGES);
+		const path = configFile(USABLE);
+		const measured = transcript(assistant(200_000));
 
-		reported(inject(session, path, broken), "config");
-		quiet(inject(session, path, broken));
-
-		assert.deepEqual(
-			stateFiles(session),
-			[`${session}.json`],
-			"the class is recorded in the record, not in a file of its own",
+		assert.equal(
+			injected(inject(session, measured, path)),
+			"NOTICE 200K over 150K",
 		);
-	});
 
-	test(name("both fault classes share that one file"), () => {
-		const session = sid();
-		const launcher = withoutParser();
-		const path = transcript(assistant(200_000));
-		const broken = configFile(NO_MESSAGES);
-		const guard = (options: { launcher: string }) =>
-			hook(
-				"resume-guard",
-				{
-					hook_event_name: "PreToolUse",
-					tool_name: "SendMessage",
-					session_id: session,
-					tool_input: { to: "big" },
-					transcript_path: subagentSession("big", [assistant(162_300)], ["{}"]),
-				},
-				CONFIG,
-				options,
-			);
-
-		reported(guard({ launcher }), "parser");
-		reported(inject(session, path, broken), "config");
-
-		quiet(guard({ launcher }));
-		quiet(inject(session, path, broken));
+		writeFileSync(path, NO_MESSAGES);
+		reported(inject(session, measured, path), "config");
 
 		assert.deepEqual(stateFiles(session), [`${session}.json`]);
+
+		const written = record(session);
+
+		assert.equal(
+			written["transcript_path"],
+			measured,
+			"the transcript path survives",
+		);
+		assert.equal(
+			written["level"],
+			"notice",
+			"so does the level already posted",
+		);
 	});
-
-	// The transcript path and the reported classes are written by different runs
-	// at different moments, and neither has any business dropping the other's.
-	test(
-		name("recording a fault keeps the transcript the record already held"),
-		() => {
-			const session = sid();
-			const path = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
-			const measured = transcript(assistant(200_000));
-
-			assert.equal(
-				injected(inject(session, measured, path)),
-				"NOTICE 200K over 150K",
-			);
-
-			writeFileSync(path, NO_MESSAGES);
-			reported(inject(session, measured, path), "config");
-
-			assert.deepEqual(stateFiles(session), [`${session}.json`]);
-
-			const written = record(session);
-
-			assert.equal(
-				written["transcript_path"],
-				measured,
-				"the transcript path survives",
-			);
-			assert.equal(
-				written["level"],
-				"notice",
-				"so does the level already posted",
-			);
-		},
-	);
 
 	test(name("the script finds the transcript from the session id"), () => {
 		const session = sid();

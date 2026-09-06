@@ -8,8 +8,8 @@
 // the script only reads, and takes no lock.
 //
 // Every write merges the fields it owns over the rest and takes that lock,
-// whichever writer makes it, so the transcript path, the spent answers and the
-// faults the shared reporter records cannot drop one another. Nothing here
+// whichever of the three entries makes it, so the transcript path, the spent
+// answers and the watcher's pace cannot drop one another. Nothing here
 // deletes the record: a session whose context has fallen back to nothing still
 // has a transcript the script has to find.
 import { LEVELS, type Level } from "./level.mts";

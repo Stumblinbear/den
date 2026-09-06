@@ -56,6 +56,12 @@ minor bump may change behavior.
   the user. Its opening names the stance: every agent's report is a claim
   checked before it moves. The tier ladder, the architecture-ownership
   sentence and the several-reviewers workflow sentence are gone.
+- The launcher says its own refusals on your screen: a Node under 22.6 with no
+  bun on `PATH`, an unset `CLAUDE_PLUGIN_DATA`, a `.runtime` asking for a bun
+  that is not there or holding any other word, and an interpreter that will not
+  start. Each is one line naming what is wrong, and that hook run does nothing.
+  They went to stderr behind a non-zero exit, which Claude Code folds away as a
+  hook error.
 
 ## [0.4.0] - 2026-09-06
 

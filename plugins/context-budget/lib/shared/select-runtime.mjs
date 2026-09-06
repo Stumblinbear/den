@@ -4,8 +4,8 @@
 // "your Node is too old" message can be composed by the Node that is too old.
 //
 // Node gained `--experimental-strip-types` in 22.6. Below that there is no way
-// to run an entry at all, and the launcher's one stderr line is the whole user
-// experience, so it names the floor and what it found.
+// to run an entry at all, and the launcher's one line on the user's screen is
+// the whole experience, so it names the floor and what it found.
 const NODE_FLOOR_MAJOR = 22;
 const NODE_FLOOR_MINOR = 6;
 const NODE_FLOOR = `${NODE_FLOOR_MAJOR}.${NODE_FLOOR_MINOR}`;

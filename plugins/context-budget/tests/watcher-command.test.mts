@@ -10,13 +10,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ANSWER_SCHEMA } from "../lib/answer.mts";
 import { DEFAULT_SYSTEM_PROMPT, loadSettings } from "../lib/settings.mts";
-import {
-	configFile,
-	DEFAULTS,
-	GUARD,
-	GUARD_MESSAGES,
-	MESSAGES,
-} from "./harness.mts";
+import { configFile, USABLE } from "./harness.mts";
 
 // The whole list, because every entry of it bounds a judge that would answer
 // without it, and an entry dropped in an edit costs tokens, privacy or the
@@ -24,7 +18,7 @@ import {
 // as good. What each entry buys is the doc on `DEFAULT_COMMAND` in
 // `settings.mts`.
 test("the default command is the whole judge invocation", async () => {
-	const path = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
+	const path = configFile(USABLE);
 	const settings = await loadSettings(["--config", path]);
 
 	assert.ok(settings, "the file the case wrote was read");

@@ -1,10 +1,10 @@
-// The out-of-band contract a configured plugin's failure policy is: an exit
-// code, one line on stderr, and the class written into the session's record,
-// which silences the rest of that session. Everything about it but the
-// plugin's own name and directory is the same for every plugin that has one.
-// den reads no configuration and has none of it, which is why this is not in
-// the harness every plugin's tests import. Importing this registers no test of
-// its own.
+// The out-of-band contract a configured plugin's failure policy is: one line
+// on the field Claude Code hands the agent, addressed to the event the run was
+// called for, and a run that ends the way a run with nothing to say ends.
+// Everything about it but the plugin's own name and directory is the same for
+// every plugin that has one. den reads no configuration and has none of it,
+// which is why this is not in the harness every plugin's tests import.
+// Importing this registers no test of its own.
 import assert from "node:assert/strict";
 import { cpSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,15 +18,12 @@ export interface FaultChecks {
 	 * the installed one.
 	 */
 	withoutParser(): string;
-	/** Asserts the report, and hands back the line it was made of. */
+	/** Asserts the report, and hands back the text it was made of. */
 	reported(result: Result, cls: string): string;
-	/** Asserts silence: the session has already been told. */
+	/** Asserts silence: this run had nothing to say. */
 	quiet(result: Result): void;
-	/**
-	 * Asserts one line per class named, in the field a hook says something to
-	 * the user in, and hands back what that field held.
-	 */
-	recovered(result: Result, ...classes: readonly string[]): string;
+	/** The event a report was addressed to, which is what carries it. */
+	addressedTo(result: Result): string;
 }
 
 export function faultChecks(plugin: string, dir: string): FaultChecks {
@@ -34,7 +31,7 @@ export function faultChecks(plugin: string, dir: string): FaultChecks {
 		withoutParser: () => withoutParser(dir),
 		reported: (result, cls) => reported(result, plugin, cls),
 		quiet,
-		recovered: (result, ...classes) => recovered(result, plugin, classes),
+		addressedTo: (result) => String(carried(result).hookEventName ?? ""),
 	};
 }
 
@@ -76,56 +73,45 @@ function copySources(dir: string, from: string, name: string): void {
 	}
 }
 
-// Exit 1 so Claude Code shows it, one line, naming the plugin and the class.
+/** What a hook writes when it has something for the agent. */
+interface Injection {
+	readonly hookEventName?: unknown;
+	readonly additionalContext?: unknown;
+}
+
+// Exit 0 and one JSON object, since a hook that fails is one Claude Code folds
+// away: stderr and the exit code reach the debug log and nobody else.
 function reported(result: Result, plugin: string, cls: string): string {
-	assert.equal(result.status, 1, "a reported fault exits 1");
-	assert.equal(result.stdout, "", "a hook that reports must not also act");
-	assert.ok(
-		result.stderr.startsWith(`${plugin}: ${cls} error: `),
-		result.stderr,
-	);
+	const said = String(carried(result).additionalContext ?? "");
+
+	assert.ok(said.startsWith(`${plugin}: ${cls} error: `), said);
 	assert.equal(
-		result.stderr.split("\n").filter(Boolean).length,
+		said.split("\n").length,
 		1,
-		"the report is one line",
+		`the report is one line: ${JSON.stringify(said)}`,
+	);
+	assert.ok(
+		said.includes("Put it to them in your next reply"),
+		`the agent is told to pass it on: ${said}`,
 	);
 
-	return result.stderr;
+	return said;
+}
+
+/** The `hookSpecificOutput` of a run, which is the whole of what it wrote. */
+function carried(result: Result): Injection {
+	assert.equal(result.status, 0, result.stderr);
+	assert.equal(result.stderr, "", "a report is not a hook failure");
+
+	const output = JSON.parse(result.stdout) as {
+		readonly hookSpecificOutput?: Injection;
+	};
+
+	return output.hookSpecificOutput ?? {};
 }
 
 function quiet(result: Result): void {
 	assert.equal(result.status, 0);
 	assert.equal(result.stderr, "");
 	assert.equal(result.stdout, "");
-}
-
-/** What a hook writes when it has something for the user rather than Claude. */
-interface Said {
-	readonly systemMessage?: unknown;
-}
-
-// Exit 0 and the message in the JSON output, since good news is not a hook
-// error: stderr from a run that exits 0 reaches nobody but the debug log.
-function recovered(
-	result: Result,
-	plugin: string,
-	classes: readonly string[],
-): string {
-	assert.equal(result.status, 0, result.stderr);
-	assert.equal(result.stderr, "", "a recovery is not reported as a failure");
-
-	const output = JSON.parse(result.stdout) as Said;
-	const said = String(output.systemMessage ?? "");
-	const lines = said.split("\n").filter(Boolean);
-
-	assert.equal(lines.length, classes.length, said);
-
-	for (const [at, cls] of classes.entries()) {
-		assert.ok(
-			lines[at]?.startsWith(`${plugin}: the ${cls} error is gone`),
-			said,
-		);
-	}
-
-	return said;
 }

@@ -30,8 +30,8 @@ this plugin. It holds one word, `bun` or `node`:
 echo node > ~/.claude/plugins/data/model-prompts-den/.runtime
 ```
 
-No file is the default above. Anything else is one stderr line naming the file
-and a hook run that does nothing.
+No file is the default above. Anything else shows you one line naming the
+file, and the hook run does nothing.
 
 TOML has no parser in Node, so the hook depends on `smol-toml`. Claude Code
 installs it when it caches the plugin. There is nothing to build and nothing
@@ -43,10 +43,9 @@ of `~/.claude/settings.json`. It never reads your source or your transcript.
 
 What the hook writes: one JSON file per session under `claude-model-prompts/`
 in the OS temp directory, holding which rows are already in this context, the
-model an input last named, and the faults the session has been told about,
-plus a lock directory beside it while it is writing, and a second one for the
-moment a run spends taking over a lock left by a run that died. Nothing is
-written to your project.
+model an input last named, plus a lock directory beside it while it is
+writing, and a second one for the moment a run spends taking over a lock left
+by a run that died. Nothing is written to your project.
 
 What the hook can do to a session: add text to the main session's context at
 session start and on a model switch.
@@ -131,26 +130,26 @@ for an agent that happens to share it.
 
 ## Troubleshooting
 
-A configuration the hook cannot use prints one line on stderr, starting
-`model-prompts:`, and nothing is injected while it stands. `config error`
-names the file and what is wrong with it, down to the row; `parser error`
-means `smol-toml` is missing from the plugin's cache directory. Every run
-still reads the file, so a fix takes effect on the next session start or
-switch.
+A configuration the hook cannot use injects nothing while it stands, and puts
+one line starting `model-prompts:` into Claude's context, asking it to pass the
+line on to you. `config error` names the file and what is wrong with it, down
+to the row; `parser error` means `smol-toml` is missing from the plugin's cache
+directory. Every run still reads the file, so a fix takes effect on the next
+session start or switch, and the lines stop with it.
 
 `internal error` is the third of them and is not yours to fix: the run
 stopped on something the hook does not account for, and the line ends in where
 to report it.
 
-That line is said once per session. The class it was said for is listed in the
-session's record, `<session id>.json` under `claude-model-prompts/` in the OS
-temp directory. Delete that file to hear it again.
+Every run that meets the fault says the line, which for this hook is every
+session start and every model switch. Nothing is written down between runs.
 
-On Node older than 22.6 with no bun on `PATH`, the hook prints one line naming
-the floor and the version it found, and injects nothing.
+On Node older than 22.6 with no bun on `PATH`, the hook shows you one line
+naming the floor and the version it found, and injects nothing.
 
-Deleting that file is also how you make a `once` row inject again without
-restarting.
+Deleting the session's record, `<session id>.json` under
+`claude-model-prompts/` in the OS temp directory, is how you make a `once` row
+inject again without restarting.
 
 A run killed while it held the record's lock leaves the directory `<session
 id>.lock` beside the record, and the next run of the session takes it over:
