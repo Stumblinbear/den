@@ -63,7 +63,14 @@ npm run check      # biome ci, tsc --noEmit and the copy check, as CI runs them
 npm run fix        # biome check --write
 npm run plugin-lib # copy lib/ into every plugin that takes it
 npm test           # the root tests, then every plugin's
+npm run plugin-refresh -- <plugin> # copy the checkout over the installed copy
 ```
+
+An installed plugin is a copy under Claude Code's plugin cache, keyed by
+version, so an edit reaches it only by being copied there: `claude plugin
+update` does nothing while the version stands, and `claude plugin uninstall`
+deletes the plugin's data directory with your configuration in it. Run the
+refresh script, then `/reload-plugins`.
 
 The toolchain wants **Node 22.6 or newer**, and CI runs the tests on that
 floor as well as on the current release, under both bun and Node.
