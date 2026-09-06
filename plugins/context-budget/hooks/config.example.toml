@@ -7,10 +7,10 @@
 # and the resume guard are both off, which is the state a fresh install is in.
 #
 # Nothing is merged under your copy, so every key below that has no default has
-# to be in it. `enabled` defaults to true wherever it appears, [models] may be
-# left out, and [watcher] may be left out with each of its keys defaulted. A key
-# that is missing, or a value the hooks cannot use, is one line on stderr and
-# all of them off for the session.
+# to be in it. `enabled` defaults to true wherever it appears, a table of rows
+# may be left out, and [watcher] may be left out with each of its keys
+# defaulted. A key that is missing, or a value the hooks cannot use, is one line
+# on stderr and all of them off for the session.
 #
 # What a cached token costs a model is not configuration: it is
 # ../lib/pricing.toml.
@@ -95,15 +95,25 @@ model = "haiku"
 # without the key gets this one:
 #
 # command = [
-#   "claude", "-p", "--model", "{model}", "--max-turns", "1",
-#   "--output-format", "json", "--no-session-persistence",
+#   "claude", "-p", "--model", "{model}", "--tools", "",
+#   "--max-turns", "2", "--output-format", "json",
+#   "--no-session-persistence",
+#   "--json-schema", "<the two answer shapes, as a JSON Schema>",
 # ]
 #
-# Write your own to run the judge on something else. It is handed the prompt on
-# stdin and read for one JSON object on stdout, either bare or in the `result`
-# field of a `claude --output-format json` envelope. It runs in this directory,
-# and CONTEXT_BUDGET_JUDGE=1 is set in it, which is what keeps this plugin's own
-# hooks quiet inside a judge that is a Claude Code run of its own.
+# The schema is what makes the answer an object the CLI validated rather than
+# prose to find a brace in; it comes back in the envelope's `structured_output`.
+# `--tools ""` is what keeps the judge from acting: it is a Claude Code session
+# of its own, and a sentence of advice is the whole of what it is asked for. The
+# second turn is the platform's, for the tool call the structured output is
+# taken through, which the model makes after the text it sometimes writes first.
+#
+# Write your own to run the judge on something else. It replaces the whole list,
+# schema and all, so an answer from it is read out of the text: it is handed the
+# prompt on stdin and read for one JSON object on stdout, either bare or in the
+# `result` field of a `claude --output-format json` envelope. It runs in this
+# directory, and CONTEXT_BUDGET_JUDGE=1 is set in it, which is what keeps this
+# plugin's own hooks quiet inside a judge that is a Claude Code run of its own.
 
 # How much conversation the judge is shown: this many recent turns, cut to this
 # many tokens from the oldest end. A turn is one of your prompts and the replies
@@ -117,34 +127,83 @@ tail_tokens = 20_000
 # is cheaper. The guard denies the resume with the numbers in the reason, leaving
 # Claude to put the choice to the user before it retries.
 #
-# `large` is the context above which a resume is refused whatever the cache is
-# doing. `cold` is a lower limit that applies only once the subagent's prompt
-# cache has expired, which makes the next turn a full-price replay of
-# everything in it. Both are absolute input token counts, like the thresholds
-# above.
+# `large` is the context above which a resume is refused however warm the cache
+# is: with the cache live a resume costs the resumed context times the model's
+# cache-read multiple on every turn, so it stays the cheaper of the two while
+# the context is under what a fresh launch would have to re-read. `large` is the
+# room-to-finish line past that. `cold` is a lower limit that applies only once
+# the subagent's prompt cache has expired, which adds one full-price rewrite of
+# everything in it before the first turn. Both are absolute input token counts,
+# like the thresholds above.
 #
-# `enabled = false` switches the guard off entirely: every resume is allowed,
-# and no transcript is read.
+# `enabled = false` switches the guard off entirely, the rows below included:
+# every resume is allowed, and no transcript is read. A file that wants the rows
+# and nothing else raises these two numbers past anything a resume reaches.
 [resume-guard]
 enabled = true
 
-# The context above which a resume is refused regardless of the current state of
-# the cache.
+# The two numbers every resume falls back to. At 300K a resumed implementer on
+# Opus spends over the twenty turns a round runs to about what a fresh launch
+# would, and it is held down from there because Opus 5 answers worse the more
+# context it is carrying. 200K sits under the 230K a fresh implementer
+# rediscovers on this project's sessions, which is what refusing a cold resume
+# worth taking would cost.
+large = 300_000
+cold = 200_000
+
+# Rows keyed by the resumed agent's type, tried before the model rows below and
+# before the numbers above, because the type is the more specific fact about a
+# resume. Keys are regular expressions matched against the type as its metadata
+# records it, with the plugin prefix in place, so 'flag-reviewer' matches
+# den:flag-reviewer. The first row that matches wins, in the order written here,
+# and a row carries both limits or, switched off, neither.
+#
+# Only a type whose numbers would differ from what it gets anyway is worth a
+# row: a flag reviewer takes the fable row below, and an implementer takes the
+# numbers above, so neither is written out here.
+
+# A fresh fixer rereads about 70K more than a resumed one, the least of the
+# three agent kinds measured on this project, so a fixer is the first worth
+# refusing. Over the nine rounds measured, a resume stops paying at about 120K
+# warm and about 70K cold; the numbers below are rounded up from those, because
+# refusing a resume worth taking costs the user a round trip and costs the fixer
+# the red tests it is holding, and nine rounds is a thin sample to round the
+# other way on. The key carries the plugin prefix so that no other plugin's
+# agent of that name is caught by it; without den installed the row never
+# matches and costs nothing.
+[resume-guard.agents.'den:red-green-fixer']
 large = 150_000
+cold = 100_000
 
-# The context above which a resume is refused once the subagent's prompt cache
-# has expired.
-cold = 50_000
+# Rows keyed by the model the subagent's newest turn was sent to, matched the
+# same way as the [models] keys above and tried after the agent rows. A
+# transcript whose newest turn names no model skips this table.
 
-# Six placeholders are substituted before the reason is returned:
+# Fable reads a cached context at a fortieth of a fresh input token, against a
+# tenth on Opus, so a resume stays the cheaper of the two far past where it
+# stops being so there. 600K leaves room to finish under the 700K urgent
+# threshold above; 400K is about the 450K a fresh reviewer rereads, which is
+# what refusing a cold resume would cost.
+[resume-guard.models.'fable']
+large = 600_000
+cold = 400_000
+
+# A Haiku resume is too cheap to be worth asking the user about. A row switched
+# off needs no limits.
+[resume-guard.models.'haiku']
+enabled = false
+
+# Seven placeholders are substituted before the reason is returned:
 #   {agent}    the target agent's name
 #   {type}     its agent type, or "subagent" when none is recorded
+#   {model}    the model its newest turn names, or "no recorded model" where
+#              it names none
 #   {tokens}   its context, e.g. "162.3K"
 #   {reasons}  the clauses that fired, naming which limit was passed and how
 #              cold the cache is, joined with "; ". Which of them appear
 #              follows from the numbers and is not configurable.
-#   {large}    the configured large limit, e.g. "150K"
-#   {cold}     the configured cold limit, e.g. "50K"
+#   {large}    the large limit that governed this resume, e.g. "300K"
+#   {cold}     the cold limit that governed it, e.g. "200K"
 [resume-guard.messages]
 
 # The message sent to the agent when it attempts a resume the guard catches. It

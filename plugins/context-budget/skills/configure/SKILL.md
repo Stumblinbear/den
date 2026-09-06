@@ -62,17 +62,19 @@ Consequences that answer most "why did it" questions:
   because the `cut-point` skill has only the session id to find the transcript
   by. Deleting it makes the current level fire again, which is the quickest
   way to see a message after editing it.
-- One stderr line starting `context-budget:` means the notice, the watcher and
-  the resume guard are off, and says why: `parser error` is a missing `smol-toml`
-  in the plugin's cache directory, `config error` names the file that cannot
-  be read, parsed, or used, and `internal error` is a failure of the plugin's
-  own with nothing in the configuration to fix. Nothing is measured and
-  nothing is guarded until it is fixed; fixing it takes effect on the next
-  hook run. The prompt hook says the line again on every tenth prompt the fault
-  has stood through, ending in how many prompts that is, whichever hook first
-  met it; the record above lists each fault meanwhile, with the line it was said
-  in and that count. A fault of the same kind in different words is a report of
-  its own, and each hook's `internal error` is listed apart from the others'.
+- One stderr line starting `context-budget:` says what is off and why, and the
+  line itself says how much: `parser error` is a missing `smol-toml` in the
+  plugin's cache directory and `config error` names the file that cannot be
+  read, parsed, or used, and either of those switches the notice, the watcher
+  and the resume guard off together, since all three read that file through that
+  parser. `internal error` is a failure of the plugin's own with nothing in the
+  configuration to fix, and it stops only the hook that met it, which is the one
+  its line names. Fixing it takes effect on the next hook run. The prompt hook
+  says the line again on every tenth prompt the fault has stood through, ending
+  in how many prompts that is, whichever hook first met it; the record above
+  lists each fault meanwhile, with the line it was said in and that count. A
+  fault of the same kind in different words is a report of its own, and each
+  hook's `internal error` is listed apart from the others'.
   The first prompt that works again says the fault is gone and drops it from the
   record. It drops only what its own run got through, so an `internal error`
   only the resume guard can meet stays listed, and goes on repeating, until the
@@ -126,6 +128,42 @@ can stand in for it. One answer approves one resume, whose uuid is then in the
 session record above; a second retry on the same answer is refused with the
 `used` message.
 
+Which `large` and `cold` those are is settled per resume, from rows under the
+guard's own section:
+
+```toml
+[resume-guard]
+large = 300_000
+cold = 200_000
+
+[resume-guard.agents.'den:red-green-fixer']
+large = 150_000
+cold = 100_000
+
+[resume-guard.models.'fable']
+large = 600_000
+cold = 400_000
+
+[resume-guard.models.'haiku']
+enabled = false
+```
+
+The first `[resume-guard.agents]` row whose key matches the agent's type
+governs; failing that, the first `[resume-guard.models]` row whose key matches
+the model the subagent's newest turn names; failing that, the section's own
+numbers. The agent type comes first because it is the more specific fact about
+a resume. Keys are regular expressions matched the way the `[models]` rows
+above are, the first row written wins, and an agent key matches with the plugin
+prefix in place, so `'flag-reviewer'` matches `den:flag-reviewer` and a
+subagent with no type recorded is `subagent`. A row carries both limits, or
+`enabled = false` and neither; a row switched off is the answer for what it
+matches rather than a reason to look on. The section's own `enabled = false`
+switches the whole guard off, rows included, so a file that wants the rows
+alone gives the section limits no resume reaches. A subagent whose newest turn
+names no model skips the model rows whole, a key like `'.*'` included. Both
+tables may be left out, and a configuration written before they existed keeps
+the guard it had.
+
 The watcher runs on `Stop`, in the background, and only while the context sits
 past `notice` and under `urgent`. It asks a small model, on the last sixteen
 turns of conversation and the same priced reading the `cut-point` skill prints,
@@ -141,6 +179,12 @@ envelope; anything else reads as no verdict and costs the session nothing, while
 a command that will not start at all is one `internal error` line, said once. It
 runs in the data directory with `CONTEXT_BUDGET_JUDGE=1` set, which is what
 keeps these hooks quiet inside a judge that is itself a Claude Code run.
+
+The default command asks under a JSON Schema of the two answer shapes, so the
+CLI samples the model against it and hands back the object it validated in the
+envelope's `structured_output`, which is read before anything in the text. A
+`command` of your own replaces that list whole, schema and all, which is why the
+reading of the text above outlives it.
 
 ## Where changes go
 

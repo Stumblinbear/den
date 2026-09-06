@@ -20,7 +20,7 @@ import {
 	judgePrompt,
 } from "../lib/judge.mts";
 import { measure } from "../lib/measure.mts";
-import { FAULTS, insideJudge, WATCHER_FAULTS } from "../lib/plugin.mts";
+import { insideJudge, WATCHER_FAULTS } from "../lib/plugin.mts";
 import { loadPricing } from "../lib/pricing.mts";
 import { scanCacheWindow } from "../lib/prompt-cache.mts";
 import { latestTurn, recentTurns, type Turn } from "../lib/recent-turns.mts";
@@ -242,7 +242,7 @@ const injected = (context: string): string =>
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError.
 await runEntry(
-	{ name: "watcher", faults: FAULTS },
+	{ name: "watcher", faults: WATCHER_FAULTS },
 	async ({ input, session, event }) => {
 		// Without a session id there is no record to pace the judge by.
 		if (event !== EVENT || session === "" || insideJudge()) {

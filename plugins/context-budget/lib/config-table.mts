@@ -6,7 +6,7 @@
 //
 // Every reader here faults rather than substituting anything, since a stand-in
 // value is a plugin doing something the user did not write down.
-import { FAULTS } from "./plugin.mts";
+import { CONFIG_FAULTS } from "./plugin.mts";
 import { isTable } from "./shared/fields.mts";
 
 /** One table of the configuration, and what a fault about it names. */
@@ -126,13 +126,16 @@ export function countOr(
 	return value;
 }
 
-/** How a fault names a table: `[key]` at the root, `[parent.key]` under one. */
-const labelled = (parent: string, key: string): string =>
+/**
+ * How a fault names a table: `[key]` at the root, `[parent.key]` under one.
+ * A keyed row is named by passing its quoted key, `'fable'`, as the key.
+ */
+export const labelled = (parent: string, key: string): string =>
 	parent === "" ? `[${key}]` : `[${parent.slice(1, -1)}.${key}]`;
 
 export const fault: (section: Section, detail: string) => never = (
 	section,
 	detail,
 ) => {
-	throw FAULTS.configFault(section.path, detail);
+	throw CONFIG_FAULTS.configFault(section.path, detail);
 };

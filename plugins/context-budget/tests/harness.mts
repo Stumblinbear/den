@@ -76,6 +76,16 @@ export const noConfig = (): string =>
 export const noTranscript = (): string =>
 	join(fixtureDir("no-transcript"), "transcript.jsonl");
 
+/**
+ * A transcript path no entry can read, and not because it is absent: Node and
+ * bun both refuse a path with a NUL byte in it outright, and that is neither
+ * the absence a reader tolerates nor anything else the plugin accounts for.
+ * Every entry opens the transcript Claude Code names it, so each meets this in
+ * its own work, which is what makes it that entry's own `internal` fault.
+ */
+export const unreadableTranscript = (): string =>
+	"\u0000no-such-transcript.jsonl";
+
 export function transcript(...lines: readonly string[]): string {
 	const path = join(fixtureDir("transcript"), "transcript.jsonl");
 
@@ -91,14 +101,17 @@ export function transcript(...lines: readonly string[]): string {
  * cache cold.
  *
  * `turns` are the subagent's own, oldest first, and `entries` are the session
- * transcript's lines.
+ * transcript's lines. `type` writes the metadata file Claude Code writes beside
+ * the transcript, naming the agent type it was launched as; a case that leaves
+ * it out gets no such file, which is the subagent the guard calls "subagent".
  */
 export function subagentSession(
 	name: string,
 	turns: readonly string[],
 	entries: readonly string[],
+	type?: string,
 ): string {
-	const path = subagentBeside(name, turns);
+	const path = subagentBeside(name, turns, type);
 
 	writeFileSync(path, `${entries.join("\n")}\n`);
 
@@ -132,7 +145,11 @@ export function unreadableSession(
  * The subagent's transcript alone, and the path the session's own would be at
  * beside it, which is what a hook is handed and derives the other from.
  */
-function subagentBeside(name: string, turns: readonly string[]): string {
+function subagentBeside(
+	name: string,
+	turns: readonly string[],
+	type?: string,
+): string {
 	const dir = fixtureDir("session");
 	const subagents = join(dir, "main", "subagents");
 
@@ -141,6 +158,13 @@ function subagentBeside(name: string, turns: readonly string[]): string {
 		join(subagents, `agent-${name}.jsonl`),
 		`${turns.join("\n")}\n`,
 	);
+
+	if (type !== undefined) {
+		writeFileSync(
+			join(subagents, `agent-${name}.meta.json`),
+			JSON.stringify({ agentType: type }),
+		);
+	}
 
 	return join(dir, "main.jsonl");
 }

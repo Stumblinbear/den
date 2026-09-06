@@ -8,6 +8,10 @@
 // configured yet, and text on stdin that no hook can read as input is nothing
 // to act on.
 //
+// What each report says is off follows the same split: the file and the parser
+// stop every entry and the line names all three, while an entry's own run
+// coming apart stops that entry and the line names only it.
+//
 // These run the real processes through the launcher, because the whole
 // contract is out of band: an exit code and one line on stderr. Where the
 // class already said is written down is `session-record.test.mts`.
@@ -32,9 +36,18 @@ import {
 	subagentSession,
 	transcript,
 	unreadableSession,
+	unreadableTranscript,
 	withoutParser,
 } from "./harness.mts";
 import { INVALID } from "./invalid-configs.mts";
+import { watcherRuns } from "./watcher-runs.mts";
+
+/** What a fault of the shared file or the shared parser costs the session. */
+const EVERY_ENTRY =
+	"The context notice, the watcher and the resume guard are off for this session";
+
+/** A file every entry can use, so what a case meets is not the configuration. */
+const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
 
 // The parser report has to name the package the user has to reinstall.
 const NAMES_THE_PACKAGE = /smol-toml/;
@@ -44,17 +57,25 @@ for (const runtime of runtimes()) {
 	const sid = () => sessionId(runtime);
 	const name = (what: string) => `${runtime}: ${what}`;
 
-	const measure = (session: string, config: string, options?: RunOptions) =>
+	const measureOn = (
+		session: string,
+		path: string,
+		config: string,
+		options?: RunOptions,
+	) =>
 		hook(
 			"context-budget",
 			{
 				hook_event_name: "UserPromptSubmit",
 				session_id: session,
-				transcript_path: transcript(assistant(200_000)),
+				transcript_path: path,
 			},
 			config,
 			options,
 		);
+
+	const measure = (session: string, config: string, options?: RunOptions) =>
+		measureOn(session, transcript(assistant(200_000)), config, options);
 
 	const guardOn = (
 		session: string,
@@ -148,7 +169,40 @@ for (const runtime of runtimes()) {
 		const line = reported(guard(session, path), "config");
 
 		assert.ok(line.includes(path), line);
+		assert.ok(line.includes(EVERY_ENTRY), line);
 		quiet(guard(session, path));
+	});
+
+	// An internal error stops the entry that met it and nothing else, so its
+	// line names that entry alone. All three below are forced the same way, by
+	// a transcript path none of them can read, so what differs between the
+	// lines is only which entry met it.
+	test(name("an internal error in the notice entry names the notice"), () => {
+		const line = reported(
+			measureOn(sid(), unreadableTranscript(), CONFIG),
+			"internal",
+		);
+
+		assert.ok(
+			line.includes("The context notice is off for this session"),
+			line,
+		);
+	});
+
+	test(name("an internal error in the guard entry names the guard"), () => {
+		const line = reported(
+			guardOn(sid(), unreadableTranscript(), CONFIG),
+			"internal",
+		);
+
+		assert.ok(line.includes("The resume guard is off for this session"), line);
+	});
+
+	test(name("an internal error in the watcher entry names the watcher"), () => {
+		const { session, stop } = watcherRuns(runtime);
+		const line = reported(stop(session(), unreadableTranscript()), "internal");
+
+		assert.ok(line.includes("The watcher is off for this session"), line);
 	});
 
 	for (const [what, names, sections] of INVALID) {

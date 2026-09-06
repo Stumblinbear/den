@@ -8,12 +8,9 @@
 import assert from "node:assert/strict";
 import process from "node:process";
 import { test } from "node:test";
-import {
-	type Result,
-	type Runtime,
-	runtimes,
-} from "../../../tests/harness.mts";
+import { type Runtime, runtimes } from "../../../tests/harness.mts";
 import { assistant } from "./fixtures.mts";
+import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
 import {
 	configFile,
 	DEFAULTS,
@@ -25,18 +22,6 @@ import {
 	subagentSession,
 	transcript,
 } from "./harness.mts";
-
-interface Decision {
-	readonly hookSpecificOutput?: {
-		readonly permissionDecision?: string;
-		readonly permissionDecisionReason?: string;
-	};
-}
-
-const PROMPT = JSON.stringify({
-	type: "user",
-	message: { role: "user", content: "carry on" },
-});
 
 const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
 
@@ -61,42 +46,12 @@ const answer = (uuid: string) =>
 const answerId = (runtime: Runtime): string =>
 	`resume-approval-test-${process.pid}-${runtime}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-function decided(result: Result): Decision["hookSpecificOutput"] | null {
-	assert.equal(result.status, 0, result.stderr);
-	assert.equal(result.stderr, "");
-
-	return result.stdout === ""
-		? null
-		: (JSON.parse(result.stdout) as Decision).hookSpecificOutput;
-}
-
-function reason(result: Result): string {
-	const output = decided(result);
-
-	assert.equal(
-		output?.permissionDecision,
-		"deny",
-		"the call should have been denied",
-	);
-
-	return String(output?.permissionDecisionReason);
-}
-
 for (const runtime of runtimes()) {
 	const hook = hookRunner(runtime);
+	const guard = guardRunner(runtime);
 	const name = (what: string) => `${runtime}: ${what}`;
 	const run = (session: string, path: string) =>
-		hook(
-			"resume-guard",
-			{
-				hook_event_name: "PreToolUse",
-				tool_name: "SendMessage",
-				session_id: session,
-				tool_input: { to: "big" },
-				transcript_path: path,
-			},
-			CONFIG,
-		);
+		guard(session, path, "big", CONFIG);
 
 	// The user approves each resume, not just the first: the guard reads the
 	// answer out of the transcript itself, and spends it once.

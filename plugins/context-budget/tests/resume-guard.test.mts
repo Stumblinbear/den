@@ -1,20 +1,22 @@
-// What makes a resume worth refusing, exercised through the launcher, on the
+// What makes a resume worth refusing: how big the subagent's context is and
+// how cold its prompt cache has gone. Exercised through the launcher, on the
 // exact command `hooks.json` runs. Real transcript files, real config files:
 // the wiring between them is where the guard lives, and the deny wording every
 // case asserts on is the wording that case wrote.
 //
-// The user's answer to a refusal, and how it is spent, is
+// Which limits a resume is measured against is `resume-guard-rows.test.mts`,
+// and the user's answer to a refusal, with how it is spent, is
 // `resume-approval.test.mts`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { type Result, runtimes } from "../../../tests/harness.mts";
+import { runtimes } from "../../../tests/harness.mts";
 import { apiError, assistant } from "./fixtures.mts";
+import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
 import {
 	configFile,
 	DEFAULTS,
 	GUARD,
 	GUARD_MESSAGES,
-	hookRunner,
 	lostSession,
 	MESSAGES,
 	noTranscript,
@@ -24,46 +26,13 @@ import {
 	subagentSession,
 } from "./harness.mts";
 
-interface Decision {
-	readonly hookSpecificOutput?: {
-		readonly permissionDecision?: string;
-		readonly permissionDecisionReason?: string;
-	};
-}
-
-const PROMPT = JSON.stringify({
-	type: "user",
-	message: { role: "user", content: "carry on" },
-});
-
 const CONFIG = configFile(DEFAULTS, MESSAGES, GUARD, GUARD_MESSAGES);
 
 /** A config fault is what a run that has reported nothing yet still reports. */
 const BROKEN = configFile("[resume-guard\nlarge = 10\n");
 
-function decided(result: Result): Decision["hookSpecificOutput"] | null {
-	assert.equal(result.status, 0, result.stderr);
-	assert.equal(result.stderr, "");
-
-	return result.stdout === ""
-		? null
-		: (JSON.parse(result.stdout) as Decision).hookSpecificOutput;
-}
-
-function reason(result: Result): string {
-	const output = decided(result);
-
-	assert.equal(
-		output?.permissionDecision,
-		"deny",
-		"the call should have been denied",
-	);
-
-	return String(output?.permissionDecisionReason);
-}
-
 for (const runtime of runtimes()) {
-	const hook = hookRunner(runtime);
+	const guard = guardRunner(runtime);
 	const sid = () => sessionId(runtime);
 	const name = (what: string) => `${runtime}: ${what}`;
 	const run = (
@@ -71,18 +40,7 @@ for (const runtime of runtimes()) {
 		transcript: string,
 		to: string,
 		config = CONFIG,
-	) =>
-		hook(
-			"resume-guard",
-			{
-				hook_event_name: "PreToolUse",
-				tool_name: "SendMessage",
-				session_id: session,
-				tool_input: { to },
-				transcript_path: transcript,
-			},
-			config,
-		);
+	) => guard(session, transcript, to, config);
 
 	// A guard switched off allows every resume, and waives the limits it would
 	// otherwise need written for it.

@@ -7,8 +7,12 @@
 import process from "node:process";
 import { consume, resumeApproval } from "../lib/approval.mts";
 import { fill, formatTokens } from "../lib/messages.mts";
-import { FAULTS, insideJudge } from "../lib/plugin.mts";
-import { type GuardLimits, loadSettings } from "../lib/settings.mts";
+import { GUARD_FAULTS, insideJudge } from "../lib/plugin.mts";
+import {
+	type GuardLimits,
+	guardLimitsFor,
+	loadSettings,
+} from "../lib/settings.mts";
 import { runEntry } from "../lib/shared/entry.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
 import {
@@ -25,11 +29,12 @@ async function decision(
 	sessionId: string,
 	input: Record<string, unknown>,
 ): Promise<Done> {
-	// Read before anything else, so `enabled = false` costs no transcript read.
+	// Read before anything else, so a guard switched off costs no transcript
+	// read.
 	const settings = await loadSettings(args);
-	const limits = settings?.guard.limits ?? null;
+	const tables = settings === null ? null : settings.guard.limits;
 
-	if (settings === null || limits === null) {
+	if (settings === null || tables === null) {
 		return LEFT_AFTER_CONFIG;
 	}
 
@@ -43,6 +48,12 @@ async function decision(
 	const resumed = resumedAgent(transcript, to);
 
 	if (resumed === null) {
+		return null;
+	}
+
+	const limits = guardLimitsFor(tables, resumed.type, resumed.model);
+
+	if (limits === null) {
 		return null;
 	}
 
@@ -62,6 +73,11 @@ async function decision(
 		fill(approval === null ? settings.guard.denied : settings.guard.used, {
 			agent: to,
 			type: resumed.type,
+			// A transcript that names no model leaves the field empty, and the
+			// reason is read as a sentence, where "on , large 300K" is not one.
+			// The empty string is what the model rows are matched against, so it
+			// is said in words here rather than made true anywhere earlier.
+			model: resumed.model || "no recorded model",
 			tokens: formatTokens(resumed.context),
 			reasons: why.join("; "),
 			large: formatTokens(limits.large),
@@ -120,7 +136,7 @@ function deny(reason: string): string {
 // read from here before its own declaration throws a ReferenceError, which the
 // runner would report as the bug it is.
 await runEntry(
-	{ name: "resume-guard", faults: FAULTS },
+	{ name: "resume-guard", faults: GUARD_FAULTS },
 	async ({ input, session }) => {
 		// Without a session id there is no record to spend an answer in: every
 		// input carrying none would share one file named for no session at all.

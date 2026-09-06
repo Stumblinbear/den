@@ -1,13 +1,14 @@
-// The judge: what it is handed, what it is held to, and the one call that gets
-// an answer. It is a model reading a conversation it is not part of, so
-// everything it needs is in the prompt and nothing it says is trusted without
-// being narrowed first.
+// The judge: what it is handed, the one call that gets an answer, and how what
+// comes back is read. It is a model reading a conversation it is not part of,
+// so everything it needs is in the prompt and nothing it says is trusted
+// without being narrowed first. What it is held to is `answer.mts`.
 //
 // The call is bounded here rather than left to Claude Code. An async hook is
 // backgrounded the moment it starts, and a judge that never returns would hold
 // the in-flight marker for the rest of the session.
 import { type SpawnSyncReturns, spawnSync } from "node:child_process";
 import process from "node:process";
+import { ANSWER, type Option, optionIn, type Wait, waitIn } from "./answer.mts";
 import { formatTokens } from "./messages.mts";
 import { JUDGE } from "./plugin.mts";
 import type { Turn } from "./recent-turns.mts";
@@ -38,24 +39,6 @@ export const JUDGE_DEAD_MS = 2 * JUDGE_BOUND_MS;
  * a bounded prompt, and being a few hundred tokens out costs nothing.
  */
 const CHARS_A_TOKEN = 4;
-
-/** What the judge recommends where it finds the moment good. */
-export type Option = "compact" | "rewind" | "carry-on";
-
-/** How long the judge asks to be left alone where the moment is not good. */
-export type Wait = "next turn" | "a few turns" | "later";
-
-const OPTIONS: readonly Option[] = ["compact", "rewind", "carry-on"];
-
-const WAITS: readonly Wait[] = ["next turn", "a few turns", "later"];
-
-/** The option a judge's answer names, and null for anything that is none. */
-export const optionIn = (value: unknown): Option | null =>
-	OPTIONS.find((known) => known === value) ?? null;
-
-/** The wait a judge's answer names, and null for anything that is none. */
-export const waitIn = (value: unknown): Wait | null =>
-	WAITS.find((known) => known === value) ?? null;
 
 /** What came back from one consultation, in the shapes the hook acts on. */
 export type Answer =
@@ -118,15 +101,6 @@ Weigh it in three steps, in this order.
 1. Whether the arc has ended. Where it has not, the answer is a wait and nothing else.
 2. What may be summarized away. Whatever the next steps still lean on has to survive verbatim. That rules out \`compact\` where the tail it keeps would not hold that setup, however cheap the reading prices it, and it admits \`rewind\` only at a prompt the arc began at or after.
 3. What the arc admits, priced. The lowest payback wins and \`compact\` takes a tie. Where every payback is longer than the arc has left to run, the arc has still ended and the recommendation is \`carry-on\`.`;
-
-const ANSWER = `Answer with one JSON object and nothing else, in one of these two shapes.
-
-{"good": false, "wait": "next turn" | "a few turns" | "later"}
-{"good": true, "option": "compact" | "rewind" | "carry-on", "focus": "...", "reason": "..."}
-
-The first is the answer for an arc that has not ended, and \`wait\` is how long before this is worth another look: \`next turn\` where the arc is closing now, \`a few turns\` where the session is mid-step, \`later\` where it has just begun.
-
-The second is the answer for an arc that has ended, \`carry-on\` included. \`focus\` is the focus line on \`compact\`, the opening words of the prompt to rewind to on \`rewind\`, copied from the turns above, and "" on \`carry-on\`. \`reason\` is one sentence in the session's own terms, naming the arc that ended. The agent reads both back to the person running the session, so keep each to a line and write them in that session's words.`;
 
 /**
  * The conversation as the judge reads it, oldest turn first, cut to the token
@@ -191,18 +165,34 @@ function judged(watcher: Watcher, prompt: string): SpawnSyncReturns<string> {
 	const run = spawnSync(watcher.program, watcher.args, options);
 
 	// An npm install puts a CLI on Windows' PATH as a `.cmd`, which libuv
-	// resolves for a bare name only through a shell: without one it looks for an
-	// `.exe`, finds none and reports ENOENT. The prompt goes in on stdin and the
-	// arguments are flags, so a shell has nothing here to reinterpret.
+	// resolves for a bare name only through the command interpreter: without one
+	// it looks for an `.exe`, finds none and reports ENOENT. The interpreter is
+	// named here and handed the argument list, rather than `shell: true` naming
+	// it: that option joins the arguments into one command line with no quoting
+	// at all, and the schema is one long argument of braces and quotes, which
+	// comes back out as something no JSON parser reads.
 	//
 	// ENOENT is the whole of what a second spawn is for. A call killed at the
 	// bound reports through `error` as well, and running that one again spends
 	// two bounds on one consultation, which outlasts the age the in-flight
 	// marker is read as dead at: the Stop after it would start a third judge.
 	return errorCode(run.error) === "ENOENT" && process.platform === "win32"
-		? spawnSync(watcher.program, watcher.args, { ...options, shell: true })
+		? spawnSync(
+				comspec(),
+				["/d", "/s", "/c", watcher.program, ...watcher.args],
+				options,
+			)
 		: run;
 }
+
+/**
+ * Windows' command interpreter, named as the OS names it and as `shell: true`
+ * would have found it, so a machine whose interpreter is not at the usual place
+ * keeps working.
+ */
+const comspec = (): string =>
+	// biome-ignore lint/style/noProcessEnv: which interpreter Windows runs a `.cmd` through is the OS's to say, and it says it here.
+	process.env["ComSpec"] || "cmd.exe";
 
 /**
  * Whether the judge never ran. A command nothing could start says so through
@@ -233,14 +223,35 @@ const detailOf = (program: string, run: SpawnSyncReturns<string>): string =>
 
 /**
  * The answer inside whatever the command wrote. `claude --output-format json`
- * wraps the model's text in a `result` field; a runtime configured in its place
- * may write the object itself, and both are read here so that the `command`
- * seam does not oblige a user to imitate one CLI's envelope.
+ * puts the object it validated against the schema in `structured_output`, which
+ * is the answer where there is one: nothing has to go looking for a brace in
+ * prose that may have been written around it. That object is the schema's own
+ * wrapper, so the answer is what it holds under `answer`; a judge validated
+ * against a schema of somebody else's writing has no wrapper, and what it wrote
+ * is read as it stands.
+ *
+ * A `command` of the user's own is handed no schema, so the fallback is the
+ * whole of what it gets: the model's text in the CLI's `result` field, or the
+ * object written bare. Both are still read here, so the seam does not oblige a
+ * user to imitate one CLI's envelope.
  */
 function answerIn(stdout: string): Answer {
 	const envelope = objectIn(stdout);
+
+	if (envelope === null) {
+		return NONE;
+	}
+
+	const validated = envelope["structured_output"];
+
+	if (isTable(validated)) {
+		const inside = validated["answer"];
+
+		return narrowed(isTable(inside) ? inside : validated);
+	}
+
 	const answer =
-		envelope !== null && typeof envelope["result"] === "string"
+		typeof envelope["result"] === "string"
 			? objectIn(envelope["result"])
 			: envelope;
 

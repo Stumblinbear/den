@@ -7,6 +7,57 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Added
+
+- Per-agent-type and per-model rows under the resume guard,
+  `[resume-guard.agents.'<regex>']` and `[resume-guard.models.'<regex>']`, each
+  carrying the same `large` and `cold` the section carries, or `enabled = false`
+  and no numbers to leave what it matches unguarded. Keys are regular
+  expressions and the first row written wins, as under `[models]`. A resume is
+  measured against the first agent row matching its agent type, then the first
+  model row matching the model its newest turn names, then the section's own
+  numbers; the agent type comes first because it is the more specific fact
+  about a resume. Agent-type keys match with the plugin prefix in place, so
+  `'flag-reviewer'` matches `den:flag-reviewer`. Both tables may be left out, so
+  a configuration written before this release keeps the guard it already had,
+  and `[resume-guard] enabled = false` still switches the whole guard off, rows
+  included.
+  One resume can be worth taking at 600K and another worth refusing at 150K,
+  which one pair of numbers could not say.
+- The judge is asked under a JSON Schema of the two shapes its answer may take,
+  which the default `[watcher] command` carries as `--json-schema`. The CLI
+  samples the model against it, validates what comes back and returns the object
+  in its envelope's `structured_output`, which is read before anything in the
+  text. The CLI takes that object through a tool call of its own, so the default
+  command allows the judge two turns: the model often writes the answer out as
+  text first, and the tool call comes in the response after it. The tolerant
+  reading of the text stays behind it, because a `command` written out in full
+  replaces the default list schema and all, and a judge that is not `claude` is
+  handed no schema to answer under.
+- `{model}` in the resume guard's two messages, the model the resumed
+  subagent's newest turn names, or "no recorded model" where it names none.
+  `{large}` and `{cold}` now fill from whichever row or section governed that
+  resume.
+- An `internal error` line names only the hook that met it: "The context notice
+  is off for this session", "The resume guard is off for this session", or "The
+  watcher is off for this session". It used to say all three were off, which is
+  true of a config or parser fault, since every hook reads one file through one
+  parser, and false of a hook's own run coming apart, which the other two go on
+  working through. A config or parser fault keeps the line naming all three.
+- The judge is started on Windows through the command interpreter named and
+  handed an argument list, rather than through Node's `shell: true`, for the
+  `.cmd` that an npm install puts on PATH. That option joins the arguments into
+  one command line with no quoting at all, which strips every quote out of the
+  schema above and hands the CLI something no JSON parser reads.
+- The example configuration's resume guard sits at 300K `large` and 200K `cold`
+  rather than 150K and 50K, with a `fable` model row at 600K and 400K, a
+  `den:red-green-fixer` agent row at 150K and 100K, and a `haiku` model row
+  switched off. Measured on this project's sessions, a fresh flag reviewer reads
+  about 450K tokens more than a resumed one to finish the same pass, an
+  implementer about 230K and a fixer about 70K, and refusing a resume worth
+  taking costs that whole rediscovery. The old numbers refused resumes on Fable
+  that were still the cheaper of the two by a wide margin.
+
 ## [0.4.0] - 2026-09-06
 
 ### Added

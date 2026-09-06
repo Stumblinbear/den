@@ -83,6 +83,62 @@ export const INVALID: readonly Invalid[] = [
 			GUARD_MESSAGES,
 		],
 	],
+	// A guard row carries both limits or neither: a row that names one is a row
+	// whose author meant to write the other, in whichever of the two tables it
+	// was written in.
+	[
+		"a [resume-guard.agents] row with no cold",
+		"[resume-guard.agents.'fixer'] cold",
+		[
+			DEFAULTS,
+			MESSAGES,
+			GUARD,
+			"[resume-guard.agents.'fixer']\nlarge = 1\n",
+			GUARD_MESSAGES,
+		],
+	],
+	[
+		"a [resume-guard.models] row with no cold",
+		"[resume-guard.models.'fable'] cold",
+		[
+			DEFAULTS,
+			MESSAGES,
+			GUARD,
+			"[resume-guard.models.'fable']\nlarge = 1\n",
+			GUARD_MESSAGES,
+		],
+	],
+	[
+		"a guard row key that is not a regular expression",
+		"[resume-guard.agents.'(']",
+		[
+			DEFAULTS,
+			MESSAGES,
+			GUARD,
+			"[resume-guard.agents.'(']\nlarge = 1\ncold = 2\n",
+			GUARD_MESSAGES,
+		],
+	],
+	[
+		"a [resume-guard.agents] that is not a table",
+		"[resume-guard.agents]",
+		[
+			DEFAULTS,
+			MESSAGES,
+			"[resume-guard]\nlarge = 1\ncold = 2\nagents = 5\n",
+			GUARD_MESSAGES,
+		],
+	],
+	[
+		"a [resume-guard.models] that is not a table",
+		"[resume-guard.models]",
+		[
+			DEFAULTS,
+			MESSAGES,
+			"[resume-guard]\nlarge = 1\ncold = 2\nmodels = 5\n",
+			GUARD_MESSAGES,
+		],
+	],
 	// The watcher's own table is the one a file need not carry at all, so what
 	// is refused here is a value written rather than a value left out.
 	[
@@ -99,6 +155,20 @@ export const INVALID: readonly Invalid[] = [
 			GUARD,
 			GUARD_MESSAGES,
 			'[watcher]\ncommand = "claude -p"\n',
+		],
+	],
+	// An empty word is an argument wherever it falls after the first, since
+	// the default command switches the judge's tools off with one. In the
+	// first it is a command with no program, which nothing can spawn.
+	[
+		"a [watcher] command whose first word is empty",
+		"[watcher] command",
+		[
+			DEFAULTS,
+			MESSAGES,
+			GUARD,
+			GUARD_MESSAGES,
+			'[watcher]\ncommand = ["", "-p"]\n',
 		],
 	],
 ];

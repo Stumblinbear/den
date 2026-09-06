@@ -8,7 +8,7 @@ import process from "node:process";
 import { type Crossing, crossing, type Level } from "../lib/level.mts";
 import { type Measured, measure } from "../lib/measure.mts";
 import { fill, formatTokens } from "../lib/messages.mts";
-import { FAULTS, insideJudge } from "../lib/plugin.mts";
+import { insideJudge, NOTICE_FAULTS } from "../lib/plugin.mts";
 import { updateRecord } from "../lib/session-record.mts";
 import {
 	loadSettings,
@@ -124,7 +124,7 @@ function injection(
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError.
 await runEntry(
-	{ name: "context-budget", faults: FAULTS, promptEvent: PROMPT },
+	{ name: "context-budget", faults: NOTICE_FAULTS, promptEvent: PROMPT },
 	async ({ input, session, event }) => {
 		if (!EVENTS.includes(event) || session === "" || insideJudge()) {
 			return LEFT_BEFORE_CONFIG;

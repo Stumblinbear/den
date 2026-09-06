@@ -10,7 +10,8 @@
 // session. What is left in the record is what the next Stop's gate reads: the
 // turn the state was written at, when the judge may be consulted again, the
 // call in flight, and the verdict standing.
-import { type Answer, type Option, optionIn, type Wait } from "./judge.mts";
+import { type Option, optionIn, type Wait } from "./answer.mts";
+import type { Answer } from "./judge.mts";
 import type { Turn } from "./recent-turns.mts";
 import type { Thresholds } from "./settings.mts";
 import { fieldsOf } from "./shared/fields.mts";

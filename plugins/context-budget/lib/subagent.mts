@@ -17,12 +17,18 @@ import {
 	inputTokens,
 	lifetimeMs,
 	newestFirst,
+	turnModel,
 	turnUsage,
 } from "./transcript.mts";
 
 export interface Resumed {
 	/** The agent type it was launched as, or "subagent" when none is recorded. */
 	readonly type: string;
+	/**
+	 * The model its newest turn was sent to, and the empty string for a turn
+	 * that names none, which matches no row written for a model.
+	 */
+	readonly model: string;
 	readonly context: number;
 	readonly ttl: CacheTtl;
 	readonly idleMs: number;
@@ -56,6 +62,7 @@ export function resumedAgent(transcript: string, to: string): Resumed | null {
 
 	return {
 		type: agentType(dir, to),
+		model: turnModel(state.last),
 		context: inputTokens(state.usage),
 		ttl,
 		idleMs,

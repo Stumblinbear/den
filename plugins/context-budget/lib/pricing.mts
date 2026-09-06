@@ -13,7 +13,7 @@
 // rate in place of the shipped file), since a payback figure on the shipped
 // rate is worth more to the agent than no figure at all.
 import { readFileSync } from "node:fs";
-import { compile, type ModelMatch, rowFor } from "./model-rows.mts";
+import { compile, type Keyed, rowFor } from "./keyed-rows.mts";
 import { fieldsOf, isTable } from "./shared/fields.mts";
 
 /**
@@ -33,7 +33,7 @@ export interface PricingPaths {
 }
 
 /** One row: what a token read from the cache costs the models it matches. */
-interface PriceRow extends ModelMatch {
+interface PriceRow extends Keyed {
 	readonly rate: number;
 }
 

@@ -2,24 +2,26 @@
 // so none of them carries a second opinion about what a usable value looks
 // like. A key the file carries is the value; a key it leaves out is a missing
 // key and a fault naming it, except where the table below says the key has a
-// default. `enabled` has one wherever it appears, `[models]` may be left out,
-// and `[watcher]` may be left out with each of its keys defaulted, so a file
-// that names none of them still gets a watcher.
+// default. `enabled` has one wherever it appears, a table of keyed rows may be
+// left out, and `[watcher]` may be left out with each of its keys defaulted, so
+// a file that names none of them still gets a watcher.
 import { dirname } from "node:path";
+import { ANSWER_SCHEMA } from "./answer.mts";
 import {
 	child,
 	countOr,
 	defaulted,
 	enabled,
 	fault,
+	labelled,
 	number,
 	type Section,
 	text,
 	textOr,
 } from "./config-table.mts";
+import { compile, type Keyed, rowFor } from "./keyed-rows.mts";
 import { fill } from "./messages.mts";
-import { compile, type ModelMatch, rowFor } from "./model-rows.mts";
-import { FAULTS } from "./plugin.mts";
+import { CONFIG_FAULTS } from "./plugin.mts";
 import { loadConfigFile } from "./shared/config.mts";
 import { isTable } from "./shared/fields.mts";
 
@@ -36,9 +38,13 @@ export interface NoticeMessages {
 	readonly urgent: string;
 }
 
-/** A per-model row: its thresholds, or null for a model switched off. */
-export interface ModelRow extends ModelMatch {
-	readonly limits: Thresholds | null;
+/**
+ * A row keyed by a regular expression and what it sets, with null for a row
+ * that sets nothing: one written to switch off whatever its key matches, which
+ * is why such a row needs no numbers.
+ */
+export interface Row<Limits> extends Keyed {
+	readonly limits: Limits | null;
 }
 
 export interface GuardLimits {
@@ -46,9 +52,23 @@ export interface GuardLimits {
 	readonly cold: number;
 }
 
+/** Everything a resume is measured against, in the order they are tried. */
+export interface GuardTables {
+	/** Tried first: the agent type is the more specific fact about a resume. */
+	readonly agents: readonly Row<GuardLimits>[];
+	/** Tried next, against the model the resumed transcript's last turn names. */
+	readonly models: readonly Row<GuardLimits>[];
+	/** The section's own numbers, for a resume no row above matches. */
+	readonly fallback: GuardLimits;
+}
+
 export interface Guard {
-	/** Null when the guard is switched off, which needs no numbers. */
-	readonly limits: GuardLimits | null;
+	/**
+	 * Null where the guard is switched off, which `enabled = false` on the
+	 * section does to its rows as well: a switch that left them refusing
+	 * resumes would be one a user cannot switch off with.
+	 */
+	readonly limits: GuardTables | null;
 	readonly denied: string;
 	readonly used: string;
 }
@@ -77,7 +97,7 @@ export interface Watcher {
 
 export interface Settings {
 	/** Tried in the order they are written, before `fallback`. */
-	readonly models: readonly ModelRow[];
+	readonly models: readonly Row<Thresholds>[];
 	/** `[default]`, or null when every model no row matches is switched off. */
 	readonly fallback: Thresholds | null;
 	readonly messages: NoticeMessages;
@@ -86,28 +106,46 @@ export interface Settings {
 }
 
 /**
- * What the judge is asked with where the file names no command of its own:
- * one turn, no session left behind, and the answer as JSON on stdout. It runs
- * on the user's subscription, which is why it is `claude` rather than an API
- * call.
+ * What the judge is asked with where the file names no command of its own: no
+ * tools, two turns, no session left behind, the answer as JSON on stdout, and
+ * the answer shapes as a schema the CLI samples the model against and validates
+ * for it. It runs on the user's subscription, which is why it is `claude`
+ * rather than an API call. A `command` written out in full replaces this whole
+ * list, schema and all.
+ *
+ * `--tools ""` is what keeps the judge from acting. It is a Claude Code session
+ * of its own, so without the flag it holds every tool this one holds, and a
+ * sentence of advice is the whole of what it is asked for. The flag disables
+ * the built-in tools; the structured output the schema is wired in as is not
+ * one of them and survives it.
+ *
+ * Two turns because a validated answer costs two responses wherever the model
+ * writes it out as text first: the CLI takes the structured output through a
+ * tool call, which is a response of its own. Which of the two the model does
+ * first is not ours to settle, and at one turn the text-first half of it comes
+ * back empty.
  */
-const JUDGE: readonly string[] = [
+const DEFAULT_COMMAND: readonly string[] = [
 	"claude",
 	"-p",
 	"--model",
 	"{model}",
+	"--tools",
+	"",
 	"--max-turns",
-	"1",
+	"2",
 	"--output-format",
 	"json",
 	"--no-session-persistence",
+	"--json-schema",
+	ANSWER_SCHEMA,
 ];
 
 /** Null when there is no configuration file: every entry then does nothing. */
 export async function loadSettings(
 	args: readonly string[],
 ): Promise<Settings | null> {
-	const file = await loadConfigFile(FAULTS, args);
+	const file = await loadConfigFile(CONFIG_FAULTS, args);
 
 	return file === null
 		? null
@@ -129,9 +167,27 @@ export function thresholdsFor(
 	return row === null ? settings.fallback : row.limits;
 }
 
+/**
+ * The limits a resume is measured against: the first agent-type row that
+ * matches, then the first model row, then the section's own numbers. Null says
+ * the row that matched carries none, which is a row written to leave what it
+ * matches unguarded.
+ */
+export function guardLimitsFor(
+	tables: GuardTables,
+	type: string,
+	model: string,
+): GuardLimits | null {
+	// A row that matched and carries no limits switches the guard off for what
+	// it matches, so its null is the answer rather than a reason to look on.
+	const row = rowFor(tables.agents, type) ?? rowFor(tables.models, model);
+
+	return row === null ? tables.fallback : row.limits;
+}
+
 function settingsIn(root: Section): Settings {
 	const fallback = thresholds(child(root, "default"));
-	const models = modelRows(root);
+	const models = rows(root, "models", thresholds);
 	const messages = child(root, "messages");
 
 	return {
@@ -166,18 +222,20 @@ function watcher(root: Section): Watcher {
 /**
  * The judge invocation, whether the file wrote one or took the default, as the
  * program and its arguments: a command with no first word is nothing to spawn,
- * and the check that rules it out belongs where the value is read.
+ * and the check that rules it out belongs where the value is read. An empty
+ * word after that one is an argument rather than a mistake, since `--tools ""`
+ * is how the default switches the judge's own tools off.
  */
 function command(
 	section: Section,
 	model: string,
 ): readonly [string, ...string[]] {
-	const written = section.table["command"] ?? JUDGE;
+	const written = section.table["command"] ?? DEFAULT_COMMAND;
 	const argv: string[] = [];
 
 	if (Array.isArray(written)) {
 		for (const word of written) {
-			if (typeof word === "string" && word !== "") {
+			if (typeof word === "string") {
 				argv.push(fill(word, { model }));
 			}
 		}
@@ -185,60 +243,57 @@ function command(
 
 	const [program, ...args] = argv;
 
-	if (
-		!Array.isArray(written) ||
-		argv.length !== written.length ||
-		program === undefined
-	) {
+	if (!Array.isArray(written) || argv.length !== written.length || !program) {
 		fault(
 			section,
-			`has ${section.label} command that is not a non-empty array of non-empty strings`,
+			`has ${section.label} command that is not an array of strings beginning with a program to run`,
 		);
 	}
 
 	return [program, ...args];
 }
 
-function modelRows(root: Section): readonly ModelRow[] {
-	const models = root.table["models"];
+/**
+ * A table of keyed rows, in the order the file writes them, and no rows at all
+ * where the file leaves the table out. What a row carries beside its key is
+ * `limits`, which is the whole of the difference between the tables read this
+ * way.
+ */
+function rows<Limits>(
+	parent: Section,
+	key: string,
+	limits: (row: Section) => Limits | null,
+): readonly Row<Limits>[] {
+	const table = defaulted(parent, key);
 
-	if (models === undefined) {
-		return [];
-	}
+	return Object.entries(table.table).map(([pattern, row]) => {
+		const label = labelled(table.label, `'${pattern}'`);
 
-	if (!isTable(models)) {
-		fault(root, "has [models], which is not a table");
-	}
+		if (!isTable(row)) {
+			fault(table, `has ${label}, which is not a table`);
+		}
 
-	return Object.entries(models).map(([pattern, row]) =>
-		modelRow(root, pattern, row),
-	);
-}
+		const match = compile(pattern);
 
-function modelRow(root: Section, pattern: string, row: unknown): ModelRow {
-	const label = `[models.'${pattern}']`;
+		if (match === null) {
+			fault(table, `has ${label}, whose key is not a regular expression`);
+		}
 
-	if (!isTable(row)) {
-		fault(root, `has ${label}, which is not a table`);
-	}
-
-	const match = compile(pattern);
-
-	if (match === null) {
-		fault(root, `has ${label}, whose key is not a regular expression`);
-	}
-
-	return { match, limits: thresholds({ path: root.path, label, table: row }) };
+		return { match, limits: limits({ path: table.path, label, table: row }) };
+	});
 }
 
 function guard(root: Section): Guard {
 	const section = child(root, "resume-guard");
 	const messages = child(section, "messages");
+	// Read whether or not they will be consulted, so a row nobody is measured
+	// against is still a row whose mistakes the file's author hears about.
+	const agents = rows(section, "agents", guardLimits);
+	const models = rows(section, "models", guardLimits);
+	const fallback = guardLimits(section);
 
 	return {
-		limits: enabled(section)
-			? { large: number(section, "large"), cold: number(section, "cold") }
-			: null,
+		limits: fallback === null ? null : { agents, models, fallback },
 		denied: text(messages, "denied"),
 		used: text(messages, "used"),
 	};
@@ -248,4 +303,10 @@ function guard(root: Section): Guard {
 const thresholds = (section: Section): Thresholds | null =>
 	enabled(section)
 		? { notice: number(section, "notice"), urgent: number(section, "urgent") }
+		: null;
+
+/** The same for the guard: null is a table that guards nothing it governs. */
+const guardLimits = (section: Section): GuardLimits | null =>
+	enabled(section)
+		? { large: number(section, "large"), cold: number(section, "cold") }
 		: null;

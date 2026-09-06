@@ -21,7 +21,7 @@ import {
 	sessionId,
 	transcript,
 } from "./harness.mts";
-import { type Judge, judge } from "./judge-fixture.mts";
+import { type Judge, judge, type Shim } from "./judge-fixture.mts";
 
 /** The two price files `hooks.json` passes the watcher, as it passes them. */
 export const PRICING: readonly string[] = [
@@ -82,6 +82,13 @@ export interface WatcherConfig {
 	readonly under?: string;
 	/** In place of the judge fixture, for a case about a judge that is not there. */
 	readonly command?: readonly string[];
+	/** Words written after the fixture judge's own, as the file writes them. */
+	readonly args?: readonly string[];
+	/**
+	 * The fixture judge reached through a `.cmd` named by a bare word, which is
+	 * the spawn Windows retries through its command interpreter.
+	 */
+	readonly shim?: boolean;
 }
 
 export function watcherRuns(
@@ -90,12 +97,13 @@ export function watcherRuns(
 ): WatcherRuns {
 	const hook = hookRunner(runtime);
 	const seen = judge(runtime);
+	const shim = config.shim === true ? seen.shim() : null;
 	const written = configFile(
 		DEFAULTS,
 		MESSAGES,
 		GUARD,
 		GUARD_MESSAGES,
-		section(seen, config),
+		section(seen, config, shim),
 	);
 
 	return {
@@ -111,15 +119,27 @@ export function watcherRuns(
 					transcript_path: path,
 				},
 				written,
-				{ args: PRICING },
+				{
+					args: PRICING,
+					...(shim === null ? {} : { env: shim.env }),
+				},
 			),
 	};
 }
 
-const section = (seen: Judge, { command, under = "" }: WatcherConfig): string =>
-	(command === undefined
-		? seen.config
-		: `[watcher]\ncommand = ${JSON.stringify(command)}\n`) + under;
+const section = (
+	seen: Judge,
+	{ command, under = "", args = [] }: WatcherConfig,
+	shim: Shim | null,
+): string => {
+	const words = command ?? shim?.command;
+
+	return (
+		(words === undefined
+			? seen.configWith(...args)
+			: `[watcher]\ncommand = ${JSON.stringify(words)}\n`) + under
+	);
+};
 
 /**
  * A conversation of `turns` of the user's prompts, ending in an assistant turn

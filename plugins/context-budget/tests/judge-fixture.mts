@@ -9,7 +9,29 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { dataDir, fixtureDir, type Runtime } from "../../../tests/harness.mts";
+import { ANSWER_SCHEMA } from "../lib/answer.mts";
 import { LAUNCHER } from "./harness.mts";
+
+/**
+ * A judge reached the way Windows reaches a CLI an npm install put on PATH:
+ * by a bare word that resolves to a `.cmd`, which is the spawn the plugin
+ * retries through its command interpreter.
+ */
+export interface Shim {
+	/** `command` as the file writes it, naming the shim by that bare word. */
+	readonly command: readonly string[];
+	/** What the run's environment needs for the word to resolve to it. */
+	readonly env: Readonly<Record<string, string>>;
+}
+
+/**
+ * PATH as this platform spells it, since Windows stores it as `Path` and a
+ * second spelling beside it is a second variable, not a replacement.
+ */
+const PATH_KEY: string =
+	// biome-ignore lint/style/noProcessEnv: what the child inherits is what this process holds, and prefixing a directory onto it means reading it first.
+	Object.keys(process.env).find((name) => name.toUpperCase() === "PATH") ??
+	"PATH";
 
 /**
  * The judge as a case drives it. It writes down every prompt it is handed and
@@ -20,8 +42,12 @@ import { LAUNCHER } from "./harness.mts";
 export interface Judge {
 	/** The `[watcher]` section pointing the watcher at this judge. */
 	readonly config: string;
+	/** The same section, with `extra` words written after the command. */
+	configWith(...extra: readonly string[]): string;
 	/** The prompts it has been handed, oldest first. */
 	prompts(): readonly string[];
+	/** What it was last started with, and none for a judge never run. */
+	argv(): readonly string[];
 	/** The directory it was last started in, and empty for a judge never run. */
 	cwd(): string;
 	/** What it answers from here on. */
@@ -33,6 +59,12 @@ export interface Judge {
 	 * environment, since a real Stop arriving mid-call is not inside a judge.
 	 */
 	nests(entry: string, input: Record<string, unknown>, config: string): void;
+	/**
+	 * A `.cmd` beside the judge that runs it, the command naming that file by a
+	 * bare word, and the environment the word resolves under. Windows only:
+	 * elsewhere nothing looks for a `.cmd`, and the command runs as any other.
+	 */
+	shim(): Shim;
 	/**
 	 * A transcript rewritten from inside the call, before it answers, which is
 	 * how a case reaches a compaction that landed under a judge still running.
@@ -51,6 +83,7 @@ export function judge(runtime: Runtime): Judge {
 	const answer = file("answer.json");
 	const nested = file("nested.json");
 	const rewritten = file("rewritten.json");
+	const started = file("argv.json");
 
 	writeFileSync(script, JUDGE);
 	writeFileSync(answer, "{}");
@@ -68,11 +101,45 @@ export function judge(runtime: Runtime): Judge {
 		nested,
 		"--rewrites",
 		rewritten,
+		"--argv",
+		started,
+		// Where the default command carries it, and the same schema. It is the
+		// one argument a command line can destroy, so every case that consults
+		// this judge sends it and one of them reads it back.
+		"--json-schema",
+		ANSWER_SCHEMA,
 	];
 
+	const section = (extra: readonly string[]) =>
+		`[watcher]\ncommand = ${JSON.stringify([...argv, ...extra])}\n`;
+
 	return {
-		config: `[watcher]\ncommand = ${JSON.stringify(argv)}\n`,
+		config: section([]),
+		configWith: (...extra) => section(extra),
+		shim: () => {
+			// `%*` hands on the arguments as the interpreter parsed them, which
+			// is what a schema of braces and quotes has to survive.
+			writeFileSync(
+				file("judge.cmd"),
+				`@echo off\r\n"${process.execPath}" "${script}" %*\r\n`,
+			);
+
+			return {
+				command: ["judge", ...argv.slice(2)],
+				env: {
+					// biome-ignore lint/style/noProcessEnv: the shim is found by PATH, so the run needs the one this process has with the fixture directory in front of it.
+					[PATH_KEY]: `${dir};${process.env[PATH_KEY] ?? ""}`,
+				},
+			};
+		},
 		prompts: () => lines(log).map((line) => String(JSON.parse(line))),
+		argv: () => {
+			const written = lines(started)[0];
+
+			return written === undefined
+				? []
+				: (JSON.parse(written) as readonly string[]);
+		},
 		cwd: () => lines(where)[0] ?? "",
 		answers: (written) => {
 			writeFileSync(answer, JSON.stringify(written));
@@ -136,6 +203,7 @@ process.stdin.on("data", (chunk) => {
 process.stdin.on("end", () => {
 	appendFileSync(value("--log"), JSON.stringify(prompt) + "\\n");
 	writeFileSync(value("--cwd"), process.cwd());
+	writeFileSync(value("--argv"), JSON.stringify(argv));
 
 	const rewrites = read(value("--rewrites"));
 

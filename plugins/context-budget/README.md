@@ -67,8 +67,10 @@ your recent prompts, the agent's replies with every tool result stripped out,
 the names of the tools it called, and the token figures below. It goes to the
 model named by `[watcher] model`, `haiku`, on your own subscription and out of
 that subscription's allowance; the judge paces itself, so a session sees a
-handful of calls. It starts in the plugin's data directory rather than in your
-project, so no CLAUDE.md, hook or MCP server of that project loads inside it.
+handful of calls. It runs with the built-in tools switched off, so it can
+answer and nothing else. It starts in the plugin's data directory rather than
+in your project, so no CLAUDE.md, hook or MCP server of that project loads
+inside it.
 The ones you have installed at the user level do load, which is what running on
 your subscription rather than on an API key costs. `enabled = false` under
 `[watcher]` stops it, and nothing is sent. Nothing else here leaves your
@@ -149,38 +151,64 @@ that has no default. A missing key is a config error naming it.
 | `[models.'<regex>'] urgent` | tokens | required | the row's second threshold |
 | `[messages] notice` | string | required | injected on crossing `notice` |
 | `[messages] urgent` | string | required | injected on crossing `urgent` |
-| `[resume-guard] enabled` | bool | `true` | `false` allows every resume, reads no transcript, and waives the two limits |
-| `[resume-guard] large` | tokens | required | the context above which a resume is denied whatever the cache is doing |
-| `[resume-guard] cold` | tokens | required | the context above which a resume is denied once the subagent's prompt cache has expired |
+| `[resume-guard] enabled` | bool | `true` | `false` switches the guard off, the rows below it included: every resume is allowed and no transcript is read |
+| `[resume-guard] large` | tokens | required | the context above which a resume is denied however warm the cache, for every resume no row governs |
+| `[resume-guard] cold` | tokens | required | the same once the subagent's prompt cache has expired |
+| `[resume-guard.agents.'<regex>'] enabled` | bool | `true` | `false` allows every resume of an agent type the row matches, and waives its limits |
+| `[resume-guard.agents.'<regex>'] large` | tokens | required | the row's `large`, for a resume of an agent type it matches |
+| `[resume-guard.agents.'<regex>'] cold` | tokens | required | the row's `cold`, for the same |
+| `[resume-guard.models.'<regex>'] enabled` | bool | `true` | `false` allows every resume of a subagent whose newest turn names a model the row matches |
+| `[resume-guard.models.'<regex>'] large` | tokens | required | the row's `large`, for a resume on a model it matches |
+| `[resume-guard.models.'<regex>'] cold` | tokens | required | the row's `cold`, for the same |
 | `[resume-guard.messages] denied` | string | required | the deny reason on a first attempt |
 | `[resume-guard.messages] used` | string | required | the deny reason when the user's latest answer has already been spent |
 | `[watcher] enabled` | bool | `true` | `false` stops the watcher: no model call, and nothing done on Stop past reading this file |
 | `[watcher] model` | string | `haiku` | the model the judge runs on, substituted into `command` wherever it writes `{model}` |
-| `[watcher] command` | list | the `claude -p` line the example spells out | the judge invocation, as an argument list rather than a shell line; replace it whole to run the judge on something else |
+| `[watcher] command` | list | the `claude -p` line the example spells out, `--tools ""` and `--json-schema` included | the judge invocation, as an argument list rather than a shell line; replace it whole to run the judge on something else, schema and all |
 | `[watcher] tail_turns` | count | `16` | how many recent turns the judge is shown |
 | `[watcher] tail_tokens` | count | `20000` | how much of those turns it is shown, cut from the oldest end |
 
-`[models]` may be left out altogether, and so may `[watcher]`: each of its keys
-has the default above, so a file written before the watcher existed keeps
-working and gains it. The other four tables are always read, including
-`[resume-guard.messages]` when the guard is off.
+`[models]`, the guard's two tables of rows and `[watcher]` may each be left out
+altogether: every key under `[watcher]` has the default above, so a file
+written before the watcher existed keeps working and gains it, and a file
+written before the guard's rows existed keeps the numbers it already had. The
+other four tables are always read, including `[resume-guard.messages]` when the
+guard is off.
 
-The judge is handed its prompt on stdin and read for one JSON object on stdout,
-either bare or in the `result` field of a `claude --output-format json`
-envelope, which is what a `command` of your own has to write. An answer that
-will not parse is silence: the watcher advises, so an answer nobody can read is
-worth what no answer is worth. A command whose first word nothing can start is
-the one failure you hear about, once, on stderr.
+The judge is handed its prompt on stdin. The default command asks for the
+answer under a JSON Schema of the two shapes it may take, so the CLI samples
+the model against it, validates what comes back and returns the object in the
+envelope's `structured_output`, which is where the answer is read from. A
+`command` of your own replaces that list whole and is handed no schema, so its
+answer is read out of the text instead: one JSON object on stdout, either bare
+or in the `result` field of a `claude --output-format json` envelope. An answer
+that will not parse is silence: the watcher advises, so an answer nobody can
+read is worth what no answer is worth. A command whose first word nothing can
+start is the one failure you hear about, once, on stderr.
 
 Row keys are regular expressions in single quotes, matched against the model
 id as the transcript records it: `claude-opus-5`, `claude-fable-5-1`,
 `claude-haiku-4-5-20251001`. Rows are tried in the order they are written and
 the first match wins, so a general row above a specific one hides it.
 
+The guard's two tables are read the same way, one after the other:
+`[resume-guard.agents]` first, keyed on the resumed agent's type with its
+plugin prefix in place, so `'flag-reviewer'` matches `den:flag-reviewer` and a
+subagent whose metadata records no type is `subagent`; then
+`[resume-guard.models]`, keyed on the model that subagent's newest turn names;
+then the `[resume-guard]` numbers. The type comes first because it is the more
+specific fact about a resume. The first row that matches is the answer, a row
+switched off included: that row allows the resume rather than sending the
+lookup on to the next table. `enabled = false` on the section itself switches
+all of it off, rows and all; for the rows alone, give the section limits no
+resume of yours reaches.
+
 All four messages are read by the agent, not by you, so they are written as
 instructions. `[messages]` substitutes `{model}`, `{tokens}` and
 `{threshold}`. `[resume-guard.messages]` substitutes `{agent}`, `{type}`,
-`{tokens}`, `{reasons}`, `{large}` and `{cold}`.
+`{model}`, `{tokens}`, `{reasons}`, `{large}` and `{cold}`, the last two from
+whichever row or section governed that resume. `{model}` reads "no recorded
+model" where the subagent's newest turn names none.
 
 One thing the `cut-point` skill needs is not in that file and is not
 configuration: what a model charges for a token read from the prompt cache,
@@ -287,10 +315,14 @@ plugin. All the plugin does is try to get a recommendation made first.
 
 The resume guard only applies to a subagent of the current session that has
 already spoken, found by its transcript under the session transcript's
-`subagents/` directory. A denied resume is approved by your answer and nothing
-else: the guard reads the session transcript for your newest AskUserQuestion
-answer and allows the retry only when the option you picked was labeled
-"Resume". One answer approves one resume; a second attempt on the same answer
+`subagents/` directory. The limits it holds that resume to come from the resume
+itself: the first `[resume-guard.agents]` row matching the agent's type, then
+the first `[resume-guard.models]` row matching the model its newest turn names,
+then the `[resume-guard]` numbers. A subagent whose newest turn names no model
+skips the model rows whole rather than falling into a key like `'.*'` written
+there. A denied resume is approved by your answer and nothing else: the guard
+reads the session transcript for your newest AskUserQuestion answer and allows
+the retry only when the option you picked was labeled "Resume". One answer approves one resume; a second attempt on the same answer
 is denied with the `used` message. A `denied` message rewritten to stop asking
 for a "Resume" option breaks the retry, since that label is what the guard
 looks for.
@@ -306,7 +338,9 @@ tool call.
 
 `internal error` is the third of them, and usually it is not yours to fix: the
 run stopped on something the plugin does not account for, and the line ends in
-where to report it. One of them is yours: a judge `command` the watcher cannot
+where to report it. It names only what stopped, one of the three, because that
+is all an error of one hook's own costs: the other two go on measuring and
+guarding through it. One of them is yours: a judge `command` the watcher cannot
 start is listed under the same class, and that line ends in the key to correct.
 
 You hear that line again on every tenth prompt the fault has stood through,
