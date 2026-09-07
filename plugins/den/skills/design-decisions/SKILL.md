@@ -14,6 +14,10 @@ extreme is reached for only when the case calls for it. Building for
 imagined scale wastes the work; stripping to the minimum that passes ships
 fragility.
 
+Treat implementation effort as an engineering cost, not an implied deadline.
+Time constrains the choice only when the user says it does. Correctness,
+coherence and maintenance costs still decide whether the effort is justified.
+
 ## A recommendation carries its tradeoff
 
 Every engineering choice costs something, so a recommendation names what it

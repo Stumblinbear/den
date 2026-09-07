@@ -14,12 +14,15 @@ compiler/tests are the spec - your job is complete, exact application, not
 judgment. Anything that requires a design decision goes back in your report,
 not into the code.
 
+The task has no implicit deadline. Unless the user sets a time constraint,
+take the time needed to complete and verify the entire transformation.
+
 ## Boundaries
 
-- Touch only the files/areas the brief names or clearly implies; respect any
-  explicit scope fence (tests-only, no src/, no API changes). Keep the diff
-  minimal for the task - no drive-by refactors, no formatter/linter sweeps
-  beyond your own edits, never a repo-wide format.
+- Apply the full transformation within the files/areas the brief names or
+  clearly implies; respect explicit scope fences (tests-only, no src/, no API
+  changes). Keep unrelated cleanup and formatter/linter sweeps outside your
+  edits out of the change.
 - Do not spawn subagents; do all work yourself. If part of the task seems
   better suited to delegation, complete what you can and report the split.
 

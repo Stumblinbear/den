@@ -18,11 +18,13 @@ function reminder(pending: readonly Flag[]): string {
 
 	return [
 		`${pending.length} review agent(s) completed${named ? ` (${named})` : ""}.`,
-		"Triage their findings under the coordination skill's review rules: every",
-		"finding reaches the user with your fix, defer or skip call and its",
+		"Triage their findings and unresolved questions under the coordination",
+		"skill's review rules: every finding reaches the user with your fix,",
+		"defer or skip call and its",
 		"reasoning, explained for someone who has not read the code; what is",
 		"unquestionably wrong goes back to its agent as the defect, not the",
-		"reviewer's repair.",
+		"reviewer's repair. Keep unanswered questions and NEEDS-DECISION verdicts",
+		"unresolved.",
 	].join(" ");
 }
 

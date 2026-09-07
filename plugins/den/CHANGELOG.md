@@ -9,6 +9,15 @@ minor bump may change behavior.
 
 ### Added
 
+- A `direction-docs` skill for creating and maintaining the durable direction
+  record. Discovery uses it to record answers; scoping uses it to persist agreed
+  changes to broader direction. Ordinary reads do not require this skill.
+
+- A `project-direction` skill that establishes project goals, priorities,
+  constraints and intended development with the user before task scoping,
+  then records the understanding and its sources durably. Discovery has no
+  default time or question budget; a user-ended pass preserves every unresolved
+  question, its context and dependencies, and what would help resolve it.
 - A `design-exploration` workflow under `workflows/`, run by the new
   `design-exploration` skill through the Workflow tool: three
   `design-explorer` agents (opus) each propose a decomposition for one change
@@ -28,6 +37,36 @@ minor bump may change behavior.
 
 ### Changed
 
+- Direction documentation organizes the record under `docs/`, with a short entry point,
+  substantive topic documents and links between related decisions. Reasons,
+  sources and unresolved questions stay with their authoritative topic.
+- Coordination locates project direction before task scoping and invokes
+  discovery when that direction is missing, conflicting or superseded. Scoping
+  derives its design basis from the record; its question limit does not apply
+  to project discovery.
+- Implementation has no implicit deadline. Implementers and the fixer assess
+  coherent solutions against requirements and engineering costs instead of
+  minimizing the diff, including necessary adjacent refactoring within the
+  authorized task. Changes to accepted designs or explicit scope fences remain
+  user decisions. Coordination assesses challenges to a brief separately from
+  unapproved departures already implemented.
+- Scoping now carries a design basis of project purpose, constraints, planned
+  developments, sources and assumptions through exploration, implementation
+  and review. Explorers explain which requirements consequential choices serve
+  and what they cost; the judge can return missing input or no suitable
+  proposal. Implementers use the accepted rationale for choices left open and
+  report contradictions before dependent work. Future plans do not expand
+  authorized scope.
+- Quality and decisions review assess choices against the design basis,
+  keeping missing context distinct from demonstrated problems. The synthesizer
+  preserves unresolved questions and disagreements; closure can return
+  NEEDS-DECISION when an answer is necessary to assess a fix. The review relay
+  reminds the coordinator to keep those items unresolved.
+- The design-exploration workflow requires `basis` text alongside `ask`;
+  flag-review accepts optional `basis` while retaining scope-only calls. Both
+  preserve agent questions and reject missing reader or explorer output as an
+  incomplete run. Tests exercise the shipped workflows with a simulated host;
+  they do not evaluate model judgment.
 - The `flag-review` skill runs the flag-review workflow instead of launching
   one reviewer, and the review-triage relay records a finished
   `review-synthesizer` or `closure-verifier`.

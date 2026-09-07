@@ -8,16 +8,23 @@ allowed-tools: Workflow
 
 # Flag review
 
-Run the workflow with the scope as a git diff range and nothing else, since
-a reader given a description reads for it:
+Keep the public scope argument a Git diff range. Pass the relevant design basis
+from scoping or the task brief separately, with its sources and the distinction
+between confirmed requirements and assumptions intact. Readers share those
+requirements, not the coordinator's suspected findings or preferred verdict:
 
 ```
 Workflow({
   scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/flag-review.js",
-  args: { scope },
+  args: { scope, basis },
 })
 ```
 
 where `scope` is `$ARGUMENTS`, or `the working tree against HEAD` when that
-is empty. It returns the report; triage it under the coordination skill's
-review rules.
+is empty. `basis` is optional nonempty text of at most 6000 characters; omit it
+for standalone reviews with no supplied context. Readers may use relevant
+repository documents, and missing intent limits conclusions about project fit.
+
+It returns findings and unresolved questions as separate parts of one report;
+triage both under coordination's review rules. A reader failure makes the
+review incomplete rather than a report with fewer readers and no findings.

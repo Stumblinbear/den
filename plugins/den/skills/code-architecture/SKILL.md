@@ -53,10 +53,11 @@ have fewer methods, simpler parameters, and more hidden inside.
 - **A library's callers are outside the tree.** An exported item only the
   tests exercise is the product, not dead weight; its interface is judged on
   depth and on the obligation it meets, never on in-tree caller count.
-- **One implementation is a hypothetical variation point; two is a real one.**
-  Add a trait or injected dependency only when something actually varies
-  across it: production plus a test double counts, if a test uses the double.
-  A trait with one impl is indirection.
+- **A boundary earns its cost through an obligation.** Existing variation is
+  evidence for a trait or injected dependency; a confirmed requirement in the
+  design basis can justify a boundary before a second implementation exists.
+  Name the obligation, what the boundary costs now, and whether a simpler
+  arrangement would satisfy it. An imagined future caller alone is not a reason.
 - **The interface is the test surface.** Callers and tests cross the same
   interface. Wanting to test past it means the module is the wrong shape.
 - **Deepening replaces tests; it doesn't layer them.** When shallow pieces

@@ -7,25 +7,40 @@ on its own.
 ## What it provides
 
 Skills, applied by Claude when their trigger fires. The ones a person can
-also run as `/den:<name>` are scoping, writing-for-agents, writing-for-humans
-and writing-a-skill; the rest are hidden from the `/` menu:
+also run as `/den:<name>` are project-direction, direction-docs, scoping, writing-for-agents,
+writing-for-humans and writing-a-skill; the rest are hidden from the `/` menu:
 
 - `coordination`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
   Invoke it yourself; it is never loaded automatically, and it never reaches a
   subagent.
-- `scoping`: settles the decisions an ask leaves open before a brief is
-  written. One question at a time, each with a recommended answer and what it
-  costs; up to five, or as many as it takes when you ask for the pass.
+- `project-direction`: establishes or updates project goals, priorities,
+  constraints and intended development with you before task scoping. Discovery
+  has no default time or question budget. It records the understanding durably
+  and, if you end the pass early, preserves unresolved questions for a future
+  session.
+- `direction-docs`: creates and maintains the durable direction record from
+  established goals and agreed changes. It owns document structure, links,
+  sources and uncertainty; discovery uses it while recording answers, and
+  scoping uses it when a clarification changes project direction.
+- `scoping`: connects an ask to project goals, constraints and planned
+  developments before a brief is written, distinguishing confirmed direction
+  from assumptions. It reads available context first, then asks about
+  consequential choices: up to five questions, or as many as it takes when
+  you ask for the pass. That limit applies only to task scoping; project
+  discovery is unbounded. Unanswered decisions remain open.
 - `design-exploration`: runs the design-exploration workflow before a brief is
   written for a change that adds a module, a persisted format, a public
   surface or a new mechanism: three explorers propose decompositions against
-  the code, a judge ranks them, and you choose. The script ships under
-  `workflows/`.
+  the code and the task's design basis. A judge compares suitable proposals,
+  or reports missing input or no suitable proposal, and you choose. The script
+  ships under `workflows/`.
 - `flag-review`: runs the flag-review workflow on a pending change: a bug
   hunter, a quality reviewer and a decisions reviewer each read it blind to
-  the others, and a synthesizer writes one ranked report. The argument is a
-  git diff range and nothing else. Omit it for the working tree against HEAD.
+  the others, and a synthesizer writes one ranked report with unresolved
+  questions kept separate. The argument is a git diff range and nothing else.
+  Omit it for the working tree against HEAD. The coordinator supplies the
+  available design basis separately to all readers.
 - `comment-review`: the same for the comment-reviewer.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
@@ -44,17 +59,24 @@ and writing-a-skill; the rest are hidden from the `/` menu:
 Agents, launched through the Agent tool as `den:<name>`:
 
 - `bug-hunter` (fable), `quality-reviewer` and `decisions-reviewer` (opus):
-  the flag-review workflow's readers, each given the scope alone. The hunter
-  returns defects with a discriminating check; the quality reviewer what a
-  senior engineer would question; the decisions reviewer each decision the
-  change embodies with the plainer route and its cost. None edits.
-- `review-synthesizer` (opus): one ranked report from the readers' findings.
+  the flag-review workflow's readers, each given the scope and available
+  design basis. The hunter returns defects with a discriminating check;
+  the quality reviewer examines engineering costs against requirements; the
+  decisions reviewer checks whether choices serve project goals and compares
+  alternatives that meet the same requirements. None edits.
+- `review-synthesizer` (opus): one ranked report from the readers' findings,
+  preserving unresolved questions, assumptions and disagreements.
 - `closure-verifier` (opus): verdicts a review's findings against the fixed
-  tree, CLOSED or REOPENED, and reports what the fixes opened.
+  tree, CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION
+  keeps an item unresolved when closure depends on a product decision.
 - `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
 - `implementer-opus` (opus): the default implementer. Executes a pinned brief,
-  declares deviations, stops on broken assumptions.
+  uses the design basis to make choices left open, declares those choices and
+  deviations, and stops dependent work on broken assumptions. Implementation
+  has no implicit deadline; necessary adjacent refactoring is assessed against
+  the task's requirements, with changes to accepted designs or explicit scope
+  fences brought back to you before implementation.
 - `implementer-haiku` (haiku): mechanical work where the compiler is the spec.
 - `implementer-fable` (fable): derivation-dense work where a wrong result
   still passes the tests.
@@ -64,10 +86,11 @@ Agents, launched through the Agent tool as `den:<name>`:
   approach is chosen. Read-only.
 - `surveyor` (sonnet) and `file-peek` (haiku): read-only evidence sweeps, and
   targeted extraction from files too large to read whole.
-- `design-explorer` (opus): one decomposition for a change, from the angle it
-  is given. Read-only.
-- `design-judge` (opus): ranks the explorers' decompositions on the
-  code-architecture tests; the choice stays yours.
+- `design-explorer` (opus): one decomposition serving the task's purpose and
+  project direction, from the angle it is given, with consequential choices
+  tied to requirements and their costs. Read-only.
+- `design-judge` (opus): checks project fit before comparing structural
+  quality, current cost and cost of change; the choice stays yours.
 - `localizer` and `localization-reviewer` (opus): natural target-language
   localization, and its review.
 
@@ -76,7 +99,7 @@ Hooks, registered while the plugin is enabled:
 - Review triage: a finished `den:review-synthesizer` or
   `den:closure-verifier` is recorded, and the next
   prompt you submit carries a reminder to relay every finding with a
-  fix/defer/skip recommendation.
+  fix/defer/skip recommendation and keep unanswered questions unresolved.
 - Implementer triage: a finished implementer or fixer is recorded, and the next
   prompt you submit carries a reminder to put every choice it declared,
   question it asked, deviation from the brief it made and item it left undone
@@ -162,6 +185,17 @@ Agent types are matched by bare name, so an agent of your own named
 The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:coordination`. The skills and agents do nothing until you invoke or
 launch them.
+
+The design basis uses available goals, roadmap or design documents and your
+answers. Future plans can constrain today's choices without authorizing extra
+implementation. `project-direction` establishes or updates that context when
+it is missing, conflicting or superseded. It uses `direction-docs` to record
+that understanding. `direction-docs` maintains the direction documents,
+with `docs/project-direction.md` as a short entry point and substantial
+topics under `docs/direction/`. Described topic links and relevant cross-links
+let later tasks locate the direction they need. A short pointer from the project's
+agent instructions or documentation entry point makes that entry discoverable.
+It keeps confirmed direction, interpretations and unresolved questions distinguishable.
 
 ## Troubleshooting
 
