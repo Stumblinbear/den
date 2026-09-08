@@ -18,6 +18,21 @@ Treat implementation effort as an engineering cost, not an implied deadline.
 Time constrains the choice only when the user says it does. Correctness,
 coherence and maintenance costs still decide whether the effort is justified.
 
+## Check the constraint behind the choice
+
+When a change needs a workaround, trace the constraint that makes it necessary
+back to the design basis. An implementation choice can be reconsidered; a user
+requirement or external obligation must still be met. Compare accommodating the
+existing arrangement with correcting that arrangement before choosing the local
+patch. Reuse is valuable when the reused behavior serves the intended design.
+
+Development shortcuts need an explicit purpose and boundary. Ease of getting a
+prototype running does not settle the product's behavior. When preserving or
+extending a shortcut would decide behavior outside the agreed basis, bring that
+choice and its tradeoffs to the user through scoping. Implementation friction
+can expose a missing decision after work has started. Continue routine fixes
+within the agreed contract; reopen only the consequential choice it leaves open.
+
 ## A recommendation carries its tradeoff
 
 Every engineering choice costs something, so a recommendation names what it

@@ -1,7 +1,7 @@
 ---
 name: scoping
 description: Establishes the task's design basis and settles consequential decisions before a brief is written, one question at a time, with existing context read first and confirmed direction kept distinct from assumptions.
-when_to_use: ALWAYS invoke this skill before writing a brief whose ask leaves a decision the repository does not settle, and when the user says "scope this", "grill me", or "interview me". Do not write the brief or put the questions directly; use this skill first.
+when_to_use: ALWAYS invoke this skill before writing a brief with an unresolved consequential decision, when implementation exposes a conflict with the design basis, and when the user says "scope this", "grill me", or "interview me". Do not settle the missing decision in a brief or workaround; use this skill first.
 ---
 
 # Scoping
@@ -31,25 +31,32 @@ capability can constrain a boundary without authorizing its implementation.
 
 ## When the pass runs
 
-The pass runs on work about to be briefed. When the ask leaves a decision
-whose readings would produce materially different work and the repository
-does not settle it, open the pass yourself and bound it to five questions --
+The pass runs before a brief and reopens when implementation exposes a conflict
+with its design basis. When a decision would produce materially different work
+and the available direction does not settle it, open the pass yourself and bound it to five questions --
 the user came with work to do, not an interview. When existing context settles
 the consequential choices, carry the basis straight to the brief without new
 questions. Diff size does not settle whether a choice is expensive to reverse.
 When the user asks for the pass, it is unbounded and no ask is too small for it.
 
+Existing code, a passing regression test, or a previously accepted local fix
+establishes behavior, not agreement with the assumption behind it. When new
+evidence calls that assumption into question, check its authority and reopen
+the affected decision while independent work continues.
+
 ## Decisions only
 
 What is asked is a decision, and only one that is the user's to make. A fact
 the code, the docs or the git history holds, or a convention the codebase
-already settles, is looked up rather than asked: a turn spent confirming what
+already establishes, is looked up rather than asked: a turn spent confirming what
 you could have read is a turn not spent on a decision. Placement, module
 boundaries, interface depth, type shape and naming left open after design
 exploration belong to the implementer, so they go in the brief as intent rather
 than to the user as a question. One of them that is itself a requirement (a
 user-facing name, a CLI flag, a config key) is a decision like any other, and is
-asked.
+asked. Classify a choice by its consequences: an internal-looking interface or
+fallback that changes behavior beyond the agreed contract is still a design
+decision, even when the code change is small.
 
 ## One question at a time
 
