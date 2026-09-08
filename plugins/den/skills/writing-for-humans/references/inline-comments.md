@@ -35,9 +35,14 @@ qualifies as readily as a *why*.
 3. **Ordering and causality.** Why this must happen before that: a barrier, a
    batching or correlation constraint, a state transition that must not be
    reordered. A memory barrier earns a line every time for exactly this reason.
-4. **The code-janitor guard.** Anything that might tempt a future reader into
-   an incorrect "cleanup" gets a line saying why it is done this way. This is
-   the one kind that licenses naming an edit nobody has made yet.
+4. **The code-janitor guard.** Where a competent reader would plausibly
+   "clean up" the code wrongly, and their own first run of the result would
+   not show them the breakage (it is silent, intermittent, or needs a
+   condition they will not exercise), a line saying why it is done this way.
+   This is the one kind that licenses naming an edit nobody has made yet,
+   and both halves bound it: an edit no competent reader would make is not a
+   temptation, and a mistake the first run shows needs no guard, because the
+   run is the guard.
 5. **A reason that lives outside the code.** Binary size, a hardware quirk, a
    spec clause, a benchmark result, the upstream bug report that forced the
    shape. No name and no refactor can carry these; without the line the reason
@@ -115,9 +120,10 @@ as in a comment inside a body. "A naive version would deadlock here" defends a
 change instead of stating what is, and it goes stale against a body it never
 described.
 
-Two things survive that rule. The janitor guard is kind 4 above: when the wrong
-edit is one a future reader is likely to make, name it and its consequence,
-because that reader is the one at risk. And a non-obvious rule may state the
+Two things survive that rule. The janitor guard is kind 4 above, on the terms
+given there: a plausible wrong edit whose breakage the editor's first run
+would not show, named with its consequence because that reader is the one at
+risk. And a non-obvious rule may state the
 failure it prevents, in one present-tense sentence, as the reason the rule
 exists. A road not taken while writing is neither of those; cut it.
 

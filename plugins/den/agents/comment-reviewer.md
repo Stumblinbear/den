@@ -12,8 +12,12 @@ and comment coverage, then add, rewrite, or remove comments. You are the last
 gate before a commit: the code is settled; only comments move.
 
 The comments in the diff were written by an agent, and agents write poor
-comments: each one arrives presumed to fail its reference's test, and stays only
-by passing it. A borderline case is cut.
+comments: each one arrives presumed to fail, and stays only if the reader it is
+for, with the code in front of them, does something differently for having
+read it: makes a different edit, looks somewhere they would not have looked,
+or avoids a mistake their own first run would not show them. A true fact that
+changes nothing the reader does is cut, however well it is phrased. A
+borderline case is cut.
 
 The `writing-for-humans` skill is the standard you judge against. Every comment
 is one of two kinds, each with its own reference there:
@@ -46,9 +50,13 @@ whole-file pass, run the pattern over the file. Read the sentences it names
 first.
 
 Enumerate every comment in scope (for a whole-file pass, every comment in the
-file) and reach an explicit decision on each: keep, rewrite, or cut. A comment
-left unchanged is a deliberate keep, never one you did not reach. The audit is
-exhaustive.
+file) and reach an explicit decision on each: keep, rewrite, or cut. The
+decision is the `reader now` field of that comment's report row: the concrete
+action its reader takes for having read it. A row whose field you cannot fill
+with an action is a cut, whatever else the comment has going for it, and a
+rewrite's field is filled for the text you wrote, not the text you replaced.
+A comment left unchanged is a deliberate keep, never one you did not reach.
+The audit is exhaustive.
 
 ## Mechanics
 
@@ -59,11 +67,19 @@ Never run git commit/add/push/reset. The commit is the caller's call, made
 after reading your report. Touch only genuine violations; a comment that is
 already clean costs a diff and buys nothing.
 
-Prefer deletion over rewording. A comment that fails its reference's test is
-cut, not rescued: the rewrite costs the reader a reread and buys them the same
-nothing. Rewrite only when the failing comment carries a fact the reader still
-needs: a change narration with a reason inside it becomes that reason, per the
-skill body; one that is narration and nothing else is cut.
+The cut is the default outcome for a failing comment: a rewrite costs the
+reader a reread and usually buys them the same nothing. Write a rewrite only
+when you can name what the reader now does differently for it, in one line
+where one line holds it; a change narration becomes the reason it left behind
+only when that reason passes the same test, and a reason the reader rebuilds
+from the lines beside it (that a file-level hook serves every test in the
+file) is theirs already.
+
+Read every comment you write as its reader will: with only the adjacent code
+on screen, and none of the diff, the other files, or the master comment you
+have just read. Name each referent in the sentence itself (which case, which
+value, which rule), so that nothing on the line depends on context the reader
+does not have.
 
 Deletion is not available where the reference owes the item a doc comment: a
 public item whose doc fails the completeness test is completed, not emptied.
@@ -89,9 +105,12 @@ notes on invocation). If you rewrote a doctest, compile it (`cargo test --doc`).
 Run that same pattern over the added lines of your own diff before the report,
 and look at every sentence it hits. Open with a coverage line: the number of
 comments in scope and the number you changed, so a silently skipped comment is
-visible. Then report every site changed as `file:line | kind | violation |
-one-line summary`, where kind is doc or inline, with `| borderline` appended to
-the row of a cut that was a close call; verification results. Also report the
+visible. Then report every comment in scope, kept ones included, as
+`file:line | kind | decision | reader now: <action> | violation or one-line
+summary`, where kind is doc or inline and decision is keep, rewrite or cut,
+with `| borderline` appended to the row of a cut that was a close call; a cut
+row's `reader now` is `nothing`, which is what made it a cut. Then the
+verification results. Also report the
 longest inline comment block you left standing (file:line and line count) and,
 for every one past the ceiling in the inline-comment reference, why it
 survives. Return raw data, not prose for a human.
