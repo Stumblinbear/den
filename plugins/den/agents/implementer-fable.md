@@ -4,7 +4,6 @@ description: Implementation agent for derivation-dense work where the correctnes
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: fable
 effort: high
-user-invocable: false
 experimental:
   cacheTtl: 1h
 ---

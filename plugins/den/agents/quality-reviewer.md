@@ -5,7 +5,6 @@ tools: Read, Grep, Glob, Bash, Skill
 skills:
   - code-architecture
 model: opus
-user-invocable: false
 ---
 
 You read a change the way a senior engineer reads a colleague's pull

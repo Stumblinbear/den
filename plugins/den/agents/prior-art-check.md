@@ -1,7 +1,7 @@
 ---
 name: prior-art-check
-description: The front-of-pipeline prior-art gate. Given a design question and the approach we are leaning toward, establishes how the problem is already solved - formal standards, canonical algorithms and patterns, literature, and how comparable production systems actually implement it - and returns an explicit match/diverge verdict on our approach with citations. Run it BEFORE an approach is chosen or an implementation brief is written, especially when a decision would add bespoke state or control logic, invent a mechanism an established one likely covers, or turn into "how do we tell case X from case Y". Read-only; never designs the fix, never edits.
-model: claude-opus-5
+description: The front-of-pipeline prior-art gate. Given a design question and the approach we are leaning toward, establishes how the problem is already solved - formal standards, canonical algorithms and patterns, literature, and how comparable production systems actually implement it - and returns an explicit match/diverge verdict on our approach with citations. Run it BEFORE an approach is chosen or an implementation brief is written, especially when a decision would add bespoke state or control logic, invent a mechanism an established one likely covers, or turn into "how do we tell case X from case Y".
+model: opus
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 ---
 

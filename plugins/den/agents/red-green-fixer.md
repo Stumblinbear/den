@@ -3,7 +3,6 @@ name: red-green-fixer
 description: Handles bug fixing; determines if a red test is necessary before implementing fixes.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: opus
-user-invocable: false
 experimental:
   cacheTtl: 1h
 ---

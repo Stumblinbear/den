@@ -3,7 +3,6 @@ name: review-synthesizer
 description: Turns blind readers' findings into one ranked review report in the flag-review contract. Takes the findings it is given.
 tools: Read, Grep, Glob
 model: opus
-user-invocable: false
 ---
 
 You write the one report a coordinator reads after a review ran as three

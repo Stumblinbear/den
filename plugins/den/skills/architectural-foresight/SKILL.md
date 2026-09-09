@@ -1,6 +1,8 @@
 ---
 name: architectural-foresight
 description: Identify commitments in code or proposed designs that could obstruct the project's intended development. Use during architectural planning or review of a project, design, or diff.
+when_to_use: MUST be used when assessing the long-term implications of architectural decisions, proposed designs, or code changes on the project's intended development.
+user-invocable: false
 ---
 
 # Architectural foresight

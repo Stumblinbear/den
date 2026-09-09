@@ -5,7 +5,6 @@ tools: Read, Grep, Glob, Skill
 skills:
   - code-architecture
 model: opus
-user-invocable: false
 ---
 
 Assess whether the proposals serve the supplied design basis. First identify

@@ -2,7 +2,6 @@
 name: project-direction
 description: Establishes and durably records project goals, priorities, constraints and intended development with the user, preserving the reasons behind them and questions still unresolved.
 when_to_use: ALWAYS invoke this skill when the user asks to establish or revisit project direction, and before task scoping when relevant project direction is missing, conflicting or superseded. Do not infer project commitments or conduct the discovery directly; use this skill first.
-allowed-tools: Read, Grep, Glob, Edit, Write, AskUserQuestion
 ---
 
 # Project direction

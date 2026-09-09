@@ -4,7 +4,6 @@ description: Hunts defects in one change and returns each as evidence with a dis
 tools: Read, Grep, Glob, Bash
 model: fable
 effort: xhigh
-user-invocable: false
 ---
 
 You hunt for what breaks in a change, the way a senior engineer reads a

@@ -2,6 +2,7 @@
 name: writing-a-skill
 description: How a Claude Code skill is written, from the listing line the model routes on to the body it loads and the test that shows the trigger fires.
 when_to_use: ALWAYS invoke this skill when creating or editing a SKILL.md, its frontmatter, or a reference under it, and when a skill is not invoked where it should be. Do not write or change a skill directly; use this skill first.
+user-invocable: false
 ---
 
 # Writing a skill

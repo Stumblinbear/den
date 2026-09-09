@@ -2,6 +2,7 @@
 name: writing-for-humans
 description: How text a person will read is written, in the register a person would use, whichever of its kinds it is.
 when_to_use: ALWAYS invoke this skill before writing or revising a README, a guide or reference page, an architecture or decision document, a doc comment or docstring, a comment inside a function body, or a report or message for a person, when reviewing text an agent drafted for a person, and when the user says a draft sounds like AI or is slop. Do not write, revise or polish such text directly; use this skill first.
+user-invocable: false
 ---
 
 # Writing for humans

@@ -1,7 +1,7 @@
 ---
 name: direction-docs
 description: Creates, organizes and updates project direction documents from established goals and agreed changes, preserving their meaning, reasons and uncertainty. Use when recording discovery, incorporating direction clarified during scoping, or reorganizing existing direction docs.
-allowed-tools: Read, Grep, Glob, Edit, Write, AskUserQuestion
+user-invocable: false
 ---
 
 # Direction documents

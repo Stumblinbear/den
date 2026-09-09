@@ -84,7 +84,7 @@ Agents, launched through the Agent tool as `den:<name>`:
   it to green.
 - `prior-art-check` (opus): how the problem is already solved, before an
   approach is chosen. Read-only.
-- `surveyor` (sonnet) and `file-peek` (haiku): read-only evidence sweeps, and
+- `surveyor` and `file-peek` (both haiku): read-only evidence sweeps, and
   targeted extraction from files too large to read whole.
 - `design-explorer` (opus): one decomposition serving the task's purpose and
   project direction, from the angle it is given, with consequential choices

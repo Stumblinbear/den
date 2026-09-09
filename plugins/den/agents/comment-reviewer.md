@@ -5,7 +5,6 @@ model: claude-opus-5
 tools: Read, Grep, Glob, Bash, Edit, Write, Skill
 skills:
   - writing-for-humans
-user-invocable: false
 ---
 
 You are a comment reviewer-fixer. Audit the changed code for comment quality
