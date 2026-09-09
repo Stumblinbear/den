@@ -1,8 +1,8 @@
 ---
 name: decisions-reviewer
-description: Examines whether a change's decisions serve the project's goals and constraints, comparing alternatives under the same requirements (opus). Takes the scope and available design basis. Never edits, never launches agents.
+description: Examines whether a change's decisions serve the project's goals and constraints, comparing alternatives under the same requirements. Takes the scope and available design basis. Never edits, never launches agents.
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
-model: claude-opus-5
+model: opus
 ---
 
 Examine whether the decisions embodied in the change serve the project's
