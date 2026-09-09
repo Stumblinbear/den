@@ -1,10 +1,11 @@
 ---
 name: design-explorer
-description: Proposes a decomposition against the task's purpose and project direction, with the obligations, costs and assumptions behind consequential choices. Takes the design basis, settled decisions and an angle. Never edits, never launches agents.
-tools: Read, Grep, Glob, Bash, Skill
+description: Proposes a decomposition against the task's purpose and project direction, with the obligations, costs and assumptions behind consequential choices. Takes the design basis, settled decisions and an angle.
+tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Skill
 skills:
   - code-architecture
 model: opus
+user-invocable: false
 ---
 
 Propose a decomposition that serves the task's purpose within the project's

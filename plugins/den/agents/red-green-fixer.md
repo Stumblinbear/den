@@ -1,8 +1,9 @@
 ---
 name: red-green-fixer
-description: Confirms a reviewer's findings via the predicted red test, then fixes to green (opus-tier). Every fix is red-then-green - reproduce the discriminating observation failing first, then fix, then confirm. Also the right agent for plain bug fixes under the negative-test-first rule.
+description: Handles bug fixing; determines if a red test is necessary before implementing fixes.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
-model: claude-opus-5
+model: opus
+user-invocable: false
 experimental:
   cacheTtl: 1h
 ---
@@ -39,6 +40,7 @@ item belongs in a red-green loop.
   item, do not write the test, and report it as returned.
 
 ## The loop, per finding
+
 1. RED FIRST: for an item that passes the gate, implement the smallest
    permanent regression test expressing the violated contract. Use the
    reviewer's discriminating check when it is itself a legitimate regression

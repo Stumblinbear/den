@@ -1,8 +1,9 @@
 ---
 name: implementer-opus
-description: The default implementation agent - executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Also carries the novel/ambiguous end - new solver schemes or numerics where plausible-but-wrong is the default failure mode, architectural changes with interlocking free choices a brief cannot fully pin, specs whose ambiguity must be noticed rather than silently resolved.
+description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
-model: claude-opus-5
+model: opus
+user-invocable: false
 experimental:
   cacheTtl: 1h
 ---

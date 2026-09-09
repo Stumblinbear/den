@@ -1,8 +1,9 @@
 ---
 name: closure-verifier
-description: Verdicts review fixes against their underlying requirements, CLOSED, REOPENED or NEEDS-DECISION, and reports what the fixes opened (opus). Takes the findings, relevant design basis and fixed scope. Never edits, never launches agents.
+description: Verdicts review fixes against their underlying requirements, CLOSED, REOPENED or NEEDS-DECISION, and reports what the fixes opened. Takes the findings, relevant design basis and fixed scope.
 tools: Read, Grep, Glob, Bash
-model: claude-opus-5
+model: opus
+user-invocable: false
 ---
 
 You verify fixes for a review's findings. The launch prompt carries the

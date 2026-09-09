@@ -1,8 +1,9 @@
 ---
 name: decisions-reviewer
-description: Examines whether a change's decisions serve the project's goals and constraints, comparing alternatives under the same requirements. Takes the scope and available design basis. Never edits, never launches agents.
-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
+description: Examines whether a change's decisions serve the project's goals and constraints, comparing alternatives under the same requirements. Takes the scope and available design basis.
+tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Skill
 model: opus
+user-invocable: false
 ---
 
 Examine whether the decisions embodied in the change serve the project's

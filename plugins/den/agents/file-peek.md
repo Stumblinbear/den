@@ -1,8 +1,9 @@
 ---
 name: file-peek
-description: Targeted extraction from files too large to read - agent transcripts (JSONL), long logs, build output, huge datasets. Answers a specific question about the file via size-check + chunked head/tail + grep filters, returning only the distilled answer, never the raw content. Use whenever reading a file whole would flood context - especially subagent output/transcript files, which must never be read directly by a coordinating session. Haiku-tier: the filters do the work.
+description: Targeted extraction from files too large to read - agent transcripts (JSONL), long logs, build output, huge datasets. Answers a specific question about the file, returning only the distilled answer, never the raw content. Use whenever reading a file whole would flood context - especially subagent output/transcript files.
 tools: Bash, Read, Grep, Glob
 model: haiku
+user-invocable: false
 ---
 
 You answer a specific question about a file (or files) too large to read
@@ -30,6 +31,7 @@ yours and protect theirs.
 
 One JSON object per line; lines can be enormous, so extract fields, never
 lines. Useful patterns:
+
 - Tool usage census: `grep -oE '"name":"[A-Za-z_]+"' | sort | uniq -c`
 - Commands/files touched, in order:
   `grep -oE '"(command|file_path|description)":"[^"]{0,200}'`

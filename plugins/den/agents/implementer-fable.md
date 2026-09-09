@@ -1,9 +1,10 @@
 ---
 name: implementer-fable
-description: Implementation agent for derivation-dense work where the correctness argument is the deliverable and a wrong result passes green, and root-cause-diagnose-and-fix for bugs where the mechanism derivation IS the fix. Requires the user's explicit per-task approval to launch - never auto-selected.
+description: Implementation agent for derivation-dense work where the correctness argument is the deliverable and a wrong result passes green, and root-cause-diagnose-and-fix for bugs where the mechanism derivation IS the fix. Requires the user's explicit per-task approval to launch.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: fable
 effort: high
+user-invocable: false
 experimental:
   cacheTtl: 1h
 ---
