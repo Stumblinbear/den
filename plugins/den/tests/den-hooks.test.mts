@@ -157,6 +157,16 @@ for (const runtime of runtimes()) {
 		assert.equal(matched.stdout, "");
 		assert.deepEqual(pending(temp, IMPLEMENTER), ["opus-1.json"]);
 
+		// A fork of the session arrives under Claude Code's built-in type,
+		// bare, and implements too.
+		const fork = run("implementer-triage-flag", temp, stop("fork", "fork-1"));
+
+		assert.equal(fork.status, 0, fork.stderr);
+		assert.deepEqual(pending(temp, IMPLEMENTER), [
+			"fork-1.json",
+			"opus-1.json",
+		]);
+
 		// A reviewer's completion belongs to the other relay, and this hook
 		// fires for it too.
 		const reviewer = run(
@@ -166,7 +176,10 @@ for (const runtime of runtimes()) {
 		);
 
 		assert.equal(reviewer.status, 0, reviewer.stderr);
-		assert.deepEqual(pending(temp, IMPLEMENTER), ["opus-1.json"]);
+		assert.deepEqual(pending(temp, IMPLEMENTER), [
+			"fork-1.json",
+			"opus-1.json",
+		]);
 	});
 
 	test(

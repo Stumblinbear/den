@@ -15,10 +15,10 @@ const LIB = join(ROOT, "lib");
 const PLUGIN_DIR = join(ROOT, "plugins");
 
 // Every plugin starts its entries through the launcher and reads what Claude
-// Code writes on their stdin, so every plugin takes those. The rest belongs to
-// a plugin that reads a TOML configuration: den reads none, so it declares no
-// dependency and ships no lockfile for Claude Code to install from, and the
-// loader's parser import would resolve to nothing there.
+// Code writes on their stdin, so every plugin takes those. The configuration
+// loader belongs to a plugin that reads a TOML configuration: den reads none,
+// so it declares no dependency and ships no lockfile for Claude Code to
+// install from, and the loader's parser import would resolve to nothing there.
 //
 // A plugin takes a shared source when what it runs imports it, directly or
 // through another shared source: every write of a session record takes a lock,
@@ -29,13 +29,16 @@ const EVERY_PLUGIN: readonly string[] = [
 	"launch.mjs",
 	"select-runtime.mjs",
 ];
+const SESSION_RECORD: readonly string[] = [
+	"file-lock.mts",
+	"session-state.mts",
+];
 const CONFIGURED: readonly string[] = [
 	...EVERY_PLUGIN,
+	...SESSION_RECORD,
 	"config.mts",
 	"entry.mts",
 	"fault.mts",
-	"file-lock.mts",
-	"session-state.mts",
 ];
 
 interface Plugin {
@@ -45,7 +48,7 @@ interface Plugin {
 
 const PLUGINS: readonly Plugin[] = [
 	{ name: "context-budget", files: CONFIGURED },
-	{ name: "den", files: EVERY_PLUGIN },
+	{ name: "den", files: [...EVERY_PLUGIN, ...SESSION_RECORD] },
 	{ name: "model-prompts", files: CONFIGURED },
 ];
 

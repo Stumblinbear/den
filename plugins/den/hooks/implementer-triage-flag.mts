@@ -8,13 +8,16 @@
 import { bareType, IMPLEMENTER_TRIAGE_DIR, raiseFlag } from "../lib/relay.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
 
-// Agents that edit the working tree and report a finished state against a
-// brief, which is what there is to triage.
+// Agents that edit the working tree and report a finished state, which is
+// what there is to triage. A fork of the session is Claude Code's built-in
+// `fork` type, and under the coordination rules it is how coupled
+// implementation runs.
 const IMPLEMENTERS: readonly string[] = [
 	"implementer-opus",
 	"implementer-haiku",
 	"implementer-fable",
 	"red-green-fixer",
+	"fork",
 ];
 
 try {

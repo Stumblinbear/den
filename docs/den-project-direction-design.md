@@ -115,6 +115,12 @@ this correction with an orchestration redesign. Evaluate its value separately.
 
 ### 3. Briefs preserve intent through implementation
 
+A brief is now the path for implementation that is independent of the
+session's context; coupled implementation keeps its context by a fork or a
+model switch, decided in
+[Implementation keeps the context that designed it](implementation-handoff.md).
+What follows applies to the brief path.
+
 Update `skills/coordination/SKILL.md` to carry the relevant design basis,
 accepted design, reasons, scope limits, and remaining uncertainty in the brief.
 Make clear which choices are settled and which are implementation discretion.

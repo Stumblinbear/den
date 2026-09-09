@@ -1,8 +1,9 @@
 # den
 
-A gated agent workflow for Claude Code. The main session designs, briefs, and
-delegates; standing agents do the production work; every launch is authorized
-on its own.
+A gated agent workflow for Claude Code. The main session designs and decides
+with you; implementation is handed off with its context kept, by a fork or a
+model switch, or briefed to a standing agent when it needs none; reviews go
+to fresh agents; every launch is authorized on its own.
 
 ## What it provides
 
@@ -42,6 +43,14 @@ writing-for-humans and writing-a-skill; the rest are hidden from the `/` menu:
   Omit it for the working tree against HEAD. The coordinator supplies the
   available design basis separately to all readers.
 - `comment-review`: the same for the comment-reviewer.
+- `handoff-cost`: the reading the session arrives with before coupled
+  implementation starts: what a fork of the session, a switch of its model
+  and a brief each carry of the current context, as cache-miss token counts,
+  followed by the question that puts the choice to you. A fork keeps the
+  context and the model and works out of view; a switch keeps the context on
+  the model you switch to and implements in the session; a brief carries none
+  of it. Pass a model as the argument to price the switch against something
+  other than opus.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
 - `design-decisions`: how an engineering choice is made and stated: the
@@ -100,19 +109,38 @@ Hooks, registered while the plugin is enabled:
   `den:closure-verifier` is recorded, and the next
   prompt you submit carries a reminder to relay every finding with a
   fix/defer/skip recommendation and keep unanswered questions unresolved.
-- Implementer triage: a finished implementer or fixer is recorded, and the next
-  prompt you submit carries a reminder to put every choice it declared,
-  question it asked, deviation from the brief it made and item it left undone
-  to you with a call on each.
+- Implementer triage: a finished implementer, fixer or fork of the session is
+  recorded, and the next prompt you submit carries a reminder to put every
+  choice it declared, question it asked, deviation from its brief or
+  instruction it made and item it left undone to you with a call on each; a
+  fork's send-backs go to a new fork.
+- Transcript record: each prompt you submit leaves the session's transcript
+  path in a small file, once, so the `handoff-cost` reading can find the
+  transcript it measures.
+- Handoff switch: when you answer `Switch model` on the Handoff question and
+  then run `/model`, the switch adds one line to the session's context saying
+  implementation starts now, inline; the line reaches the session with the
+  next prompt you send. It reads the answer off the transcript at the moment
+  of the switch, so a prompt you typed in between, or another question
+  answered since, leaves the switch silent, and so does a switch you did not
+  make yourself: a resume restoring the model, or an automatic one. A switch
+  you made while the answer stands is the go, whatever invoked it.
 
-Neither hook denies a tool call, reads your source, or changes a file in your
-project. Both add text to the main session's context and nothing else.
+No hook denies a tool call, reads your source, or changes a file in your
+project. Each adds text to the main session's context, or nothing.
 
 ## Requirements and what it does on your machine
 
 The hooks are TypeScript and run with no build step. Claude Code starts them
 with `node`, so **Node 22.6 or newer** is the floor. They run under bun
 instead whenever `bun` is on `PATH`.
+
+Claude Code **2.1.251 or newer**: the handoff switch runs on the
+`PostModelSwitch` event that version added, and a fork of the session is the
+`subagent_type: "fork"` launch that 2.1.232 turned on by default in
+interactive sessions (print mode leaves it off). On an older build the switch
+never speaks and the Fork answer names a type that does not exist; everything
+else works.
 
 A file named `.runtime` in the plugin's data directory forces the choice for
 this plugin. It holds one word, `bun` or `node`:
@@ -130,16 +158,20 @@ The plugin declares no dependencies, so Claude Code installs nothing for it.
 The `flag-review` and `comment-review` skills render the review scope with
 `git` through `bash`, so both have to be available where the session runs.
 
-What the hooks read: nothing of yours. Neither relay opens a source file, a
-transcript, or anything else in your project.
+What the hooks read: the last half megabyte of the session's own transcript,
+on a model switch and when the `handoff-cost` reading runs, for the newest
+turn's size and the newest question you answered. Nothing in your project is
+opened.
 
 What the hooks write: one small JSON file per finished agent, under
 `claude-review-triage/` and `claude-implementer-triage/` in the OS temp
-directory. Each file is deleted as its reminder is injected.
+directory, each deleted as its reminder is injected; and one per session
+under `claude-den-session/` there, naming the transcript.
 
 What the hooks can do to a session: add one reminder per relay to the context
-of the next prompt you submit. Nothing is shown to you, and no tool call is
-ever blocked.
+of the next prompt you submit, and one line on a model switch that carries
+out a standing `Switch model` answer. Nothing is shown to you, and no tool
+call is ever blocked.
 
 ## Installation
 
@@ -160,9 +192,10 @@ Start a session and invoke the coordination rules:
 /den:coordination
 ```
 
-The session then delegates production work to the standing agents instead of
-doing it itself, cites code by path and line, and asks for your go-ahead
-before each launch. After a change is written, authorize a review:
+The session then cites code by path and line, sends reviews and research to
+the standing agents, and, once a design is pinned, asks how to hand the
+implementation off: fork, switch model, or brief, each priced on the context
+you would be carrying. After a change is written, authorize a review:
 
 ```
 /den:flag-review
@@ -209,6 +242,9 @@ the default.
 
 If a reminder never arrives, the two temp directories above hold the pending
 flags. Deleting them resets both relays; the next completion starts over.
+
+If the `handoff-cost` reading says no transcript is recorded, submit any
+prompt: the record is written on the first prompt after den is enabled.
 
 ## Contributing
 

@@ -6,11 +6,22 @@ disable-model-invocation: true
 
 # Coordinating session
 
-This session designs, briefs, delegates, integrates, and talks to the user,
-and reads every agent's report as an adversary reads a claim: checked before
-it moves, never stamped.
-Production work (implementation, review, research) goes to a standing agent
-unless the task is so small that delegation would cost more than doing it.
+This session designs, decides with the user, integrates, and talks to the
+user, and reads every agent's report as an adversary reads a claim: checked
+before it moves, never stamped.
+Review and research go to a standing agent. Implementation that follows from
+decisions this context made is handed off through `den:handoff-cost` once the
+design is pinned: a fork of this session, a switch of this session's model, or
+a brief to a standing implementer, each priced on the context as it stands,
+and the user chooses. A brief loses whatever the conversation settled and the
+brief did not say, so it is the path for work that is independent of this
+context: parallel units such as a sweep across files, or a task a fresh agent
+can do from the brief alone. Small fixes and edits, the kind this session
+would otherwise make by hand, go to a fork with a short instruction and no
+reading or Handoff question: a fork spawn reads this context from cache, so
+it costs nothing over doing the work here and keeps this context free of the
+tool output. The Handoff question is for implementation where the model
+switch is worth pricing.
 
 ## Claims about code
 
@@ -75,7 +86,7 @@ from explicit scope fences so the brief leaves room for engineering judgment.
 Use the standing definitions, not general-purpose agents with the discipline
 re-typed per brief; choosing the agent chooses the model tier. Route by how much
 unreviewable judgment the agent exercises between check-ins: opus
-implements, sonnet surveys, haiku does mechanics where
+implements from a brief, sonnet surveys, haiku does mechanics where
 the compiler is the spec, fable reviews code and does root-cause and
 derivation work. "Read X and report what is there" is a survey, not
 research. A resume follows the definition's model, so a launch-time model
@@ -96,20 +107,34 @@ Within an approved stage, returning unquestionably wrong work to the agent
 that produced it, obvious fixes (the unquestionably wrong and the mechanical),
 and the closure pass by a fresh `den:closure-verifier` given the findings
 and the scope with the relevant design basis, are that stage continuing: they
-run at once and the report says so. After a stage lands:
+run at once and the report says so. An obvious fix leaves every design
+assumption where it was; a fix that adds a mechanism, a dependence or a
+condition has changed one, whatever tier the finding carries, and needs the
+go. After a stage lands:
 report, and where the next stage needs a go-ahead, propose it (agent and
-scope) and wait. A reply that does not answer a pending go is not the go,
-however close its subject: what it asks for is done, and the launch still
-waits, because approval by adjacency is the failure mode where work starts
-on a reading rather than a decision.
+scope) and wait. For implementation the proposal is the Handoff question
+`den:handoff-cost` ends in, and its answer is the go for the path chosen; a
+`Switch model` answer's go is the switch itself, which den's hook turns into
+the word to implement inline. A reply that does not answer a pending go is
+not the go, however close its subject: what it asks for is done, and the
+launch still waits, because approval by adjacency is the failure mode where
+work starts on a reading rather than a decision.
+
+Every stage after a fork implemented, the fix round on a review's findings
+and the follow-ups to the comment pass among them, launches a new fork of
+this session. By then this context holds the review, what was checked and
+the user's triage calls, and the earlier fork holds none of it; a resume
+would carry the stage back to the context that predates them. Resume an
+agent only when the context the stage needs lives in that agent alone.
 
 ## Implementer reports
 
-A finished implementer's or fixer's report is triaged like a review's: every
-declared choice, question back, deviation from the brief and left-undone item
-reaches the user with your accept, answer, send back or defer call and its
-reasoning, explained for someone who has not read the code, since a choice
-absorbed silently is one the user never gets to overturn. Assess a challenge
+A finished implementer's, fixer's or fork's report is triaged like a
+review's: every declared choice, question back, deviation from the brief and
+left-undone item reaches the user with your accept, answer, send back or
+defer call and its reasoning, explained for someone who has not read the
+code, since a choice absorbed silently is one the user never gets to
+overturn. Assess a challenge
 to the brief against the evidence and project goals. An unapproved departure
 already implemented goes back to its agent at once, and the report says so.
 Where the brief pinned a decomposition, the tree is checked against it at
@@ -159,8 +184,8 @@ of single-path plumbing gets a skip.
 
 Fixes of observable behavior go to `den:red-green-fixer`, which writes the
 regression test first, through a normal product seam, and reports the red
-run. Mechanical fixes (naming, dead code, typos, comments) get no test and
-skip it.
+run. Mechanical fixes (naming, dead code, typos, comments) need no test; they
+go to a fork with a short instruction.
 
 ## Commits
 
@@ -174,3 +199,9 @@ approval.
 Explanations are high-level summaries unless depth is requested. Correct an
 earlier statement only when the error changes the user's code, conclusions, or
 decisions; otherwise fix it silently.
+
+Where a flow ends in the user's choice, the Handoff question among them,
+present the facts and ask. No option is recommended, ranked or marked
+recommended, and no row is worded to steer: the user weighs the figures
+against what this session cannot see, and a reading that nudges is the
+session deciding in their place.

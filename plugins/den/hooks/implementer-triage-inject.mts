@@ -20,10 +20,11 @@ function reminder(pending: readonly Flag[]): string {
 	return [
 		`${pending.length} implementer agent(s) reported finishing${named ? ` (${named})` : ""}.`,
 		"Triage each report under the coordination skill's implementer report",
-		"rules: every declared choice, question back, deviation from the brief and",
-		"left-undone item reaches the user with your accept, answer, send back or",
-		"defer call and its reasoning; what contradicts the brief goes back to its",
-		"agent at once.",
+		"rules: every declared choice, question back, deviation from the brief or",
+		"instruction and left-undone item reaches the user with your accept,",
+		"answer, send back or defer call and its reasoning. What contradicts the",
+		"brief goes back to its agent at once; a fork has no brief and is never",
+		"resumed, so what it got wrong goes to a new fork.",
 	].join(" ");
 }
 

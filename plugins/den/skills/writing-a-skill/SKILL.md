@@ -56,12 +56,17 @@ its body.
   menu.
 - A launcher sets `context: fork` with an `agent`, and `background: false`
   when the invoking turn should wait for the result; its description says
-  what it launches and what its argument is.
+  what it launches and what its argument is. That subagent starts from the
+  skill's text alone. Work that needs the conversation it was decided in is
+  launched from the body instead, with the Agent tool's
+  `subagent_type: "fork"`, which inherits the whole conversation and its
+  prompt cache and runs on the session's model.
 - `argument-hint` shows the argument's shape in the menu; the body reads it
   as `$ARGUMENTS`, or by name through `arguments`.
-- `model` and `effort` override the session's for the turn the skill is
-  active, and `hooks` registers hooks for the rest of the session when the
-  skill is invoked.
+- `model` and `effort` apply to the subagent a `context: fork` skill runs in;
+  on a skill that runs inline they do nothing, and the session's model serves
+  every request of the turn. `hooks` registers hooks for the rest of the
+  session when the skill is invoked.
 - `paths` loads a skill whenever matching files are worked on, which routes
   by enforcement rather than by description.
 - An unquoted value cannot hold a colon followed by a space, and the

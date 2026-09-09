@@ -7,6 +7,28 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+
+- A `handoff-cost` skill that prices handing coupled implementation off as
+  cache-miss token counts for a fork of the session, a switch of its model and
+  a brief, then puts the choice to the user as the Handoff question.
+- A `PostModelSwitch` hook that, when a `Switch model` answer stands on the
+  transcript at the moment of the switch and the switch is the user's own,
+  tells the session to implement inline; and a `UserPromptSubmit` hook that
+  records the transcript path the reading measures.
+- A finished fork of the session is recorded for implementer triage like an
+  implementer or fixer.
+
+### Changed
+
+- The coordination rules hand implementation that follows from the session's
+  own decisions off with its context kept, and brief a standing implementer
+  for work that is independent of it. Delegating every implementation was the
+  measured handoff loss.
+- Small fixes and edits the session would otherwise make itself go to a fork
+  with a short instruction; a fork spawn is a cache hit, so it costs nothing
+  over inline work and keeps the main context clean.
+
 ## [0.5.0] - 2026-09-08
 
 ### Added
