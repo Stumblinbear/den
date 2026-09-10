@@ -182,7 +182,7 @@ for (const runtime of runtimes()) {
 			run(
 				"implementer-triage-flag",
 				temp,
-				stop("den:red-green-fixer", "fixer-1"),
+				stop("den:implementer-opus", "opus-1"),
 			);
 			run(
 				"implementer-triage-flag",
@@ -194,7 +194,7 @@ for (const runtime of runtimes()) {
 				run("implementer-triage-inject", temp, prompt()),
 			);
 
-			assert.ok(context.includes("den:red-green-fixer"), context);
+			assert.ok(context.includes("den:implementer-opus"), context);
 			assert.ok(context.includes("plugin_den_implementer-fable"), context);
 			assert.deepEqual(pending(temp, IMPLEMENTER), []);
 

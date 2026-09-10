@@ -72,7 +72,8 @@ Agents, launched through the Agent tool as `den:<name>`:
 
 - `reviewer` (fable): reads one change adversarially against the plan or
   brief it was written to and returns every issue as evidence: defects with
-  a priority and a discriminating check, questionable patterns, and choices
+  a priority and a failing test left in the tree, or a discriminating check
+  where a test would need heavy scaffolding, questionable patterns, and choices
   that do not serve the project's goals, with unresolved questions kept
   separate. It edits nothing.
 - `closure-verifier` (opus): verdicts a review's findings against the fixed
@@ -89,8 +90,6 @@ Agents, launched through the Agent tool as `den:<name>`:
 - `implementer-haiku` (haiku): mechanical work where the compiler is the spec.
 - `implementer-fable` (fable): derivation-dense work where a wrong result
   still passes the tests.
-- `red-green-fixer` (opus): reproduces a finding as a failing test, then fixes
-  it to green.
 - `prior-art-check` (opus): how the problem is already solved, before an
   approach is chosen. Read-only.
 - `surveyor` and `file-peek` (both haiku): read-only evidence sweeps, and
@@ -109,7 +108,7 @@ Hooks, registered while the plugin is enabled:
   `den:closure-verifier` is recorded, and the next
   prompt you submit carries a reminder to relay every finding with a
   fix/defer/skip recommendation and keep unanswered questions unresolved.
-- Implementer triage: a finished implementer, fixer or fork of the session is
+- Implementer triage: a finished implementer or fork of the session is
   recorded, and the next prompt you submit carries a reminder to put every
   choice it declared, question it asked, deviation from its brief or
   instruction it made and item it left undone to you with a call on each; a

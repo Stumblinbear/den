@@ -1,6 +1,6 @@
 ---
 name: lead
-description: The rules the main session runs under as the lead - delegation, agent routing, review and commit gates, how to talk to the user. User-invoked; subagents never load it.
+description: The rules the main session runs under as the lead - delegation, agent routing, review and commit gates, how to talk to the user.
 disable-model-invocation: true
 ---
 
@@ -149,7 +149,7 @@ resumed with the answer, never replaced.
 
 ## Implementer reports
 
-A finished implementer's, fixer's or fork's report is triaged like a
+A finished implementer's or fork's report is triaged like a
 review's: every declared choice, question back, deviation from the brief and
 left-undone item reaches the user with your accept, answer, send back or
 defer call and its reasoning, explained for someone who has not read the
@@ -203,10 +203,10 @@ of single-path plumbing gets a skip.
 
 ## Fixes
 
-Fixes of observable behavior go to `den:red-green-fixer`, which writes the
-regression test first, through a normal product seam, and reports the red
-run. Mechanical fixes (naming, dead code, typos, comments) need no test; they
-go to a fork with a short instruction.
+A fix makes the reviewer's failing test pass. A finding the reviewer
+verified by reading gets its test written first, through a normal product
+seam, with the red run in the report. A finding skipped or deferred takes
+its test out of the tree with it.
 
 ## Commits
 

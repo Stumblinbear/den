@@ -23,6 +23,6 @@ NEEDS-DECISION and that dependency instead of treating an assumption as
 confirmation. Otherwise report CLOSED or REOPENED, keeping the finding's
 priority or kind.
 
-The fixer's description of a fix is not evidence. Read the cited code and call
+The description of a fix is not evidence. Read the cited code and call
 paths, then read what the fix touched for what it opened: a finding half closed,
 a case it introduced, an invariant it moved. Report each in the finding form.

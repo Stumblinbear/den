@@ -16,7 +16,6 @@ const IMPLEMENTERS: readonly string[] = [
 	"implementer-opus",
 	"implementer-haiku",
 	"implementer-fable",
-	"red-green-fixer",
 	"fork",
 ];
 

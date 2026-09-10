@@ -35,6 +35,13 @@ minor bump may change behavior.
 
 ### Changed
 
+- The reviewer writes the failing test for a defect it can demonstrate,
+  through a normal product seam, leaves it in the tree, and runs that test
+  alone; the finding carries the test's path and the red run. It has the
+  tools to do so: edit, write, skills and the web beside read and search.
+  Reviews were better with the test written and the red test came with them,
+  so the fix is making that test pass.
+
 - The lead rules deliver a change as steps: cut under `slicing` once the
   design is pinned and again when an observation falsifies the plan, the
   plan in the session's scratch directory with its steps in the task list,
@@ -71,6 +78,12 @@ minor bump may change behavior.
   making the choice and declaring it in the report. The coordination skill
   resumes such an agent rather than replacing it.
 
+### Removed
+
+- The `red-green-fixer` agent. The reviewer's failing test is the red test a
+  fix starts from, and a finding verified by reading gets its test written
+  first by whoever takes the fix.
+
 ## [0.5.0] - 2026-09-08
 
 ### Added
@@ -102,6 +115,13 @@ minor bump may change behavior.
   fixes opened.
 
 ### Changed
+
+- The reviewer writes the failing test for a defect it can demonstrate,
+  through a normal product seam, leaves it in the tree, and runs that test
+  alone; the finding carries the test's path and the red run. It has the
+  tools to do so: edit, write, skills and the web beside read and search.
+  Reviews were better with the test written and the red test came with them,
+  so the fix is making that test pass.
 
 - Direction documentation organizes the record under `docs/`, with a short entry point,
   substantive topic documents and links between related decisions. Reasons,
@@ -190,6 +210,13 @@ minor bump may change behavior.
 
 ### Changed
 
+- The reviewer writes the failing test for a defect it can demonstrate,
+  through a normal product seam, leaves it in the tree, and runs that test
+  alone; the finding carries the test's path and the red run. It has the
+  tools to do so: edit, write, skills and the web beside read and search.
+  Reviews were better with the test written and the red test came with them,
+  so the fix is making that test pass.
+
 - The implementer relay is now implementer triage: every finished implementer
   and `red-green-fixer` is recorded, not only one that edited Rust, and its
   reminder points at the `coordination` skill's new Implementer reports
@@ -239,6 +266,13 @@ minor bump may change behavior.
   reference per kind, per render target, and per language.
 
 ### Changed
+
+- The reviewer writes the failing test for a defect it can demonstrate,
+  through a normal product seam, leaves it in the tree, and runs that test
+  alone; the finding carries the test's path and the red run. It has the
+  tools to do so: edit, write, skills and the web beside read and search.
+  Reviews were better with the test written and the red test came with them,
+  so the fix is making that test pass.
 
 - The comment-reviewer loads the `voice` skill and runs its grep twice, over
   the comments in scope before it reads them and over its own edits before it

@@ -12,7 +12,7 @@
 				]
 			},
 			{
-				"matcher": "den:implementer-opus|den:implementer-haiku|den:implementer-fable|den:red-green-fixer|fork",
+				"matcher": "den:implementer-opus|den:implementer-haiku|den:implementer-fable|fork",
 				"hooks": [
 					{
 						"type": "command",
