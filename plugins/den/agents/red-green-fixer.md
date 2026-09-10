@@ -75,7 +75,9 @@ deciding it for them. Stop when finishing would need any of these:
   a public surface, a dependency, behaviour the user can see, a build or test
   cost;
 - a scope fence in the way, or a pin the code contradicts;
-- a concern about the accepted design that changes your recommendation.
+- a concern about the accepted design that changes your recommendation;
+- more change than the plan's entry for this step describes: how the work
+  is cut is the user's, and a step grown past one read is cut for them.
 
 Stopping means ending your turn with only the question: what you found with
 file:line, the alternatives and their costs, and what waits on the answer.

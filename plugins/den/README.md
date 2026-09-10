@@ -36,13 +36,16 @@ writing-for-humans and writing-a-skill; the rest are hidden from the `/` menu:
   the code and the task's design basis. A judge compares suitable proposals,
   or reports missing input or no suitable proposal, and you choose. The script
   ships under `workflows/`.
-- `flag-review`: runs the flag-review workflow on a pending change: a bug
-  hunter, a quality reviewer and a decisions reviewer each read it blind to
-  the others, and a synthesizer writes one ranked report with unresolved
-  questions kept separate. The argument is a git diff range and nothing else.
-  Omit it for the working tree against HEAD. The lead supplies the
-  available design basis separately to all readers.
-- `comment-review`: the same for the comment-reviewer.
+- `review`: launches the reviewer on a pending change with the diff already
+  in its first message. The argument is a git diff range, optionally followed
+  by `--plan <path>` naming the plan or brief the change was written to, and
+  nothing else. Omit the range for the working tree against HEAD.
+- `comment-review`: the same for the comment-reviewer, without the plan.
+- `slicing`: how a change is cut into steps a reviewer holds in one read and
+  sequenced by risk, with the test a boundary must pass, the settled
+  techniques for cutting what looks atomic, and the interrogation of the
+  first attempt, which is presumed wrong until each cut has answered the
+  questions you would ask of it.
 - `handoff-cost`: the reading the session arrives with before coupled
   implementation starts: what a fork of the session, a switch of its model
   and a brief each carry of the current context, as cache-miss token counts,
@@ -67,14 +70,11 @@ writing-for-humans and writing-a-skill; the rest are hidden from the `/` menu:
 
 Agents, launched through the Agent tool as `den:<name>`:
 
-- `bug-hunter` (fable), `quality-reviewer` and `decisions-reviewer` (opus):
-  the flag-review workflow's readers, each given the scope and available
-  design basis. The hunter returns defects with a discriminating check;
-  the quality reviewer examines engineering costs against requirements; the
-  decisions reviewer checks whether choices serve project goals and compares
-  alternatives that meet the same requirements. None edits.
-- `review-synthesizer` (opus): one ranked report from the readers' findings,
-  preserving unresolved questions, assumptions and disagreements.
+- `reviewer` (fable): reads one change adversarially against the plan or
+  brief it was written to and returns every issue as evidence: defects with
+  a priority and a discriminating check, questionable patterns, and choices
+  that do not serve the project's goals, with unresolved questions kept
+  separate. It edits nothing.
 - `closure-verifier` (opus): verdicts a review's findings against the fixed
   tree, CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION
   keeps an item unresolved when closure depends on a product decision.
@@ -105,7 +105,7 @@ Agents, launched through the Agent tool as `den:<name>`:
 
 Hooks, registered while the plugin is enabled:
 
-- Review triage: a finished `den:review-synthesizer` or
+- Review triage: a finished `den:reviewer` or
   `den:closure-verifier` is recorded, and the next
   prompt you submit carries a reminder to relay every finding with a
   fix/defer/skip recommendation and keep unanswered questions unresolved.
@@ -155,7 +155,7 @@ file, and the hook run does nothing. The data directory survives plugin updates.
 
 The plugin declares no dependencies, so Claude Code installs nothing for it.
 
-The `flag-review` and `comment-review` skills render the review scope with
+The `review` and `comment-review` skills render the review scope with
 `git` through `bash`, so both have to be available where the session runs.
 
 What the hooks read: the last half megabyte of the session's own transcript,
@@ -198,7 +198,7 @@ implementation off: fork, switch model, or brief, each priced on the context
 you would be carrying. After a change is written, authorize a review:
 
 ```
-/den:flag-review
+/den:review
 ```
 
 The reviewer reads the working tree against HEAD and reports its findings. On
@@ -213,7 +213,7 @@ completion is recorded and a `UserPromptSubmit` hook injects it. Several
 agents finishing together produce one reminder naming all of them.
 
 Agent types are matched by bare name, so an agent of your own named
-`review-synthesizer` or `implementer-opus` raises the same reminder as den's.
+`reviewer` or `implementer-opus` raises the same reminder as den's.
 
 The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:lead`. The skills and agents do nothing until you invoke or

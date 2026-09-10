@@ -92,7 +92,7 @@ for (const runtime of runtimes()) {
 		const matched = run(
 			"review-triage-flag",
 			temp,
-			stop("den:review-synthesizer", "reviewer-1"),
+			stop("den:reviewer", "reviewer-1"),
 		);
 
 		assert.equal(matched.status, 0, matched.stderr);
@@ -121,21 +121,13 @@ for (const runtime of runtimes()) {
 	test(name("one prompt injects for every pending review flag, once"), () => {
 		const temp = fixtureDir("review-inject");
 
-		run(
-			"review-triage-flag",
-			temp,
-			stop("den:review-synthesizer", "reviewer-1"),
-		);
-		run(
-			"review-triage-flag",
-			temp,
-			stop("plugin_den_review-synthesizer", "reviewer-2"),
-		);
+		run("review-triage-flag", temp, stop("den:reviewer", "reviewer-1"));
+		run("review-triage-flag", temp, stop("plugin_den_reviewer", "reviewer-2"));
 
 		const context = injected(run("review-triage-inject", temp, prompt()));
 
-		assert.ok(context.includes("den:review-synthesizer"), context);
-		assert.ok(context.includes("plugin_den_review-synthesizer"), context);
+		assert.ok(context.includes("den:reviewer"), context);
+		assert.ok(context.includes("plugin_den_reviewer"), context);
 		assert.deepEqual(pending(temp, REVIEW), []);
 
 		// The flags are consumed, so the next prompt has nothing to say.
@@ -172,7 +164,7 @@ for (const runtime of runtimes()) {
 		const reviewer = run(
 			"implementer-triage-flag",
 			temp,
-			stop("den:review-synthesizer", "reviewer-1"),
+			stop("den:reviewer", "reviewer-1"),
 		);
 
 		assert.equal(reviewer.status, 0, reviewer.stderr);

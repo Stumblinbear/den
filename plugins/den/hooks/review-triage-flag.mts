@@ -1,11 +1,11 @@
-// SubagentStop half of the review-triage relay: a finished review
-// synthesizer or closure verifier leaves a flag, and nothing else. `review-triage-inject` does the injecting.
+// SubagentStop half of the review-triage relay: a finished reviewer or
+// closure verifier leaves a flag, and nothing else. `review-triage-inject` does the injecting.
 
 import { bareType, REVIEW_TRIAGE_DIR, raiseFlag } from "../lib/relay.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
 
 /** The agents whose report is triaged under the review rules. */
-const REVIEWERS = new Set(["review-synthesizer", "closure-verifier"]);
+const REVIEWERS = new Set(["reviewer", "closure-verifier"]);
 
 try {
 	const input = await hookInput();

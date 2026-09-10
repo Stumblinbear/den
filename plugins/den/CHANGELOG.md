@@ -9,6 +9,11 @@ minor bump may change behavior.
 
 ### Added
 
+- A `slicing` skill: how a change is cut into steps a reviewer holds in one
+  read and sequenced by risk, the three tests a boundary must pass, the
+  settled techniques for cutting what looks atomic, and the interrogation of
+  the first attempt at the ordered set, which is presumed wrong until each
+  cut has answered the questions the user would ask of it.
 - A `handoff-cost` skill that prices handing coupled implementation off as
   cache-miss token counts for a fork of the session, a switch of its model and
   a brief, then puts the choice to the user as the Handoff question.
@@ -21,6 +26,22 @@ minor bump may change behavior.
 
 ### Changed
 
+- The lead rules deliver a change as steps: cut under `slicing` once the
+  design is pinned and again when an observation falsifies the plan, the
+  plan in the session's scratch directory with its steps in the task list,
+  each step through handoff, review with the plan's path, fix round, comment
+  pass and commit before the next is briefed. A go-ahead covers one step. A
+  review of thousands of lines was the failure; a step is one read.
+- The opus and fable implementers and the fixer stop when finishing would
+  take more change than the plan's entry for their step describes, since
+  how the work is cut is the user's decision.
+- One adversarial `reviewer` agent, launched through the `review` skill with
+  the diff and the path of the plan or brief the change was written to,
+  replaces the bug hunter, the quality reviewer, the decisions reviewer, the
+  synthesizer and the flag-review workflow. The lead handing the readers a
+  reading of the change was the failure; one reader given nothing but the
+  change and its plan is the test. The reviewer keeps the defect priorities
+  and the quality and decision kinds in one report.
 - The `coordination` skill is renamed `lead`, since the session it rules
   designs, decides with the user, hands implementation off with its context
   and integrates the result, and coordination names only part of that. Invoke

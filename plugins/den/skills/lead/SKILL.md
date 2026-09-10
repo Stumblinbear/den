@@ -10,8 +10,9 @@ This session designs, decides with the user, integrates, and talks to the
 user, and reads every agent's report as an adversary reads a claim: checked
 before it moves, never stamped.
 Review and research go to a standing agent. Implementation that follows from
-decisions this context made is handed off through `den:handoff-cost` once the
-design is pinned: a fork of this session, a switch of this session's model, or
+decisions this context made is handed off through `den:handoff-cost` one step
+at a time once the design is pinned and the work is cut: a fork of this
+session, a switch of this session's model, or
 a brief to a standing implementer, each priced on the context as it stands,
 and the user chooses. A brief loses whatever the conversation settled and the
 brief did not say, so it is the path for work that is independent of this
@@ -81,6 +82,21 @@ cost when assessing the work; extra implementation effort is not an unstated
 reason to accept a weaker solution. Distinguish the task's intended outcome
 from explicit scope fences so the brief leaves room for engineering judgment.
 
+## Steps
+
+A change lands as a sequence of steps cut under `den:slicing`. The plan is
+written to the session's scratch directory and its steps are tracked in the
+task list; the sequence is put to the user before the first step's Handoff
+question, since where the cuts fall is their decision. Each step runs the
+whole cycle on its own, handoff, review with the plan's path, fix round,
+comment pass and commit proposal, and the next step is briefed after the
+previous one has landed, on the tree as it now is, so what its review found
+reaches the brief. A brief for a step carries the plan's path and the entry
+for that step. A step whose diff outgrew one read was cut wrong: it is
+re-cut where it grew and the part already done is reviewed as its own step,
+because the user reads every step's diff, and a diff they cannot read is a
+decision they cannot overturn.
+
 ## Agents
 
 Use the standing definitions, not general-purpose agents with the discipline
@@ -97,7 +113,8 @@ approval.
 
 ## Launch authorization
 
-A go-ahead from the user covers one stage: implementation, or a fix round for
+A go-ahead from the user covers one stage: one step's implementation, or a fix
+round for
 findings that needed judgment. Triage priority is not a go-ahead. A review,
 and the comment pass once the change is clean, need none: whenever nothing is
 waiting on the user, no fix pending a decision, no finding needing judgment,
@@ -146,14 +163,15 @@ declare.
 
 ## Review
 
-Every change gets a fresh review, `/den:flag-review`, which runs three
-readers blind to each other and returns one report. A fix round is closed by
+Every change gets a fresh review by `den:reviewer`, launched through
+`/den:review` with the diff scope and the path of the plan or brief the
+change was written to, and nothing else, since what the launch prompt says
+about the change seeds the reviewer's conclusions. A fix round is closed by
 a fresh `den:closure-verifier` given the findings as the report worded them,
 the relevant design basis and the scope of the fixed tree, which reads each fix
 for what it opened as well as what it closed.
 
-Reviewers share the design basis while remaining blind to each other's
-conclusions. Triage unresolved questions separately from findings: answer from
+Triage unresolved questions separately from findings: answer from
 existing evidence where possible, otherwise put the decision and its effect
 to the user. A closure verdict of NEEDS-DECISION remains unresolved until that
 answer is supplied. Neither missing intent nor an undocumented rationale is
@@ -192,7 +210,7 @@ go to a fork with a short instruction.
 
 ## Commits
 
-Once implementation and code review have settled, a `den:comment-reviewer`
+Once a step's implementation and review have settled, a `den:comment-reviewer`
 pass, launched with `/den:comment-review`, runs before the commit is proposed;
 an earlier pass is wasted churn. Then propose the commit and wait for its own
 approval.

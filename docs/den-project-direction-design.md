@@ -135,23 +135,23 @@ implementer's limited role and existing human approval boundaries.
 
 ### 4. Review has requirements without inheriting conclusions
 
-The current `flag-review` workflow accepts only a Git scope, and its decisions
-reviewer looks to code for the answer to why a choice was made. That is
-insufficient for evaluating choices made for confirmed future requirements.
+The `review` skill accepts a Git scope and the path of the plan or brief the
+change was written to, and nothing else. The reviewer looks to that plan and
+to the repository's direction documents for the answer to why a choice was
+made; code alone is insufficient for evaluating choices made for confirmed
+future requirements.
 
-Preserve the public skill's Git-only argument. For work under the lead rules, let its
-internal workflow call additionally identify the relevant approved basis through
-a bounded reference to the brief/project document. Give all readers the same
-requirements and provenance while withholding the lead's suspected
-findings, preferred verdict, and other readers' reports.
+Keep the skill's argument to the scope and the plan path. The plan carries
+the requirements and their provenance; the launch withholds the lead's
+suspected findings and preferred verdict.
 
 Repository documents remain the discoverable fallback for standalone reviews.
 A missing basis is a limitation on claims about project fit, not proof that a
 decision is unjustified. Review can still report observable defects and costs.
 Do not require a new interview to review an arbitrary diff.
 
-Update `agents/decisions-reviewer.md` and the quality reviewer to assess
-consequences against this basis. Approved choices remain challengeable when
+The reviewer assesses consequences against this basis. Approved choices
+remain challengeable when
 evidence contradicts their rationale. Require an identified cost or conflict
 for a finding; silence in documentation alone is an unanswered question.
 Carry the basis and rationale to closure when they bear on the finding.

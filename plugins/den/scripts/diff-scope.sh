@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Renders the review scope for the flag-review and comment-review skills:
+# Renders the review scope for the review and comment-review skills:
 # repository, range, status, stat, and the diff itself when it fits.
 #
 # Skill substitution output past roughly 30,000 characters is replaced by a

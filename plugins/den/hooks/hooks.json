@@ -3,7 +3,7 @@
 	"hooks": {
 		"SubagentStop": [
 			{
-				"matcher": "den:review-synthesizer|den:closure-verifier",
+				"matcher": "den:reviewer|den:closure-verifier",
 				"hooks": [
 					{
 						"type": "command",
