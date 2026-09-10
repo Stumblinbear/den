@@ -27,7 +27,11 @@ alone, so read the one for the text in hand.
   history has homes that stay accurate: version control, a changelog, a
   deprecation marker, a decision record. Rewrite a change narration into the
   reason it left behind: `Uses a manual loop; iterator chains here unroll at
-  -O2 and double the binary` rather than `no longer uses iter()`.
+  -O2 and double the binary` rather than `no longer uses iter()`. A sentence
+  about something the text does not contain, a field it lost, a case it does
+  not handle, a decision that belongs elsewhere, is the same narration in the
+  grammar of a ruling: the reader who never saw the thing has nothing to
+  attach it to. Cut it.
 - **Cite what the reader can still reach.** In two years they hold this
   repository and its trackers, so RFCs, standards, papers, stable URLs and
   in-repo files still resolve, and so does an upstream issue that is the
@@ -66,7 +70,7 @@ its own.
 Before you read a draft, run one line over it:
 
 ```sh
-grep -nEi '—| -- |emphasiz|enhanc|highlight|showcas|in (summary|conclusion)|overall,|important to note|worth noting|in this (section|guide|article)|let'?s dive|as of my last update|not just .+ but|serves as|stands as' FILE
+grep -nEi '—| -- |emphasiz|enhanc|highlight|showcas|in (summary|conclusion)|overall,|important to note|worth noting|in this (section|guide|article)|let'?s dive|as of my last update|not just .+ but|serves as|stands as|no longer|not to this |belongs to (its|a) |handled elsewhere' FILE
 ```
 
 The line carries the current vocabulary band and the phrasings that belong to

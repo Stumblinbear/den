@@ -80,6 +80,13 @@ Fix: `look at`, and the fact behind the praise.
 - **Self-justifying tone.** The text assuring the reader that it is thorough,
   balanced or careful, or a report grading its own work. Fix: cut it. The
   reader grades it.
+- **The explained absence.** A sentence about what the text does not contain:
+  `the limit belongs to the caller, not to this file`, `this no longer takes
+  a timeout`, `that case is handled elsewhere`. It is a change
+  narration in the grammar of a ruling, and because it reads as a reason it
+  survives the cut that catches `no longer`. Fix: delete it. Where a reader
+  would fill the gap in, a guard names the wrong edit and its consequence at
+  the site of that edit; a ruling names neither.
 
 ## Not tells
 

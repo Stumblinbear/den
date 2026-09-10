@@ -52,6 +52,14 @@ minor bump may change behavior.
 
 ### Changed
 
+- The writing-for-humans skill names the explained absence as a tell: a
+  sentence about what the text does not contain (a field it lost, a case it
+  does not handle, a decision that belongs elsewhere) is change narration in
+  the grammar of a ruling, and the register grep now catches its phrasings.
+  The comment reviewer's licence to keep a narration's reason excludes it.
+  The doc-comment reference gains a module-doc section: what the module is
+  and holds and where its boundary lies, with mechanism left to the bodies
+  and inline comments; the reviewer routes module docs to it.
 - The reviewer writes the failing test for a defect it can demonstrate,
   through a normal product seam, leaves it in the tree, and runs that test
   alone; the finding carries the test's path and the red run. It has the

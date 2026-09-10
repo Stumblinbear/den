@@ -75,6 +75,18 @@ comment kinds, and two exceptions to it; the one that reaches a doc comment is
 the failure a non-obvious rule prevents, stated in one present-tense sentence
 as the reason the rule exists.
 
+## The module doc
+
+A module or file doc (`//!`, a package comment, a package `__init__`
+docstring) is read by someone deciding whether what they need is in here. It
+says what the module is and what it holds, in the terms its callers use, and
+where its boundary with its neighbours lies; one paragraph is usually the
+whole of it, and its first line is what a module index renders. How the
+module derives its answers is the bodies' business and changes without the
+module's role changing, so a reader who needs the derivation reads the code
+with the inline comments beside it. What the module does not do is the
+explained absence from the skill body, and goes for the same reason.
+
 ## Length is layering, not a budget
 
 No standard sets a length limit, and length tracks contract size: a four-line

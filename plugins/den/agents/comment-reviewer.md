@@ -23,9 +23,10 @@ The `writing-for-humans` skill is the standard you judge against. Every comment
 is one of two kinds, each with its own reference there:
 
 - **Documentation.** A doc comment on a named or public item (`///`, `---`, a
-  docstring). Its reader is a CALLER who may never read the body. Judge it by
-  the doc-comment reference, plus the one for the language in hand where it
-  exists.
+  docstring), or on a module (`//!`). Its reader is a CALLER who may never
+  read the body. Judge it by the doc-comment reference, plus the one for the
+  language in hand where it exists; a module doc by that reference's module
+  section.
 - **Inline.** A comment inside a body, beside the code it speaks to. Its reader
   is someone EDITING that code, with the body in front of them. Judge it by
   the inline-comment reference.
@@ -71,9 +72,11 @@ The cut is the default outcome for a failing comment: a rewrite costs the
 reader a reread and usually buys them the same nothing. Write a rewrite only
 when you can name what the reader now does differently for it, in one line
 where one line holds it; a change narration becomes the reason it left behind
-only when that reason passes the same test, and a reason the reader rebuilds
-from the lines beside it (that a file-level hook serves every test in the
-file) is theirs already.
+only when that reason passes the same test, which a sentence about what the
+code no longer has, or where a decision belongs instead, never does: the
+reader with the body in front of them sees nothing it attaches to. A reason
+the reader rebuilds from the lines beside it (that a file-level hook serves
+every test in the file) is theirs already.
 
 Read every comment you write as its reader will: with only the adjacent code
 on screen, and none of the diff, the other files, or the master comment you
