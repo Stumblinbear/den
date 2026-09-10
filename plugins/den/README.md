@@ -8,9 +8,8 @@ to fresh agents; every launch is authorized on its own.
 ## What it provides
 
 Skills, applied by Claude when their trigger fires. The ones a person can
-also run as `/den:<name>` are lead, project-direction, direction-docs, scoping,
-writing-for-agents, writing-for-humans and writing-a-skill; the rest are hidden
-from the `/` menu:
+also run as `/den:<name>` are lead, project-direction and scoping; the rest
+are hidden from the `/` menu:
 
 - `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
@@ -167,9 +166,10 @@ opened.
 
 What the hooks write: one small JSON file per finished agent, under
 `claude-review-triage/` and `claude-implementer-triage/` in the OS temp
-directory, in a subdirectory per session so that one session never hears
-another's agents, each deleted as its reminder is injected; and one per session
-under `claude-den-session/` there, naming the transcript.
+directory, inside a subdirectory named for the session so that one session
+never hears another's agents. The file is deleted as its reminder is injected;
+the session's subdirectory stays. And one file per session under
+`claude-den-session/` there, naming the transcript.
 
 What the hooks can do to a session: add one reminder per relay to the context
 of the next prompt you submit, and one line on a model switch that carries

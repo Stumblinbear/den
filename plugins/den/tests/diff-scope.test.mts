@@ -25,6 +25,10 @@ function repository(): string {
 	git(cwd, "init", "-q", "-b", "main");
 	git(cwd, "config", "user.email", "test@example.invalid");
 	git(cwd, "config", "user.name", "test");
+	// Quoting pinned on, so the non-ASCII case discriminates on a machine
+	// whose global config has it off, and proves the script outranks the
+	// repository's own setting.
+	git(cwd, "config", "core.quotePath", "true");
 	writeFileSync(join(cwd, "tracked.txt"), "one\n");
 	git(cwd, "add", "tracked.txt");
 	git(cwd, "commit", "-q", "-m", "base");
@@ -62,6 +66,29 @@ test("untracked files are listed from the root whatever the cwd", () => {
 	assert.match(out, /\+sub-new/);
 	assert.match(out, /sub\/subnew\.txt \| new file, 1 lines/);
 	assert.match(out, /rootnew\.txt \| new file, 1 lines/);
+});
+
+// git quotes a non-ASCII path unless told not to, and the quoted string
+// names no file: an untracked hunk drops and grep complains into the scope,
+// and a tracked file is named one way in the status and another in the
+// stat, so the per-file command the scope suggests names nothing.
+test("a non-ASCII name is rendered unescaped everywhere", () => {
+	const cwd = repository();
+	writeFileSync(join(cwd, "trä.txt"), "one\n");
+	git(cwd, "add", "trä.txt");
+	git(cwd, "commit", "-q", "-m", "umlaut");
+	writeFileSync(join(cwd, "trä.txt"), "one\ntwo\n");
+	writeFileSync(join(cwd, "plüg.txt"), "umlaut\n");
+
+	const out = scope(cwd, "");
+
+	assert.match(out, / M trä\.txt/);
+	assert.match(out, /trä\.txt +\| 1 \+/);
+	assert.match(out, /\+\+\+ b\/trä\.txt/);
+	assert.match(out, /\+umlaut/);
+	assert.match(out, /plüg\.txt \| new file, 1 lines/);
+	assert.doesNotMatch(out, /No such file/);
+	assert.doesNotMatch(out, /\\303/);
 });
 
 test("an ignored file stays out", () => {

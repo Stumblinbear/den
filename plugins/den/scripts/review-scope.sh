@@ -14,7 +14,9 @@ read -ra args <<< "${1-}"
 plan=""
 rest=()
 skip=0
-for arg in "${args[@]}"; do
+# The `+` form: under `set -u`, bash before 4.4 treats an empty array
+# expansion as unbound, and the argument is empty for a working-tree review.
+for arg in ${args[@]+"${args[@]}"}; do
   if [ "$skip" -eq 1 ]; then
     plan="$arg"
     skip=0

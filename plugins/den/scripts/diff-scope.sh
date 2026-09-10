@@ -14,6 +14,14 @@
 # eval. Split it back into `git diff` arguments here; none means HEAD.
 set -u
 
+# Every git call names a non-ASCII path unescaped. Under the default
+# core.quotePath git prints such a name as a quoted, escaped string, which
+# names no file: an untracked hunk drops, and the status, the stat and the
+# diff header would each spell one tracked file its own way, so the per-file
+# command the scope suggests names nothing. Set once through git's own
+# environment, since it has to hold for every call below.
+export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.quotePath GIT_CONFIG_VALUE_0=false
+
 read -ra args <<< "${1-}"
 if [ "${#args[@]}" -eq 0 ]; then
   args=(HEAD)
@@ -68,20 +76,21 @@ fi
 # taken from the root, since `--no-index` resolves a relative path against
 # the cwd and, on Git for Windows, `/dev/null` arrives rewritten to the
 # relative `nul`. The empty-array expansions are guarded for bash 3.2, where
-# `set -u` treats them as unbound.
+# `set -u` treats them as unbound. The listing is null-delimited, so a name
+# holding a newline still arrives whole.
 untracked=()
 read -ra revwords <<< "$revs"
 case "$revs" in
   *..*|--cached|--staged) ;;
   *)
     if [ "${#revwords[@]}" -le 1 ]; then
-      while IFS= read -r file; do
+      while IFS= read -r -d '' file; do
         [ -n "$file" ] && untracked+=("$file")
       done < <(
         if [ "${#paths[@]}" -eq 0 ]; then
-          git ls-files --others --exclude-standard --full-name -- ':/'
+          git ls-files --others --exclude-standard --full-name -z -- ':/'
         else
-          git ls-files --others --exclude-standard --full-name -- "${paths[@]}"
+          git ls-files --others --exclude-standard --full-name -z -- "${paths[@]}"
         fi
       )
     fi
