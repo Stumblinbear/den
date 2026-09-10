@@ -169,7 +169,7 @@ for (const runtime of runtimes()) {
 	});
 
 	// A verdict the session has been told about is the watcher's silence: the
-	// coordinator never says it declined, so nothing but a new signal reopens
+	// session never says it declined, so nothing but a new signal reopens
 	// the question, and a rung crossed is one.
 	test(
 		name("a delivered verdict stands until the level crosses a rung"),

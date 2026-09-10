@@ -6,7 +6,7 @@
 // is the first moment after this one that the session can hear anything.
 //
 // It advises and never acts, so everything it can get wrong costs a sentence
-// the coordinator may decline. The gate is read cheapest first and the judge
+// the session may decline. The gate is read cheapest first and the judge
 // paces itself, so most Stops here are one measurement and one turn read.
 //
 // Subagents are out of scope, as they are short-lived and cannot compact.
@@ -182,7 +182,7 @@ function released(session: string): void {
  * The prompt for this turn, and null where the transcript moved under the read
  * that builds it. The transcript is read once more here for the priced
  * reading, which is the same text the cut-point script prints and the same
- * figures the coordinator would be shown.
+ * figures the session would be shown.
  */
 async function prompted(
 	transcript: string,
@@ -222,7 +222,7 @@ const RELAY = [
 /**
  * What the session is told: where the judge looked, what it recommends and
  * why, and what a cut is owed. The reason is the judge's own sentence, since
- * advice a coordinator cannot weigh is an instruction.
+ * advice the session cannot weigh is an instruction.
  */
 const advice = (
 	answer: Extract<Answer, { kind: "good" }>,

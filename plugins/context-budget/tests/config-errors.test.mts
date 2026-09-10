@@ -157,8 +157,9 @@ for (const runtime of runtimes()) {
 	});
 
 	// The report asks whoever reads it to put the line to the user, and a
-	// subagent answers its coordinator. The coordinator's own runs read the same
-	// file through the same parser, so the line reaches the user from there.
+	// subagent answers the session that launched it. The session's own runs
+	// read the same file through the same parser, so the line reaches the user
+	// from there.
 	test(name("a subagent's own tool call hears nothing"), () => {
 		quiet(
 			hook(

@@ -86,7 +86,7 @@ export function judgePrompt(
 }
 
 /**
- * The rules below are the coordinator's own, so that the two cannot rule
+ * The rules below are the session's own, so that the two cannot rule
  * differently on one moment. The arc test is "Judging the stopping point" and
  * the order of the three options is "Choosing between them", both in
  * `skills/context-budget/SKILL.md`; the priced rule the third step states is
@@ -329,7 +329,7 @@ function narrowed(answer: Record<string, unknown>): Answer {
 		.trim()
 		.replace(/[.\s]+$/, "");
 
-	// A recommendation with nothing to act on is one the coordinator would have
+	// A recommendation with nothing to act on is one the session would have
 	// to invent the missing half of, and the reason is the whole of what makes
 	// it advice rather than an instruction.
 	if (option === null || reason === "") {

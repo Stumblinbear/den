@@ -158,7 +158,7 @@ const lands = (use: ToolUse): boolean =>
  *
  * A verdict is over once the context climbs off the rung it was judged on or
  * the turn lands something, which is the silence the design asks for after
- * advice the session declined: the coordinator never says that it declined, so
+ * advice the session declined: the session never says that it declined, so
  * a new signal is the only thing that can reopen the question.
  */
 export function standing(state: WatcherState, turned: Turned): WatcherState {

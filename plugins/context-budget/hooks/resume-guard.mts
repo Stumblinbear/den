@@ -134,8 +134,9 @@ await runEntry({ faults: GUARD_FAULTS }, async ({ input, session }) => {
 	// Without a session id there is no record to spend an answer in: every
 	// input carrying none would share one file named for no session at all. A
 	// subagent's input names the agent it is for, and a report written on its
-	// run reaches its coordinator rather than the user; the coordinator's own
-	// runs read the same file through the same parser and report it there.
+	// run reaches the session that launched it rather than the user; the
+	// session's own runs read the same file through the same parser and report
+	// it there.
 	if (
 		input["tool_name"] !== "SendMessage" ||
 		session === "" ||

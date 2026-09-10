@@ -127,8 +127,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - The resume guard says nothing at all on a SendMessage a subagent made. Its
   deny asks Claude to put the choice to you before it retries, and its report of
   a broken config file asks whoever reads it to pass the line on; a subagent
-  answers its coordinator rather than you, so both reached a reader who could do
-  nothing with either. A resume you set off is guarded as it was, and your own
+  answers the session that launched it rather than you, so both reached a
+  reader who could do nothing with either. A resume you set off is guarded as it was, and your own
   turns report the same config file.
 
 ## [0.4.0] - 2026-09-06
