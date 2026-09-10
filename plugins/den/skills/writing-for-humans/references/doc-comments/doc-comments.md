@@ -75,17 +75,88 @@ comment kinds, and two exceptions to it; the one that reaches a doc comment is
 the failure a non-obvious rule prevents, stated in one present-tense sentence
 as the reason the rule exists.
 
+## One level owns a fact
+
+A doc comment sits at one of four levels, and each level answers one
+question. A fact belongs at exactly one of them. A fact found at the wrong
+level moves down to the item that owns it, never up, and how an item works
+has no level at all, since no doc describes a body. The standard library's
+own text is the standard for each:
+
+- **A module doc says what is here.** `std::net`:
+
+  ```rust
+  //! Networking primitives for TCP/UDP communication.
+  //!
+  //! # Organization
+  //!
+  //! * [`TcpListener`] and [`TcpStream`] provide functionality for communication over TCP
+  //! * [`UdpSocket`] provides functionality for communication over UDP
+  //! * [`IpAddr`] represents IP addresses of either IPv4 or IPv6; [`Ipv4Addr`] and
+  //!   [`Ipv6Addr`] are respectively IPv4 and IPv6 addresses
+  ```
+
+- **A type doc says what one of these is, and what holds for every one.**
+  `std::fs::File`:
+
+  ```rust
+  /// An object providing access to an open file on the filesystem.
+  ///
+  /// An instance of a `File` can be read and/or written depending on what options
+  /// it was opened with. Files also implement [`Seek`] to alter the logical cursor
+  /// that the file contains internally.
+  ///
+  /// Files are automatically closed when they go out of scope.
+  ```
+
+- **A function doc says what a call does, guarantees and fails.**
+  `Vec::truncate`:
+
+  ```rust
+  /// Shortens the vector, keeping the first `len` elements and dropping
+  /// the rest.
+  ///
+  /// If `len` is greater or equal to the vector's current length, this has
+  /// no effect.
+  ///
+  /// Note that this method has no effect on the allocated capacity
+  /// of the vector.
+  ```
+
+- **A field doc says what the value means.** `Range::start`:
+
+  ```rust
+  /// The lower bound of the range (inclusive).
+  ```
+
+So "a lookup reads the store each time" is what a call does and belongs on
+the function, not in the module doc above it. "Every length is in metres" is
+what each value means and belongs on each field, or in a type that carries
+the unit. "Each row is written by name and read back by name" is how the
+codec works and belongs in no doc; the code that does it shows it.
+
 ## The module doc
 
 A module or file doc (`//!`, a package comment, a package `__init__`
-docstring) is read by someone deciding whether what they need is in here. It
-says what the module is and what it holds, in the terms its callers use, and
-where its boundary with its neighbours lies; one paragraph is usually the
-whole of it, and its first line is what a module index renders. How the
-module derives its answers is the bodies' business and changes without the
-module's role changing, so a reader who needs the derivation reads the code
-with the inline comments beside it. What the module does not do is the
-explained absence from the skill body, and goes for the same reason.
+docstring) is the index entry a caller reads to find what they need, and the
+standard library and the mature crates all write it the same way:
+
+- One line saying what the module is: *"Filesystem manipulation
+  operations."*, *"Storage layouts for ECS data."*
+- What it provides, as the items by name with one phrase each, the way
+  `std::net` lists *"`TcpListener` and `TcpStream` provide functionality for
+  communication over TCP"*; and where to start, when there is one way in.
+- A fact that no item can carry, as `std::fs` states TOCTOU races, which
+  are the OS's under every operation, and `std::net` that no socket is
+  inherited by a child process. A fact with an item to live on goes there,
+  however many items it holds for: a unit, a sign or a coordinate frame goes
+  on the fields that carry it, or is a type the code is missing; when a
+  check runs goes on the function that runs it.
+- Links to the specification the module implements, and examples.
+
+That is the whole of it. How the module works is read in the code with the
+inline comments beside it; why it was designed as it was is the decision
+record's; what it leaves out is the explained absence from the skill body.
 
 ## Length is layering, not a budget
 

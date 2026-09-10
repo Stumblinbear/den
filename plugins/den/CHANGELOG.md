@@ -52,14 +52,24 @@ minor bump may change behavior.
 
 ### Changed
 
-- The writing-for-humans skill names the explained absence as a tell: a
-  sentence about what the text does not contain (a field it lost, a case it
-  does not handle, a decision that belongs elsewhere) is change narration in
-  the grammar of a ruling, and the register grep now catches its phrasings.
-  The comment reviewer's licence to keep a narration's reason excludes it.
-  The doc-comment reference gains a module-doc section: what the module is
-  and holds and where its boundary lies, with mechanism left to the bodies
-  and inline comments; the reviewer routes module docs to it.
+- The comment reviewer rewrites every doc comment in scope from the code,
+  at its level and in the shape of the standard library example for that
+  level, and treats the existing comment as no source; it works one file at
+  a time and edits each comment as it reaches it, since a judged-and-kept
+  path kept nearly every comment it was given. Inline comments are rewritten
+  by the inline reference or cut where the code shows the fact. The report
+  is counts and gaps.
+- The doc-comment reference states that one level owns a fact, with the
+  standard library's own text for each level: a module doc says what is
+  here, a type doc what one of these is, a function doc what a call does,
+  guarantees and fails, a field doc what the value means. A module doc
+  carries a cross-item fact only when no item can carry it; a unit, a sign
+  or a coordinate frame goes on the fields, and when a check runs goes on
+  the function.
+- The writing-for-humans skill names the explained absence as a tell and
+  the register grep catches its phrasings; the doc-comment reference gains a
+  module-doc section in the standard library's shape: one line saying what
+  the module is, the items it provides by name, and where to start.
 - The reviewer writes the failing test for a defect it can demonstrate,
   through a normal product seam, leaves it in the tree, and runs that test
   alone; the finding carries the test's path and the red run. It has the
