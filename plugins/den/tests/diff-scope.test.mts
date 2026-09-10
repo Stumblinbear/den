@@ -6,7 +6,7 @@
 // this checkout, or the case before, reaches it.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -45,6 +45,23 @@ test("an untracked file is rendered as a new-file hunk of the working tree", () 
 	assert.match(out, /\+alpha\n\+beta/);
 	assert.match(out, /module\.txt \| new file, 2 lines/);
 	assert.doesNotMatch(out, /The diff is empty/);
+});
+
+// The tracked diff and the status are repository-wide and root-relative
+// whatever the cwd; the untracked rendering has to be too, or a session
+// working in a subdirectory reviews a different change from one at the root.
+test("untracked files are listed from the root whatever the cwd", () => {
+	const cwd = repository();
+	mkdirSync(join(cwd, "sub"));
+	writeFileSync(join(cwd, "rootnew.txt"), "root-new");
+	writeFileSync(join(cwd, "sub", "subnew.txt"), "sub-new\n");
+
+	const out = scope(join(cwd, "sub"), "");
+
+	assert.match(out, /\+root-new/);
+	assert.match(out, /\+sub-new/);
+	assert.match(out, /sub\/subnew\.txt \| new file, 1 lines/);
+	assert.match(out, /rootnew\.txt \| new file, 1 lines/);
 });
 
 test("an ignored file stays out", () => {

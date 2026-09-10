@@ -61,6 +61,14 @@ fi
 # compares against the working tree, each untracked, non-ignored file is
 # rendered as the new-file hunk it becomes once added, without touching the
 # index. A range between two revisions has no working tree in it.
+#
+# The tracked diff and the status are repository-wide and root-relative
+# whatever the cwd, so this listing is too: `--full-name` and the `:/`
+# pathspec cover the whole tree when no pathspec was given, and each hunk is
+# taken from the root, since `--no-index` resolves a relative path against
+# the cwd and, on Git for Windows, `/dev/null` arrives rewritten to the
+# relative `nul`. The empty-array expansions are guarded for bash 3.2, where
+# `set -u` treats them as unbound.
 untracked=()
 read -ra revwords <<< "$revs"
 case "$revs" in
@@ -69,17 +77,24 @@ case "$revs" in
     if [ "${#revwords[@]}" -le 1 ]; then
       while IFS= read -r file; do
         [ -n "$file" ] && untracked+=("$file")
-      done < <(git ls-files --others --exclude-standard -- "${paths[@]}")
+      done < <(
+        if [ "${#paths[@]}" -eq 0 ]; then
+          git ls-files --others --exclude-standard --full-name -- ':/'
+        else
+          git ls-files --others --exclude-standard --full-name -- "${paths[@]}"
+        fi
+      )
     fi
     ;;
 esac
 newstat=""
-for file in "${untracked[@]}"; do
+for file in ${untracked[@]+"${untracked[@]}"}; do
   # --no-index exits 1 whenever the file has content, which is the normal case.
-  hunk=$(git diff --no-color --no-ext-diff --no-index -- /dev/null "$file" 2>/dev/null || true)
+  hunk=$(git -C "$root" diff --no-color --no-ext-diff --no-index -- /dev/null "$file" 2>/dev/null || true)
   diff="${diff:+$diff
 }$hunk"
-  newstat="$newstat$(printf ' %s | new file, %s lines' "$file" "$(wc -l < "$file")")
+  # grep counts a last line without a newline; wc -l does not.
+  newstat="$newstat$(printf ' %s | new file, %s lines' "$file" "$(grep -c '' "$root/$file")")
 "
 done
 
@@ -111,6 +126,6 @@ if [ "$rendered" -le "$budget" ]; then
   printf 'Diff:\n````diff\n%s\n````\n' "$diff"
 else
   printf 'Status, stat, and diff together come to %s characters, past the inline ceiling, so the diff is not rendered here. ' "$rendered"
-  printf 'Pull it per file with `git diff %s -- <path>`. ' "$revs"
+  printf 'Pull it per file with `git diff %s -- <path>`; a stat line marked `new file` is an untracked file, which `git diff` cannot show, so read it directly. ' "$revs"
   printf 'A single file past about 500 changed lines overflows the same ceiling; slice it, for example `git diff %s -- <path> | sed -n "1,400p"`.\n' "$revs"
 fi
