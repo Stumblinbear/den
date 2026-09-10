@@ -195,7 +195,7 @@ the first match wins, so a general row above a specific one hides it.
 
 The guard's two tables are read the same way, one after the other:
 `[resume-guard.agents]` first, keyed on the resumed agent's type with its
-plugin prefix in place, so `'flag-reviewer'` matches `den:flag-reviewer` and a
+plugin prefix in place, so the shipped row is keyed `'den:reviewer'` and a
 subagent whose metadata records no type is `subagent`; then
 `[resume-guard.models]`, keyed on the model that subagent's newest turn names;
 then the `[resume-guard]` numbers. The type comes first because it is the more

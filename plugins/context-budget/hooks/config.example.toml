@@ -153,13 +153,15 @@ cold = 200_000
 # Rows keyed by the resumed agent's type, tried before the model rows below and
 # before the numbers above, because the type is the more specific fact about a
 # resume. Keys are regular expressions matched against the type as its metadata
-# records it, with the plugin prefix in place, so 'flag-reviewer' matches
-# den:flag-reviewer. The first row that matches wins, in the order written here,
+# records it, with the plugin prefix in place, so the row below is keyed
+# 'den:reviewer'. The first row that matches wins, in the order written here,
 # and a row carries both limits or, switched off, neither.
 #
 # Only a type whose numbers would differ from what it gets anyway is worth a
-# row: an implementer takes the numbers above, so it is not written out here,
-# and the reviewer's row below overrides the fable row it would otherwise take.
+# row. A type without one falls through to its model's row and then to the
+# numbers above: the opus implementer takes those numbers, the fable
+# implementer the fable row, the haiku implementer the switched-off haiku row.
+# The reviewer's row below overrides the fable row it would otherwise take.
 
 # The numbers below were measured on den's former red-green fixer, which held
 # the red tests it had written across a resume. A fresh one reread about 70K
@@ -184,8 +186,11 @@ cold = 100_000
 # Fable reads a cached context at a fortieth of a fresh input token, against a
 # tenth on Opus, so a resume stays the cheaper of the two far past where it
 # stops being so there. 600K leaves room to finish under the 700K urgent
-# threshold above; 400K is about the 450K a fresh reviewer rereads, which is
-# what refusing a cold resume would cost.
+# threshold above; 400K is about the 450K den's former flag reviewer reread
+# fresh on fable, the largest rediscovery measured on this project, which is
+# what refusing a cold resume would cost. den's reviewer has its own row above
+# and never reaches this one; the fable-tier agents that do, the fable
+# implementer among them, were not measured on their own.
 [resume-guard.models.'fable']
 large = 600_000
 cold = 400_000

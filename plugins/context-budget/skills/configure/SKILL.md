@@ -151,7 +151,7 @@ the model the subagent's newest turn names; failing that, the section's own
 numbers. The agent type comes first because it is the more specific fact about
 a resume. Keys are regular expressions matched the way the `[models]` rows
 above are, the first row written wins, and an agent key matches with the plugin
-prefix in place, so `'flag-reviewer'` matches `den:flag-reviewer` and a
+prefix in place, so the shipped row is keyed `'den:reviewer'` and a
 subagent with no type recorded is `subagent`. A row carries both limits, or
 `enabled = false` and neither; a row switched off is the answer for what it
 matches rather than a reason to look on. The section's own `enabled = false`

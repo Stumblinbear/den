@@ -18,7 +18,7 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   model row matching the model its newest turn names, then the section's own
   numbers; the agent type comes first because it is the more specific fact
   about a resume. Agent-type keys match with the plugin prefix in place, so
-  `'flag-reviewer'` matches `den:flag-reviewer`. Both tables may be left out, so
+  the shipped row is keyed `'den:reviewer'`. Both tables may be left out, so
   a configuration written before this release keeps the guard it already had,
   and `[resume-guard] enabled = false` still switches the whole guard off, rows
   included.
@@ -92,11 +92,13 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   schema above and hands the CLI something no JSON parser reads.
 - The example configuration's resume guard sits at 300K `large` and 200K `cold`
   rather than 150K and 50K, with a `fable` model row at 600K and 400K, a
-  `den:red-green-fixer` agent row at 150K and 100K, and a `haiku` model row
-  switched off. Measured on this project's sessions, a fresh flag reviewer reads
-  about 450K tokens more than a resumed one to finish the same pass, an
-  implementer about 230K and a fixer about 70K, and refusing a resume worth
-  taking costs that whole rediscovery. The old numbers refused resumes on Fable
+  `den:reviewer` agent row at 150K and 100K, and a `haiku` model row switched
+  off. Measured on this project's sessions, den's former flag reviewer read
+  about 450K tokens more fresh than resumed to finish the same pass, an
+  implementer about 230K and den's former red-green fixer about 70K, and
+  refusing a resume worth taking costs that whole rediscovery. den's reviewer
+  now holds the red tests the fixer held, so its row carries the fixer's
+  numbers until measured on its own. The old numbers refused resumes on Fable
   that were still the cheaper of the two by a wide margin.
 - The example configuration's `[default]` thresholds sit at 250K `notice` and
   450K `urgent` rather than 150K and 250K. Every current model carries a 1M
