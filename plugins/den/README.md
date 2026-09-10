@@ -157,6 +157,8 @@ The plugin declares no dependencies, so Claude Code installs nothing for it.
 
 The `review` and `comment-review` skills render the review scope with
 `git` through `bash`, so both have to be available where the session runs.
+A working-tree scope includes untracked files that are not ignored, rendered
+as the new files they would become; a range between two revisions does not.
 
 What the hooks read: the last half megabyte of the session's own transcript,
 on a model switch and when the `handoff-cost` reading runs, for the newest

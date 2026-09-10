@@ -31,6 +31,17 @@ for arg in "$@"; do
   revs="${revs:+$revs }$arg"
 done
 
+# Pathspecs after `--`, so untracked files are filtered the way the diff is.
+paths=()
+after=0
+for arg in "$@"; do
+  if [ "$after" -eq 1 ]; then
+    paths+=("$arg")
+  elif [ "$arg" = "--" ]; then
+    after=1
+  fi
+done
+
 if ! root=$(git rev-parse --show-toplevel 2>&1); then
   printf 'Not inside a git repository: %s\n' "$root"
   exit 0
@@ -45,15 +56,43 @@ if ! diff=$(git diff --no-color --no-ext-diff --diff-algorithm=histogram "$@" 2>
   exit 0
 fi
 
+# Untracked files are outside the index, so `git diff` never shows them, and
+# a new module is the part of a change a review has to read. When the range
+# compares against the working tree, each untracked, non-ignored file is
+# rendered as the new-file hunk it becomes once added, without touching the
+# index. A range between two revisions has no working tree in it.
+untracked=()
+read -ra revwords <<< "$revs"
+case "$revs" in
+  *..*|--cached|--staged) ;;
+  *)
+    if [ "${#revwords[@]}" -le 1 ]; then
+      while IFS= read -r file; do
+        [ -n "$file" ] && untracked+=("$file")
+      done < <(git ls-files --others --exclude-standard -- "${paths[@]}")
+    fi
+    ;;
+esac
+newstat=""
+for file in "${untracked[@]}"; do
+  # --no-index exits 1 whenever the file has content, which is the normal case.
+  hunk=$(git diff --no-color --no-ext-diff --no-index -- /dev/null "$file" 2>/dev/null || true)
+  diff="${diff:+$diff
+}$hunk"
+  newstat="$newstat$(printf ' %s | new file, %s lines' "$file" "$(wc -l < "$file")")
+"
+done
+
 # --porcelain keeps status paths root-relative like the stat and diff headers,
 # whatever the session shell's cwd or the user's status config.
 header=$(
   printf 'Repository: %s\n' "$root"
   printf 'Range: `git diff %s`\n\n' "$range"
-  printf 'Status (untracked files are not in the diff):\n```\n'
+  printf 'Status:\n```\n'
   git status --porcelain
   printf '```\n\nStat:\n```\n'
   git diff --no-color --stat=110 "$@"
+  printf '%s' "$newstat"
   printf '```\n'
 )
 

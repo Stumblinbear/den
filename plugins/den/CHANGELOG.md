@@ -24,6 +24,15 @@ minor bump may change behavior.
 - A finished fork of the session is recorded for implementer triage like an
   implementer or fixer.
 
+### Fixed
+
+- A review of the working tree renders untracked files as the new-file hunks
+  they become once added, without touching the index. `git diff` never shows
+  a file outside the index, so a new module in a pending change reached the
+  reviewer as a line in the status and nothing more, and a session that
+  noticed marked the files intent-to-add to get them rendered. A range
+  between two revisions holds no working tree and is unchanged.
+
 ### Changed
 
 - The lead rules deliver a change as steps: cut under `slicing` once the
