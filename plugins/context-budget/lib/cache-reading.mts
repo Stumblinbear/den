@@ -308,7 +308,7 @@ function compactRow(scan: CacheWindow, context: number, read: number): Row {
 	const turns = paybackTurns(cut, scan.ttl, read);
 
 	return {
-		head: "`/compact <focus line>`",
+		head: "`/compact [focus]`",
 		detail: `${tail.from} | summarizes ${formatTokens(cut.prefixTokens)} tokens, keeps about ${formatTokens(cut.keptTokens)}${paybackClause(turns)}`,
 		turns,
 	};

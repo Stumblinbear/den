@@ -48,19 +48,16 @@ A rewind at a prompt re-reads everything before it. That prefix is cached only w
 
 ## The focus line
 
-A focus line steers what the summary keeps, on `/compact` and on a rewind
-alike. Everything that must survive the cut goes to disk before you write it:
-open work becomes tasks, with the run ids, file paths, and remaining steps in
-the task description; a ruling that outlives the session goes to memory; a
-finding goes in a file. That leaves the line one clause for the arc and a
-pointer to the task holding the state.
+A focus line tells the compaction what to keep, and nothing else. It is
+written only when something in the conversation has to survive the cut
+and is not on disk, usually an open decision or a ruling not yet
+recorded, and it names that in one short sentence. Standing rules,
+committed work and files need no mention: the summary is written by the
+compaction, and a line that describes the session or its work is a
+summary written in advance, spending tokens to save none. When nothing
+in the conversation needs keeping, `/compact` runs bare.
 
-`/compact finishing the repo-wide comment and voice pass, task #26`
-
-Decisions and identifiers still matter, and they are on disk by the time the
-line is written, so the line says where they are rather than repeating them. A
-summary that re-describes what is already written down spends tokens to save
-none, and a long focus line is that mistake made in advance.
+`/compact keep that the fable row's figure stands and the reason`
 
 ## Judging the stopping point
 

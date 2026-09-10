@@ -40,6 +40,12 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   resume.
 ### Changed
 
+- The focus line is what the compaction keeps, and nothing else: written only
+  when something in the conversation has to survive the cut and is not on
+  disk, one short sentence, and omitted otherwise. It was described as a
+  clause for the arc plus a task pointer, which produced summaries written
+  in advance. The reading's row is `/compact [focus]` to say the same.
+
 - A fault that stops the hooks goes to the agent, in the field Claude Code hands
   it, carrying an instruction to put the line to you, and arrives again on every
   turn the fault stands. It went to stderr behind a hook that exited non-zero,

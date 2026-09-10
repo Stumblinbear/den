@@ -42,7 +42,7 @@ for (const runtime of runtimes()) {
 
 		assert.match(
 			out,
-			/1\. `\/compact <focus line>`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+			/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
 		);
 		assert.match(
 			out,
@@ -82,7 +82,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. `\/compact <focus line>`\s+tail from the compaction at \d\d:\d\d \| summarizes 170K tokens, keeps about 30K, pays back after 6 turns/,
+				/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 170K tokens, keeps about 30K, pays back after 6 turns/,
 			);
 			assert.doesNotMatch(
 				out,
@@ -120,7 +120,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. `\/compact <focus line>`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
 			);
 			assert.doesNotMatch(
 				out,
@@ -159,7 +159,7 @@ for (const runtime of runtimes()) {
 			);
 			assert.match(
 				out,
-				/1\. `\/compact <focus line>`\s+tail from the compaction at \d\d:\d\d \| summarizes 188\.7K tokens, keeps about 11\.3K, pays back after 3 turns/,
+				/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 188\.7K tokens, keeps about 11\.3K, pays back after 3 turns/,
 			);
 			assert.match(
 				out,
@@ -205,7 +205,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. `\/compact <focus line>`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
 			);
 			assert.doesNotMatch(
 				out,
@@ -234,7 +234,7 @@ for (const runtime of runtimes()) {
 			// fewer turns left in it than its payback.
 			assert.match(
 				out,
-				/1\. `\/compact <focus line>`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns\s+2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns\s+2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
 			);
 		},
 	);

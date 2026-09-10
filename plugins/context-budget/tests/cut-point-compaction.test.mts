@@ -159,7 +159,7 @@ for (const runtime of runtimes()) {
 		// the next `/compact` on.
 		assert.match(
 			out,
-			/1\. `\/compact <focus line>`\s+tail from the compaction at \d\d:\d\d \| summarizes 168\.8K tokens, keeps about 31\.2K, pays back after 6 turns/,
+			/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 168\.8K tokens, keeps about 31\.2K, pays back after 6 turns/,
 		);
 		assert.match(
 			out,

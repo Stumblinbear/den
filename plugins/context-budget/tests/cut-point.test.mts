@@ -141,7 +141,7 @@ for (const runtime of runtimes()) {
 			// options that are not a rewind stand whatever the list came to.
 			assert.match(
 				out,
-				/1\. `\/compact <focus line>`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
 			);
 			assert.match(
 				out,
