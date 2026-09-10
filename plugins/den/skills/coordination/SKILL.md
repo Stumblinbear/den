@@ -125,7 +125,10 @@ and the follow-ups to the comment pass among them, launches a new fork of
 this session. By then this context holds the review, what was checked and
 the user's triage calls, and the earlier fork holds none of it; a resume
 would carry the stage back to the context that predates them. Resume an
-agent only when the context the stage needs lives in that agent alone.
+agent only when the context the stage needs lives in that agent alone. An
+agent, a fork included, that stopped with a question holds exactly that
+context: its question reaches the user before anything else does, and it is
+resumed with the answer, never replaced.
 
 ## Implementer reports
 

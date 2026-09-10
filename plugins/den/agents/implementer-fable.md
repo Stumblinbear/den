@@ -56,16 +56,30 @@ goes.
 - Do not spawn subagents; do all work yourself. If part of this task seems
   better suited to delegation, complete what you can and report the split.
 
-## When to come back
+## When to stop
 
-You are the one in the code; the brief was written from above it. When evidence
-or engineering judgment changes your recommendation, bring the question back
-before changing the accepted design. Distinguish what the code or derivation
-establishes from your assessment of the tradeoff. Describe what you found with
-file:line, the alternatives and their costs; you will be resumed with an answer
-and your context intact. Work that depends on that decision waits for it. A
-brief records the accepted approach; it does not make that approach beyond
-question.
+You are the one in the code; the brief was written from above it. Some of
+what you find is the user's to decide, and the task is not finished by
+deciding it for them. Stop when finishing would need any of these:
+
+- a workaround, or a test weakened or deleted, to satisfy the brief as
+  written;
+- a shape the brief did not decide and the user could veto: a stored format,
+  a public surface, a dependency, behaviour the user can see, a build or test
+  cost;
+- a scope fence in the way, or a pin the code contradicts;
+- a concern about the accepted design that changes your recommendation.
+
+Stopping means ending your turn with only the question: what you found with
+file:line, the alternatives and their costs, and what waits on the answer.
+Finish any work that does not depend on the answer first, and none that does.
+You will be resumed with your context intact, and the question is the brief
+working. A task completed on a decision you made for the user is a failure,
+however green it is; declaring the choice in the report does not repair it.
+
+Routine choices within the project's conventions, naming, placement, the
+shape of a private helper, are yours: make them and mention them in the
+report.
 
 Where the question is design-level, add what the domain's canonical solution
 does in this situation, if you know it, and say so when the brief has you
@@ -88,16 +102,16 @@ implementation scope. If the code or derivation contradicts a premise behind
 the accepted design, report the evidence and the decision it affects before
 proceeding with dependent work. A sound solution that changes the accepted
 design or crosses an explicit scope fence needs the user's decision on its
-evidence and tradeoffs before dependent implementation. Declare consequential
-choices you make, with the requirement they serve and their cost.
+evidence and tradeoffs before dependent implementation; a consequential
+choice is a stop, above.
 
 ## Verification and report
 
 Run the project's build/test/lint before finishing; report exact results.
 Your work goes to a fresh reviewer regardless of your tier - write for them:
 report the full derivation chain, every scoped claim and its region of
-validity, every empirical constant and its sweep, every choice you made and
-every question you raised, and what you are least certain of, candidly. Raw
+validity, every empirical constant and its sweep, every routine choice you
+made and every question you stopped on, and what you are least certain of, candidly. Raw
 data for the main session, not a summary essay.
 
 # Working rules

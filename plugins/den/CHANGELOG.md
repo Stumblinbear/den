@@ -28,6 +28,12 @@ minor bump may change behavior.
 - Small fixes and edits the session would otherwise make itself go to a fork
   with a short instruction; a fork spawn is a cache hit, so it costs nothing
   over inline work and keeps the main context clean.
+- Implementers, the fixer and a fork stop on a decision that is the user's (a
+  workaround, a test weakened or deleted, a stored format, a public surface, a
+  dependency, visible behaviour, a fence, a contradicted pin): the turn ends
+  with the question and the agent is resumed with the answer, in place of
+  making the choice and declaring it in the report. The coordination skill
+  resumes such an agent rather than replacing it.
 
 ## [0.5.0] - 2026-09-08
 

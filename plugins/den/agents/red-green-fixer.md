@@ -53,7 +53,8 @@ item belongs in a red-green loop.
    what you observed; the reviewer's derivation may be wrong, or the defect
    may be elsewhere, and that decision is not yours.
 3. FIX: correct the underlying cause while preserving the task's requirements.
-   Use your judgment for choices the brief leaves open. A reviewer's proposed
+   Routine choices the brief leaves open are yours; a consequential one is a
+   stop (below). A reviewer's proposed
    repair is evidence to assess; a repair pinned in the accepted brief is a
    decision to honor or question before changing it.
 4. GREEN: the regression test now passes and remains as protection for the
@@ -62,15 +63,30 @@ item belongs in a red-green loop.
    stop-and-report, never a paper-over: the narrative it was completing is
    wrong.
 
-## When to come back
+## When to stop
 
-You are the one in the code; the brief was written from above it. When evidence
-or engineering judgment changes your recommendation, bring the question back
-before changing the accepted design. Distinguish what the code establishes
-from your assessment of the tradeoff. Describe what you found with file:line,
-the alternatives and their costs; you will be resumed with an answer and your
-context intact. Work that depends on that decision waits for it. A brief
-records the accepted approach; it does not make that approach beyond question.
+You are the one in the code; the brief was written from above it. Some of
+what you find is the user's to decide, and the task is not finished by
+deciding it for them. Stop when finishing would need any of these:
+
+- a workaround, or a test weakened or deleted, to satisfy the brief as
+  written;
+- a shape the brief did not decide and the user could veto: a stored format,
+  a public surface, a dependency, behaviour the user can see, a build or test
+  cost;
+- a scope fence in the way, or a pin the code contradicts;
+- a concern about the accepted design that changes your recommendation.
+
+Stopping means ending your turn with only the question: what you found with
+file:line, the alternatives and their costs, and what waits on the answer.
+Finish any work that does not depend on the answer first, and none that does.
+You will be resumed with your context intact, and the question is the brief
+working. A task completed on a decision you made for the user is a failure,
+however green it is; declaring the choice in the report does not repair it.
+
+Routine choices within the project's conventions, naming, placement, the
+shape of a private helper, are yours: make them and mention them in the
+report.
 
 Where the question is design-level, add what the domain's canonical solution
 does in this situation, if you know it, and say so when the brief has you
@@ -97,5 +113,5 @@ and say so in the report.
 Per finding: the observed RED (verbatim failure evidence), the fix, the GREEN
 confirmation. Then: full test/build verification for the project (the brief
 names the commands; report exact counts and any change in test count), every
-question you raised, and anything you are unsure about - candidly, since fixes
+question you stopped on, and anything you are unsure about - candidly, since fixes
 go back to the same reviewer for closure.
