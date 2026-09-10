@@ -8,8 +8,9 @@ to fresh agents; every launch is authorized on its own.
 ## What it provides
 
 Skills, applied by Claude when their trigger fires. The ones a person can
-also run as `/den:<name>` are project-direction, direction-docs, scoping, writing-for-agents,
-writing-for-humans and writing-a-skill; the rest are hidden from the `/` menu:
+also run as `/den:<name>` are lead, project-direction, direction-docs, scoping,
+writing-for-agents, writing-for-humans and writing-a-skill; the rest are hidden
+from the `/` menu:
 
 - `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
@@ -75,7 +76,7 @@ Agents, launched through the Agent tool as `den:<name>`:
   a priority and a failing test left in the tree, or a discriminating check
   where a test would need heavy scaffolding, questionable patterns, and choices
   that do not serve the project's goals, with unresolved questions kept
-  separate. It edits nothing.
+  separate. The tests it writes are the only files it touches.
 - `closure-verifier` (opus): verdicts a review's findings against the fixed
   tree, CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION
   keeps an item unresolved when closure depends on a product decision.
@@ -166,7 +167,8 @@ opened.
 
 What the hooks write: one small JSON file per finished agent, under
 `claude-review-triage/` and `claude-implementer-triage/` in the OS temp
-directory, each deleted as its reminder is injected; and one per session
+directory, in a subdirectory per session so that one session never hears
+another's agents, each deleted as its reminder is injected; and one per session
 under `claude-den-session/` there, naming the transcript.
 
 What the hooks can do to a session: add one reminder per relay to the context

@@ -22,7 +22,7 @@ minor bump may change behavior.
   tells the session to implement inline; and a `UserPromptSubmit` hook that
   records the transcript path the reading measures.
 - A finished fork of the session is recorded for implementer triage like an
-  implementer or fixer.
+  implementer.
 
 ### Fixed
 
@@ -31,9 +31,18 @@ minor bump may change behavior.
   `SubagentStop` matcher fires for every subagent; it is applied to the agent
   type, and a check confirmed it. The matcher in `hooks.json` is the one
   place that decides which agents are triaged, and a user-level agent
-  sharing a den agent's bare name is not among them. A stop that carries no
+  sharing a den agent's bare name is not among them. Each matcher is
+  anchored, since a regex matcher is not, and `fork` would otherwise match
+  any type containing the word. The `plugin_den_<name>` spelling the
+  packaging commit recorded was never observed in a hook input and is not
+  matched. A stop that carries no
   agent type reaches every hook unscoped and is dropped, since a reminder
   for it would name nobody.
+- The triage flags are kept per session. They sat in one directory per relay
+  under the machine's temp directory, so an agent finishing in any session
+  was announced at the next prompt of whichever session asked first. Each
+  flag now lives under the session id the hook input carries, and a stop
+  without one is not recorded.
 - A review of the working tree renders untracked files as the new-file hunks
   they become once added, without touching the index. `git diff` never shows
   a file outside the index, so a new module in a pending change reached the
@@ -52,12 +61,12 @@ minor bump may change behavior.
 
 - The lead rules deliver a change as steps: cut under `slicing` once the
   design is pinned and again when an observation falsifies the plan, the
-  plan in the session's scratch directory with its steps in the task list,
+  plan in a temporary directory with its steps in the task list,
   each step through handoff, review with the plan's path, fix round, comment
   pass and commit before the next is briefed. A go-ahead covers one step. A
   review of thousands of lines was the failure; a step is one read.
-- The opus and fable implementers and the fixer stop when finishing would
-  take more change than the plan's entry for their step describes, since
+- The opus and fable implementers stop when finishing would take more
+  change than the plan's entry for their step describes, since
   how the work is cut is the user's decision.
 - One adversarial `reviewer` agent, launched through the `review` skill with
   the diff and the path of the plan or brief the change was written to,
@@ -72,18 +81,18 @@ minor bump may change behavior.
   it as `/den:lead`; every pointer at it, in the README, the agents, the
   triage reminders and the docs, follows.
 
-- The coordination rules hand implementation that follows from the session's
+- The lead rules hand implementation that follows from the session's
   own decisions off with its context kept, and brief a standing implementer
   for work that is independent of it. Delegating every implementation was the
   measured handoff loss.
 - Small fixes and edits the session would otherwise make itself go to a fork
   with a short instruction; a fork spawn is a cache hit, so it costs nothing
   over inline work and keeps the main context clean.
-- Implementers, the fixer and a fork stop on a decision that is the user's (a
+- Implementers and a fork stop on a decision that is the user's (a
   workaround, a test weakened or deleted, a stored format, a public surface, a
   dependency, visible behaviour, a fence, a contradicted pin): the turn ends
   with the question and the agent is resumed with the answer, in place of
-  making the choice and declaring it in the report. The coordination skill
+  making the choice and declaring it in the report. The lead skill
   resumes such an agent rather than replacing it.
 
 ### Removed
@@ -123,13 +132,6 @@ minor bump may change behavior.
   fixes opened.
 
 ### Changed
-
-- The reviewer writes the failing test for a defect it can demonstrate,
-  through a normal product seam, leaves it in the tree, and runs that test
-  alone; the finding carries the test's path and the red run. It has the
-  tools to do so: edit, write, skills and the web beside read and search.
-  Reviews were better with the test written and the red test came with them,
-  so the fix is making that test pass.
 
 - Direction documentation organizes the record under `docs/`, with a short entry point,
   substantive topic documents and links between related decisions. Reasons,
@@ -218,13 +220,6 @@ minor bump may change behavior.
 
 ### Changed
 
-- The reviewer writes the failing test for a defect it can demonstrate,
-  through a normal product seam, leaves it in the tree, and runs that test
-  alone; the finding carries the test's path and the red run. It has the
-  tools to do so: edit, write, skills and the web beside read and search.
-  Reviews were better with the test written and the red test came with them,
-  so the fix is making that test pass.
-
 - The implementer relay is now implementer triage: every finished implementer
   and `red-green-fixer` is recorded, not only one that edited Rust, and its
   reminder points at the `coordination` skill's new Implementer reports
@@ -274,13 +269,6 @@ minor bump may change behavior.
   reference per kind, per render target, and per language.
 
 ### Changed
-
-- The reviewer writes the failing test for a defect it can demonstrate,
-  through a normal product seam, leaves it in the tree, and runs that test
-  alone; the finding carries the test's path and the red run. It has the
-  tools to do so: edit, write, skills and the web beside read and search.
-  Reviews were better with the test written and the red test came with them,
-  so the fix is making that test pass.
 
 - The comment-reviewer loads the `voice` skill and runs its grep twice, over
   the comments in scope before it reads them and over its own edits before it

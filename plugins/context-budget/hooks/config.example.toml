@@ -158,19 +158,22 @@ cold = 200_000
 # and a row carries both limits or, switched off, neither.
 #
 # Only a type whose numbers would differ from what it gets anyway is worth a
-# row: a flag reviewer takes the fable row below, and an implementer takes the
-# numbers above, so neither is written out here.
+# row: an implementer takes the numbers above, so it is not written out here,
+# and the reviewer's row below overrides the fable row it would otherwise take.
 
-# A fresh fixer rereads about 70K more than a resumed one, the least of the
-# three agent kinds measured on this project, so a fixer is the first worth
-# refusing. Over the nine rounds measured, a resume stops paying at about 120K
-# warm and about 70K cold; the numbers below are rounded up from those, because
-# refusing a resume worth taking costs the user a round trip and costs the fixer
-# the red tests it is holding, and nine rounds is a thin sample to round the
-# other way on. The key carries the plugin prefix so that no other plugin's
-# agent of that name is caught by it; without den installed the row never
-# matches and costs nothing.
-[resume-guard.agents.'den:red-green-fixer']
+# The numbers below were measured on den's former red-green fixer, which held
+# the red tests it had written across a resume. A fresh one reread about 70K
+# more than a resumed one, the least of the three agent kinds measured on this
+# project, so it was the first worth refusing. Over the nine rounds measured, a
+# resume stopped paying at about 120K warm and about 70K cold; the numbers are
+# rounded up from those, because refusing a resume worth taking costs the user
+# a round trip and costs the agent the red tests it is holding, and nine rounds
+# is a thin sample to round the other way on. den's reviewer now writes those
+# tests and holds them the same way, so it takes the row until measured on its
+# own. The key carries the plugin prefix so that no other plugin's agent of
+# that name is caught by it; without den installed the row never matches and
+# costs nothing.
+[resume-guard.agents.'den:reviewer']
 large = 150_000
 cold = 100_000
 

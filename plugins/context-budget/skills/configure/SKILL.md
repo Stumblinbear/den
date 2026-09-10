@@ -133,7 +133,7 @@ guard's own section:
 large = 300_000
 cold = 200_000
 
-[resume-guard.agents.'den:red-green-fixer']
+[resume-guard.agents.'den:reviewer']
 large = 150_000
 cold = 100_000
 
