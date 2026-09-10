@@ -7,7 +7,7 @@ export const meta = {
   ],
 }
 
-// Explorers share requirements, not the coordinator's preferred decomposition
+// Explorers share requirements, not the lead's preferred decomposition
 // or another explorer's conclusions. The basis preserves sources and the
 // distinction between confirmed direction and assumptions as scoped.
 const ask = args && typeof args === 'object' && !Array.isArray(args) ? args.ask : undefined

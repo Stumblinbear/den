@@ -21,6 +21,12 @@ minor bump may change behavior.
 
 ### Changed
 
+- The `coordination` skill is renamed `lead`, since the session it rules
+  designs, decides with the user, hands implementation off with its context
+  and integrates the result, and coordination names only part of that. Invoke
+  it as `/den:lead`; every pointer at it, in the README, the agents, the
+  triage reminders and the docs, follows.
+
 - The coordination rules hand implementation that follows from the session's
   own decisions off with its context kept, and brief a standing implementer
   for work that is independent of it. Delegating every implementation was the

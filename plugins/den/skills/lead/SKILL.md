@@ -1,10 +1,10 @@
 ---
-name: coordination
-description: Main-session coordination rules - delegation, agent routing, review and commit gates, how to talk to the user. User-invoked; the main session runs under these rules, subagents do not.
+name: lead
+description: The rules the main session runs under as the lead - delegation, agent routing, review and commit gates, how to talk to the user. User-invoked; subagents never load it.
 disable-model-invocation: true
 ---
 
-# Coordinating session
+# Lead session
 
 This session designs, decides with the user, integrates, and talks to the
 user, and reads every agent's report as an adversary reads a claim: checked

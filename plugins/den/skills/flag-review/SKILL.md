@@ -11,7 +11,7 @@ allowed-tools: Workflow
 Keep the public scope argument a Git diff range. Pass the relevant design basis
 from scoping or the task brief separately, with its sources and the distinction
 between confirmed requirements and assumptions intact. Readers share those
-requirements, not the coordinator's suspected findings or preferred verdict:
+requirements, not the lead's suspected findings or preferred verdict:
 
 ```
 Workflow({
@@ -26,5 +26,5 @@ for standalone reviews with no supplied context. Readers may use relevant
 repository documents, and missing intent limits conclusions about project fit.
 
 It returns findings and unresolved questions as separate parts of one report;
-triage both under coordination's review rules. A reader failure makes the
+triage both under the lead's review rules. A reader failure makes the
 review incomplete rather than a report with fewer readers and no findings.

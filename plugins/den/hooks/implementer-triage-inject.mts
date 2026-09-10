@@ -11,7 +11,7 @@ import {
 } from "../lib/relay.mts";
 import { stdinText } from "../lib/shared/hook-input.mts";
 
-// Names the coordination skill's Implementer reports section, which carries
+// Names the lead skill's Implementer reports section, which carries
 // these rules in full: the reminder fires many turns after that skill was
 // loaded.
 function reminder(pending: readonly Flag[]): string {
@@ -19,7 +19,7 @@ function reminder(pending: readonly Flag[]): string {
 
 	return [
 		`${pending.length} implementer agent(s) reported finishing${named ? ` (${named})` : ""}.`,
-		"Triage each report under the coordination skill's implementer report",
+		"Triage each report under the lead skill's implementer report",
 		"rules: every declared choice, question back, deviation from the brief or",
 		"instruction and left-undone item reaches the user with your accept,",
 		"answer, send back or defer call and its reasoning. What contradicts the",

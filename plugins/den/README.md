@@ -11,7 +11,7 @@ Skills, applied by Claude when their trigger fires. The ones a person can
 also run as `/den:<name>` are project-direction, direction-docs, scoping, writing-for-agents,
 writing-for-humans and writing-a-skill; the rest are hidden from the `/` menu:
 
-- `coordination`: the rules the main session runs under. Delegation, agent
+- `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
   Invoke it yourself; it is never loaded automatically, and it never reaches a
   subagent.
@@ -40,7 +40,7 @@ writing-for-humans and writing-a-skill; the rest are hidden from the `/` menu:
   hunter, a quality reviewer and a decisions reviewer each read it blind to
   the others, and a synthesizer writes one ranked report with unresolved
   questions kept separate. The argument is a git diff range and nothing else.
-  Omit it for the working tree against HEAD. The coordinator supplies the
+  Omit it for the working tree against HEAD. The lead supplies the
   available design basis separately to all readers.
 - `comment-review`: the same for the comment-reviewer.
 - `handoff-cost`: the reading the session arrives with before coupled
@@ -186,10 +186,10 @@ Run `/reload-plugins` if the install summary asks for it.
 
 ## Quick start
 
-Start a session and invoke the coordination rules:
+Start a session and invoke the lead rules:
 
 ```
-/den:coordination
+/den:lead
 ```
 
 The session then cites code by path and line, sends reviews and research to
@@ -216,7 +216,7 @@ Agent types are matched by bare name, so an agent of your own named
 `review-synthesizer` or `implementer-opus` raises the same reminder as den's.
 
 The hooks fire whenever the plugin is enabled, whether or not you invoked
-`/den:coordination`. The skills and agents do nothing until you invoke or
+`/den:lead`. The skills and agents do nothing until you invoke or
 launch them.
 
 The design basis uses available goals, roadmap or design documents and your

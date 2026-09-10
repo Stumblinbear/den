@@ -10,7 +10,7 @@ Establish the project direction that future tasks should serve. Work with the
 user to understand its purpose, priorities, constraints and intended development,
 then record that understanding where later sessions can find it. The user owns
 project direction; your role is to uncover missing decisions and explain their
-consequences. Run this conversation in the coordinating session.
+consequences. Run this conversation in the lead session.
 
 Discovery has no default time or question budget. Continue investigating and
 questioning until the project's goals and intended development are understood,

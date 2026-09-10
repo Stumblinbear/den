@@ -151,8 +151,8 @@ export const isCompaction = (entry: Entry): boolean =>
  *
  * A slash command is string content opening on `<command-name>` or
  * `<command-message>`. The command alone is not the user saying anything,
- * but words after its name are: `/den:coordination drop the row` is typed,
- * `/den:coordination` is not. `/model` is the exception, since its argument
+ * but words after its name are: `/den:lead drop the row` is typed,
+ * `/den:lead` is not. `/model` is the exception, since its argument
  * is the model.
  */
 export function isUserPrompt(entry: Entry): boolean {

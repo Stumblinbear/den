@@ -1,13 +1,13 @@
 # Project direction in den
 
-Proposed change, 2026-09-06. This develops den's coordination workflow; it is
+Proposed change, 2026-09-06. This develops den's workflow; it is
 independent of the Codex compatibility implementation.
 
 ## What this should accomplish
 
-Help a coordinator understand the project well enough to propose an appropriate
+Help the lead understand the project well enough to propose an appropriate
 design before implementation. The user supplies project direction and decides
-consequential tradeoffs. The coordinator discovers relevant evidence, identifies
+consequential tradeoffs. The lead discovers relevant evidence, identifies
 uncertainty, and explains how that direction affects the design. Implementation
 continues under den's existing authorization rules.
 
@@ -24,7 +24,7 @@ Separate three kinds of information rather than placing every statement in
 | Information | Meaning and authority |
 | --- | --- |
 | Project direction | User-confirmed purpose, intended users, constraints, exclusions, and relevant planned developments |
-| Design basis | The task's contribution to that direction, concrete scenarios, and the coordinator's reasoned architectural implications |
+| Design basis | The task's contribution to that direction, concrete scenarios, and the lead's reasoned architectural implications |
 | Design decision | The chosen solution and its tradeoff, with the user's approval where required |
 
 Observed code behavior is evidence of what exists. It cannot establish what the
@@ -76,7 +76,7 @@ interview skill. Its opening work becomes:
   remaining assumptions kept distinct.
 
 Questions concern outcomes, expected use and priorities. Translating those into
-boundaries is the coordinator's responsibility. A question earns its place by
+boundaries is the lead's responsibility. A question earns its place by
 explaining which decision the answer could change. Established context keeps
 small work small; this does not require asking about the roadmap on every task.
 
@@ -94,7 +94,7 @@ the explorer/judge prompts together. Add an explicit `basis` input separate from
 Define the fields and bounds before implementation; record source references
 and whether important statements are confirmed or assumed.
 
-The basis contains intent and evaluation criteria, not the coordinator's
+The basis contains intent and evaluation criteria, not the lead's
 preferred decomposition. User-selected architectural constraints belong in
 settled decisions; possible implementation consequences remain challengeable.
 
@@ -121,14 +121,14 @@ model switch, decided in
 [Implementation keeps the context that designed it](implementation-handoff.md).
 What follows applies to the brief path.
 
-Update `skills/coordination/SKILL.md` to carry the relevant design basis,
+Update `skills/lead/SKILL.md` to carry the relevant design basis,
 accepted design, reasons, scope limits, and remaining uncertainty in the brief.
 Make clear which choices are settled and which are implementation discretion.
 
 Adjust the implementers' and fixer's brief-consumption instructions where
 needed, rather than copying the scoping procedure into each agent. Open choices
 are exercised in service of the basis. A broken premise returns to the
-coordinator with evidence before the dependent implementation proceeds.
+lead with evidence before the dependent implementation proceeds.
 
 Project direction does not enlarge the authorized task. Preserve the mechanical
 implementer's limited role and existing human approval boundaries.
@@ -139,10 +139,10 @@ The current `flag-review` workflow accepts only a Git scope, and its decisions
 reviewer looks to code for the answer to why a choice was made. That is
 insufficient for evaluating choices made for confirmed future requirements.
 
-Preserve the public skill's Git-only argument. For coordinated work, let its
+Preserve the public skill's Git-only argument. For work under the lead rules, let its
 internal workflow call additionally identify the relevant approved basis through
 a bounded reference to the brief/project document. Give all readers the same
-requirements and provenance while withholding the coordinator's suspected
+requirements and provenance while withholding the lead's suspected
 findings, preferred verdict, and other readers' reports.
 
 Repository documents remain the discoverable fallback for standalone reviews.
@@ -201,7 +201,7 @@ end-to-end success. Keep tests of prompt wording out of the acceptance criteria.
 
 1. Settle context ownership/discovery and the compact design-basis contract.
    Write the representative evaluation cases before tuning the prompts.
-2. Update scoping, coordination and the shared decision guidance. Use this
+2. Update scoping, the lead skill and the shared decision guidance. Use this
    task's confirmed context to inspect the resulting brief as an example.
 3. Update exploration input/output, the explorer and judge together.
 4. Update review context transport, review/closure instructions, and the

@@ -140,17 +140,14 @@ test("the skill text carries the header and labels the switch hook matches", () 
 		join(PLUGIN, "skills", "handoff-cost", "SKILL.md"),
 		"utf8",
 	);
-	const coordination = readFileSync(
-		join(PLUGIN, "skills", "coordination", "SKILL.md"),
-		"utf8",
-	);
+	const lead = readFileSync(join(PLUGIN, "skills", "lead", "SKILL.md"), "utf8");
 
 	for (const literal of [HANDOFF_HEADER, FORK, SWITCH, BRIEF]) {
 		assert.ok(skill.includes(`\`${literal}\``), literal);
 	}
 
-	assert.ok(coordination.includes(`\`${SWITCH}\``), SWITCH);
-	assert.ok(coordination.includes(HANDOFF_HEADER), HANDOFF_HEADER);
+	assert.ok(lead.includes(`\`${SWITCH}\``), SWITCH);
+	assert.ok(lead.includes(HANDOFF_HEADER), HANDOFF_HEADER);
 });
 
 for (const runtime of runtimes()) {
@@ -405,7 +402,7 @@ for (const runtime of runtimes()) {
 			const worded = transcript(temp, [
 				answered(HANDOFF_HEADER, SWITCH),
 				turn(1100),
-				command("/den:coordination", "drop the second row", true),
+				command("/den:lead", "drop the second row", true),
 				turn(1200),
 			]);
 
@@ -416,7 +413,7 @@ for (const runtime of runtimes()) {
 			const bare = transcript(temp, [
 				answered(HANDOFF_HEADER, SWITCH),
 				turn(1100),
-				command("/den:coordination", ""),
+				command("/den:lead", ""),
 				turn(1200),
 				command("/model", "opus"),
 			]);

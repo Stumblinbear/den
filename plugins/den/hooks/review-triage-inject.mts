@@ -11,14 +11,14 @@ import {
 } from "../lib/relay.mts";
 import { stdinText } from "../lib/shared/hook-input.mts";
 
-// A pointer, not a restatement: the rules live in the coordination skill's
+// A pointer, not a restatement: the rules live in the lead skill's
 // Review section, and this fires many turns after that skill was loaded.
 function reminder(pending: readonly Flag[]): string {
 	const named = who(pending);
 
 	return [
 		`${pending.length} review agent(s) completed${named ? ` (${named})` : ""}.`,
-		"Triage their findings and unresolved questions under the coordination",
+		"Triage their findings and unresolved questions under the lead",
 		"skill's review rules: every finding reaches the user with your fix,",
 		"defer or skip call and its",
 		"reasoning, explained for someone who has not read the code; what is",

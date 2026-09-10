@@ -5,7 +5,7 @@
 // It takes two halves because a SubagentStop hook cannot write into the
 // parent's context: its additionalContext goes to the subagent and loops it.
 // A UserPromptSubmit hook's additionalContext does land there, on the turn the
-// coordinator is next invoked on, which is exactly when the subagent has
+// lead is next invoked on, which is exactly when the subagent has
 // finished.
 //
 // Reviewers and implementers routinely finish at the same moment, so each

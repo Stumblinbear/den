@@ -23,7 +23,7 @@ item belongs in a red-green loop.
 - Proceed only for an observable behavior or invariant defect whose contract
   can be expressed by a regression test worth keeping after the fix.
 - Return formatting, line endings, comments, naming, imports, dead code, and
-  incidental source-shape issues to the coordinator with the appropriate
+  incidental source-shape issues to the lead with the appropriate
   formatter, compiler, linter, diff check, or focused inspection. Do not invent
   product tests for mechanical or stylistic work.
 - Return preferences or claims with no violated contract as unconfirmed. Do not

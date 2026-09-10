@@ -4,7 +4,7 @@ Status: accepted, 2026-09-09.
 
 ## Context
 
-den's coordinator scoped, designed and briefed in the main session, then
+den's lead scoped, designed and briefed in the main session, then
 delegated every implementation to a standing implementer that started from
 the brief alone. The brief was the only channel between the context that made
 the decisions and the agent that carried them out.
@@ -54,7 +54,7 @@ We will keep review with fresh agents in every case.
 
 ## Considered options
 
-- **Coordinator delegates all implementation** (the previous arrangement).
+- **Lead delegates all implementation** (the previous arrangement).
   Keeps the main context clean and the cost predictable. Loses whatever the
   conversation settled and the brief did not say, which the evidence above
   measures as the main failure class.
@@ -96,7 +96,7 @@ each time with the figures in front of them.
   nothing over doing them in the session, and the context stays clean.
 - The main context is no longer clean by construction. A switch fills it with
   implementation; a fork does not. Context-size guidance stays the user's.
-- The coordinator's delegation default in `skills/coordination/SKILL.md` is
+- The lead's delegation default in `skills/lead/SKILL.md` is
   rewritten; the README's first line no longer says the main session
   delegates all production work.
 - No controlled study compares these three paths for coding agents under an

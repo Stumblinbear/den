@@ -1,4 +1,4 @@
-// The handoff: the question the coordinator asks before coupled
+// The handoff: the question the lead asks before coupled
 // implementation, and what each of its three answers means for the context.
 //
 // The header and labels are matched by the switch hook and written by the
@@ -45,7 +45,7 @@ export function standingSwitch(entries: readonly Entry[]): boolean {
 
 		const handoff = asked.questions.find((q) => q.header === HANDOFF_HEADER);
 
-		// By prefix: a label the coordinator suffixed, "(Recommended)" being
+		// By prefix: a label the lead suffixed, "(Recommended)" being
 		// the habit, is still this answer.
 		return (
 			handoff !== undefined &&
