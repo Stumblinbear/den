@@ -35,6 +35,10 @@ tutorials, and behavior the model already gets right unprompted.
   re-spends, on every run, judgment you could have spent once while writing.
 - **One term per concept.** Synonym variety reads as distinction; consistency
   is parsing help.
+- **Write for any project.** A skill or agent definition loads in
+  projects its author never saw, so its terms, examples and costs hold
+  everywhere or it misleads the next one; what is one project's belongs
+  in that project's own rules or plan.
 - **Prefer a leading word to a restatement.** A single concept the model
   already holds from pretraining ("a *tight* loop", "the test goes *red*")
   anchors a whole behavior in one token; a quality restated across three
