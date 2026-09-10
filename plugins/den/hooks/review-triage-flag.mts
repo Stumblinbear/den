@@ -1,19 +1,15 @@
 // SubagentStop half of the review-triage relay: a finished reviewer or
-// closure verifier leaves a flag, and nothing else. `review-triage-inject` does the injecting.
+// closure verifier leaves a flag, and nothing else. `review-triage-inject`
+// does the injecting. Which agents reach here is the matcher's decision in
+// `hooks.json`: a SubagentStop matcher is applied to the agent type.
 
-import { bareType, REVIEW_TRIAGE_DIR, raiseFlag } from "../lib/relay.mts";
+import { REVIEW_TRIAGE_DIR, raiseFlag } from "../lib/relay.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
-
-/** The agents whose report is triaged under the review rules. */
-const REVIEWERS = new Set(["reviewer", "closure-verifier"]);
 
 try {
 	const input = await hookInput();
 
-	// Filtered here rather than on the settings matcher, which does not
-	// reliably scope a SubagentStop hook: it fires for every subagent, so only
-	// a matched reviewer type may leave a flag.
-	if (input !== null && REVIEWERS.has(bareType(input["agent_type"]))) {
+	if (input !== null) {
 		raiseFlag(REVIEW_TRIAGE_DIR, input);
 	}
 } catch {

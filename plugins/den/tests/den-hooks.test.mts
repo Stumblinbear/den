@@ -7,7 +7,7 @@
 // Each case is given a temp directory of its own, which is where the relays
 // keep their flags, so nothing a case leaves behind reaches the next one.
 import assert from "node:assert/strict";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -22,6 +22,28 @@ import {
 const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 
 const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
+
+interface HookEntry {
+	readonly matcher?: string;
+	readonly hooks: readonly { readonly command: string }[];
+}
+
+/**
+ * The SubagentStop matcher `hooks.json` gives the entry that runs `hook`.
+ * Which agent types reach a flag hook is decided there, since Claude Code
+ * applies a SubagentStop matcher to the agent type; the hook itself flags
+ * whatever reaches it.
+ */
+function matcherFor(hook: string): string {
+	const config = JSON.parse(
+		readFileSync(join(PLUGIN, "hooks", "hooks.json"), "utf8"),
+	) as { hooks: { SubagentStop: HookEntry[] } };
+	const entry = config.hooks.SubagentStop.find((candidate) =>
+		candidate.hooks.some((h) => h.command.includes(`hooks/${hook}`)),
+	);
+	assert.ok(entry, `no SubagentStop entry runs ${hook}`);
+	return entry.matcher ?? "";
+}
 
 // Spelled out rather than imported from the relays, so a relay that starts
 // writing its flags somewhere else fails a test instead of taking the tests
@@ -85,9 +107,7 @@ for (const runtime of runtimes()) {
 			input,
 		});
 
-	// The SubagentStop matcher does not reliably scope the hook, so the type it
-	// was matched on is filtered again in the hook itself.
-	test(name("only a review agent's completion leaves a review flag"), () => {
+	test(name("a review agent's completion leaves a review flag"), () => {
 		const temp = fixtureDir("review-flags");
 		const matched = run(
 			"review-triage-flag",
@@ -105,29 +125,21 @@ for (const runtime of runtimes()) {
 			"reviewer-1.json",
 		]);
 
-		const other = run(
-			"review-triage-flag",
-			temp,
-			stop("den:surveyor", "surveyor-1"),
-		);
-
-		assert.equal(other.status, 0, other.stderr);
-		assert.deepEqual(pending(temp, REVIEW), [
-			"closure-1.json",
-			"reviewer-1.json",
-		]);
+		// The matcher, not the hook, keeps every other agent out.
+		const matcher = matcherFor("review-triage-flag").split("|");
+		assert.deepEqual(matcher, ["den:reviewer", "den:closure-verifier"]);
 	});
 
 	test(name("one prompt injects for every pending review flag, once"), () => {
 		const temp = fixtureDir("review-inject");
 
 		run("review-triage-flag", temp, stop("den:reviewer", "reviewer-1"));
-		run("review-triage-flag", temp, stop("plugin_den_reviewer", "reviewer-2"));
+		run("review-triage-flag", temp, stop("den:closure-verifier", "closure-2"));
 
 		const context = injected(run("review-triage-inject", temp, prompt()));
 
 		assert.ok(context.includes("den:reviewer"), context);
-		assert.ok(context.includes("plugin_den_reviewer"), context);
+		assert.ok(context.includes("den:closure-verifier"), context);
 		assert.deepEqual(pending(temp, REVIEW), []);
 
 		// The flags are consumed, so the next prompt has nothing to say.
@@ -159,18 +171,13 @@ for (const runtime of runtimes()) {
 			"opus-1.json",
 		]);
 
-		// A reviewer's completion belongs to the other relay, and this hook
-		// fires for it too.
-		const reviewer = run(
-			"implementer-triage-flag",
-			temp,
-			stop("den:reviewer", "reviewer-1"),
-		);
-
-		assert.equal(reviewer.status, 0, reviewer.stderr);
-		assert.deepEqual(pending(temp, IMPLEMENTER), [
-			"fork-1.json",
-			"opus-1.json",
+		// The matcher, not the hook, keeps a reviewer's completion out.
+		const matcher = matcherFor("implementer-triage-flag").split("|");
+		assert.deepEqual(matcher, [
+			"den:implementer-opus",
+			"den:implementer-haiku",
+			"den:implementer-fable",
+			"fork",
 		]);
 	});
 
@@ -187,7 +194,7 @@ for (const runtime of runtimes()) {
 			run(
 				"implementer-triage-flag",
 				temp,
-				stop("plugin_den_implementer-fable", "fable-1"),
+				stop("den:implementer-fable", "fable-1"),
 			);
 
 			const context = injected(
@@ -195,7 +202,7 @@ for (const runtime of runtimes()) {
 			);
 
 			assert.ok(context.includes("den:implementer-opus"), context);
-			assert.ok(context.includes("plugin_den_implementer-fable"), context);
+			assert.ok(context.includes("den:implementer-fable"), context);
 			assert.deepEqual(pending(temp, IMPLEMENTER), []);
 
 			// The flags are consumed, so the next prompt has nothing to say.

@@ -5,26 +5,17 @@
 // The failure it closes: the lead absorbs an implementer's declared
 // choices, questions and loose ends instead of putting them to the user, whose
 // decisions they were.
-import { bareType, IMPLEMENTER_TRIAGE_DIR, raiseFlag } from "../lib/relay.mts";
+//
+// Which agents reach here is the matcher's decision in `hooks.json`: the
+// implementers and Claude Code's built-in `fork` type, which is how coupled
+// implementation runs under the lead rules.
+import { IMPLEMENTER_TRIAGE_DIR, raiseFlag } from "../lib/relay.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
-
-// Agents that edit the working tree and report a finished state, which is
-// what there is to triage. A fork of the session is Claude Code's built-in
-// `fork` type, and under the lead rules it is how coupled
-// implementation runs.
-const IMPLEMENTERS: readonly string[] = [
-	"implementer-opus",
-	"implementer-haiku",
-	"implementer-fable",
-	"fork",
-];
 
 try {
 	const input = await hookInput();
 
-	// Filtered here rather than on the settings matcher, which does not
-	// reliably scope a SubagentStop hook: it fires for every subagent.
-	if (input !== null && IMPLEMENTERS.includes(bareType(input["agent_type"]))) {
+	if (input !== null) {
 		raiseFlag(IMPLEMENTER_TRIAGE_DIR, input);
 	}
 } catch {

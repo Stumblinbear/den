@@ -26,6 +26,12 @@ minor bump may change behavior.
 
 ### Fixed
 
+- The triage flag hooks no longer re-check the agent type in the script.
+  They did so on a belief, recorded in the first packaging commit, that a
+  `SubagentStop` matcher fires for every subagent; it is applied to the agent
+  type, and a check confirmed it. The matcher in `hooks.json` is the one
+  place that decides which agents are triaged, and a user-level agent
+  sharing a den agent's bare name is not among them.
 - A review of the working tree renders untracked files as the new-file hunks
   they become once added, without touching the index. `git diff` never shows
   a file outside the index, so a new module in a pending change reached the

@@ -213,9 +213,6 @@ finishes. A `SubagentStop` hook cannot write into the parent's context, so the
 completion is recorded and a `UserPromptSubmit` hook injects it. Several
 agents finishing together produce one reminder naming all of them.
 
-Agent types are matched by bare name, so an agent of your own named
-`reviewer` or `implementer-opus` raises the same reminder as den's.
-
 The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:lead`. The skills and agents do nothing until you invoke or
 launch them.

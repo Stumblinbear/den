@@ -32,14 +32,6 @@ export interface Flag {
 }
 
 /**
- * Strips the plugin scope from an agent type, leaving the bare name a hook
- * compares against. A type arrives bare from a user-level definition and
- * scoped ("den:<name>" or "plugin_den_<name>") from the den plugin.
- */
-export const bareType = (value: unknown): string =>
-	String(value ?? "").replace(/^(den:|plugin_den_)/, "");
-
-/**
  * Where a relay's pending flags wait: a directory of its own under the OS temp
  * directory, since every file in it is worthless once its reminder has been
  * injected. Both halves of a pair take the directory from here, so the half
