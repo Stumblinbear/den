@@ -7,7 +7,7 @@
 // Each case is given a temp directory of its own, which is where the relays
 // keep their flags, so nothing a case leaves behind reaches the next one.
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -32,7 +32,9 @@ interface HookEntry {
  * The SubagentStop matcher `hooks.json` gives the entry that runs `hook`.
  * Which agent types reach a flag hook is decided there, since Claude Code
  * applies a SubagentStop matcher to the agent type; the hook itself flags
- * whatever reaches it.
+ * whatever reaches it. A matcher with a `|` is a regex and is not anchored
+ * by Claude Code, so each is anchored here, or `fork` would match any type
+ * containing the word.
  */
 function matcherFor(hook: string): string {
 	const config = JSON.parse(
@@ -60,22 +62,35 @@ interface Injection {
 
 // `transcript_path` is fixed: neither relay reads it, and a SubagentStop
 // without it is not the shape a hook is handed.
-const stop = (agentType: string, agentId: string): Record<string, unknown> => ({
+// Every input carries a session id, since the flags are kept per session.
+const SESSION = "session-1";
+
+const stop = (
+	agentType: string,
+	agentId: string,
+	session = SESSION,
+): Record<string, unknown> => ({
 	hook_event_name: "SubagentStop",
+	session_id: session,
 	agent_type: agentType,
 	agent_id: agentId,
 	transcript_path: "",
 });
 
-const prompt = () => ({
+const prompt = (session = SESSION) => ({
 	hook_event_name: "UserPromptSubmit",
+	session_id: session,
 	prompt: "carry on",
 });
 
 /** The flags waiting in one relay's directory, empty until the first one. */
-function pending(temp: string, relay: string): readonly string[] {
+function pending(
+	temp: string,
+	relay: string,
+	session = SESSION,
+): readonly string[] {
 	try {
-		return readdirSync(join(temp, relay)).sort();
+		return readdirSync(join(temp, relay, session)).sort();
 	} catch {
 		return [];
 	}
@@ -126,8 +141,10 @@ for (const runtime of runtimes()) {
 		]);
 
 		// The matcher, not the hook, keeps every other agent out.
-		const matcher = matcherFor("review-triage-flag").split("|");
-		assert.deepEqual(matcher, ["den:reviewer", "den:closure-verifier"]);
+		assert.equal(
+			matcherFor("review-triage-flag"),
+			"^(den:reviewer|den:closure-verifier)$",
+		);
 
 		// A stop with no type reached the hook unscoped, since no matcher can
 		// match an empty type; a reminder for it would name nobody.
@@ -139,6 +156,55 @@ for (const runtime of runtimes()) {
 			"reviewer-1.json",
 		]);
 	});
+
+	test(name("a flag is announced only in the session that raised it"), () => {
+		const temp = fixtureDir("review-sessions");
+
+		run("review-triage-flag", temp, stop("den:reviewer", "reviewer-1"));
+		run(
+			"review-triage-flag",
+			temp,
+			stop("den:reviewer", "reviewer-2", "session-2"),
+		);
+
+		const other = run("review-triage-inject", temp, prompt("session-2"));
+
+		assert.ok(injected(other).includes("den:reviewer"), other.stdout);
+		assert.deepEqual(pending(temp, REVIEW), ["reviewer-1.json"]);
+		assert.deepEqual(pending(temp, REVIEW, "session-2"), []);
+
+		// Without a session id there is nothing to announce and nothing to keep.
+		const nowhere = run(
+			"review-triage-flag",
+			temp,
+			stop("den:reviewer", "reviewer-3", ""),
+		);
+		assert.equal(nowhere.status, 0, nowhere.stderr);
+		// The relay directory holds the two sessions' subdirectories and no file.
+		assert.deepEqual(pending(temp, REVIEW, ""), ["session-1", "session-2"]);
+
+		const silent = run("review-triage-inject", temp, prompt(""));
+		assert.equal(silent.status, 0, silent.stderr);
+		assert.equal(silent.stdout, "");
+		assert.deepEqual(pending(temp, REVIEW), ["reviewer-1.json"]);
+	});
+
+	// A session id is a directory component. `..` would resolve a relay to the
+	// temp directory itself, whose every JSON file the drain would then delete
+	// and announce as a finished agent.
+	test(
+		name("a dot-segment session id reaches nothing outside the relay"),
+		() => {
+			const temp = fixtureDir("review-traversal");
+			writeFileSync(join(temp, "victim.json"), "{}");
+
+			const result = run("review-triage-inject", temp, prompt(".."));
+
+			assert.equal(result.status, 0, result.stderr);
+			assert.equal(result.stdout, "");
+			assert.ok(readdirSync(temp).includes("victim.json"));
+		},
+	);
 
 	test(name("one prompt injects for every pending review flag, once"), () => {
 		const temp = fixtureDir("review-inject");
@@ -182,13 +248,10 @@ for (const runtime of runtimes()) {
 		]);
 
 		// The matcher, not the hook, keeps a reviewer's completion out.
-		const matcher = matcherFor("implementer-triage-flag").split("|");
-		assert.deepEqual(matcher, [
-			"den:implementer-opus",
-			"den:implementer-haiku",
-			"den:implementer-fable",
-			"fork",
-		]);
+		assert.equal(
+			matcherFor("implementer-triage-flag"),
+			"^(den:implementer-opus|den:implementer-haiku|den:implementer-fable|fork)$",
+		);
 	});
 
 	test(

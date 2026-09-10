@@ -3,7 +3,7 @@
 	"hooks": {
 		"SubagentStop": [
 			{
-				"matcher": "den:reviewer|den:closure-verifier",
+				"matcher": "^(den:reviewer|den:closure-verifier)$",
 				"hooks": [
 					{
 						"type": "command",
@@ -12,7 +12,7 @@
 				]
 			},
 			{
-				"matcher": "den:implementer-opus|den:implementer-haiku|den:implementer-fable|fork",
+				"matcher": "^(den:implementer-opus|den:implementer-haiku|den:implementer-fable|fork)$",
 				"hooks": [
 					{
 						"type": "command",

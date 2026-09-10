@@ -5,11 +5,11 @@
 import {
 	type Flag,
 	inject,
-	REVIEW_TRIAGE_DIR,
+	reviewTriageDir,
 	takeFlags,
 	who,
 } from "../lib/relay.mts";
-import { stdinText } from "../lib/shared/hook-input.mts";
+import { hookInput } from "../lib/shared/hook-input.mts";
 
 // A pointer, not a restatement: the rules live in the lead skill's
 // Review section, and this fires many turns after that skill was loaded.
@@ -28,11 +28,11 @@ function reminder(pending: readonly Flag[]): string {
 	].join(" ");
 }
 
-// Drained and discarded: nothing in it decides whether to inject, and input
-// that will not parse is still input this hook has no reason to fail over.
-await stdinText();
-
-const pending = takeFlags(REVIEW_TRIAGE_DIR);
+// The session id is the one thing read from the input: it names the flags
+// that are this session's to announce.
+const input = await hookInput();
+const dir = input === null ? null : reviewTriageDir(input);
+const pending = dir === null ? [] : takeFlags(dir);
 
 if (pending.length > 0) {
 	inject(reminder(pending));

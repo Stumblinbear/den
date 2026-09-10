@@ -34,18 +34,40 @@ export interface Flag {
 /**
  * Where a relay's pending flags wait: a directory of its own under the OS temp
  * directory, since every file in it is worthless once its reminder has been
- * injected. Both halves of a pair take the directory from here, so the half
- * that writes a flag and the half that reads it cannot name it differently.
+ * injected, with one subdirectory per session, since the temp directory is
+ * the machine's and a flag another session's agent left would otherwise be
+ * announced here. Both halves of a pair take the directory from here, so the
+ * half that writes a flag and the half that reads it cannot name it
+ * differently. Null when the input carries no session id: a flag nobody
+ * could read back is not worth writing. Rests on a SubagentStop carrying the
+ * parent session's id, the same one the next UserPromptSubmit carries, which
+ * `transcript-record` already relies on; were that ever false, both relays
+ * would fall silent.
  */
-export const REVIEW_TRIAGE_DIR = join(tmpdir(), "claude-review-triage");
-/**
- * Where the implementer-triage relay's pending flags wait; REVIEW_TRIAGE_DIR
- * carries the reasoning.
- */
-export const IMPLEMENTER_TRIAGE_DIR = join(
-	tmpdir(),
-	"claude-implementer-triage",
-);
+export function reviewTriageDir(input: Record<string, unknown>): string | null {
+	return triageDir("claude-review-triage", input);
+}
+/** Where the implementer-triage relay's pending flags wait; see reviewTriageDir. */
+export function implementerTriageDir(
+	input: Record<string, unknown>,
+): string | null {
+	return triageDir("claude-implementer-triage", input);
+}
+
+function triageDir(
+	relay: string,
+	input: Record<string, unknown>,
+): string | null {
+	const session = input["session_id"];
+	if (typeof session !== "string" || session === "") {
+		return null;
+	}
+	// The id is a directory component, so no dot survives: `..` would resolve
+	// the relay to the temp directory itself, and the drain would then delete
+	// and announce every JSON file there. Claude Code's ids are hex and
+	// hyphens, so nothing real is rewritten.
+	return join(tmpdir(), relay, session.replace(/[^A-Za-z0-9_-]/g, "_"));
+}
 
 /**
  * Records one finished subagent as a flag file in `dir`, which it creates when
