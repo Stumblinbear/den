@@ -51,8 +51,15 @@ export const IMPLEMENTER_TRIAGE_DIR = join(
  * Records one finished subagent as a flag file in `dir`, which it creates when
  * missing. Takes `agent_id` and `agent_type` from the hook input, and throws
  * if the write fails.
+ *
+ * A stop that carries no type is dropped: the matcher that scopes the hook
+ * cannot have matched an empty type, so Claude Code ran the hook unscoped,
+ * and a reminder for it would name nobody.
  */
 export function raiseFlag(dir: string, input: Record<string, unknown>): void {
+	if (typeof input["agent_type"] !== "string" || input["agent_type"] === "") {
+		return;
+	}
 	const id = typeof input["agent_id"] === "string" ? input["agent_id"] : "";
 
 	// agent_id is unique per subagent, which completes once, so it is both a
@@ -66,7 +73,7 @@ export function raiseFlag(dir: string, input: Record<string, unknown>): void {
 		join(dir, `${name}.json`),
 		// The type and nothing else: it is all the reminder names, and the id
 		// is already the file's name.
-		JSON.stringify({ agent_type: input["agent_type"] ?? "unknown" }),
+		JSON.stringify({ agent_type: input["agent_type"] }),
 	);
 }
 

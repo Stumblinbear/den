@@ -128,6 +128,16 @@ for (const runtime of runtimes()) {
 		// The matcher, not the hook, keeps every other agent out.
 		const matcher = matcherFor("review-triage-flag").split("|");
 		assert.deepEqual(matcher, ["den:reviewer", "den:closure-verifier"]);
+
+		// A stop with no type reached the hook unscoped, since no matcher can
+		// match an empty type; a reminder for it would name nobody.
+		const typeless = run("review-triage-flag", temp, stop("", "typeless-1"));
+
+		assert.equal(typeless.status, 0, typeless.stderr);
+		assert.deepEqual(pending(temp, REVIEW), [
+			"closure-1.json",
+			"reviewer-1.json",
+		]);
 	});
 
 	test(name("one prompt injects for every pending review flag, once"), () => {

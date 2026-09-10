@@ -31,7 +31,9 @@ minor bump may change behavior.
   `SubagentStop` matcher fires for every subagent; it is applied to the agent
   type, and a check confirmed it. The matcher in `hooks.json` is the one
   place that decides which agents are triaged, and a user-level agent
-  sharing a den agent's bare name is not among them.
+  sharing a den agent's bare name is not among them. A stop that carries no
+  agent type reaches every hook unscoped and is dropped, since a reminder
+  for it would name nobody.
 - A review of the working tree renders untracked files as the new-file hunks
   they become once added, without touching the index. `git diff` never shows
   a file outside the index, so a new module in a pending change reached the
