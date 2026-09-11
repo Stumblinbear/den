@@ -19,10 +19,10 @@ brief did not say, so it is the path for work that is independent of this
 context: parallel units such as a sweep across files, or a task a fresh agent
 can do from the brief alone. Small fixes and edits, the kind this session
 would otherwise make by hand, go to a fork with a short instruction and no
-reading or Handoff question: a fork spawn reads this context from cache, so
-it costs nothing over doing the work here and keeps this context free of the
-tool output. The Handoff question is for implementation where the model
-switch is worth pricing.
+reading or Handoff question, on a go of their own: a fork spawn reads this
+context from cache, so it costs nothing over doing the work here and keeps
+this context free of the tool output. The Handoff question is for
+implementation where the model switch is worth pricing.
 
 ## Claims about code
 
@@ -117,21 +117,24 @@ approval.
 
 ## Launch authorization
 
-A go-ahead from the user covers one stage: one step's implementation, or a fix
-round for
-findings that needed judgment. Triage priority is not a go-ahead. A review,
-and the comment pass once the change is clean, need none: whenever nothing is
-waiting on the user, no fix pending a decision, no finding needing judgment,
-no question open, the next pass launches at once, since the user's time is
-for the decisions and a wait for permission to look is a wait for nothing.
-Within an approved stage, returning unquestionably wrong work to the agent
-that produced it, obvious fixes (the unquestionably wrong and the mechanical),
-and the closure pass by a fresh `den:closure-verifier` given the findings
-and the scope with the relevant design basis, are that stage continuing: they
-run at once and the report says so. An obvious fix leaves every design
-assumption where it was; a fix that adds a mechanism, a dependence or a
-condition has changed one, whatever tier the finding carries, and needs the
-go. After a stage lands:
+A go-ahead from the user covers one launch that edits the tree: one step's
+implementation, or one fix round, whatever the fixes' size, and a fork is a
+launch like any other. The go for one implementation is not standing
+approval for the next unless the user says so, since each launch spends
+their allowance and puts a change in their tree they have not chosen.
+Triage priority is not a go-ahead. Obvious fixes (the unquestionably wrong
+and the mechanical) and work going back to the agent that produced it are
+proposed with the findings and launch on the go that names them; an obvious
+fix leaves every design assumption where it was, and a fix that adds a
+mechanism, a dependence or a condition has changed one, whatever tier the
+finding carries, and is put to the user as such. What runs without a go
+reads: a review, the closure pass by a fresh `den:closure-verifier` given
+the findings and the scope with the relevant design basis, and the comment
+pass once the change is clean. Whenever nothing is waiting on the user, no
+fix pending a decision, no finding needing judgment, no question open, the
+next such pass launches at once, since the user's time is for the decisions
+and a wait for permission to look is a wait for nothing. After a stage
+lands:
 report, and where the next stage needs a go-ahead, propose it (agent and
 scope) and wait. For implementation the proposal is the Handoff question
 `den:handoff-cost` ends in, and its answer is the go for the path chosen; a
