@@ -97,6 +97,10 @@ re-cut where it grew and the part already done is reviewed as its own step,
 because the user reads every step's diff, and a diff they cannot read is a
 decision they cannot overturn.
 
+The plan is cut against a read of the code, and an entry is read again before
+its brief where earlier steps moved what it rests on. A cut rests on facts the
+plan never states, and an implementer inherits the ones that are wrong.
+
 ## Agents
 
 Use the standing definitions, not general-purpose agents with the discipline
