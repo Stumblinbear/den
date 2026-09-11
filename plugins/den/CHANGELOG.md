@@ -9,6 +9,12 @@ minor bump may change behavior.
 
 ### Added
 
+- A `diff-page` skill, `/den:diff-page [range]`, that renders a git diff
+  range as one page file, a collapsible section per file with old and new
+  line numbers and coloured lines, untracked files as the new-file hunks
+  they become, and sends the file to the user for reading a change away from
+  the terminal. The page is written under the OS temp directory and nothing
+  is published.
 - A `slicing` skill: how a change is cut into steps a reviewer holds in one
   read and sequenced by risk, the three tests a boundary must pass, the
   settled techniques for cutting what looks atomic, and the interrogation of

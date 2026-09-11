@@ -8,8 +8,8 @@ to fresh agents; every launch is authorized on its own.
 ## What it provides
 
 Skills, applied by Claude when their trigger fires. The ones a person can
-also run as `/den:<name>` are lead, project-direction and scoping; the rest
-are hidden from the `/` menu:
+also run as `/den:<name>` are lead, project-direction, scoping,
+diagnosing and diff-page; the rest are hidden from the `/` menu:
 
 - `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
@@ -41,6 +41,12 @@ are hidden from the `/` menu:
   by `--plan <path>` naming the plan or brief the change was written to, and
   nothing else. Omit the range for the working tree against HEAD.
 - `comment-review`: the same for the comment-reviewer, without the plan.
+- `diff-page`: renders a git diff range as one page file, a collapsible
+  section per file with old and new line numbers and coloured lines, and
+  sends you the file, for reading a change from a phone or away from the
+  terminal. Untracked files appear as the new-file hunks they become once
+  added. The argument is a git diff range as for `review`; omit it for the
+  working tree against HEAD. Nothing is published unless you ask for a link.
 - `slicing`: how a change is cut into steps a reviewer holds in one read and
   sequenced by risk, with the test a boundary must pass, the settled
   techniques for cutting what looks atomic, and the interrogation of the
@@ -59,6 +65,9 @@ are hidden from the `/` menu:
 - `design-decisions`: how an engineering choice is made and stated: the
   tradeoff a recommendation carries, reuse before writing, and simplicity as
   a tool rather than a lean.
+- `diagnosing`: how a cause is established from a symptom: the observation
+  that would have contradicted it, what an absence claim owes, and what the
+  report separates as established from assumed.
 - `writing-for-agents`: principles for writing instructions an agent will
   follow.
 - `writing-a-skill`: how a Claude Code skill is written, from the listing
