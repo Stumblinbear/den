@@ -1,7 +1,7 @@
 ---
 name: code-architecture
 description: Where a new type, function, or module belongs, whether a file is still one concept, whether a module's interface is deep enough to earn its place, and whether a type can represent states that should not exist.
-when_to_use: ALWAYS invoke this skill before creating or splitting a file, module, type, or public function, while its place is still open. Do not place new code directly; use this skill first.
+when_to_use: ALWAYS invoke this skill before editing code, an existing type or function included, so a type's shape is checked when it grows and not only when it is placed.
 user-invocable: false
 ---
 
@@ -37,7 +37,10 @@ symptom; concept count is the cause.
   set of constructible values approximates the set of valid domain states:
   sum types over tag-plus-nullable-payloads, refined wrappers over re-checked
   primitives, and refinement pushed to the boundary rather than repeated at
-  every call site.
+  every call site. The states a value passes through in time count as much
+  as the combinations of its fields: a value exists only once what it needs
+  has happened, so a method fails on its arguments and never on the object's
+  history.
 
 ## Interfaces
 
@@ -76,6 +79,9 @@ have fewer methods, simpler parameters, and more hidden inside.
 - Writing a type whose methods each forward to one call on a field.
 - A test constructing a module's private parts, or asserting on its internal
   state, to reach behaviour the interface doesn't expose.
+- A method that errors or branches on what the value has been through rather
+  than on what it was given: a field that is "not yet", a flag that records
+  which constructor ran or which method has been called.
 
 ## Language-specific guidance
 

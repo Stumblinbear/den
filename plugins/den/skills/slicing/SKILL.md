@@ -44,8 +44,11 @@ uses it; a red test as its own step when the fix is the risky part.
 ## The plan
 
 A numbered sequence. Each entry carries its scope, what its landing proves,
-what it depends on, and when it is done. The plan is a hypothesis: after
-each step lands, what was learned rewrites the next entry. A falsified
+what it depends on, when it is done, and what each type it touches is once
+it lands, since a step cut around a method leaves the type around it as it
+was, and what that type has become is what the next step inherits. The
+plan is a hypothesis: after each step lands, what was learned rewrites the
+next entry. A falsified
 assumption re-cuts the smallest remaining part it invalidated; a change to
 the goal or to a commitment that is expensive to undo re-plans the whole
 and goes to the person who decides it. A single step is a valid plan for a

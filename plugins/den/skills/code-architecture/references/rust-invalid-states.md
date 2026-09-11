@@ -37,7 +37,10 @@ being re-checked; typestate extends the same idea from values to the permitted
 - **A public field or public tuple-struct constructor on a type with an
   invariant.** Any caller can bypass it. → §1, smart constructor.
 - **Runtime "wrong state" errors or panics on a state machine / driver.** The
-  state belongs in a type parameter. → §3.
+  plain remedy first: the constructor performs what the value needs and
+  returns it ready, and the phase before that belongs to the caller that
+  drives it, so no method checks history. → §1. Where the order of
+  operations on a live value must be a compile error, → §3.
 
 ## 1. Constructor-level: refine at the boundary
 
