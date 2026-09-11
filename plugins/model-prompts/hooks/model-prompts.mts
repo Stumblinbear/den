@@ -6,8 +6,6 @@
 // Subagents get nothing. SessionStart never fires for them, and a rule written
 // for the model the main session is driving is not automatically a rule for an
 // agent that happens to share it.
-import { homedir } from "node:os";
-import { join } from "node:path";
 import process from "node:process";
 import {
 	type ActiveModel,
@@ -25,8 +23,6 @@ import {
 	writeRecord,
 } from "../lib/session-record.mts";
 import { runEntry } from "../lib/shared/entry.mts";
-
-const SETTINGS = join(homedir(), ".claude", "settings.json");
 
 const args = process.argv.slice(2);
 
@@ -109,7 +105,7 @@ await runEntry({ faults: FAULTS }, async ({ input, session, event }) => {
 	}
 
 	const before = readRecord(session);
-	const model = modelFor(event, input, before.model, SETTINGS);
+	const model = modelFor(event, input, before.model);
 	let injected: readonly string[] = [];
 
 	try {

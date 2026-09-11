@@ -51,14 +51,16 @@ Consequences that answer most "why did it" questions:
 - **Rows compose.** Every match injects, in the order the rows are written in
   the file. This is not first-match-wins, so a general row and a
   model-specific row both land.
-- **The model at session start is sometimes a guess.** `PostModelSwitch`
+- **The model at session start is sometimes unknown.** `PostModelSwitch`
   carries `to_model` and is exact. `SessionStart` carries `model` only
-  sometimes. Every id an input names is recorded for the session, so a run
-  carrying none reads back the one the last input named; only a session no
-  input has ever named a model for falls through to the `model` in
-  `~/.claude/settings.json`. That last step misses project-level settings and
-  aliases like `"opus"`, is never recorded as the answer, and when it finds
-  nothing, nothing is injected.
+  sometimes, and a clear carries none at all. Every id an input names is
+  recorded for the session, so a run carrying none reads back the one the last
+  input named. A session no input has ever named a model for establishes
+  nothing and injects nothing; settings.json is not consulted, because the
+  `model` there is what a new session starts on, not what this one is running.
+  A clear is both halves at once, no model id and a session id whose record is
+  empty, so a cleared session gets nothing until the next start or switch that
+  names a model.
 - **Subagents never see any of this.** `SessionStart` does not fire for them,
   and input carrying an `agent_id` is ignored.
 - The session's record is `<os temp dir>/claude-model-prompts/<session id>.json`,
@@ -110,7 +112,7 @@ injected while it stands, and every run that meets it says so to the agent. Run
 the hook by hand from the plugin root to see what it will inject, or what it
 objects to:
 
-    printf '%s' '{"session_id":"check","hook_event_name":"SessionStart","session_start_reason":"startup","model":"claude-opus-5"}' \
+    printf '%s' '{"session_id":"check","hook_event_name":"SessionStart","source":"startup","model":"claude-opus-5"}' \
       | node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
         hooks/model-prompts --config "${CLAUDE_PLUGIN_DATA}/config.toml"
 

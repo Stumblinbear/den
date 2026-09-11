@@ -37,9 +37,9 @@ TOML has no parser in Node, so the hook depends on `smol-toml`. Claude Code
 installs it when it caches the plugin. There is nothing to build and nothing
 to run by hand.
 
-What the hook reads: your configuration file in the data directory, any file a
-row points at, and, only when it has nothing else to go on, the `model` field
-of `~/.claude/settings.json`. It never reads your source or your transcript.
+What the hook reads: your configuration file in the data directory and any
+file a row points at. It never reads your settings, your source or your
+transcript.
 
 What the hook writes: one JSON file per session under `claude-model-prompts/`
 in the OS temp directory, holding which rows are already in this context, the
@@ -119,10 +119,21 @@ clear, compact and fork, builds the context again from nothing.
 The model on a switch is exact. At session start it sometimes is not. Claude
 Code carries the model id on a session start only sometimes, so a run without
 one falls back to the model the session's last input named. A session no input
-has ever named a model for falls back once more, to the `model` field of
-`~/.claude/settings.json`. That last step is a guess: it misses project
-settings and aliases such as `"opus"`, and it is never recorded as the answer.
-When there is nothing to go on, nothing is injected.
+has ever named a model for has nothing to go on, and nothing is injected. The
+`model` in `~/.claude/settings.json` is not a third source: it names what a
+new session starts on rather than what this one is running, and rules injected
+under the wrong model's name are worse than no rules.
+
+A clear is where that shows. Claude Code sends no model id with one and gives
+the session a new id, so the record that could have answered belongs to the id
+before it. Rules come back on the next start or switch that names a model.
+
+Headless sessions get nothing at all. A `-p` or SDK start carries no model id
+either, and its record is empty, so nothing establishes the model. For those
+the `model` in settings.json was sometimes the right answer: a headless run
+with no `--model` and no `ANTHROPIC_MODEL` takes its model from that file. It
+was the wrong answer whenever the model came from anywhere else, which is why
+it is gone rather than kept for this one case.
 
 Subagents get nothing. Session start does not fire for them, and a rule
 written for the model the main session is driving is not automatically a rule
@@ -159,9 +170,8 @@ running process is never taken over, whether the run is hung rather than dead
 or the machine has since handed its pid to something else. While it stands,
 every later run of the session skips its own update of the file without a
 word: a `once` row says its text again, and a session start carrying no model
-id falls back to the model the record held before the lock stuck, and to
-`~/.claude/settings.json` if it never held one. Deleting `<session id>.lock`
-is what clears it.
+id falls back to the model the record held before the lock stuck. Deleting
+`<session id>.lock` is what clears it.
 
 ## Contributing
 

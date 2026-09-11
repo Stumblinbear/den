@@ -9,6 +9,15 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
+- A session start that does not say which model it is for injects nothing. It
+  used to fall back to the `model` in `~/.claude/settings.json`, which names
+  the model a new session starts on rather than the one the session is
+  running: a session switched away from that default was told the wrong
+  model's rules, under a header naming the wrong model. A clear is where it
+  showed, because Claude Code sends no model id with one and gives the session
+  a new id, leaving the guess as the only thing left to answer with. Headless
+  sessions lose the other side of it: a `-p` or SDK start names no model
+  either, so they are now silent even where the file happened to be right.
 - A fault that stops the hook goes to the agent, in the field Claude Code hands
   it, carrying an instruction to put the line to you, and every run that meets
   the fault says it: every session start and every model switch. It went to

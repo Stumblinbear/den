@@ -24,7 +24,7 @@ for (const runtime of runtimes()) {
 			{
 				session_id: sessionId(runtime),
 				hook_event_name: "SessionStart",
-				session_start_reason: "startup",
+				source: "startup",
 				model: OPUS,
 			},
 			EXAMPLE,

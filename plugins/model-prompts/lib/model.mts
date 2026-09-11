@@ -1,39 +1,36 @@
 // Which model the hook input is about, and which configured rows speak to it.
-import { readFileSync } from "node:fs";
 import type { Row } from "./rows.mts";
-import { fieldsOf } from "./shared/fields.mts";
 
-// The two events that carry a model; any other input is not this hook's
-// business.
+/** An event this hook runs for: the two whose input can name the model. */
 export type HookEvent = "SessionStart" | "PostModelSwitch";
 
+/** Whether Claude Code sent one of the events this hook runs for. */
 export const isHookEvent = (name: string): name is HookEvent =>
 	name === "SessionStart" || name === "PostModelSwitch";
 
-/** The model the injection is about, and where its id was established from. */
+/** The model a hook run is injecting for. */
 export interface ActiveModel {
+	/** The id Claude Code uses for the model, such as `claude-opus-5`. */
 	readonly id: string;
-	/**
-	 * True when the hook input named the id. Only then is it worth recording:
-	 * a recalled id is what the record already holds, and a guessed one would
-	 * turn a guess into the answer every later run reads back.
-	 */
+	/** True when this run's input named the id, false when the record held it. */
 	readonly named: boolean;
 }
 
 /**
- * The model the injection is about, or null when it cannot be established.
+ * The model this run is injecting for, or null when nothing establishes one.
  *
- * A switch is about where it is going. SessionStart carries `model` only
- * sometimes; without it the model the session last named answers, and only a
- * session that has never named one falls through to the user's settings.json,
- * a guess that misses project-level settings and aliases like "opus".
+ * @remarks
+ * A switch answers with `to_model` alone: the model has just changed, so the
+ * id the session recorded before it is stale. A session start carries `model`
+ * only sometimes, and one without it falls back to `remembered`.
+ *
+ * @param input - the hook's JSON input, read for `to_model` or `model`
+ * @param remembered - the id this session's last input named, or null
  */
 export function modelFor(
 	event: HookEvent,
 	input: Record<string, unknown>,
 	remembered: string | null,
-	settingsPath: string,
 ): ActiveModel | null {
 	const named = modelId(
 		event === "PostModelSwitch" ? input["to_model"] : input["model"],
@@ -47,21 +44,7 @@ export function modelFor(
 		return null;
 	}
 
-	const id = remembered ?? settingsModel(settingsPath);
-
-	return id === null ? null : { id, named: false };
-}
-
-function settingsModel(settingsPath: string): string | null {
-	try {
-		const settings: unknown = JSON.parse(readFileSync(settingsPath, "utf8"));
-
-		return modelId(fieldsOf(settings)["model"]);
-	} catch {
-		// No settings file, or one that is not readable JSON, is not this
-		// hook's problem to report: it is Claude Code's own file.
-		return null;
-	}
+	return remembered === null ? null : { id: remembered, named: false };
 }
 
 const modelId = (value: unknown): string | null =>

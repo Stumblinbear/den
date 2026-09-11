@@ -20,7 +20,7 @@ import {
 export interface RunOptions {
 	/** A copy of the hook somewhere it is broken; the installed one by default. */
 	readonly launcher?: string;
-	/** A home whose settings.json the run is meant to read. */
+	/** The home directory the run is given; an empty one by default. */
 	readonly home?: string;
 }
 
@@ -47,8 +47,8 @@ export const BROKEN = "[models.'opus'\nprompt = \"x\"\n";
  */
 export const USABLE = "[models.'opus-5\\b']\nprompt = \"FINE\"\n";
 
-// A home with no settings.json, so a test that does not mean to exercise the
-// SessionStart fallback cannot accidentally pick up the real one.
+// An empty home, so a run that goes looking under one reaches nothing of the
+// user's.
 const BARE_HOME = fixtureDir("bare-home");
 
 export function configFile(contents: string): string {
@@ -59,7 +59,7 @@ export function configFile(contents: string): string {
 	return path;
 }
 
-/** A home whose settings.json names a model, for the session start fallback. */
+/** A home whose `.claude/settings.json` names the given model. */
 export function homeNaming(model: string): string {
 	const home = fixtureDir("home");
 

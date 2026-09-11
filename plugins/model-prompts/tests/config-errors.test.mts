@@ -30,14 +30,14 @@ import {
 // The parser report has to name the package the user has to reinstall.
 const NAMES_THE_PACKAGE = /smol-toml/;
 
-// The model this session did not switch to, for the run that has nothing but
-// the record and this file to go on.
+// A home naming the model the session below switches away from, for the run
+// there that carries no model id of its own.
 const OPUS_HOME = homeNaming("claude-opus-5");
 
 const input = (session: string, event = "SessionStart") => ({
 	session_id: session,
 	hook_event_name: event,
-	session_start_reason: "startup",
+	source: "startup",
 	model: "claude-opus-5",
 	to_model: "claude-opus-5",
 });
@@ -187,8 +187,8 @@ for (const runtime of runtimes()) {
 	});
 
 	// Which model a session is on is a fact about the session, not about the
-	// configuration: a run that can inject nothing still has to record it, or
-	// the switch is lost and a later run falls back to a stale guess.
+	// configuration: a run that can inject nothing still records the switch, or
+	// a later run carrying no model id has nothing left to answer with.
 	test(name("a switch made while the config is broken is remembered"), () => {
 		const session = sid();
 		const path = configFile(BROKEN);
@@ -210,13 +210,13 @@ for (const runtime of runtimes()) {
 			"[models.'opus-5\\b']\nprompt = \"OPUS\"\n\n[models.'fable']\nprompt = \"FABLE\"\n",
 		);
 
-		// A compact carries no model, so all the run has is the record and the
-		// settings file, which names the model the session started on.
+		// A compact carries no model id, so the record answers. The home names
+		// the model this session left, which keeps the two apart below.
 		const compacted = hook(
 			{
 				session_id: session,
 				hook_event_name: "SessionStart",
-				session_start_reason: "compact",
+				source: "compact",
 			},
 			path,
 			{ home: OPUS_HOME },

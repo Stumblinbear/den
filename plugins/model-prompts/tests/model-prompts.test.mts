@@ -16,7 +16,7 @@ const OPUS_HOME = homeNaming(OPUS);
 const start = (session: string, model: string) => ({
 	session_id: session,
 	hook_event_name: "SessionStart",
-	session_start_reason: "startup",
+	source: "startup",
 	model,
 });
 
@@ -52,18 +52,18 @@ for (const runtime of runtimes()) {
 		silent(run(start(sid(), FABLE), only));
 	});
 
-	test(name("a start without a model falls back to settings.json"), () => {
+	test(name("a start without a model injects nothing"), () => {
 		const only = configFile("[models.'opus-5\\b']\nprompt = \"OPUS\"\n");
 		const bare = {
 			session_id: sid(),
 			hook_event_name: "SessionStart",
-			session_start_reason: "startup",
+			source: "clear",
 		};
 
-		shows(run(bare, only, { home: OPUS_HOME }), "OPUS");
-
-		// No settings file at all is not a fault: the model is unknown, so
-		// nothing is injected rather than everything.
+		// A clear carries no model id and its session id is new, so no record
+		// answers either. The first run is given a home whose settings.json
+		// names a model the row matches, and stays silent all the same.
+		silent(run(bare, only, { home: OPUS_HOME }));
 		silent(run({ ...bare, session_id: sid() }, only));
 	});
 
@@ -75,13 +75,12 @@ for (const runtime of runtimes()) {
 
 		shows(run(switched(session, FABLE), both), "FABLE");
 
-		// A compact rebuilds the context but does not change the model, and the
-		// input for it carries none. The settings file names the model this
-		// session started on, which is not the one it is on now.
+		// A compact rebuilds the context without changing the model, and its
+		// input carries no id, so the switch above is what answers.
 		const compacted = {
 			session_id: session,
 			hook_event_name: "SessionStart",
-			session_start_reason: "compact",
+			source: "compact",
 		};
 		const started = run(compacted, both, { home: OPUS_HOME });
 
@@ -101,13 +100,12 @@ for (const runtime of runtimes()) {
 		shows(run(switched(session, FABLE), both), "FABLE");
 		shows(run(start(session, OPUS), both), "OPUS");
 
-		// A compact carries no model and there is no settings.json to guess
-		// from, so all that is left is the record, and the start above is what
-		// last said what this session is on.
+		// A compact carries no model id, so the record answers, and the start
+		// above is the last input that named one.
 		const compacted = {
 			session_id: session,
 			hook_event_name: "SessionStart",
-			session_start_reason: "compact",
+			source: "compact",
 		};
 		const after = run(compacted, both);
 
