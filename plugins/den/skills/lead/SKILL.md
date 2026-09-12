@@ -121,11 +121,9 @@ unreviewable judgment the agent exercises between check-ins: opus
 implements from a brief, sonnet surveys, haiku does mechanics where
 the compiler is the spec, fable reviews code and does root-cause and
 derivation work. "Read X and report what is there" is a survey, not
-research. A resume follows the definition's model, so a launch-time model
-override is never relied on for an agent that may be resumed. State the model
-in the user-facing message at every launch and resume. `den:implementer-fable`
-is proposed with a rationale and launched only on the user's explicit
-approval.
+research. State the model in the user-facing message at every launch and
+resume. `den:implementer-fable` is proposed with a rationale and launched
+only on the user's explicit approval.
 
 ## Launch authorization
 
