@@ -7,6 +7,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-12
+
 ### Changed
 
 - The `notice` and `urgent` messages no longer state the measured context.
@@ -345,7 +347,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   instead of the `RESUME_GATE_LARGE_TOKENS` and `RESUME_GATE_COLD_TOKENS`
   environment variables den 0.1.0 read; neither is consulted any more.
 
-[Unreleased]: https://github.com/Stumblinbear/den/compare/context-budget--v0.4.0...HEAD
+[Unreleased]: https://github.com/Stumblinbear/den/compare/context-budget--v0.5.0...HEAD
+[0.5.0]: https://github.com/Stumblinbear/den/compare/context-budget--v0.4.0...context-budget--v0.5.0
 [0.4.0]: https://github.com/Stumblinbear/den/compare/context-budget--v0.3.0...context-budget--v0.4.0
 [0.3.0]: https://github.com/Stumblinbear/den/compare/context-budget--v0.2.0...context-budget--v0.3.0
 [0.2.0]: https://github.com/Stumblinbear/den/releases/tag/context-budget--v0.2.0
