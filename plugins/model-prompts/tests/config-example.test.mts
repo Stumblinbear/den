@@ -13,7 +13,7 @@ import { HOOKS, hookRunner, sessionId } from "./harness.mts";
 
 const EXAMPLE = join(HOOKS, "config.example.toml");
 
-/** The model id the example's one enabled row is written for. */
+/** The model id one of the example's enabled rows is written for. */
 const OPUS = "claude-opus-5";
 
 for (const runtime of runtimes()) {

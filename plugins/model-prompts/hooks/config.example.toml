@@ -40,6 +40,17 @@ plainness or directness ("let me be direct", "I want to be clear", "to put it
 plainly", "one thing to call out", "the thing to understand here", "in
 short", "bottom line:")."""
 
+# Fable 5.1 reads one file per turn where the next reads are only implied,
+# which is the same answer in more round trips. Injected on every switch into
+# it for the same reason as the Opus row.
+[models.'fable-5-1']
+on_switch = "every"
+prompt = """
+Read in batches. Before reading, list privately what you will need next; then
+request every file, search or command that does not depend on another's
+result in the same response, one call each, rather than one file per turn.
+Only a read whose input depends on an earlier result waits for it."""
+
 # A row that matches every model, for a rule that is about the work rather than
 # about the model.
 #

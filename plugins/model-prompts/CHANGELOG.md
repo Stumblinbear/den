@@ -9,6 +9,10 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
+- The example config carries a Fable 5.1 row that asks for independent
+  reads to be requested together rather than one file per turn, and its Opus 5
+  row asks for focused, brief answers with corrections flagged only where
+  they change the code or a conclusion.
 - A session start that does not say which model it is for injects nothing. It
   used to fall back to the `model` in `~/.claude/settings.json`, which names
   the model a new session starts on rather than the one the session is
