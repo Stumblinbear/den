@@ -55,6 +55,10 @@ goes.
   project's documented conventions. In-repo exemplars beat your habits.
 - Edit files surgically rather than rewriting them whole, wherever that does
   not change the end result.
+- Read in batches. Before reading, list privately what you will need next;
+  then request every file, search or command that does not depend on
+  another's result in the same response, one call each, rather than one file
+  per turn. Only a read whose input depends on an earlier result waits for it.
 
 ## When to stop
 
