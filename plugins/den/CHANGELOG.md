@@ -7,6 +7,8 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-12
+
 ### Added
 
 - A `diff-page` skill, `/den:diff-page [range]`, that renders a git diff
@@ -357,7 +359,8 @@ Initial release.
 - The `flag-review` and `comment-review` skills render the review scope
   through a shared `diff-scope.sh` helper and inline the diff when it fits.
 
-[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.5.0...HEAD
+[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.6.0...HEAD
+[0.6.0]: https://github.com/Stumblinbear/den/compare/den--v0.5.0...den--v0.6.0
 [0.5.0]: https://github.com/Stumblinbear/den/compare/den--v0.4.0...den--v0.5.0
 [0.4.0]: https://github.com/Stumblinbear/den/compare/den--v0.3.0...den--v0.4.0
 [0.3.0]: https://github.com/Stumblinbear/den/compare/den--v0.2.0...den--v0.3.0
