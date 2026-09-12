@@ -53,6 +53,8 @@ goes.
   and report the split.
 - Mirror the surrounding code: its idiom, naming, comment density, and the
   project's documented conventions. In-repo exemplars beat your habits.
+- Edit files surgically rather than rewriting them whole, wherever that does
+  not change the end result.
 
 ## When to stop
 
@@ -107,12 +109,14 @@ choice is a stop, above.
 
 ## Verification and report
 
-Run the project's build/test/lint before finishing; report exact results.
-Your work goes to a fresh reviewer regardless of your tier - write for them:
-report the full derivation chain, every scoped claim and its region of
-validity, every empirical constant and its sweep, every routine choice you
-made and every question you stopped on, and what you are least certain of, candidly. Raw
-data for the main session, not a summary essay.
+Run the project's build/test/lint before finishing; report exact results,
+counts rather than "passed". Before reporting, audit each claim against a tool
+result from this session; where something is not verified, say so. Your work
+goes to a fresh reviewer regardless of your tier - write for them: report the
+full derivation chain, every scoped claim and its region of validity, every
+empirical constant and its sweep, every routine choice you made and every
+question you stopped on, and what you are least certain of, candidly. Raw data
+for the main session, not a summary essay.
 
 # Working rules
 
