@@ -10,7 +10,7 @@
 // session. What is left in the record is what the next Stop's gate reads: the
 // turn the state was written at, when the judge may be consulted again, the
 // call in flight, and the verdict standing.
-import { type Option, optionIn, type Wait } from "./answer.mts";
+import type { Wait } from "./answer.mts";
 import type { Answer } from "./judge.mts";
 import type { Turn } from "./recent-turns.mts";
 import type { Thresholds } from "./settings.mts";
@@ -40,12 +40,10 @@ const TURNS: Readonly<Record<Wait, number>> = {
 	later: 8,
 };
 
-/** What the judge found, as the record keeps it. */
+/** An arc the judge found ended, as the record keeps it. */
 export interface Verdict {
-	/** The rung it was judged on; it is over once the context is off that. */
+	/** The rung it was judged on; it stands only while the context is on that. */
 	readonly rung: Watched;
-	/** What it recommended, which is what the session was told. */
-	readonly option: Option;
 }
 
 /** Everything the watcher keeps between the runs of one session. */
@@ -223,7 +221,7 @@ export function settled(
 		return {
 			...after,
 			next: turned.count,
-			verdict: { rung: turned.rung, option: answer.option },
+			verdict: { rung: turned.rung },
 		};
 	}
 
@@ -255,17 +253,14 @@ const countIn = (value: unknown): number =>
 	typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : 0;
 
 /**
- * A verdict left half written, by a run that died between the two fields,
- * reads as no verdict: what the gate is holding open or shut is not a thing to
- * infer from half a record. A rung the judge is never consulted on reads the
- * same way, since no run of this can have written one.
+ * A verdict as the record holds it, and null for anything this cannot read: a
+ * rung missing, misspelt, or one the judge is never consulted on, which no run
+ * of this can have written. What the gate is holding open or shut is not a
+ * thing to infer from a record that reads as none of them.
  */
 function verdictIn(written: unknown): Verdict | null {
 	const fields = fieldsOf(written);
-	const option = optionIn(fields["option"]);
 	const rung = RUNGS.find((known) => known === fields["rung"]);
 
-	return option === null || rung === undefined || !watched(rung)
-		? null
-		: { rung, option };
+	return rung === undefined || !watched(rung) ? null : { rung };
 }

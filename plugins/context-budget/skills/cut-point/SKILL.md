@@ -1,7 +1,7 @@
 ---
 name: cut-point
-description: A priced reading of the session's prompt cache, listing the rewind cut points still cached, `/compact`, and carrying on, each with what it keeps and when it pays back.
-when_to_use: ALWAYS invoke this skill when naming where to rewind to or which prompt to select in `/rewind` or when a cut point named earlier has expired. Do not name a cut point or quote a payback from memory; use this skill first.
+description: A priced reading of the session's prompt cache, listing the rewind cut points still cached, `/compact`, and carrying on, each with what it keeps and when it pays back, and the rule for a `/compact` focus line.
+when_to_use: ALWAYS invoke this skill when the watcher says an arc has ended, when writing a `/compact` line, when naming where to rewind to or which prompt to select in `/rewind`, or when a cut point named earlier has expired. Do not name a cut point or quote a payback from memory; use this skill first.
 ---
 
 # A current rewind cut point
@@ -20,4 +20,4 @@ Price then chooses among what the arc admits: the lowest payback, and `/compact`
 
 Give the user, in one short passage: the direction by name, "Summarize up to here"; the prompt's opening words quoted verbatim, since the picker lists their prompts and a position like "three prompts ago" does not survive scrolling; "valid until HH:MM" from the list; and that they can ask you for another cut point if they miss it. Only the user can run `/rewind`; the direction is chosen in its picker after the prompt is selected. A user working from Remote Control cannot open that picker at all, so recommend `/compact [focus]` there instead.
 
-Say a `/compact` as the command, bare or with its focus line, which the `context-budget` skill's "The focus line" shapes, and one clause of why: what it summarizes away against what carrying on costs a turn. Quote no expiry and name no prompt, since it selects none and nothing about it goes stale, and either of you can run it.
+Say a `/compact` as the command, bare or with its focus line, and one clause of why. A focus line names, in a few words, one thing that must survive the cut and is not on disk; when nothing needs keeping, `/compact` runs bare, and standing rules, paths and committed work are never in it. The clause of why is what it summarizes away against what carrying on costs a turn. Quote no expiry and name no prompt, since it selects none and nothing about it goes stale, and either of you can run it.

@@ -7,7 +7,7 @@
 					{
 						"type": "command",
 						"async": true,
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/watcher --config \"${CLAUDE_PLUGIN_DATA}/config.toml\" --pricing \"${CLAUDE_PLUGIN_ROOT}/lib/pricing.toml\" --pricing-overrides \"${CLAUDE_PLUGIN_DATA}/pricing.toml\""
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/watcher --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
 					}
 				]
 			}

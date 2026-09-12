@@ -163,15 +163,17 @@ the guard it had.
 
 The watcher runs on `Stop`, in the background, and only while the context sits
 past `notice` and under `urgent`. It asks a small model, on the last sixteen
-turns of conversation and the same priced reading the `cut-point` skill prints,
-whether the session has just reached a good moment to compact or rewind; Claude
-Code hands the answer to the agent on its next turn, and where it names a cut
-the agent puts it to the user every time, saying so where it would rather
-finish the work in hand first and raising it again at each pause after. It
-paces itself: an answer of "not yet" names a wait of one, three or eight
-turns, halved past the midpoint between the two thresholds, and a commit, a
-push or a task marked completed cuts a wait short. Turns there are the user's
-own prompts, so an agent woken again inside one turn runs no wait down. A
+turns of conversation alone, one thing: whether the session's arc of work has
+just ended. Claude Code hands the answer to the agent on its next turn, and the
+agent then prices the cut itself through the `cut-point` skill and puts it to
+the user every time, saying so where it would rather finish the work in hand
+first and raising it again at each pause after, until the user runs a cut or
+says they want none. The judge never names a command, a prompt or a focus line;
+those are the session's. It paces itself: an answer of "not yet" names a wait
+of one, three or eight turns, halved past the midpoint between the two
+thresholds, and a commit, a push or a task marked completed cuts a wait short.
+Turns there are the user's own prompts, so an agent woken again inside one turn
+runs no wait down. A
 `command` of your own is handed the prompt on stdin and writes one JSON object
 on stdout, bare or in the `result` field of a `claude --output-format json`
 envelope; anything else reads as no verdict and costs the session nothing. A

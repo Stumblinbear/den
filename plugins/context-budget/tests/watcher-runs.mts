@@ -7,26 +7,16 @@
 // The thresholds are the harness's own, 150K and 250K, so the midpoint the
 // watcher halves its longest wait past is 200K.
 import assert from "node:assert/strict";
-import { join } from "node:path";
 import type { Result, Runtime } from "../../../tests/harness.mts";
 import { assistant, at, prompt, type TurnOptions } from "./fixtures.mts";
 import {
 	configFile,
 	hookRunner,
-	PLUGIN,
 	sessionId,
 	transcript,
 	USABLE,
 } from "./harness.mts";
 import { type Judge, judge, type Shim } from "./judge-fixture.mts";
-
-/** The two price files `hooks.json` passes the watcher, as it passes them. */
-export const PRICING: readonly string[] = [
-	"--pricing",
-	join(PLUGIN, "lib", "pricing.toml"),
-	"--pricing-overrides",
-	join(PLUGIN, "lib", "no-such-overrides.toml"),
-];
 
 /** Past the notice threshold and under the midpoint. */
 export const NOTICE = 160_000;
@@ -57,8 +47,6 @@ export const COMMITTED = [
 /** A good answer, in the bare shape a judge of the user's own would write. */
 export const GOOD = {
 	good: true,
-	option: "compact",
-	focus: "wiring the watcher into the session record, task #30",
 	reason: "the record change is landed and its tests are green",
 };
 
@@ -110,10 +98,7 @@ export function watcherRuns(
 					transcript_path: path,
 				},
 				written,
-				{
-					args: PRICING,
-					...(shim === null ? {} : { env: shim.env }),
-				},
+				shim === null ? {} : { env: shim.env },
 			),
 	};
 }

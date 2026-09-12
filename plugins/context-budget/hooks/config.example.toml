@@ -70,15 +70,16 @@ urgent = """
 Context budget: this session is at {tokens} tokens, past the point where waiting for the arc to end is affordable. Finish the step in hand, then invoke the `context-budget:cut-point` skill and put the choice to the user before starting anything new."""
 
 # The watcher. Past the `notice` threshold, at the end of every turn, it asks a
-# small model whether the session has just reached a good moment to compact or
-# rewind, and hands the answer to the agent on its next turn as advice. It never
-# acts, and the agent may decline it.
+# small model one thing: whether the arc of work the session is in has just
+# ended. It hands that answer to the agent on its next turn as advice, and which
+# cut is worth taking, if any, is the agent's own to price. It never acts, and
+# the agent may decline it.
 #
-# The model reads the same priced reading the `cut-point` skill prints, plus the
-# recent conversation with the tool results left out. It paces itself: a "not
-# yet" answer says how many turns to wait, and the wait is cut short by a
-# commit, a push or a task marked completed. Past the `urgent` threshold it is
-# never asked, since the urgent notice has already said what it would.
+# The model reads the recent conversation, with the tool results left out. It
+# paces itself: a "not yet" answer says how many turns to wait, and the wait is
+# cut short by a commit, a push or a task marked completed. Past the `urgent`
+# threshold it is never asked, since the urgent notice has already said what it
+# would.
 #
 # Every key here has a default, and the whole table may be left out.
 [watcher]

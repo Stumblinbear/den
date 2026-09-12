@@ -8,11 +8,9 @@
 // the in-flight marker for the rest of the session.
 import { type SpawnSyncReturns, spawnSync } from "node:child_process";
 import process from "node:process";
-import { ANSWER, type Option, optionIn, type Wait, waitIn } from "./answer.mts";
-import { formatTokens } from "./messages.mts";
+import { ANSWER, type Wait, waitIn } from "./answer.mts";
 import type { Turn } from "./recent-turns.mts";
-import { opening } from "./rewind-picker.mts";
-import type { Thresholds, Watcher } from "./settings.mts";
+import type { Watcher } from "./settings.mts";
 import { errorCode, firstLine, isTable } from "./shared/fields.mts";
 
 /**
@@ -41,9 +39,7 @@ const CHARS_A_TOKEN = 4;
 export type Answer =
 	| {
 			readonly kind: "good";
-			readonly option: Option;
-			/** The focus line, or the opening words of the prompt to rewind to. */
-			readonly focus: string;
+			/** The judge's own sentence naming the arc that ended. */
 			readonly reason: string;
 	  }
 	| { readonly kind: "wait"; readonly wait: Wait }
@@ -60,47 +56,30 @@ export type Answer =
 
 const NONE: Answer = { kind: "none" };
 
-/** Where the context stands against the thresholds it is judged by. */
-export interface Budget {
-	readonly tokens: number;
-	readonly limits: Thresholds;
-}
-
 /**
- * The whole prompt: the arc rule the skill states, the priced reading, the
- * conversation, and the answer it is held to.
+ * The whole prompt: the arc rule the skill states, the conversation, and the
+ * answer it is held to.
  */
 export function judgePrompt(
-	reading: string,
 	turns: readonly Turn[],
-	budget: Budget,
 	tailTokens: number,
 ): string {
-	return [
-		BRIEF,
-		`<reading>\n${reading}\n</reading>`,
-		`<turns>\n${tail(turns, tailTokens)}\n</turns>`,
-		`The session is at ${formatTokens(budget.tokens)} tokens, past its ${formatTokens(budget.limits.notice)} notice threshold and under its ${formatTokens(budget.limits.urgent)} urgent one.`,
-		ANSWER,
-	].join("\n\n");
+	return [BRIEF, `<turns>\n${tail(turns, tailTokens)}\n</turns>`, ANSWER].join(
+		"\n\n",
+	);
 }
 
 /**
- * The rules below are the session's own, so that the two cannot rule
- * differently on one moment. The arc test is "Judging the stopping point" and
- * the order of the three options is "Choosing between them", both in
- * `skills/context-budget/SKILL.md`; the priced rule the third step states is
- * "Choosing" in `skills/cut-point/SKILL.md`. Edit them together.
+ * The one question the judge answers, and the arc test it answers it by. That
+ * test is the session's own, "Judging the stopping point" in
+ * `skills/context-budget/SKILL.md`: one rule written in two places, which
+ * cannot be allowed to rule differently on one moment, so edit them together.
  */
-const BRIEF = `You are judging one thing about a Claude Code session you are not part of: whether it has just reached a good moment to shrink its context. You advise; the session's own agent decides, and it can see everything you cannot.
+const BRIEF = `You are judging one thing about a Claude Code session you are not part of: whether the arc of work it is in has just ended. You advise; the session's own agent decides what to do about it, and it can see everything you cannot.
 
-A good moment is the end of an arc, where the work ahead would not need the detail behind it: a change landed and reviewed, a question answered and acted on, an investigation whose finding is written down somewhere durable. A step inside an arc reads as tidy and is not one, because the next step is written from exactly the detail a summary would thin: a brief written, an agent launched, a report relayed, a change that compiles.
+An arc has ended where the work ahead would not need the detail behind it: a change landed and reviewed, a question answered and acted on, an investigation whose finding is written down somewhere durable. A step inside an arc reads as tidy and is not one, because the next step is written from exactly the detail a summary would thin: a brief written, an agent launched, a report relayed, a change that compiles.
 
-Weigh it in three steps, in this order.
-
-1. Whether the arc has ended. Where it has not, the answer is a wait and nothing else.
-2. What may be summarized away. Whatever the next steps still lean on has to survive verbatim. That rules out \`compact\` where the tail it keeps would not hold that setup, however cheap the reading prices it, and it admits \`rewind\` only at a prompt the arc began at or after.
-3. What the arc admits, priced. The lowest payback wins and \`compact\` takes a tie. Where every payback is longer than the arc has left to run, the arc has still ended and the recommendation is \`carry-on\`.`;
+Where the arc has not ended, the answer is a wait and nothing else. Where it has, say so and name the arc.`;
 
 /**
  * The conversation as the judge reads it, oldest turn first, cut to the token
@@ -321,35 +300,15 @@ function narrowed(answer: Record<string, unknown>): Answer {
 		return wait === null ? NONE : { kind: "wait", wait };
 	}
 
-	const option = optionIn(answer["option"]);
-	const focus = String(answer["focus"] ?? "").trim();
 	// The reason is read out mid-sentence, where the model's own full stop
 	// would land beside the sentence's.
 	const reason = String(answer["reason"] ?? "")
 		.trim()
 		.replace(/[.\s]+$/, "");
 
-	// A recommendation with nothing to act on is one the session would have
-	// to invent the missing half of, and the reason is the whole of what makes
-	// it advice rather than an instruction.
-	if (option === null || reason === "") {
-		return NONE;
-	}
-
-	if (option === "carry-on") {
-		return { kind: "good", option, focus: "", reason };
-	}
-
-	// A rewind is named to the user in a sentence, and the picker's own rows are
-	// the words they will be reading it against.
-	return focus === ""
-		? NONE
-		: {
-				kind: "good",
-				option,
-				focus: option === "rewind" ? opening(focus) : focus,
-				reason,
-			};
+	// The reason is the whole of what makes the verdict advice rather than an
+	// instruction: a session told only that its arc ended cannot weigh it.
+	return reason === "" ? NONE : { kind: "good", reason };
 }
 
 /**

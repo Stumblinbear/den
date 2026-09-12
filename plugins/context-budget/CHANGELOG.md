@@ -7,6 +7,20 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+
+- The watcher's judge answers one thing: whether the session's arc has ended,
+  `{"good": true, "reason": "..."}`. It no longer names a compact or a rewind,
+  a focus line or a prompt; the advice the session receives says the arc looked
+  over and why, and sends the session to the `cut-point` skill to price the cut
+  itself. The judge is shown the recent conversation alone: the priced reading
+  it used to read beside it was the one part of its prompt that argued for a
+  cut, and the Stop hook no longer walks the transcript a second time to build
+  one. A judge that still writes `option` and `focus` is read for its reason
+  alone. The session record's verdict keeps the rung only. The `cut-point`
+  skill carries the focus-line rule itself rather than pointing at the
+  `context-budget` skill for it.
+
 ### Added
 
 - Per-agent-type and per-model rows under the resume guard,

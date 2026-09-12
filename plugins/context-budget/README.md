@@ -12,14 +12,14 @@ auto-compact choose one for you.
   session is and to raise it at the end of the arc in hand. The second says to
   raise it at the end of the step in hand instead. Neither names a cut point.
 - A watcher. Past the first threshold, at the end of every turn, a background
-  hook asks a small model whether the session has just reached a good moment to
-  compact or rewind. Its answer reaches the agent on the next turn as advice:
-  where the boundary was, what it recommends with the focus line or the prompt
-  to rewind to, and why. Where it names a cut, the agent puts it to you every
-  time, and where it would rather finish the work first it says so and raises
-  it again at each pause after. It runs on your own Claude subscription's
-  allowance, a few calls in a session; `[watcher] enabled = false` switches it
-  off.
+  hook asks a small model one thing: whether the session's arc of work has just
+  ended. Its answer reaches the agent on the next turn as advice: where the
+  boundary was and why the arc looks over. The agent then prices the cut
+  itself, through the `cut-point` skill, and puts it to you every time; where
+  it would rather finish the work first it says so and raises it again at each
+  pause after, until you run a cut or say you want none. It runs on your own
+  Claude subscription's allowance, a few calls in a session;
+  `[watcher] enabled = false` switches it off.
 - A resume guard. Before a message is sent to a subagent, a hook denies
   resuming one whose context is large, or whose prompt cache has expired, and
   tells the agent to put the numbers to you first. A fresh launch is never
@@ -36,7 +36,7 @@ auto-compact choose one for you.
   three are read against one another rather than one against two blanks.
 - The `context-budget` skill, which the agent loads when it makes that
   recommendation: how a rewind summarize differs from `/compact`, how to pick
-  a cut point and a focus line, and how to judge a stopping point.
+  a cut point, and how to judge a stopping point.
 - The `configure` skill (`/context-budget:configure`): the guided path through
   the configuration and through "why did it do that".
 
@@ -88,8 +88,8 @@ transcript backward from its end, as far back as the cached stretch goes, and
 the two price files below. The watcher reads the same 512 KB tail at the end of
 a turn and, past the first threshold, the transcript backward to the last
 compaction, for the turn that has just ended and a count of your prompts behind
-it; only when it is about to ask the judge does it read the last sixteen turns
-and the same cached stretch the skill reads. Nothing here reads your source.
+it; only when it is about to ask the judge does it read the last sixteen turns.
+Nothing here reads your source.
 
 What is written: one JSON file per session under `claude-context-budget/` in
 the OS temp directory, holding the transcript the last measuring run read, the
@@ -289,7 +289,7 @@ before it reads a figure at all.
 
 The watcher paces itself, and the judge sets the pace. Past the notice
 threshold and under the urgent one it is asked whether the session has just
-reached a good moment, and an answer of "not yet" says when to ask again: the
+reached the end of an arc, and an answer of "not yet" says when to ask again: the
 next turn, three turns, or eight, halved to four once the context is past the
 midpoint between the two thresholds. Turns there are your own prompts, so an
 agent woken half a dozen times inside one turn by background work runs nothing

@@ -119,7 +119,7 @@ for (const runtime of runtimes()) {
 		const said = String(injected(stop(session(), conversation(NOTICE))));
 
 		assert.ok(said.includes("the record change is landed"), said);
-		assert.ok(said.includes("/compact"), said);
+		assert.ok(said.includes("cut-point"), said);
 	});
 
 	// The schema's root is one object carrying the answer under `answer`, so
@@ -140,7 +140,7 @@ for (const runtime of runtimes()) {
 		const said = String(injected(stop(session(), conversation(NOTICE))));
 
 		assert.ok(said.includes("the record change is landed"), said);
-		assert.ok(said.includes("/compact"), said);
+		assert.ok(said.includes("cut-point"), said);
 	});
 
 	// A judge of the user's own is handed no schema, so it writes no validated

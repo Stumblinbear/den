@@ -1,6 +1,6 @@
 ---
 name: context-budget
-description: How a session's context is shrunk, covering what `/compact` and a rewind summarize each keep, how to name a cut point and write a focus line, and how to tell the end of an arc from a step inside one.
+description: How a session's context is shrunk, covering what `/compact` and a rewind summarize each keep, how to name a cut point, and how to tell the end of an arc from a step inside one.
 when_to_use: ALWAYS invoke this skill when a "Context budget:" notice appears, before deciding what to recommend, and when the user asks whether to compact, rewind, or keep going. Do not recommend a compact or a rewind directly; use this skill first.
 user-invocable: false
 ---
@@ -48,16 +48,7 @@ A rewind at a prompt re-reads everything before it. That prefix is cached only w
 
 ## The focus line
 
-A focus line tells the compaction what to keep, and nothing else. It is
-written only when something in the conversation has to survive the cut
-and is not on disk, usually an open decision or a ruling not yet
-recorded, and it names that in one short sentence. Standing rules,
-committed work and files need no mention: the summary is written by the
-compaction, and a line that describes the session or its work is a
-summary written in advance, spending tokens to save none. When nothing
-in the conversation needs keeping, `/compact` runs bare.
-
-`/compact keep that the fable row's figure stands and the reason`
+The `cut-point` skill carries the rule, beside the command the line goes in.
 
 ## Judging the stopping point
 

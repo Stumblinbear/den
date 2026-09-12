@@ -24,14 +24,12 @@ import {
 const ADVICE = [
 	'Context watcher: after the turn that began "Now wire the verdict into the',
 	'session record", the arc looked over: the record change is landed and its',
-	"tests are green. It recommends `/compact wiring the watcher into the session",
-	"record, task #30`. Put that to the user in your next reply, the command in a",
-	"fenced block on its own line at the end, since a recommendation inside a",
-	"paragraph is one they never see. If the work in hand should finish first,",
-	"say so beside it, and raise it again at each later pause where a cut would",
-	"keep what the work still needs, with a command written for that moment from",
-	"the `context-budget:cut-point` skill, until the user runs one or says they",
-	"want none.",
+	"tests are green. Invoke the `context-budget:cut-point` skill and give the",
+	"user its answer in your next reply: where it names a cut, one sentence with",
+	"the command in a fenced block on its own line at the end; where it comes to",
+	"carrying on, say that and give no command. If the work in hand should finish",
+	"first, say so beside it and raise it again at each later pause, read afresh",
+	"from the skill, until the user runs a cut or says they want none.",
 ].join(" ");
 
 for (const runtime of runtimes()) {
@@ -45,8 +43,8 @@ for (const runtime of runtimes()) {
 		assert.equal(injected(stop(session(), conversation(NOTICE))), ADVICE);
 	});
 
-	// Both quotations the advice carries are read against the `/rewind` picker's
-	// own rows, so a slash command is quoted by the name and arguments the user
+	// The prompt the advice quotes is read against the `/rewind` picker's own
+	// rows, so a slash command is quoted by the name and arguments the user
 	// typed rather than by the XML the transcript stores it as.
 	test(name("a slash-command prompt is quoted as the picker lists it"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
@@ -58,46 +56,29 @@ for (const runtime of runtimes()) {
 		assert.ok(said.includes('began "/review src"'), said);
 	});
 
-	// A rewind is named to the user by the words the picker's own rows carry,
-	// so the judge is asked for the prompt's opening and the hook cuts it to a
-	// row either way: a whole prompt quoted into the advice is a paragraph.
-	test(name("a rewind verdict is advice at a prompt, cut to a row"), () => {
+	// The cut is the session's to price, so a judge that still writes one is
+	// read for its reason alone: nothing it says about a command or a prompt
+	// reaches the session.
+	test(name("a cut the judge names is not relayed"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
 
 		seen.answers({
-			good: true,
-			option: "rewind",
-			focus:
-				"Read the design at watcher-design.md and start on the watcher, taking the gate first.",
-			reason: "the watcher is landed and the round has moved on to its docs",
+			...GOOD,
+			option: "compact",
+			focus: "wiring the watcher into the session record, task #30",
 		});
 
-		const said = String(injected(stop(session(), conversation(NOTICE))));
-
-		assert.ok(
-			said.includes(
-				'It recommends a rewind summarize at "Read the design at watcher-design.md and start on the watcher, taking...".',
-			),
-			said,
-		);
+		assert.equal(injected(stop(session(), conversation(NOTICE))), ADVICE);
 	});
 
-	// Carrying on is a verdict like the other two: the arc ended and no cut
-	// pays for itself, which is worth saying once and then standing on.
-	test(name("a carry-on verdict recommends carrying on unchanged"), () => {
+	// An arc that ended for no stated reason is one the session cannot weigh,
+	// so it hears nothing at all.
+	test(name("a verdict without a reason is silence"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
 
-		seen.answers({
-			good: true,
-			option: "carry-on",
-			focus: "",
-			reason: "the arc ended with too little left to run to pay a cut back",
-		});
+		seen.answers({ good: true, reason: "" });
 
-		const said = String(injected(stop(session(), conversation(NOTICE))));
-
-		assert.ok(said.includes("It recommends carrying on unchanged."), said);
-		assert.ok(!said.includes("Put that to the user"), said);
+		assert.equal(injected(stop(session(), conversation(NOTICE))), null);
 	});
 
 	// The model's own full stop would land beside the sentence's.
@@ -108,10 +89,7 @@ for (const runtime of runtimes()) {
 
 		const said = String(injected(stop(session(), conversation(NOTICE))));
 
-		assert.ok(
-			said.includes("the record change is landed. It recommends"),
-			said,
-		);
+		assert.ok(said.includes("the record change is landed. Invoke"), said);
 	});
 
 	// What `claude -p --output-format json` writes: the model's text in a
@@ -128,6 +106,22 @@ for (const runtime of runtimes()) {
 		});
 
 		assert.equal(injected(stop(session(), conversation(NOTICE))), ADVICE);
+	});
+
+	// The judge rules on the arc and nothing else, so its prompt carries the
+	// conversation and nothing that prices a cut: the figures are the session's
+	// to read, through the `cut-point` skill.
+	test(name("the judge is shown the turns and nothing priced"), () => {
+		const { judge: seen, session, stop } = watcherRuns(runtime);
+
+		seen.answers(LATER);
+		quiet(stop(session(), conversation(NOTICE)));
+
+		const shown = seen.prompts()[0] ?? "";
+
+		assert.ok(shown.includes("<turns>"), "the conversation is shown");
+		assert.ok(!shown.includes("<reading>"), shown);
+		assert.ok(!shown.includes("/compact"), shown);
 	});
 
 	// The judge reads a bounded stretch of conversation however long the

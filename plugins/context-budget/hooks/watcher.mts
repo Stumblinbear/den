@@ -1,18 +1,12 @@
-// Stop hook, registered async. Once the session is past the notice threshold
-// it asks a small model, on the turn's own transcript and the priced reading,
-// whether the session has just reached a good moment to shrink its context,
-// and writes what comes back as its own advice: Claude Code hands an async
-// hook's `additionalContext` to the model on the next conversation turn, which
-// is the first moment after this one that the session can hear anything.
+// The Stop hook, registered async: past the notice threshold it asks a small
+// model whether the arc of work the session is in has just ended, and hands
+// what comes back to the session as advice it may decline.
 //
-// It advises and never acts, so everything it can get wrong costs a sentence
-// the session may decline. The gate is read cheapest first and the judge
-// paces itself, so most Stops here are one measurement and one turn read.
-//
-// Subagents are out of scope, as they are short-lived and cannot compact.
+// Claude Code gives an async hook's `additionalContext` to the model on the
+// next conversation turn, which is the first moment after this one that the
+// session can hear anything.
 import process from "node:process";
 import { argValue } from "../lib/args.mts";
-import { cacheReading } from "../lib/cache-reading.mts";
 import {
 	type Answer,
 	askJudge,
@@ -21,15 +15,12 @@ import {
 } from "../lib/judge.mts";
 import { measure } from "../lib/measure.mts";
 import { WATCHER_FAULTS } from "../lib/plugin.mts";
-import { loadPricing } from "../lib/pricing.mts";
-import { scanCacheWindow } from "../lib/prompt-cache.mts";
 import { latestTurn, recentTurns, type Turn } from "../lib/recent-turns.mts";
 import { opening } from "../lib/rewind-picker.mts";
 import { updateRecord } from "../lib/session-record.mts";
 import {
 	loadSettings,
 	type Settings,
-	type Thresholds,
 	thresholdsFor,
 	type Watcher,
 } from "../lib/settings.mts";
@@ -50,11 +41,9 @@ const EVENT = "Stop";
 
 const args = process.argv.slice(2);
 
-/** The turn that has just ended, as everything below it reads that turn. */
+/** The turn that has just ended, on a rung the judge is consulted on. */
 interface Ended extends Judged {
-	readonly tokens: number;
-	readonly limits: Thresholds;
-	/** The newest turn, which is the one a verdict is about. */
+	/** The turn itself, which the advice quotes the user's prompt from. */
 	readonly newest: Turn;
 }
 
@@ -89,8 +78,6 @@ function ended(transcript: string, settings: Settings): Ended | null {
 	return latest.turn === null
 		? null
 		: {
-				tokens: measured.tokens,
-				limits,
 				rung,
 				count: latest.count,
 				context: latest.context,
@@ -179,50 +166,37 @@ function released(session: string): void {
 }
 
 /**
- * The prompt for this turn, and null where the transcript moved under the read
- * that builds it. The transcript is read once more here for the priced
- * reading, which is the same text the cut-point script prints and the same
- * figures the session would be shown.
+ * The judge's prompt for this turn, and null where the transcript has left the
+ * path it was named at by the time this reads it.
  */
-async function prompted(
-	transcript: string,
-	turn: Ended,
-	watcher: Watcher,
-): Promise<string | null> {
-	const pricing = await loadPricing({
-		shipped: argValue(args, "--pricing"),
-		overrides: argValue(args, "--pricing-overrides"),
-	});
-
+function prompted(transcript: string, watcher: Watcher): string | null {
 	return ifPresent(() =>
-		judgePrompt(
-			cacheReading(scanCacheWindow(transcript), pricing),
-			recentTurns(transcript, watcher.tailTurns),
-			{ tokens: turn.tokens, limits: turn.limits },
-			watcher.tailTokens,
-		),
+		judgePrompt(recentTurns(transcript, watcher.tailTurns), watcher.tailTokens),
 	);
 }
 
 /**
- * What a cut is owed, carried by the line itself: it arrives many turns after
- * any skill was loaded, and a recommendation left inside a paragraph was
- * never seen.
+ * What an ended arc is owed: the cut priced through the `cut-point` skill, and
+ * that answer put to the user with any command in a fenced block of its own,
+ * where a recommendation buried in a paragraph goes unread.
+ *
+ * The line carries all of it, since it reaches the session many turns after
+ * any skill was loaded. Asking again is part of that: a verdict stands until
+ * the context leaves the rung it was judged on, so nothing consults the judge
+ * again about a cut the user has not answered.
  */
 const RELAY = [
-	"Put that to the user in your next reply, the command in a fenced block on",
-	"its own line at the end, since a recommendation inside a paragraph is one",
-	"they never see. If the work in hand should finish first, say so beside it,",
-	"and raise it again at each later pause where a cut would keep what the work",
-	"still needs, with a command written for that moment from the",
-	"`context-budget:cut-point` skill, until the user runs one or says they want",
-	"none.",
+	"Invoke the `context-budget:cut-point` skill and give the user its answer in",
+	"your next reply: where it names a cut, one sentence with the command in a",
+	"fenced block on its own line at the end; where it comes to carrying on, say",
+	"that and give no command. If the work in hand should finish first, say so",
+	"beside it and raise it again at each later pause, read afresh from the",
+	"skill, until the user runs a cut or says they want none.",
 ].join(" ");
 
 /**
- * What the session is told: where the judge looked, what it recommends and
- * why, and what a cut is owed. The reason is the judge's own sentence, since
- * advice the session cannot weigh is an instruction.
+ * What the session is told: the turn the arc was judged after, the judge's own
+ * sentence for what ended, and what that is owed.
  */
 const advice = (
 	answer: Extract<Answer, { kind: "good" }>,
@@ -230,19 +204,8 @@ const advice = (
 ): string =>
 	[
 		`Context watcher: after the turn that began "${where}", the arc looked over: ${answer.reason}.`,
-		`It recommends ${recommendation(answer)}.`,
-		...(answer.option === "carry-on" ? [] : [RELAY]),
+		RELAY,
 	].join(" ");
-
-const recommendation = (answer: Extract<Answer, { kind: "good" }>): string => {
-	if (answer.option === "carry-on") {
-		return "carrying on unchanged";
-	}
-
-	return answer.option === "compact"
-		? `\`/compact ${answer.focus}\``
-		: `a rewind summarize at "${answer.focus}"`;
-};
 
 // The run itself, last in the file and below every binding it reads: a `const`
 // read from here before its own declaration throws a ReferenceError.
@@ -256,7 +219,7 @@ await runEntry(
 
 		const settings = await loadSettings(args);
 
-		// The main session: a subagent's input names the agent it is for.
+		// A subagent, which its input names, is short-lived and cannot compact.
 		if (settings === null || !settings.watcher.enabled || input["agent_id"]) {
 			return null;
 		}
@@ -277,7 +240,7 @@ await runEntry(
 			return null;
 		}
 
-		const prompt = await prompted(transcript, turn, watcher);
+		const prompt = prompted(transcript, watcher);
 
 		if (prompt === null) {
 			released(session);
