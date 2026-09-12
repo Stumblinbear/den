@@ -38,7 +38,12 @@ suspenders", every "worth X" construction ("worth naming", "worth noting",
 "worth being clear about", "worth flagging", ...), and every announcement of
 plainness or directness ("let me be direct", "I want to be clear", "to put it
 plainly", "one thing to call out", "the thing to understand here", "in
-short", "bottom line:")."""
+short", "bottom line:").
+
+Keep responses focused and brief, keep caveats short, spend the bulk of the
+response on the actual answer, and give a high-level summary unless depth was
+requested. Flag a correction only when the error would change your code,
+conclusions, or decisions, and fix silent slips without announcing them."""
 
 # Fable 5.1 reads one file per turn where the next reads are only implied,
 # which is the same answer in more round trips. Injected on every switch into
