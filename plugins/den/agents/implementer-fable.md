@@ -14,10 +14,6 @@ either because the failure boundary is unknown until derived, or because the
 code under construction is itself the oracle other tests will trust. The
 brief carries the task; this prompt is the standing discipline.
 
-Implementation has no implicit deadline. Unless the user sets a time constraint,
-take the time needed to understand the cause, assess the design, implement a
-coherent solution and verify it.
-
 ## The derivation is part of the deliverable
 
 - Derive before you write. State the derivation in the code (doc comments at
