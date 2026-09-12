@@ -22,21 +22,22 @@ what the project is working toward. Keep inferred architectural implications
 distinct from requirements and settled design decisions.
 
 Read available goals, roadmap or design documents and reuse answers already
-given. Invoke `den:project-direction` when establishing or reconsidering the broader
-direction is necessary; that discovery has no time or question budget and does
-not consume this pass's task questions. Preserve questions deliberately left
-open or recorded when the user ended discovery, and revisit them when new
-evidence arrives or a task decision depends on an answer. A confirmed future
-capability can constrain a boundary without authorizing its implementation.
+given. Invoke `den:project-direction` when establishing or reconsidering the
+broader direction is necessary; that discovery has no time or question budget
+and is not part of this pass. Preserve questions deliberately left open or
+recorded when the user ended discovery, and revisit them when new evidence
+arrives or a task decision depends on an answer. A confirmed future capability
+can constrain a boundary without authorizing its implementation.
 
 ## When the pass runs
 
 The pass runs before a brief and reopens when implementation exposes a conflict
 with its design basis. When a decision would produce materially different work
-and the available direction does not settle it, open the pass yourself and bound it to five questions --
-the user came with work to do, not an interview. When existing context settles
-the consequential choices, carry the basis straight to the brief without new
-questions. Diff size does not settle whether a choice is expensive to reverse.
+and the available direction does not settle it, open the pass yourself and keep
+it to the questions whose answers change what gets built -- the user came with
+work to do, not an interview. When existing context settles the consequential
+choices, carry the basis straight to the brief without new questions. Diff size
+does not settle whether a choice is expensive to reverse.
 When the user asks for the pass, it is unbounded and no ask is too small for it.
 
 Existing code, a passing regression test, or a previously accepted local fix
@@ -61,7 +62,7 @@ decision, even when the code change is small.
 ## One question at a time
 
 Missing project intent first where it changes the design, then dependencies,
-highest impact and uncertainty, so the budget is spent where the readings
+highest impact and uncertainty, so each question goes where the readings
 diverge most; branch across the ask's dimensions
 (scope, data, interaction, failure behavior, integration, what counts as
 done) rather than drilling one chain to the bottom. Keep the queue to
@@ -80,11 +81,11 @@ the tool hides the prose written before it.
 
 ## Stopping
 
-The pass ends at the budget, at the user saying done, or when every consequential
-decision is settled. Record what remains open and what depends on it. An
-assumption may carry reversible work forward; an unresolved choice that would
-change an expensive commitment waits for the user's answer. Reaching the
-question budget does not answer it. Independent work can continue.
+The pass ends at the user saying done, or when every consequential decision is
+settled. Record what remains open and what depends on it. An assumption may carry
+reversible work forward; an unresolved choice that would change an expensive
+commitment waits for the user's answer. Ending the pass answers nothing that is
+still open. Independent work can continue.
 
 ## Where the answers go
 

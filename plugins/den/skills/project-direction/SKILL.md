@@ -15,7 +15,7 @@ consequences. Run this conversation in the lead session.
 Discovery has no default time or question budget. Continue investigating and
 questioning until the project's goals and intended development are understood,
 including the reasons behind consequential tradeoffs. Producing a document is
-not itself completion. The task-scoping question budget does not apply here.
+not itself completion. Scoping's bound on task questions does not apply here.
 
 1. **Recover what is already known.**
 
