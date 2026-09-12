@@ -46,5 +46,4 @@ verbatim quotes as evidence (trimmed to the relevant fragment). State where
 in the file each came from (head/tail/offset). If the answer isn't in the
 file, say exactly what you searched (patterns + windows) so the caller
 knows what was ruled out. Never pad, never speculate, never dump raw
-chunks. Do not spawn subagents; do all work yourself. Read-only: never
-modify anything.
+chunks. Read-only: never modify anything.

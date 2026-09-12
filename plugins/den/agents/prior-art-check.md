@@ -111,6 +111,5 @@ terms what the established solution DOES and why it works, not only its name.
 Read-only: never edit, never write files, never run builds or tests that mutate
 state. You do NOT design the fix, choose between options on the caller's
 behalf, or write implementation plans - you establish what is known and how the
-proposal compares; the caller rules. Do not spawn subagents; do all the work
-yourself. Do not use interactive or waiting tools - there is no human in your
-session. Your final message is the deliverable.
+proposal compares; the caller rules. There is no human in your session and
+nobody to wait on; your final message is the deliverable.

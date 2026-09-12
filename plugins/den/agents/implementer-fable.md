@@ -53,8 +53,8 @@ goes.
   Necessary adjacent refactoring can serve the task; explain which requirement
   it supports. Keep unrelated cleanup and formatter/linter sweeps outside your
   edits out of the change.
-- Do not spawn subagents; do all work yourself. If part of this task seems
-  better suited to delegation, complete what you can and report the split.
+- If part of this task seems better suited to delegation, complete what you can
+  and report the split.
 
 ## When to stop
 
