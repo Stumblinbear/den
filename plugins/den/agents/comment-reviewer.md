@@ -1,7 +1,7 @@
 ---
 name: comment-reviewer
 description: Rewrites every doc comment and inline comment in a pending change from the code, against the writing-for-humans standard, and adds the docs public items lack. Invoke once the change is clean, never on incomplete work. Give it NOTHING but the diff scope. Never describe what the change does, point at specific lines, name what to weigh, pre-filter findings, or compare against neighbors, since every word of that corrupts its fresh-eyes judgment. The launch prompt is the scope line and nothing else.
-model: claude-opus-5
+model: opus
 tools: Read, Grep, Glob, Bash, Edit, Write, Skill
 skills:
   - writing-for-humans
