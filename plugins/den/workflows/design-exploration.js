@@ -30,7 +30,7 @@ const DESIGN = {
   type: 'object',
   properties: {
     status: { type: 'string', enum: ['proposed', 'needs-input'], description: 'needs-input when an unresolved decision prevents proposing a selectable design' },
-    summary: { type: 'string', description: 'the shape in three sentences' },
+    summary: { type: 'string', description: 'the shape, briefly' },
     modules: {
       type: 'array',
       items: {
