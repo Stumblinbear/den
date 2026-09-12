@@ -56,18 +56,19 @@ urgent = 700_000
 # rather than baked in here and left to go stale.
 [messages]
 
-# Injected on crossing `notice`. Its job is to say the size once and then get
-# out of the way until the arc the agent is in ends: a step inside an arc is
-# not a point where a summarize is affordable, and an agent that treats it as
-# one recommends a compaction at every brief and every launch.
+# Injected on crossing `notice`. Its job is to say once that a summarize has
+# become worth pricing, then get out of the way until the arc the agent is in
+# ends: a step inside an arc is not a point where a summarize is affordable,
+# and an agent that treats it as one recommends a compaction at every brief
+# and every launch.
 notice = """
-Context budget: this session is at {tokens} tokens. A summarize is worth it at the end of an arc, where the work ahead would not need the detail behind it; a step inside one, a brief written or an agent launched, is not that point, since a summary keeps what came before only in outline, and the next step still needs it exact. Until then, work as if this message had not arrived, since raising the budget early pulls the work toward stopping. When the arc ends, invoke the `context-budget:cut-point` skill and put the choice to the user in a sentence."""
+Context budget: this session has crossed the point where a summarize starts to pay. A summarize is worth it at the end of an arc, where the work ahead would not need the detail behind it; a step inside one, a brief written or an agent launched, is not that point, since a summary keeps what came before only in outline, and the next step still needs it exact. Until then, work as if this message had not arrived, since raising the budget early pulls the work toward stopping. When the arc ends, invoke the `context-budget:cut-point` skill and put the choice to the user in a sentence."""
 
 # Injected on crossing `urgent`. Its job is to get the choice raised at the end
 # of the step in hand rather than at the end of the arc, which is no longer
 # affordable to wait for.
 urgent = """
-Context budget: this session is at {tokens} tokens, past the point where waiting for the arc to end is affordable. Finish the step in hand, then invoke the `context-budget:cut-point` skill and put the choice to the user before starting anything new."""
+Context budget: this session is past the point where waiting for the arc to end is affordable. Finish the step in hand, then invoke the `context-budget:cut-point` skill and put the choice to the user before starting anything new."""
 
 # The watcher. Past the `notice` threshold, at the end of every turn, it asks a
 # small model one thing: whether the arc of work the session is in has just

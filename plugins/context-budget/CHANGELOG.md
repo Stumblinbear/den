@@ -9,6 +9,9 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
+- The `notice` and `urgent` messages no longer state the measured context.
+  The count was read only by the model, and the `cut-point` skill prices the
+  choice from the transcript when it is raised.
 - The watcher's judge answers one thing: whether the session's arc has ended,
   `{"good": true, "reason": "..."}`. It no longer names a compact or a rewind,
   a focus line or a prompt; the advice the session receives says the arc looked
