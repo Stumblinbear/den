@@ -70,17 +70,24 @@ get to pick which one wins. One home per rule.
 Prescriptiveness that helped older models can hurt current ones. Recalibrate
 instructions when the model changes rather than accreting.
 
-- **Strong instruction-followers (Fable 5)**: a brief instruction steers as
-  well as enumerating each behavior by name; instructions tuned for prior
-  generations are often too prescriptive and degrade output. Never instruct
-  the model to echo or explain its internal reasoning as response text. On
-  reasoning models this can trigger refusals.
+- **Strong instruction-followers (Fable 5 and later)**: a brief instruction
+  steers as well as enumerating each behavior by name; instructions tuned for
+  prior generations are often too prescriptive and degrade output. Never
+  instruct the model to echo or explain its internal reasoning as response
+  text. On reasoning models this can trigger refusals.
 - **Self-verifying models (Opus 5)**: drop "verify your work" / "double-check"
-  scaffolding. It causes over-verification with no quality gain. Severity
-  filters in review-style prompts ("only report high-severity") are followed
-  literally and cause under-reporting; ask for everything and filter in a
-  separate pass. Conciseness must be asked for explicitly, and in a long
-  prompt the reminder bears repeating near the end.
+  scaffolding. It causes over-verification with no quality gain. This is
+  Opus-specific: on Fable 5.1 an instruction to test or check the work before
+  reporting stays. Severity filters in review-style prompts ("only report
+  high-severity") are followed literally and cause under-reporting; ask for
+  everything and filter in a separate pass. Conciseness must be asked for
+  explicitly, and in a long prompt the reminder bears repeating near the end.
+- **Under-narrating, under-formatting models (Fable 5.1)**: anti-narration
+  ("hold findings for the final response") and anti-formatting ("no bullets")
+  rules are deleted, not tuned; this generation already does both. What it
+  needs instead: progress claims audited against tool results, the request's
+  scope held rather than widened or narrowed, and targeted edits over
+  whole-file rewrites.
 
 ## Audit pass
 
