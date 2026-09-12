@@ -165,4 +165,43 @@ export const INVALID: readonly Invalid[] = [
 		"[watcher] command",
 		[USABLE, '[watcher]\ncommand = ["", "-p"]\n'],
 	],
+	// The wake's table may be left out too, so what is refused here is a value
+	// written rather than a value left out.
+	[
+		"a [wake] enabled that is not a boolean",
+		"[wake] enabled",
+		[USABLE, "[wake]\nenabled = 1\n"],
+	],
+	[
+		"a [wake] row that is not a table",
+		"[wake.'1h']",
+		[USABLE, "[wake]\n'1h' = 2\n"],
+	],
+	[
+		"a [wake] row with times of zero",
+		"[wake.'1h'] times",
+		[USABLE, "[wake.'1h']\ntimes = 0\n"],
+	],
+	// The rows are read whether or not the section is switched on, so a row
+	// nobody will consult still has its mistakes reported.
+	[
+		"a [wake] switched off with a row whose times is zero",
+		"[wake.'1h'] times",
+		[USABLE, "[wake]\nenabled = false\n", "[wake.'1h']\ntimes = 0\n"],
+	],
+	[
+		"a [wake] row whose before is not a duration",
+		"[wake.'5m'] before",
+		[USABLE, "[wake.'5m']\nbefore = 45\n"],
+	],
+	[
+		"a [wake] row whose before is as long as its lifetime",
+		"[wake.'5m'] before",
+		[USABLE, "[wake.'5m']\nbefore = \"5m\"\n"],
+	],
+	[
+		"a [wake.messages] with a blank wake",
+		"[wake.messages] wake",
+		[USABLE, '[wake.messages]\nwake = ""\n'],
+	],
 ];

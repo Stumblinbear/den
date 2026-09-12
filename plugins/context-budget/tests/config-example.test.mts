@@ -1,7 +1,8 @@
 // `hooks/config.example.toml` is the file users are told to copy, so it is run
-// here exactly as `hooks.json` runs their copy of it. Nothing else loads it,
-// and a key it leaves out or a value it spells wrong would otherwise first go
-// wrong on a machine that is not this one.
+// here exactly as `hooks.json` runs their copy of it: a key it leaves out or a
+// value it spells wrong would otherwise first go wrong on a machine that is
+// not this one. The one other reader is `wake-settings.test.mts`, which loads
+// it in process to hold its `[wake]` section to the defaults it writes out.
 //
 // One run covers the whole file: the settings are checked in full before
 // anything is measured, so a mistake anywhere in it is a fault on this run.

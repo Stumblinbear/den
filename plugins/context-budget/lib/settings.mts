@@ -1,15 +1,24 @@
 // Everything the entries read out of the configuration file, checked once here
 // so none of them carries a second opinion about what a usable value looks
-// like. A key the file carries is the value; a key it leaves out is a missing
-// key and a fault naming it, except where the table below says the key has a
-// default. `enabled` has one wherever it appears, a table of keyed rows may be
-// left out, and `[watcher]` may be left out with each of its keys defaulted, so
-// a file that names none of them still gets a watcher.
+// like.
+//
+// * `loadSettings` reads the file the command line names, and null is a
+//   machine with no configuration file on it
+// * `Settings` is what every entry is handed: the notice's rows and messages,
+//   the resume guard, the watcher, the cache wake
+// * `thresholdsFor` and `guardLimitsFor` pick the row a model or an agent type
+//   is measured against
+//
+// A key the file carries is the value, and a key it leaves out is a fault
+// naming that key, unless the key has a default: `enabled` has one wherever it
+// appears, a table of keyed rows may be left out, and `[watcher]` and `[wake]`
+// may each be left out with every key under them defaulted.
 import { ANSWER_SCHEMA } from "./answer.mts";
 import {
 	child,
 	countOr,
 	defaulted,
+	durationOr,
 	enabled,
 	fault,
 	labelled,
@@ -23,6 +32,7 @@ import { fill } from "./messages.mts";
 import { CONFIG_FAULTS } from "./plugin.mts";
 import { loadConfigFile } from "./shared/config.mts";
 import { isTable } from "./shared/fields.mts";
+import { type CacheTtl, lifetimeMs } from "./transcript.mts";
 
 /** The two levels a message is written for. */
 export type NoticeLevel = "notice" | "urgent";
@@ -88,6 +98,23 @@ export interface Watcher {
 	readonly tailTokens: number;
 }
 
+/** One cache lifetime's wake schedule. */
+export interface WakeRow {
+	/** How many wakes one idle stretch spends before the cache is let go. */
+	readonly times: number;
+	/** How far ahead of the cache's expiry a wake is posted, in milliseconds. */
+	readonly before: number;
+}
+
+/** What the cache wake runs on. Every key has a default; see the header. */
+export interface Wake {
+	readonly enabled: boolean;
+	/** One row per cache lifetime, and null where the row is switched off. */
+	readonly rows: Readonly<Record<CacheTtl, WakeRow | null>>;
+	/** The body of the message a wake posts. */
+	readonly message: string;
+}
+
 export interface Settings {
 	/** Tried in the order they are written, before `fallback`. */
 	readonly models: readonly Row<Thresholds>[];
@@ -96,6 +123,7 @@ export interface Settings {
 	readonly messages: NoticeMessages;
 	readonly guard: Guard;
 	readonly watcher: Watcher;
+	readonly wake: Wake;
 }
 
 /**
@@ -106,6 +134,24 @@ export interface Settings {
  */
 export const DEFAULT_SYSTEM_PROMPT =
 	"You are the judge a Claude Code plugin consults: answer the one question the prompt asks, from the prompt alone, and stop.";
+
+/**
+ * What a wake asks the woken session for, where the file writes no message of
+ * its own. It says no reply is needed because no reply can land; the frame
+ * that decides that is in `inbox.mts`.
+ */
+export const DEFAULT_WAKE_MESSAGE =
+	"Give the user a short progress update on the background work still running, then stop. No reply to this message is needed.";
+
+/**
+ * The row each lifetime takes where the file writes none. Each lead covers the
+ * seconds a turn takes to reach the API and refresh the cache, with room for a
+ * slow turn.
+ */
+const DEFAULT_WAKE_ROWS: Readonly<Record<CacheTtl, WakeRow>> = {
+	"1h": { times: 2, before: 3 * 60_000 },
+	"5m": { times: 5, before: 45_000 },
+};
 
 /**
  * What the judge is asked with where the file names no command of its own: no
@@ -216,7 +262,58 @@ function settingsIn(root: Section): Settings {
 		},
 		guard: guard(root),
 		watcher: watcher(root),
+		wake: wake(root),
 	};
+}
+
+function wake(root: Section): Wake {
+	const section = defaulted(root, "wake");
+	const messages = defaulted(section, "messages");
+
+	return {
+		enabled: enabled(section),
+		// Read whether or not the section is switched on, so a mistake in a row
+		// nobody consults still reaches the file's author.
+		rows: {
+			"1h": wakeRow(section, "1h"),
+			"5m": wakeRow(section, "5m"),
+		},
+		message: textOr(messages, "wake", DEFAULT_WAKE_MESSAGE),
+	};
+}
+
+/**
+ * One lifetime's row, and null where the file switches the row off. Faults on
+ * a row that is not a table, and on a `before` that is not shorter than the
+ * lifetime.
+ */
+function wakeRow(section: Section, ttl: CacheTtl): WakeRow | null {
+	const label = labelled(section.label, `'${ttl}'`);
+	const table = section.table[ttl] ?? {};
+
+	if (!isTable(table)) {
+		fault(section, `has ${label}, which is not a table`);
+	}
+
+	const row = { path: section.path, label, table };
+
+	if (!enabled(row)) {
+		return null;
+	}
+
+	const fallback = DEFAULT_WAKE_ROWS[ttl];
+	const before = durationOr(row, "before", fallback.before);
+
+	// A lead as long as the lifetime falls due before the turn it counts from,
+	// so the wake never fires and the user has a silence to diagnose.
+	if (before >= lifetimeMs(ttl)) {
+		fault(
+			row,
+			`has ${label} before that is not shorter than the ${ttl} lifetime`,
+		);
+	}
+
+	return { times: countOr(row, "times", fallback.times), before };
 }
 
 function watcher(root: Section): Watcher {

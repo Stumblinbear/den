@@ -7,8 +7,8 @@
 // reported is `report-runs.test.mts`.
 //
 // What each report says is off follows the same split: the file and the parser
-// stop every entry and the line names all three, while an entry's own run
-// coming apart stops that entry and the line names only it.
+// stop every entry, so the line names them all, while an entry's own run
+// coming apart stops that entry alone and the line names only it.
 //
 // These run the real processes through the launcher, because the whole
 // contract is out of band: what a run writes on stdout for the agent, and the
@@ -40,7 +40,7 @@ import { watcherRuns } from "./watcher-runs.mts";
 
 /** What a fault of the shared file or the shared parser costs the session. */
 const EVERY_ENTRY =
-	"The context notice, the watcher and the resume guard are off for this session";
+	"The context notice, the watcher, the resume guard and the cache wake are off for this session";
 
 /** A file every entry can use, so what a case meets is not the configuration. */
 const CONFIG = configFile(USABLE);

@@ -8,9 +8,9 @@
 #
 # Nothing is merged under your copy, so every key below that has no default has
 # to be in it. `enabled` defaults to true wherever it appears, a table of rows
-# may be left out, and [watcher] may be left out with each of its keys
-# defaulted. A key that is missing, or a value the hooks cannot use, is one line
-# on stderr and all of them off for the session.
+# may be left out, and [watcher] and [wake] may each be left out with every key
+# under them defaulted. A key that is missing, or a value the hooks cannot use,
+# is one line on stderr and all of them off for the session.
 #
 # What a cached token costs a model is not configuration: it is
 # ../lib/pricing.toml.
@@ -122,6 +122,57 @@ model = "haiku"
 # called.
 tail_turns = 16
 tail_tokens = 20_000
+
+# A session idle on background work stops reading its prompt cache, and once
+# the cache's lifetime runs out the next turn rewrites the whole context at
+# full price. The wake heads that off: shortly before the expiry it posts a
+# message into the session's own inbox, the session takes one short turn, its
+# context is read from the cache at the cached rate, and the cache lives
+# another lifetime. The message asks for a progress update and nothing else,
+# and you see it as one preview line, "Message from @context-budget: Cache
+# wake 1 of 2: ...".
+#
+# It runs on the main session only, never in a subagent, and only while
+# background work is pending: a subagent it launched, or a command it started
+# in the background. Every key here has a default, and the whole table may be
+# left out.
+[wake]
+
+# `false` switches the wake off: nothing is posted, and an idle session goes
+# cold as it would without the plugin.
+enabled = true
+
+# One row per cache lifetime, keyed by the lifetime as Claude Code names it: an
+# hour on a subscription within its plan's usage, five minutes on usage credits
+# or an API key.
+#
+# `times` is how many wakes one idle stretch may spend before the cache is left
+# to expire, and the count starts over on any turn you or a finishing task
+# cause. `before` is how far ahead of the expiry a wake is posted; it has to
+# cover the seconds a turn takes to reach the API, and it has to be shorter than
+# the lifetime. A row switched off with `enabled = false` leaves a session on
+# that lifetime to go cold.
+[wake.'1h']
+times = 2
+before = "3m"
+
+[wake.'5m']
+times = 5
+before = "45s"
+
+# The body of the wake, under a first line the plugin writes naming the wake's
+# number and what is still running. The agent reads it, not you, so it is
+# written as an instruction.
+#
+# Three placeholders are substituted:
+#   {n}        this wake's number within the stretch, e.g. "1"
+#   {times}    the row's `times`, e.g. "2"
+#   {pending}  how many background tasks are still running, e.g. "3"
+#
+# A file without the key gets this one:
+[wake.messages]
+wake = """
+Give the user a short progress update on the background work still running, then stop. No reply to this message is needed."""
 
 # Resuming a subagent makes it re-read its whole transcript on every turn it then
 # takes, so past a certain size a fresh launch that rebuilds only what it needs
