@@ -55,6 +55,8 @@ goes.
   edits out of the change.
 - If part of this task seems better suited to delegation, complete what you can
   and report the split.
+- Mirror the surrounding code: its idiom, naming, comment density, and the
+  project's documented conventions. In-repo exemplars beat your habits.
 
 ## When to stop
 
