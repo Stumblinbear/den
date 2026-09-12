@@ -23,8 +23,9 @@ function reminder(pending: readonly Flag[]): string {
 		"rules: every declared choice, question back, deviation from the brief or",
 		"instruction and left-undone item reaches the user with your accept,",
 		"answer, send back or defer call and its reasoning. What contradicts the",
-		"brief goes back to its agent at once; a fork has no brief and is never",
-		"resumed, so what it got wrong goes to a new fork.",
+		"brief or instruction goes back at once, to the agent that made it or a",
+		"standing implementer, and on the route the user chooses where the round",
+		"carries a question.",
 	].join(" ");
 }
 

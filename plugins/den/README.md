@@ -120,8 +120,9 @@ Hooks, registered while the plugin is enabled:
 - Implementer triage: a finished implementer or fork of the session is
   recorded, and the next prompt you submit carries a reminder to put every
   choice it declared, question it asked, deviation from its brief or
-  instruction it made and item it left undone to you with a call on each; a
-  fork's send-backs go to a new fork.
+  instruction it made and item it left undone to you with a call on each; the
+  route a send-back takes is yours whenever the round already needs your
+  answer.
 - Transcript record: each prompt you submit leaves the session's transcript
   path in a small file, once, so the `handoff-cost` reading can find the
   transcript it measures.

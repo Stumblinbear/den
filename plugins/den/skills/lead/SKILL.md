@@ -17,12 +17,24 @@ a brief to a standing implementer, each priced on the context as it stands,
 and the user chooses. A brief loses whatever the conversation settled and the
 brief did not say, so it is the path for work that is independent of this
 context: parallel units such as a sweep across files, or a task a fresh agent
-can do from the brief alone. Small fixes and edits, the kind this session
-would otherwise make by hand, go to a fork with a short instruction and no
-reading or Handoff question, on a go of their own: a fork spawn reads this
-context from cache, so it costs nothing over doing the work here and keeps
-this context free of the tool output. The Handoff question is for
-implementation where the model switch is worth pricing.
+can do from the brief alone. Small fixes and edits, a review's fix round among
+them, are the same decision at a smaller size. With nothing waiting on the
+user, no fix pending a decision, no finding needing judgment, no question open,
+the round runs at once and without a route question, resumed in the agent that
+made the change or briefed to a standing implementer where that is easier, a
+mechanical round to haiku among them: the user is often away when a fix round
+is due, and neither route needs anyone present. The user can say otherwise at
+any time, and that stands for the session. A round that carries a question for
+the user takes the routes with it: a resume of the agent that made the change,
+which holds its own read of the files; a fork of this session, which takes a
+short instruction and keeps this context, working out of view; or a brief to a
+standing implementer, which carries none of it. The user chooses. The question
+carries no pricing reading: a fork spawn reads this context from cache, so it
+costs nothing over doing the work here and keeps this context free of the tool
+output, and a brief for a fix this size is short enough not to price. A quick,
+easy change this session can make itself, or one the user asks for inline, is
+made by hand as before, without the question. The Handoff question is for
+implementation, where the model switch is worth pricing.
 
 ## Claims about code
 
@@ -118,41 +130,43 @@ approval.
 ## Launch authorization
 
 A go-ahead from the user covers one launch that edits the tree: one step's
-implementation, or one fix round, whatever the fixes' size, and a fork is a
-launch like any other. The go for one implementation is not standing
-approval for the next unless the user says so, since each launch spends
-their allowance and puts a change in their tree they have not chosen.
-Triage priority is not a go-ahead. Obvious fixes (the unquestionably wrong
-and the mechanical) and work going back to the agent that produced it are
-proposed with the findings and launch on the go that names them; an obvious
-fix leaves every design assumption where it was, and a fix that adds a
+implementation, or a fix round that carries a question for the user or takes a
+fork, whatever the fixes' size, and a fork is a launch like any other. The go
+for one implementation is not standing approval for the next unless the user
+says so, since each launch spends their allowance and puts a change in their
+tree they have not chosen. Triage priority is not a go-ahead. Obvious fixes
+(the unquestionably wrong and the mechanical) and work going back to the agent
+that produced it are proposed with the findings and go out with the round; an
+obvious fix leaves every design assumption where it was, and a fix that adds a
 mechanism, a dependence or a condition has changed one, whatever tier the
-finding carries, and is put to the user as such. What runs without a go
-reads: a review, the closure pass by a fresh `den:closure-verifier` given
-the findings and the scope with the relevant design basis, and the comment
-pass once the change is clean. Whenever nothing is waiting on the user, no
-fix pending a decision, no finding needing judgment, no question open, the
-next such pass launches at once, since the user's time is for the decisions
-and a wait for permission to look is a wait for nothing. After a stage
+finding carries, and is put to the user as such. What runs without a go reads:
+a review, the closure pass by a fresh `den:closure-verifier` given the findings
+and the scope with the relevant design basis, the comment pass once the change
+is clean, and a fix round with nothing waiting on the user, resumed in the
+agent that made the change or briefed to a standing implementer. Whenever
+nothing is waiting on the user, no fix pending a decision, no finding needing
+judgment, no question open, the next such pass launches at once, since the
+user's time is for the decisions and a wait for permission to look is a wait
+for nothing. After a stage
 lands:
 report, and where the next stage needs a go-ahead, propose it (agent and
 scope) and wait. For implementation the proposal is the Handoff question
-`den:handoff-cost` ends in, and its answer is the go for the path chosen; a
-`Switch model` answer's go is the switch itself, which den's hook turns into
-the word to implement inline. A reply that does not answer a pending go is
-not the go, however close its subject: what it asks for is done, and the
-launch still waits, because approval by adjacency is the failure mode where
-work starts on a reading rather than a decision.
+`den:handoff-cost` ends in, and for a fix round that carries a question for the
+user it is the route question; either answer is the go for the route chosen,
+and a `Switch model` answer's go is the switch itself, which den's hook turns
+into the word to implement inline. A reply that does not answer a pending go is
+not the go, however close its subject: what it asks for is done, and the launch
+still waits, because approval by adjacency is the failure mode where work
+starts on a reading rather than a decision.
 
-Every stage after a fork implemented, the fix round on a review's findings
-and the follow-ups to the comment pass among them, launches a new fork of
-this session. By then this context holds the review, what was checked and
-the user's triage calls, and the earlier fork holds none of it; a resume
-would carry the stage back to the context that predates them. Resume an
-agent only when the context the stage needs lives in that agent alone. An
-agent, a fork included, that stopped with a question holds exactly that
-context: its question reaches the user before anything else does, and it is
-resumed with the answer, never replaced.
+Every stage after an agent implemented, the fix round on a review's findings
+and the follow-ups to the comment pass among them, takes one of those routes,
+and they differ by what each one holds: a resumed agent holds its own read of
+the files and the work it did, and not this session's review, what was checked
+or the user's triage calls; a fork holds those and not the agent's read; a
+brief holds neither. An agent, a fork included, that stopped with a question
+holds exactly that context: its question reaches the user before anything else
+does, and it is resumed with the answer, never replaced.
 
 ## Implementer reports
 
@@ -163,10 +177,10 @@ defer call and its reasoning, explained for someone who has not read the
 code, since a choice absorbed silently is one the user never gets to
 overturn. Assess a challenge
 to the brief against the evidence and project goals. An unapproved departure
-already implemented goes back to its agent at once, and the report says so.
-Where the brief pinned a decomposition, the tree is checked against it at
-triage, because the deviation that matters is the one the report did not
-declare.
+already implemented goes back at once, on the fix round's route, and the
+report says so. Where the brief pinned a decomposition, the tree is checked
+against it at triage, because the deviation that matters is the one the report
+did not declare.
 
 ## Review
 

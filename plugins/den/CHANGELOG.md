@@ -109,9 +109,17 @@ minor bump may change behavior.
   own decisions off with its context kept, and brief a standing implementer
   for work that is independent of it. Delegating every implementation was the
   measured handoff loss.
-- Small fixes and edits the session would otherwise make itself go to a fork
-  with a short instruction; a fork spawn is a cache hit, so it costs nothing
-  over inline work and keeps the main context clean.
+- A fix round with nothing waiting on the user runs at once and without a
+  route question, resumed in the agent that made the change or briefed to a
+  standing implementer where that is easier: the user is often away when a fix
+  round is due, and neither route needs anyone present. A round that carries a
+  question for the user takes the routes with it, a resume of that agent, a
+  fork of this session or a brief to a standing implementer, and the answer is
+  the go for the route chosen; a fork is a launch like any other either way. A
+  quick, easy change the session can make itself is still made by hand. The
+  question carries no pricing reading: a fork spawn is a cache hit, so it costs
+  nothing over inline work and keeps the main context clean, and a brief for a
+  fix this size is short enough not to price.
 - Implementers and a fork stop on a decision that is the user's (a
   workaround, a test weakened or deleted, a stored format, a public surface, a
   dependency, visible behaviour, a fence, a contradicted pin): the turn ends
