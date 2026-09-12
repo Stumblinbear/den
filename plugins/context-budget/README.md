@@ -30,8 +30,8 @@ auto-compact choose one for you.
   cached only while the prompt itself is younger than the session's cache
   lifetime, so the reading lists three still-cached prompts spread across the
   context: each with the clock time it falls out, what a cut there summarizes
-  away, what it keeps verbatim, and how many more turns the session has to
-  take before the cut has paid for what it cost. `/compact` is priced above
+  away, what it keeps verbatim, and how many more model calls the session has
+  to make before the cut has paid for what it cost. `/compact` is priced above
   them on the same arithmetic and carrying on unchanged below them, so the
   three are read against one another rather than one against two blanks.
 - The `context-budget` skill, which the agent loads when it makes that

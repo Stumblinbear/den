@@ -85,17 +85,17 @@ prompt, and that stretch is in the cache only while the prompt itself is
 younger than the cache lifetime. So it lists three cached prompts spread
 across the context, the oldest, the newest and the one nearest halfway between
 them by size, each a row carrying when it stops being cached, how much a cut
-there summarizes away, how much it keeps verbatim, and how many more turns the
-session has to take before the cut has paid for itself; and what sits above
-them. Where the session was compacted within the cache lifetime and kept
+there summarizes away, how much it keeps verbatim, and how many more requests
+to the model, a tool call being one, the session has to make before the cut
+has paid for itself; and what sits above them. Where the session was compacted within the cache lifetime and kept
 prompts verbatim, the reading names them, since a rewind at one of them costs
 at most the context the compaction left behind.
 
 The payback is what turns two token counts into a decision: the rewind writes
 everything it keeps back to the cache at twice a fresh input token on the
 one-hour lifetime, where carrying on would have read that same stretch at the
-cache read rate, and it saves the read of what it summarized on every turn
-after that. So a cut in a session with little work left in it costs more than
+cache read rate, and it saves the read of what it summarized on every
+request after that. So a cut in a session with little work left in it costs more than
 it ever returns. Every term is what the cut costs over carrying on, which is
 the only comparison worth making. It is priced at the model's cache read rate,
 which is the pricing file below and not configuration.
@@ -221,7 +221,7 @@ token read from the prompt cache costs against one fresh input token:
 `default = 0.1`, which is every tier in Claude Code's own price table but one,
 and the `[models]` row `'fable' = 0.025`, which is that one. Every value has
 to be a number above 0 and at most 1; lower it and every cut takes
-proportionally more turns to pay for itself. Only the `cut-point` script reads
+proportionally more requests to pay for itself. Only the `cut-point` script reads
 it; the hook that injects the messages reads no price at all.
 
 Correct a rate that has gone out of date in a file of the same shape at

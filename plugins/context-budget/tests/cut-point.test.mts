@@ -34,9 +34,9 @@ import { reading, scriptRunner } from "./script-runs.mts";
  */
 const SESSION_ROWS = new RegExp(
 	`2\\. "Read the brief and start on the scanner"\\s+` +
-		`sent ${hhmm(CACHED_OPENED)} \\| valid until ${hhmm(CACHED_OPENED, HOUR)} \\| 100K tokens before it, keeps 100K, pays back after 22 turns\\s+` +
+		`sent ${hhmm(CACHED_OPENED)} \\| valid until ${hhmm(CACHED_OPENED, HOUR)} \\| 100K tokens before it, keeps 100K, pays back after 22 requests\\s+` +
 		`3\\. "Now add the skill that takes a fresh reading"\\s+` +
-		`sent ${hhmm(CACHED_STARTED)} \\| valid until ${hhmm(CACHED_STARTED, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
+		`sent ${hhmm(CACHED_STARTED)} \\| valid until ${hhmm(CACHED_STARTED, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 requests`,
 );
 
 const COLD_ABOVE =
@@ -109,7 +109,7 @@ for (const runtime of runtimes()) {
 			out,
 			new RegExp(
 				`2\\. "Now add the skill that takes a fresh reading"\\s+` +
-					`sent ${hhmm(CACHED_STARTED)} \\| valid until ${hhmm(CACHED_STARTED, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 turns`,
+					`sent ${hhmm(CACHED_STARTED)} \\| valid until ${hhmm(CACHED_STARTED, HOUR)} \\| 150K tokens before it, keeps 50K, pays back after 9 requests`,
 			),
 		);
 		assert.doesNotMatch(out, /Read the brief and start on the scanner/);
@@ -141,11 +141,11 @@ for (const runtime of runtimes()) {
 			// options that are not a rewind stand whatever the list came to.
 			assert.match(
 				out,
-				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 requests/,
 			);
 			assert.match(
 				out,
-				/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
+				/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a request, 200K of context at the cache read rate/,
 			);
 		},
 	);
@@ -182,7 +182,7 @@ for (const runtime of runtimes()) {
 			);
 			assert.match(
 				out,
-				/"Prompt number 3"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 140K tokens before it, keeps 60K, pays back after 11 turns/,
+				/"Prompt number 3"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 140K tokens before it, keeps 60K, pays back after 11 requests/,
 			);
 			assert.match(out, /Every prompt after the first is cached too, unless/);
 		},
@@ -223,7 +223,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/2\. "The one prompt the user actually typed"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 100K, pays back after 22 turns/,
+				/2\. "The one prompt the user actually typed"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 100K, pays back after 22 requests/,
 			);
 
 			for (const ineligible of [

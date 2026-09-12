@@ -62,8 +62,8 @@ for (const runtime of runtimes()) {
 				),
 			);
 
-			assert.match(out, /keeps 90K, pays back after 37 turns/);
-			assert.match(out, /keeps 40K, pays back after 14 turns/);
+			assert.match(out, /keeps 90K, pays back after 37 requests/);
+			assert.match(out, /keeps 40K, pays back after 14 requests/);
 		},
 	);
 
@@ -79,12 +79,12 @@ for (const runtime of runtimes()) {
 
 		assert.match(
 			reading(script(opus, [], over)),
-			/keeps 90K, pays back after 4 turns/,
+			/keeps 90K, pays back after 4 requests/,
 			"no shipped row matches Opus, so the added one does",
 		);
 		assert.match(
 			reading(script(fable, [], over)),
-			/keeps 90K, pays back after 73 turns/,
+			/keeps 90K, pays back after 73 requests/,
 			"the shipped `fable` row is tried first and still wins",
 		);
 	});
@@ -101,7 +101,7 @@ for (const runtime of runtimes()) {
 					pricingOverride("default = 5\n"),
 				),
 			),
-			/keeps 90K, pays back after 19 turns/,
+			/keeps 90K, pays back after 19 requests/,
 		);
 	});
 
@@ -133,7 +133,7 @@ for (const runtime of runtimes()) {
 				out,
 				/Prompt cache, read at \d\d:\d\d \(1h lifetime, payback at the default 0\.1x cache read\)\./,
 			);
-			assert.match(out, /keeps 90K, pays back after 19 turns/);
+			assert.match(out, /keeps 90K, pays back after 19 requests/);
 		},
 	);
 }

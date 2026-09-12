@@ -4,8 +4,8 @@
 // kept back to the cache, at twice a fresh input token on the one-hour
 // lifetime where carrying on would have read that same stretch at the read
 // rate, and only then starts saving the read of what it summarized away, once
-// per turn. So the same cut is worth taking in a session with forty turns left
-// in it and not in one with four. On the tier that reads at a quarter of the
+// per request. So the same cut is worth taking in a session with forty requests
+// left in it and not in one with four. On the tier that reads at a quarter of the
 // usual price it takes about four times as long to come good.
 //
 // The rates themselves, and the file a user corrects one in, are
@@ -56,19 +56,19 @@ for (const runtime of runtimes()) {
 		return session;
 	};
 
-	test(name("each cut point carries the turns it takes to pay back"), () => {
+	test(name("each cut point carries the requests it takes to pay back"), () => {
 		// (2 - 0.1) x 90K to write back what carrying on would have read, plus
 		// 0.1 x 110K read on the way past, plus 20K for the summary, against
-		// 0.1 x 110K saved on every turn after it: 19 turns.
+		// 0.1 x 110K saved on every request after it: 19 requests.
 		const out = reading(script(measured(paybackTranscript("claude-opus-5"))));
 
 		assert.match(
 			out,
-			/2\. "Read the brief and start on the scanner"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 110K tokens before it, keeps 90K, pays back after 19 turns/,
+			/2\. "Read the brief and start on the scanner"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 110K tokens before it, keeps 90K, pays back after 19 requests/,
 		);
 		assert.match(
 			out,
-			/3\. "Now add the skill that takes a fresh reading"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 160K tokens before it, keeps 40K, pays back after 7 turns/,
+			/3\. "Now add the skill that takes a fresh reading"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 160K tokens before it, keeps 40K, pays back after 7 requests/,
 			"a cut that keeps less costs less to write back and comes good sooner",
 		);
 		assert.doesNotMatch(
@@ -87,10 +87,10 @@ for (const runtime of runtimes()) {
 
 		assert.match(
 			out,
-			/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+			/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 requests/,
 		);
-		assert.match(out, /keeps 90K, pays back after 19 turns/);
-		assert.match(out, /keeps 40K, pays back after 7 turns/);
+		assert.match(out, /keeps 90K, pays back after 19 requests/);
+		assert.match(out, /keeps 40K, pays back after 7 requests/);
 	});
 
 	test(
@@ -98,7 +98,7 @@ for (const runtime of runtimes()) {
 		() => {
 			// A prompt from two turns ago keeps 5K where `/compact` is reckoned to
 			// keep 15K, so the cut writes less back and summarizes more away: 3
-			// turns against 4. The reading prices the rows and ranks nothing; that
+			// requests against 4. The reading prices the rows and ranks nothing; that
 			// the cheapest is usually `/compact` is a fact about the figures and
 			// not something the wording arranges.
 			const out = read(
@@ -111,11 +111,11 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. `\/compact \[focus\]`[\s\S]*?summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+				/1\. `\/compact \[focus\]`[\s\S]*?summarizes 185K tokens, keeps about 15K, pays back after 4 requests/,
 			);
 			assert.match(
 				out,
-				/2\. "Fix the lint rule the check is failing on"[\s\S]*?195K tokens before it, keeps 5K, pays back after 3 turns/,
+				/2\. "Fix the lint rule the check is failing on"[\s\S]*?195K tokens before it, keeps 5K, pays back after 3 requests/,
 			);
 		},
 	);
@@ -124,15 +124,15 @@ for (const runtime of runtimes()) {
 		name("the same cut points on Fable take about four times as long"),
 		() => {
 			// The identical transcript under the id the `fable` row matches. That
-			// tier reads a cached token at 0.025 against 0.1, so every turn saves a
+			// tier reads a cached token at 0.025 against 0.1, so every request saves a
 			// quarter as much. The write back costs a shade more too, since the
 			// read it replaces was cheaper.
 			const out = reading(
 				script(measured(paybackTranscript("claude-fable-5-1"))),
 			);
 
-			assert.match(out, /keeps 90K, pays back after 73 turns/);
-			assert.match(out, /keeps 40K, pays back after 26 turns/);
+			assert.match(out, /keeps 90K, pays back after 73 requests/);
+			assert.match(out, /keeps 40K, pays back after 26 requests/);
 		},
 	);
 
@@ -151,8 +151,12 @@ for (const runtime of runtimes()) {
 				]),
 			);
 
-			assert.match(out, /keeps 90K, pays back after 73 turns/, "Fable's rate");
-			assert.match(out, /keeps 40K, pays back after 26 turns/);
+			assert.match(
+				out,
+				/keeps 90K, pays back after 73 requests/,
+				"Fable's rate",
+			);
+			assert.match(out, /keeps 40K, pays back after 26 requests/);
 			assert.doesNotMatch(
 				out,
 				/cache read\)/,
@@ -180,7 +184,7 @@ for (const runtime of runtimes()) {
 				out,
 				/Prompt cache, read at \d\d:\d\d \(1h lifetime, payback at the default 0\.1x cache read\)\./,
 			);
-			assert.match(out, /keeps 90K, pays back after 19 turns/);
+			assert.match(out, /keeps 90K, pays back after 19 requests/);
 		},
 	);
 
@@ -201,7 +205,7 @@ for (const runtime of runtimes()) {
 
 		assert.match(
 			out,
-			/"Now add the skill that takes a fresh reading"[\s\S]*?200K tokens before it, keeps 300K, pays back after 124 turns/,
+			/"Now add the skill that takes a fresh reading"[\s\S]*?200K tokens before it, keeps 300K, pays back after 124 requests/,
 		);
 		assert.doesNotMatch(
 			out,
@@ -227,7 +231,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/2\. "Now add the skill that takes a fresh reading"[\s\S]*?100K tokens before it, keeps 100K, pays back after 22 turns/,
+				/2\. "Now add the skill that takes a fresh reading"[\s\S]*?100K tokens before it, keeps 100K, pays back after 22 requests/,
 				"the 100K turn wrote the prefix a cut there re-reads, and the context is 200K",
 			);
 		},
@@ -276,7 +280,7 @@ for (const runtime of runtimes()) {
 					prompt("The prompt still inside the five minutes", at(3)),
 					assistant(200_000, { minutesAgo: 2, ttl: "5m" }),
 				),
-				/2\. "The prompt still inside the five minutes"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 150K tokens before it, keeps 50K, pays back after 7 turns/,
+				/2\. "The prompt still inside the five minutes"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 150K tokens before it, keeps 50K, pays back after 7 requests/,
 			);
 		},
 	);

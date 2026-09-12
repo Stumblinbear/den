@@ -1,6 +1,6 @@
 // The two rows in a reading that are not cut points: `/compact`, priced as a
 // cut at the tail Claude Code keeps rather than at a prompt the user selects,
-// and carrying on, which is what one more turn of the context costs and what
+// and carrying on, which is what one more request of the context costs and what
 // every payback above it is measured against. Both stand whether or not a cut
 // point is left cached.
 //
@@ -37,20 +37,20 @@ for (const runtime of runtimes()) {
 	test(name("`/compact` and carrying on are priced beside the cuts"), () => {
 		// A payback on the cut points alone is two figures weighed against two
 		// options carrying none, which is how a rewind gets recommended where
-		// `/compact` would do. Here it is 4 turns against the cuts' 22 and 9.
+		// `/compact` would do. Here it is 4 requests against the cuts' 22 and 9.
 		const out = read(...CACHED_SESSION);
 
 		assert.match(
 			out,
-			/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+			/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 requests/,
 		);
 		assert.match(
 			out,
-			/2\. "Read the brief and start on the scanner"[\s\S]*?100K tokens before it, keeps 100K, pays back after 22 turns/,
+			/2\. "Read the brief and start on the scanner"[\s\S]*?100K tokens before it, keeps 100K, pays back after 22 requests/,
 		);
 		assert.match(
 			out,
-			/4\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
+			/4\. carry on\s+nothing summarized, nothing written back \| 20K tokens a request, 200K of context at the cache read rate/,
 		);
 	});
 
@@ -82,7 +82,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 170K tokens, keeps about 30K, pays back after 6 turns/,
+				/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 170K tokens, keeps about 30K, pays back after 6 requests/,
 			);
 			assert.doesNotMatch(
 				out,
@@ -120,7 +120,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 requests/,
 			);
 			assert.doesNotMatch(
 				out,
@@ -159,11 +159,11 @@ for (const runtime of runtimes()) {
 			);
 			assert.match(
 				out,
-				/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 188\.7K tokens, keeps about 11\.3K, pays back after 3 turns/,
+				/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 188\.7K tokens, keeps about 11\.3K, pays back after 3 requests/,
 			);
 			assert.match(
 				out,
-				/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
+				/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a request, 200K of context at the cache read rate/,
 			);
 		},
 	);
@@ -205,7 +205,7 @@ for (const runtime of runtimes()) {
 
 			assert.match(
 				out,
-				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 requests/,
 			);
 			assert.doesNotMatch(
 				out,
@@ -231,10 +231,10 @@ for (const runtime of runtimes()) {
 			);
 			// Both of the two carry a figure, and the figures are what the choice
 			// is made on: a `/compact` is not worth running in a session with
-			// fewer turns left in it than its payback.
+			// fewer requests left in it than its payback.
 			assert.match(
 				out,
-				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 turns\s+2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
+				/1\. `\/compact \[focus\]`\s+tail assumed, none measured here \| summarizes 185K tokens, keeps about 15K, pays back after 4 requests\s+2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a request, 200K of context at the cache read rate/,
 			);
 		},
 	);

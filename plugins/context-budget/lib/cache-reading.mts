@@ -1,7 +1,7 @@
 // What a cache scan reads like: the ways the session can carry on from here,
 // priced on one set of figures. `/compact`, each cut point still cached, and
 // carrying on unchanged, with what each summarizes away, what it keeps and how
-// many turns it takes to pay for itself. What sits above them all closes it.
+// many requests it takes to pay for itself. What sits above them all closes it.
 //
 // It prices; it does not choose. Which of them to recommend is the `cut-point`
 // skill's call, and the price is only half of that: what the work ahead still
@@ -12,7 +12,11 @@
 // moment the agent asked for one.
 import type { Compaction } from "./compaction.mts";
 import { formatTokens } from "./messages.mts";
-import { compactCut, paybackTurns, TYPICAL_COMPACT_TAIL } from "./payback.mts";
+import {
+	compactCut,
+	paybackRequests,
+	TYPICAL_COMPACT_TAIL,
+} from "./payback.mts";
 import {
 	DEFAULT_READ_MULTIPLIER,
 	type Pricing,
@@ -233,11 +237,12 @@ function listedPrompts(scan: CacheWindow): readonly CachedPrompt[] {
 
 /**
  * What a cut at a prompt costs, in the unit the agent can weigh it in against
- * the work still in front of it: the turns it takes to pay for itself. Empty
- * for a prompt there is no such figure for.
+ * the work still in front of it: the requests it takes to pay for itself, one
+ * per model call, so a single prompt with tool calls in its reply is several.
+ * Empty for a prompt there is no such figure for.
  */
-const paybackClause = (turns: number | null): string =>
-	turns === null ? "" : `, pays back after ${plural(turns, "turn")}`;
+const paybackClause = (requests: number | null): string =>
+	requests === null ? "" : `, pays back after ${plural(requests, "request")}`;
 
 /** One thing the session can do, and what doing it costs. */
 interface Row {
@@ -246,12 +251,12 @@ interface Row {
 	/** What it moves and what that comes to, in fields the reading separates. */
 	readonly detail: string;
 	/** The payback it quotes, and null for a row that quotes none. */
-	readonly turns: number | null;
+	readonly requests: number | null;
 }
 
 /** Whether any row came to a payback figure, which is what a rate governs. */
 const quotesPayback = (rows: readonly Row[]): boolean =>
-	rows.some((row) => row.turns !== null);
+	rows.some((row) => row.requests !== null);
 
 /** The rows as the numbered list the reading prints them as. */
 const listing = (rows: readonly Row[]): string =>
@@ -270,10 +275,10 @@ const OPTIONS_LEAD =
 const NO_CUTS_LEAD =
 	"Options, `/compact` and carrying on, which its payback is measured against:";
 
-const cutRow = (prompt: CachedPrompt, turns: number | null): Row => ({
+const cutRow = (prompt: CachedPrompt, requests: number | null): Row => ({
 	head: `"${prompt.text}"`,
-	detail: `sent ${clock(prompt.sentAt)} | valid until ${clock(prompt.expiresAt)} | ${formatTokens(prompt.prefixTokens)} tokens before it, keeps ${formatTokens(prompt.keptTokens)}${paybackClause(turns)}`,
-	turns,
+	detail: `sent ${clock(prompt.sentAt)} | valid until ${clock(prompt.expiresAt)} | ${formatTokens(prompt.prefixTokens)} tokens before it, keeps ${formatTokens(prompt.keptTokens)}${paybackClause(requests)}`,
+	requests,
 });
 
 /**
@@ -305,25 +310,25 @@ function compactRow(scan: CacheWindow, context: number, read: number): Row {
 					from: `tail from the compaction at ${clock(measured.at)}`,
 				};
 	const cut = compactCut(context, tail.tokens);
-	const turns = paybackTurns(cut, scan.ttl, read);
+	const requests = paybackRequests(cut, scan.ttl, read);
 
 	return {
 		head: "`/compact [focus]`",
-		detail: `${tail.from} | summarizes ${formatTokens(cut.prefixTokens)} tokens, keeps about ${formatTokens(cut.keptTokens)}${paybackClause(turns)}`,
-		turns,
+		detail: `${tail.from} | summarizes ${formatTokens(cut.prefixTokens)} tokens, keeps about ${formatTokens(cut.keptTokens)}${paybackClause(requests)}`,
+		requests,
 	};
 }
 
 /**
- * What carrying on costs: the whole context read back, every turn, at the rate
- * the reading is priced by. Per turn rather than over a stretch of them,
- * because it is the base the paybacks above it are counted in turns of and
- * nothing here knows how many turns the work has left.
+ * What carrying on costs: the whole context read back on every request, at
+ * the rate the reading is priced by. Per request rather than over a stretch
+ * of them, because it is the base the paybacks above it are counted in and
+ * nothing here knows how many requests the work has left.
  */
 const carryRow = (context: number, read: number): Row => ({
 	head: "carry on",
-	detail: `nothing summarized, nothing written back | ${formatTokens(context * read)} tokens a turn, ${formatTokens(context)} of context at the cache read rate`,
-	turns: null,
+	detail: `nothing summarized, nothing written back | ${formatTokens(context * read)} tokens a request, ${formatTokens(context)} of context at the cache read rate`,
+	requests: null,
 });
 
 /** The two options that are about the whole context rather than a prompt. */
@@ -370,7 +375,7 @@ export function cacheReading(
 	// rate to disclose turns on whether any row came to a figure.
 	const whole = wholeContext(scan, context, price.read);
 	const cuts = listed.map((prompt) =>
-		cutRow(prompt, paybackTurns(prompt, scan.ttl, price.read)),
+		cutRow(prompt, paybackRequests(prompt, scan.ttl, price.read)),
 	);
 	const rows = [whole.compact, ...cuts, whole.carry];
 	const rate = disclosedRate(price, quotesPayback(rows));

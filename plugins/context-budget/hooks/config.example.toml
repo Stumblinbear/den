@@ -35,13 +35,13 @@ enabled = false
 # Fable reads a cached context at a quarter of the usual price, while a
 # compaction writes back what it keeps at twice a fresh input token on the
 # one-hour lifetime. With the 45K or so a compaction writes back, as measured
-# on real sessions, a compaction low in the context, at 150K, pays for itself
-# only after about 35 more turns; at the 400K below it takes about 11. That is
-# why both of these sit above [default]'s. The urgent level leaves 300K before
-# the 1M window fills.
+# on real sessions, one at 300K pays for itself after about 19 more requests
+# to the model, a tool call being one, so a turn or two of agent work; at
+# 150K it takes 43. That is why notice sits above [default]'s. The urgent
+# level leaves 500K before the 1M window fills.
 [models.'fable']
-notice = 400_000
-urgent = 700_000
+notice = 300_000
+urgent = 500_000
 
 # The two messages injected into the agent's context, once each per session per
 # level. They are instructions to the agent, not text shown to the user.

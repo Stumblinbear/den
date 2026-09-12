@@ -115,7 +115,7 @@ for (const runtime of runtimes()) {
 		);
 		assert.match(
 			out,
-			/2\. "The first prompt after the compaction"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 120K tokens before it, keeps 80K, pays back after 16 turns/,
+			/2\. "The first prompt after the compaction"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 120K tokens before it, keeps 80K, pays back after 16 requests/,
 		);
 		assert.doesNotMatch(
 			out,
@@ -159,11 +159,11 @@ for (const runtime of runtimes()) {
 		// the next `/compact` on.
 		assert.match(
 			out,
-			/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 168\.8K tokens, keeps about 31\.2K, pays back after 6 turns/,
+			/1\. `\/compact \[focus\]`\s+tail from the compaction at \d\d:\d\d \| summarizes 168\.8K tokens, keeps about 31\.2K, pays back after 6 requests/,
 		);
 		assert.match(
 			out,
-			/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a turn, 200K of context at the cache read rate/,
+			/2\. carry on\s+nothing summarized, nothing written back \| 20K tokens a request, 200K of context at the cache read rate/,
 		);
 	});
 
@@ -229,11 +229,11 @@ for (const runtime of runtimes()) {
 		);
 		assert.match(
 			out,
-			/2\. "Ordinary prompt one"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 60K tokens before it, keeps 80K, pays back after 30 turns/,
+			/2\. "Ordinary prompt one"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 60K tokens before it, keeps 80K, pays back after 30 requests/,
 		);
 		assert.match(
 			out,
-			/3\. "Ordinary prompt two"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 40K, pays back after 11 turns/,
+			/3\. "Ordinary prompt two"\s+sent \d\d:\d\d \| valid until \d\d:\d\d \| 100K tokens before it, keeps 40K, pays back after 11 requests/,
 		);
 	});
 }

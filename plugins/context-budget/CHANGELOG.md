@@ -7,6 +7,16 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+
+- The cut-point reading counts a payback in requests to the model, one per
+  tool call, where it said turns. The figure was always that count; a turn
+  of agent work is many of them, so every payback reads sooner than the old
+  word suggested.
+- The example's Fable row moves to notice 300K and urgent 500K, from 400K
+  and 700K: on that count a compaction at 300K pays back in about 19
+  requests, a turn or two of agent work.
+
 ## [0.5.0] - 2026-09-12
 
 ### Changed

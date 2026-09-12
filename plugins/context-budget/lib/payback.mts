@@ -1,5 +1,5 @@
 // What a cut costs and what it pays back: the write it pays now, the summary
-// it writes, and the per-turn read they buy back. The rate those reads are
+// it writes, and the per-request read they buy back. The rate those reads are
 // priced at is the one term of the three that varies by model, so it comes in
 // from the price table rather than living here.
 //
@@ -31,7 +31,7 @@ const SUMMARY_TOKENS = 20_000;
 
 /** What a cut moves: what it summarizes away, and what it keeps. */
 export interface Cut {
-	/** Everything above the line, which every turn re-reads if it is kept. */
+	/** Everything above the line, which every request re-reads if it is kept. */
 	readonly prefixTokens: number;
 	/** Everything from the line down, written back to the cache in one piece. */
 	readonly keptTokens: number;
@@ -62,20 +62,23 @@ export function compactCut(contextTokens: number, tailTokens: number): Cut {
 }
 
 /**
- * How many turns after a cut it takes to earn back what the cut cost, on the
- * lifetime in force and at the rate its model reads cached tokens at.
+ * How many requests after a cut it takes to earn back what the cut cost, on
+ * the lifetime in force and at the rate its model reads cached tokens at. A
+ * request is one call to the model, and every tool call ends one and starts
+ * the next, so a turn on a single prompt is as many requests as its reply made
+ * tool calls, plus one; a subagent runs on a context of its own and adds none.
  *
  * Every term is what the cut costs *over carrying on*. The stretch it keeps is
  * written at the write price where carrying on would have read it, so the
  * write costs only the difference; what it summarizes away is read once on the
- * way past, and the summary is written on top. Against that, every turn after
- * the cut saves what the prefix cost to read. That saving does not change with
- * time, since the context regrows cut or not, so the two divide.
+ * way past, and the summary is written on top. Against that, every request
+ * after the cut saves what the prefix cost to read. That saving does not
+ * change with time, since the context regrows cut or not, so the two divide.
  *
  * Null where there is nothing above the prompt to stop re-reading: no saving
  * to divide by.
  */
-export function paybackTurns(
+export function paybackRequests(
 	cut: Cut,
 	ttl: CacheTtl,
 	readRate: number,
