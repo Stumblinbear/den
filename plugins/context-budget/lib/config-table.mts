@@ -126,6 +126,46 @@ export function countOr(
 	return value;
 }
 
+const DURATION = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/;
+
+/**
+ * A duration in milliseconds, for a key whose table carries a default for it.
+ * Hours, then minutes, then seconds, as `"45s"`, `"3m"` or `"1h30m"`. Anything
+ * else is a fault, a duration of zero included.
+ */
+export function durationOr(
+	section: Section,
+	key: string,
+	fallbackMs: number,
+): number {
+	const value = section.table[key];
+
+	if (value === undefined) {
+		return fallbackMs;
+	}
+
+	// Every group of the pattern is optional, so `""` matches and captures
+	// nothing: a non-string, an unparsable string and `"0s"` all arrive at the
+	// check below as zero.
+	const parts = typeof value === "string" ? value.trim().match(DURATION) : null;
+	const ms =
+		parts === null
+			? 0
+			: (Number(parts[1] ?? 0) * 3600 +
+					Number(parts[2] ?? 0) * 60 +
+					Number(parts[3] ?? 0)) *
+				1000;
+
+	if (ms === 0) {
+		fault(
+			section,
+			`has ${section.label} ${key} that is not a duration above zero, like "45s", "3m" or "1h30m"`,
+		);
+	}
+
+	return ms;
+}
+
 /**
  * How a fault names a table: `[key]` at the root, `[parent.key]` under one.
  * A keyed row is named by passing its quoted key, `'fable'`, as the key.

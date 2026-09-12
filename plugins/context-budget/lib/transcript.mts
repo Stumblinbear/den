@@ -107,6 +107,29 @@ export function cacheLifetime(usage: unknown): CacheTtl | null {
 }
 
 /**
+ * The lifetime in force over `entries`, which arrive newest first: what the
+ * newest turn among them that wrote to the cache was billed under. Null where
+ * none of them wrote to it.
+ */
+export function lifetimeIn(
+	entries: Iterable<Record<string, unknown>>,
+): CacheTtl | null {
+	for (const entry of entries) {
+		if (entry["type"] !== "assistant") {
+			continue;
+		}
+
+		const lifetime = cacheLifetime(turnUsage(entry));
+
+		if (lifetime !== null) {
+			return lifetime;
+		}
+	}
+
+	return null;
+}
+
+/**
  * Where the context was replaced by a summary of itself. `/compact`,
  * auto-compact and both rewind summarize directions each append a
  * `compact_boundary` system entry followed by an `isCompactSummary` user

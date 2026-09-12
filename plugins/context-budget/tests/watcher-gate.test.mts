@@ -9,6 +9,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
+import { assistant, at, crossSessionMessage } from "./fixtures.mts";
 import { quiet } from "./harness.mts";
 import {
 	COMMITTED,
@@ -27,6 +28,9 @@ import {
 const COMPLETED = [
 	{ name: "TaskUpdate", input: { task_id: "30", status: "completed" } },
 ];
+
+/** An arc still running, with the shortest wait a judge can ask: one prompt. */
+const NEXT_TURN = { good: false, wait: "next turn" };
 
 for (const runtime of runtimes()) {
 	const name = (what: string) => `${runtime}: ${what}`;
@@ -52,6 +56,45 @@ for (const runtime of runtimes()) {
 
 		assert.equal(judge.prompts().length, 0);
 	});
+
+	// The count a wait is measured in rises on the user's own prompts alone, so
+	// a relayed message and the reply it draws leave a wait of one prompt still
+	// owing.
+	test(
+		name("a message relayed from another session is not a turn of the user's"),
+		() => {
+			const { judge, session, stop } = watcherRuns(runtime);
+			const id = session();
+
+			judge.answers(NEXT_TURN);
+			quiet(stop(id, conversation(NOTICE)));
+			assert.equal(judge.prompts().length, 1);
+
+			quiet(
+				stop(
+					id,
+					conversation(
+						NOTICE,
+						{},
+						2,
+						crossSessionMessage(
+							"Cache wake 1 of 2: background work still running",
+							at(4),
+						),
+						assistant(NOTICE + 500, { minutesAgo: 3, uuid: "wake-reply" }),
+					),
+				),
+			);
+			assert.equal(
+				judge.prompts().length,
+				1,
+				"the relayed message was counted as a prompt of the user's",
+			);
+
+			quiet(stop(id, conversation(NOTICE, {}, 3)));
+			assert.equal(judge.prompts().length, 2);
+		},
+	);
 
 	// A wait is counted in the user's own prompts, and the conversation carries
 	// one more of them per turn: `later` is eight, so the tenth prompt of a
@@ -105,7 +148,7 @@ for (const runtime of runtimes()) {
 		const id = session();
 		const path = conversation(NOTICE);
 
-		judge.answers({ good: false, wait: "next turn" });
+		judge.answers(NEXT_TURN);
 		quiet(stop(id, path));
 		assert.equal(judge.prompts().length, 1);
 

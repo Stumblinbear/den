@@ -22,7 +22,14 @@ import { test } from "node:test";
 import { fixtureDir } from "../../../tests/harness.mts";
 import { CHUNK_BYTES } from "../lib/lines-backward.mts";
 import { scanCacheWindow } from "../lib/prompt-cache.mts";
-import { assistant, at, COMPACT_SUMMARY, HOUR, prompt } from "./fixtures.mts";
+import {
+	assistant,
+	at,
+	COMPACT_SUMMARY,
+	crossSessionMessage,
+	HOUR,
+	prompt,
+} from "./fixtures.mts";
 
 let seq = 0;
 
@@ -35,6 +42,31 @@ function transcript(...lines: readonly string[]): string {
 
 	return path;
 }
+
+test("a message relayed from another session is not a cut point", () => {
+	// The fixture carries both of the marks `eligible` refuses, `isMeta` and a
+	// peer origin, so the scan lists the prompts either side of it and leaves
+	// the message between them out.
+	const path = transcript(
+		assistant(100_000, { minutesAgo: 45 }),
+		prompt("The prompt the user typed", at(40)),
+		assistant(150_000, { minutesAgo: 39 }),
+		crossSessionMessage(
+			"Cache wake 1 of 2: background work still running",
+			at(30),
+		),
+		assistant(150_500, { minutesAgo: 29 }),
+		prompt("The next prompt the user typed", at(20)),
+		assistant(200_000, { minutesAgo: 19 }),
+	);
+
+	const scan = scanCacheWindow(path);
+
+	assert.deepEqual(
+		scan.prompts.map((one) => one.text),
+		["The prompt the user typed", "The next prompt the user typed"],
+	);
+});
 
 test("a prompt expires on the lifetime its own preceding turn was billed under", () => {
 	const sent = at(20);

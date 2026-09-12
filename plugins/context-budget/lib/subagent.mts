@@ -11,10 +11,10 @@ import { join } from "node:path";
 import { fieldsOf } from "./shared/fields.mts";
 import {
 	type CacheTtl,
-	cacheLifetime,
 	DEFAULT_TTL,
 	ifPresent,
 	inputTokens,
+	lifetimeIn,
 	lifetimeMs,
 	newestFirst,
 	turnModel,
@@ -77,34 +77,21 @@ function resumeState(file: string): ResumeState | null {
 		return null;
 	}
 
-	let last: {
-		entry: Record<string, unknown>;
-		usage: Record<string, unknown>;
-	} | null = null;
+	const lines = text.split("\n");
 
-	for (const entry of newestFirst(text.split("\n"))) {
+	for (const entry of newestFirst(lines)) {
 		if (entry["type"] !== "assistant") {
 			continue;
 		}
 
 		const usage = turnUsage(entry);
 
-		if (usage === null) {
-			continue;
-		}
-
-		last ??= { entry, usage };
-
-		const lifetime = cacheLifetime(usage);
-
-		if (lifetime !== null) {
-			return { last: last.entry, usage: last.usage, lifetime };
+		if (usage !== null) {
+			return { last: entry, usage, lifetime: lifetimeIn(newestFirst(lines)) };
 		}
 	}
 
-	return last === null
-		? null
-		: { last: last.entry, usage: last.usage, lifetime: null };
+	return null;
 }
 
 function agentType(dir: string, to: string): string {

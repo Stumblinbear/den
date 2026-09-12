@@ -136,6 +136,32 @@ export const toolResult = (
 		...extra,
 	});
 
+/**
+ * A message another Claude session posted into this one, in the shape Claude
+ * Code 2.1.269 writes one: a user entry the user never typed, which the
+ * readers here have to tell from a prompt.
+ */
+export const crossSessionMessage = (text: string, timestamp: string): string =>
+	JSON.stringify({
+		type: "user",
+		isSidechain: false,
+		isMeta: true,
+		promptSource: "system",
+		origin: {
+			kind: "peer",
+			from: "uds:/tmp/cc-socks/1.sock",
+			msg_id: `relayed-${seq}`,
+			name: "context-budget",
+			body: text,
+		},
+		timestamp,
+		uuid: `relayed-${seq++}`,
+		message: {
+			role: "user",
+			content: `Another Claude session sent a message:\n<cross-session-message from="uds:/tmp/cc-socks/1.sock" from-name="context-budget">\n${text}\n</cross-session-message>`,
+		},
+	});
+
 export interface BoundaryOptions {
 	readonly minutesAgo?: number;
 	/** The context the compaction left behind. */
