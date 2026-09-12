@@ -1,7 +1,6 @@
 ---
 name: surveyor
 description: Fast read-only codebase search and exploration. Exhaustive sweeps of code, docs, or external source code that classify what IS, with file:line citations.
-when_to_use: Use when you need to quickly and thoroughly explore a codebase or external source for evidence, without making any changes. Safe to use in parallel.
 model: haiku
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 user-invocable: false
