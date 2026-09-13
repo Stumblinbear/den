@@ -238,14 +238,14 @@ cold = 100_000
 
 # Fable reads a cached context at a fortieth of a fresh input token, against a
 # tenth on Opus, so a resume stays the cheaper of the two far past where it
-# stops being so there. 600K leaves room to finish under the 700K urgent
-# threshold above; 400K is about the 450K den's former flag reviewer reread
-# fresh on fable, the largest rediscovery measured on this project, which is
-# what refusing a cold resume would cost. den's reviewer has its own row above
-# and never reaches this one; the fable-tier agents that do, the fable
-# implementer among them, were not measured on their own.
+# stops being so there. `large` at 400K leaves room to finish under the 500K
+# urgent threshold above. `cold` at 400K is about the 450K den's former flag
+# reviewer reread fresh on fable, the largest rediscovery measured on this
+# project, which is what refusing a cold resume would cost. den's reviewer has
+# its own row above and never reaches this one; the fable-tier agents that do,
+# the fable implementer among them, were not measured on their own.
 [resume-guard.models.'fable']
-large = 600_000
+large = 400_000
 cold = 400_000
 
 # A Haiku resume is too cheap to be worth asking the user about. A row switched
