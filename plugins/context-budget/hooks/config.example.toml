@@ -172,7 +172,7 @@ before = "45s"
 # A file without the key gets this one:
 [wake.messages]
 wake = """
-Give the user a short progress update on the background work still running, then stop. No reply to this message is needed."""
+Give the user a short progress update on the background work still running. No reply to this message is needed."""
 
 # Resuming a subagent makes it re-read its whole transcript on every turn it then
 # takes, so past a certain size a fresh launch that rebuilds only what it needs

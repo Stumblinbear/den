@@ -173,10 +173,9 @@ session runs on. `/context-budget:configure` is the guided path through an
 edit.
 
 The file is read on every hook run, so an edit takes effect on the next tool
-call with no reload. A `[wake]` edit waits for the next idle stretch: the run
-waiting one out read the wake's settings when it started and re-reads only the
-transcript after that, and the Stop that would pick your new file up exits
-behind that run's lock. Nothing is merged under it, so it carries every key
+call with no reload, and a run waiting an idle stretch out reads it again at
+each of its checks, so a `[wake]` edit reaches that run at its next check, a
+few minutes away at most. Nothing is merged under it, so it carries every key
 below that has no default. A missing key is a config error naming it.
 
 | Key | Type | Default | What it does |
@@ -205,7 +204,7 @@ below that has no default. A missing key is a config error naming it.
 | `[watcher] command` | list | the `claude -p` line the example spells out, `--tools ""`, `--safe-mode`, `--system-prompt` and `--json-schema` included | the judge invocation, as an argument list rather than a shell line; replace it whole to run the judge on something else, schema and all |
 | `[watcher] tail_turns` | count | `16` | how many recent turns the judge is shown |
 | `[watcher] tail_tokens` | count | `20000` | how much of those turns it is shown, cut from the oldest end |
-| `[wake] enabled` | bool | `true` | `false` switches the wake off from the next idle stretch on: nothing is posted, and an idle session goes cold as it would without the plugin |
+| `[wake] enabled` | bool | `true` | `false` switches the wake off: nothing is posted, a run already waiting ends at its next check, and an idle session goes cold as it would without the plugin |
 | `[wake.'1h'] enabled` | bool | `true` | `false` leaves a session on the hour lifetime to go cold |
 | `[wake.'1h'] times` | count | `2` | how many wakes one idle stretch spends there before the cache is left to expire |
 | `[wake.'1h'] before` | duration | `"3m"` | how far ahead of the expiry a wake is posted; a lead not shorter than the lifetime is a config error |
@@ -406,8 +405,8 @@ the lock held and exits at once.
 You see a wake as one preview line, `Message from @context-budget: Cache wake 1
 of 2: 3 background tasks still running.`, and a session started with
 `--verbose` shows the whole message instead. The body under it is the agent's,
-an instruction to give you a short progress update and stop. No reply is
-needed, and none arrives.
+an instruction to give you a short progress update. No reply is needed, and
+none arrives.
 
 A session that binds no inbox gets no wake and no line about it: the wake has
 nowhere to post, and a Claude Code without cross-session messaging is not a

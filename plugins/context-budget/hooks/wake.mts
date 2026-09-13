@@ -32,18 +32,45 @@ const args = process.argv.slice(2);
 
 /** One check of the transcript, and what the run does about it. */
 interface Check {
+	/** The settings this check was decided under, and its post made under. */
+	readonly wake: Wake;
+	/** What the transcript held at the check. */
 	readonly reading: Reading;
+	/** What the run does on that reading. */
 	readonly step: Step;
 }
 
 /**
- * Reads the transcript at `path`, and the step a run holding `stretch` takes
- * on that reading.
+ * Reads the transcript at `path` and decides what a run holding `stretch` does
+ * about it under `wake`.
+ *
+ * @remarks
+ * Raises whatever reading the transcript raises.
  */
 function checked(path: string, wake: Wake, stretch: Stretch): Check {
 	const read = reading(path);
 
-	return { reading: read, step: nextStep(stretch, read, wake, Date.now()) };
+	return {
+		wake,
+		reading: read,
+		step: nextStep(stretch, read, wake, Date.now()),
+	};
+}
+
+/**
+ * The wake's settings as the file has them now, and null where the file is
+ * gone or faulty.
+ *
+ * @remarks
+ * A faulty file reads as null rather than a fault reported, since a run that
+ * has begun waiting has nobody left to tell.
+ */
+async function reloaded(): Promise<Wake | null> {
+	try {
+		return (await loadSettings(args))?.wake ?? null;
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -87,14 +114,20 @@ async function waited(
 		if (check.step.kind === "wait") {
 			await sleep(check.step.ms);
 		} else if (
-			await post(address, wakeText(check.step, check.reading, wake.message))
+			await post(
+				address,
+				wakeText(check.step, check.reading, check.wake.message),
+			)
 		) {
 			stretch = check.step.stretch;
 		} else {
 			return;
 		}
 
-		check = quietly(() => checked(path, wake, stretch));
+		const latest = await reloaded();
+
+		check =
+			latest === null ? null : quietly(() => checked(path, latest, stretch));
 	}
 }
 

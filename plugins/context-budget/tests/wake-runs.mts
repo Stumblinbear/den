@@ -9,6 +9,7 @@
 // wait is that same second, so a case waits seconds where a session waits
 // minutes and nothing about the decision is faked.
 import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
 import type { Result, Runtime, Started } from "../../../tests/harness.mts";
 import { agentLaunch, taskNotification } from "./background-fixtures.mts";
 import { assistant, at, crossSessionMessage, prompt } from "./fixtures.mts";
@@ -82,6 +83,11 @@ export interface WakeRuns {
 	stop(id: string, path: string, over?: Over): Result;
 	/** One Stop left running, which is how Claude Code starts an async hook. */
 	start(id: string, path: string): Started;
+	/**
+	 * Rewrites the configuration the runs read, with `section` as its wake
+	 * settings: the user editing the file while a run is waiting.
+	 */
+	reconfigure(section: string): void;
 	/** Stops listening. A case that opened one closes it. */
 	close(): Promise<void>;
 }
@@ -121,6 +127,8 @@ export async function wakeRuns(
 
 			return starter("wake", run.input, config, run.options);
 		},
+		reconfigure: (section) =>
+			writeFileSync(config, [USABLE, section].join("\n")),
 		close: () => listening.close(),
 	};
 }

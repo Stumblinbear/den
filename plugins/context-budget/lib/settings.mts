@@ -141,7 +141,7 @@ export const DEFAULT_SYSTEM_PROMPT =
  * that decides that is in `inbox.mts`.
  */
 export const DEFAULT_WAKE_MESSAGE =
-	"Give the user a short progress update on the background work still running, then stop. No reply to this message is needed.";
+	"Give the user a short progress update on the background work still running. No reply to this message is needed.";
 
 /**
  * The row each lifetime takes where the file writes none. Each lead covers the

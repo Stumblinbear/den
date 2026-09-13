@@ -208,13 +208,13 @@ up to an hour under a live process is the wake waiting, not a lock stuck.
 A session with no inbox, a Claude Code before cross-session messaging or a
 `--bare` session, gets no wake and no line about it; with
 `crossSessionInbound = "refuse"` the inbox stays bound, so one wake per stretch
-is posted and dropped and the cache goes cold. A `[wake]` edit takes effect at
-the next stretch, since a waiting run keeps the settings it started with. No
-message arrives either when nothing is pending, since a foreground tool call
-is not background work; when the lifetime's row is `enabled = false`; or when
-the cache had expired before the run began. On the 5m row a single tool call
-longer than about four minutes reads as idle and gets one wake, which the
-session reads between tool calls when the tool returns, inside the turn.
+is posted and dropped and the cache goes cold. A waiting run reads the
+configuration again at each check, so a `[wake]` edit reaches it within
+minutes. No message arrives when nothing is pending, since a foreground tool
+call is not background work; when the lifetime's row is `enabled = false`; or
+when the cache had expired before the run began. On the 5m row a single tool
+call longer than about four minutes reads as idle and gets one wake, which
+the session reads between tool calls when the tool returns, inside the turn.
 
 ## Where changes go
 

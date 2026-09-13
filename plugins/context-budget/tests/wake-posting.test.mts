@@ -15,6 +15,7 @@ import {
 	endedWithin,
 	finished,
 	idling,
+	WAKE_OFF,
 	WAKE_UNSPENT,
 	wakeRuns,
 	woken,
@@ -162,6 +163,34 @@ for (const runtime of runtimes()) {
 			}
 		},
 	);
+
+	// A [wake] edit lands mid-stretch, since the file is read at every check
+	// rather than once per run. The run is switched off between its first wake
+	// and the reply that answers it, and ends there with a wake still in its
+	// row.
+	test(name("a [wake] edit reaches the run already waiting"), async () => {
+		const runs = await wakeRuns(runtime);
+
+		try {
+			const path = idling();
+			const waiting = runs.start(runs.session(), path);
+			const first = posted(await runs.inbox.received(2), 0);
+
+			runs.reconfigure(WAKE_OFF);
+			woken(path, String(first[0]));
+
+			const ended = await endedWithin(
+				waiting,
+				"the run switched off mid-stretch",
+			);
+
+			assert.equal(ended.status, 0, ended.stderr);
+			assert.equal(ended.stderr, "", "nothing on stderr");
+			assert.equal(runs.inbox.lines().length, 2, "no wake after the edit");
+		} finally {
+			await runs.close();
+		}
+	});
 
 	// The likeliest end of a stretch: the user closes Claude Code while the
 	// background work is still going, and the run outlives the session it was
