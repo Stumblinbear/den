@@ -43,16 +43,41 @@ uses it; a red test as its own step when the fix is the risky part.
 
 ## The plan
 
-A numbered sequence. Each entry carries its scope, what its landing proves,
-what it depends on, when it is done, and what each type it touches is once
-it lands, since a step cut around a method leaves the type around it as it
-was, and what that type has become is what the next step inherits. The
-plan is a hypothesis: after each step lands, what was learned rewrites the
-next entry. A falsified
-assumption re-cuts the smallest remaining part it invalidated; a change to
-the goal or to a commitment that is expensive to undo re-plans the whole
-and goes to the person who decides it. A single step is a valid plan for a
-small change, and is stated as one.
+One markdown file, read by the person who decides it before any code
+exists and by each step's implementer after, so it shows the code a step
+rests on rather than describing it. `# Title`, a date line, then one
+screen: a paragraph of problem and goal, a `Not doing:` line, a
+`Constraints:` line, and one sentence on why the steps are in this order.
+Under `## How the pieces call each other`, a text fence naming each piece
+with its file and step.
+
+Then one `## Step N: title [pending]` per step, the tag one of `committed`,
+`in progress` and `pending` and the step's whole record of state, each
+carrying:
+
+- two to four sentences: its scope, what it depends on, and what each type
+  it touches is once it lands, since a step cut around a method leaves the
+  type around it as it was, and what that type has become is what the next
+  step inherits;
+- the existing code the step rests on, pasted in a fence whose info string
+  is `lang path:from-to`, and the change sketched in a `diff` fence, since
+  the reader judges a cut by the code it cuts, not by prose about it;
+- one `Decided:` line per decision, inside the step it affects, `Decided
+  (you):` where the user made it, each ending `Rejected:` and the
+  alternative; a decision still theirs is an `Open:` line with the code it
+  lands in and the candidate patches;
+- a `Tests:` line naming what proves it and a `Gate:` line saying when it
+  is done.
+
+A `## ` heading without a step number is prose. Plain paragraphs, `-`
+lists, `**bold**`, `` `code` `` and links otherwise; `den:plan-page`
+renders the file for the user.
+
+The plan is a hypothesis: after each step lands, what was learned rewrites
+the next entry and each tag. A falsified assumption re-cuts the smallest
+remaining part it invalidated; a change to the goal or to a commitment that
+is expensive to undo re-plans the whole and goes to the person who decides
+it. A single step is a valid plan for a small change, and is stated as one.
 
 ## Interrogate the first attempt
 

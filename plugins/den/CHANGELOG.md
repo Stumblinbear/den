@@ -7,6 +7,16 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+
+- A `plan-page` skill, `/den:plan-page <path>`, that renders a plan written in
+  the `slicing` shape as one page file: the first screen, a step table, a card
+  per step with its state, the code the step rests on under its caption,
+  coloured diff sketches and the decisions picked out, and sends the file to
+  the user for reading a plan away from the terminal. `slicing` now names that
+  shape, and the lead puts each plan to the user as a page. The page is
+  written under the OS temp directory and nothing is published.
+
 ## [0.6.0] - 2026-09-12
 
 ### Added

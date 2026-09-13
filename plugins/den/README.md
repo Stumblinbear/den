@@ -9,7 +9,7 @@ to fresh agents; every launch is authorized on its own.
 
 Skills, applied by Claude when their trigger fires. The ones a person can
 also run as `/den:<name>` are lead, project-direction, scoping,
-diagnosing and diff-page; the rest are hidden from the `/` menu:
+diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
 
 - `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
@@ -47,6 +47,13 @@ diagnosing and diff-page; the rest are hidden from the `/` menu:
   terminal. Untracked files appear as the new-file hunks they become once
   added. The argument is a git diff range as for `review`; omit it for the
   working tree against HEAD. Nothing is published unless you ask for a link.
+- `plan-page`: renders a plan written in the `slicing` shape as one page file,
+  the first screen, a step table and a section per step with its state, the
+  code it rests on under its caption, coloured diff sketches and the decisions
+  picked out, and sends you the file, for reading a plan from a phone or away
+  from the terminal. The argument is the plan file's path; a plan with no
+  title is rendered under its file name. Nothing is published unless you ask
+  for a link.
 - `slicing`: how a change is cut into steps a reviewer holds in one read and
   sequenced by risk, with the test a boundary must pass, the settled
   techniques for cutting what looks atomic, and the interrogation of the

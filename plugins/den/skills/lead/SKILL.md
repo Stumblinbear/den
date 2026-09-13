@@ -98,8 +98,9 @@ from explicit scope fences so the brief leaves room for engineering judgment.
 
 A change lands as a sequence of steps cut under `den:slicing`. The plan is
 written to a temporary directory and its steps are tracked in the task
-list; the sequence is put to the user before the first step's Handoff
-question, since where the cuts fall is their decision. Each step runs the
+list; the sequence is put to the user as a page through `den:plan-page`
+before the first step's Handoff question, since where the cuts fall is
+their decision. Each step runs the
 whole cycle on its own, handoff, review with the plan's path, fix round,
 comment pass and commit proposal, and the next step is briefed after the
 previous one has landed, on the tree as it now is, so what its review found
