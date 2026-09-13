@@ -4,12 +4,14 @@
 // holds skipping the work rather than doing it unlocked, a lock replaced
 // under a run left standing by the run that no longer owns it, and the lock
 // left by a run that died, which the next run proves dead and takes over.
+// `underLockAsync` is where that stops holding: its cases hold the lock across
+// an await, so two runs of this one process really do overlap.
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, rmSync, utimesSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { test } from "node:test";
-import { underLock } from "../lib/file-lock.mts";
+import { underLock, underLockAsync } from "../lib/file-lock.mts";
 import { fixtureDir, standingLock } from "./harness.mts";
 
 const lockPath = (): string => join(fixtureDir("lock"), "record.lock");
@@ -24,6 +26,12 @@ const GONE = 2 ** 31 - 1;
 
 /** How far back a case sets a directory's mtime to age it out of a window. */
 const aged = (): Date => new Date(Date.now() - 5000);
+
+/** A single turn of the event loop, standing in for a long await. */
+const tick = (): Promise<void> =>
+	new Promise((resolve) => {
+		setTimeout(resolve, 0);
+	});
 
 test("the lock stands for the work and is gone after it", () => {
 	const path = lockPath();
@@ -170,4 +178,58 @@ test("a break left standing by a run that died is cleared", () => {
 		false,
 		"the break this run took is gone with the takeover it served",
 	);
+});
+
+test("the lock stands across an await inside the work and is gone after it", async () => {
+	const path = lockPath();
+
+	assert.deepEqual(
+		await underLockAsync(path, async () => {
+			await tick();
+
+			return existsSync(path);
+		}),
+		{ held: true, result: true },
+		"a lock released when the work handed its promise back would be gone here",
+	);
+	assert.equal(existsSync(path), false, "a settled promise releases the lock");
+});
+
+// Work that rejected has ended, so there is nothing left for the lock to
+// guard. What the failure means is the caller's to read, so nothing here
+// catches it.
+test("work that rejects releases the lock and the rejection reaches the caller", async () => {
+	const path = lockPath();
+
+	await assert.rejects(
+		underLockAsync(path, () => Promise.reject(new Error("the work failed"))),
+		{ message: "the work failed" },
+		"nothing here stands between the work and whoever called it",
+	);
+	assert.equal(existsSync(path), false, "a lock is released however work ends");
+});
+
+// Two runs of one session in flight at once, which is what holding a lock
+// across an await is for. The lock the second one finds names this very
+// process, which every probe answers alive, so there is nothing to take over.
+test("a second run finds the lock held while the first is awaiting", async () => {
+	const path = lockPath();
+	const awaited = Promise.withResolvers<void>();
+
+	const first = underLockAsync(path, async () => {
+		await awaited.promise;
+
+		return "ran";
+	});
+	const second = await underLockAsync(path, () => Promise.resolve("ran too"));
+
+	awaited.resolve();
+
+	assert.deepEqual(
+		second,
+		{ held: false },
+		"the work of a run that never got in never happened",
+	);
+	assert.deepEqual(await first, { held: true, result: "ran" });
+	assert.equal(existsSync(path), false, "the run that held it let it go");
 });

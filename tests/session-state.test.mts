@@ -1,8 +1,11 @@
 // The lock every write of a session record takes, whichever writer makes it.
 // Nothing here can interleave two hook processes; what this covers is what one
 // process does when it finds another inside its change: leave the record
-// exactly as it was, rather than write back over a change it never read.
+// exactly as it was, rather than write back over a change it never read. The
+// named lock is the second kind here: taken beside the record, held across an
+// await, and leaving the record's own lock free while it stands.
 import assert from "node:assert/strict";
+import { existsSync, utimesSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { test } from "node:test";
@@ -77,5 +80,67 @@ test("a field set to undefined is removed, and one set to null is kept", () => {
 		state.read(session),
 		{ consumed: null },
 		"the serializer drops an undefined field and writes a null one",
+	);
+});
+
+// A run that has to be the only one of its kind the session has, holding its
+// own lock for as long as that lasts. The lock is not the record's, so a hold
+// of hours stops nobody from writing meanwhile.
+test("a named lock stands beside the record and leaves the record's own free", async () => {
+	const temp = fixtureDir("session-state-hold");
+	const state = stateIn(temp);
+	const session = "session-held";
+	const named = join(temp, PLUGIN, `${session}.wake.lock`);
+
+	const holding = await state.hold(session, "wake", async () => {
+		await new Promise((resolve) => {
+			setTimeout(resolve, 0);
+		});
+
+		return {
+			stands: existsSync(named),
+			wrote: state.update(session, () => ({
+				fields: { level: "notice" },
+				result: "wrote",
+			})),
+		};
+	});
+
+	assert.deepEqual(holding, {
+		held: true,
+		result: { stands: true, wrote: { held: true, result: "wrote" } },
+	});
+	assert.equal(existsSync(named), false, "the hold ends where its work does");
+	assert.deepEqual(
+		state.read(session),
+		{ level: "notice" },
+		"the write the held run made under the record's own lock landed",
+	);
+});
+
+// A hold is named by a free string, and two of the session's names are already
+// spoken for: `json` is the record itself, `lock` the lock every write takes.
+// A hold's name carries `.lock` on top of it, so `json` puts the hold at
+// `<session>.json.lock` and neither of those two is reachable. A hold that
+// landed on the record instead would find a file where it wants a directory,
+// read no holder in it and remove it as abandoned, but only once it is older
+// than the unsigned window; the record is aged past that so such a hold fails
+// here rather than passing on a fresh record.
+test("a hold named after the record's own suffix leaves the record standing", async () => {
+	const temp = fixtureDir("session-state-hold-suffix");
+	const state = stateIn(temp);
+	const session = "session-suffixed";
+	const record = join(temp, PLUGIN, `${session}.json`);
+	const aged = new Date(Date.now() - 5000);
+
+	state.update(session, () => ({ fields: { level: "notice" }, result: null }));
+	utimesSync(record, aged, aged);
+
+	await state.hold(session, "json", () => Promise.resolve());
+
+	assert.deepEqual(
+		state.read(session),
+		{ level: "notice" },
+		"a hold named after the record leaves the record as it was",
 	);
 });

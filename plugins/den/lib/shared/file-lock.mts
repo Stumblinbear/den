@@ -90,8 +90,9 @@ interface Holder {
 	readonly pid: number | null;
 }
 
-// What a waiting run waits for is synchronous file work, so it has nothing else
-// to do and sleeps rather than yielding to a loop it does not have.
+// Sleeping blocks the thread, and with it the event loop an async caller has.
+// A run waiting on the lock has nothing else to do, and it waits `WAIT_MS` at
+// most, before any of the caller's own work has begun.
 const IDLE = new Int32Array(new SharedArrayBuffer(4));
 
 /**
@@ -117,6 +118,33 @@ export function underLock<T>(path: string, work: () => T): Locked<T> {
 
 	try {
 		return { held: true, result: work() };
+	} finally {
+		release(path, token);
+	}
+}
+
+/**
+ * Runs `work` with the lock at `path` held, and releases it when the promise
+ * `work` returns settles, however it settles. A run that is only awaiting
+ * holds the lock as surely as one doing work, so the hold runs the full length
+ * of `work`.
+ *
+ * A lock this run cannot take within `WAIT_MS` skips the work entirely: what a
+ * run does without its change is the caller's to decide. That deadline is the
+ * whole of the wait, so a run arriving while a long hold stands never gets in.
+ */
+export async function underLockAsync<T>(
+	path: string,
+	work: () => Promise<T>,
+): Promise<Locked<T>> {
+	const token = take(path);
+
+	if (token === null) {
+		return { held: false };
+	}
+
+	try {
+		return { held: true, result: await work() };
 	} finally {
 		release(path, token);
 	}

@@ -11,12 +11,14 @@
 // Claude Code runs tool calls in parallel, so two of a plugin's entries can be
 // writing at once. Every write here takes the record's own lock, since a merge
 // that read the file outside that lock writes back over whatever landed
-// between its read and itself.
+// between its read and itself. A run that has to be the only one of its kind
+// the session has takes a lock of its own beside the record, through `hold`,
+// and keeps it for as long as its work lasts.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { isTable } from "./fields.mts";
-import { type Locked, underLock } from "./file-lock.mts";
+import { type Locked, underLock, underLockAsync } from "./file-lock.mts";
 
 /** What a change to the record leaves behind. */
 export interface Change<T> {
@@ -58,14 +60,31 @@ export interface SessionState {
 		key: string,
 		change: (before: Readonly<Record<string, unknown>>) => Change<T>,
 	): Locked<T>;
+	/**
+	 * Runs `work` with the lock named `name` held, for a run that has to be the
+	 * only one of its kind the session has. The lock stands beside the record
+	 * rather than on it, so `update` goes through for every writer meanwhile,
+	 * and it is held until `work` settles, however long that takes.
+	 *
+	 * A run that cannot take the lock does no work and is handed nothing.
+	 *
+	 * `name` reaches the filesystem as written, so pass a constant and never
+	 * anything read off a run's input.
+	 */
+	hold<T>(
+		key: string,
+		name: string,
+		work: () => Promise<T>,
+	): Promise<Locked<T>>;
 }
 
 export function sessionState(directory: string): SessionState {
 	const dir = join(tmpdir(), directory);
 	/**
-	 * A key is a session id off a run's input, so it is sanitized rather than
-	 * trusted as a path component. One place builds both names, so a record and
-	 * the lock it is written under cannot drift apart.
+	 * Where one of a session's files sits: the record, the lock it is written
+	 * under, or a lock held beside it. A key is a session id off a run's input,
+	 * so it is sanitized rather than trusted as a path component, and building
+	 * all three names here keeps them from drifting apart.
 	 */
 	const file = (key: string, suffix: string): string =>
 		join(dir, `${key.replace(/[^A-Za-z0-9._-]/g, "_")}.${suffix}`);
@@ -104,9 +123,15 @@ export function sessionState(directory: string): SessionState {
 
 			return changed.result;
 		});
+	const hold = <T,>(
+		key: string,
+		name: string,
+		work: () => Promise<T>,
+	): Promise<Locked<T>> => underLockAsync(file(key, `${name}.lock`), work);
 
 	return {
 		read,
 		update,
+		hold,
 	};
 }
