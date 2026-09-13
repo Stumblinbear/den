@@ -13,6 +13,7 @@ import { linesBackward } from "./lines-backward.mts";
 import { asTyped, eligible } from "./rewind-picker.mts";
 import { fieldsOf } from "./shared/fields.mts";
 import {
+	contextEntries,
 	entryIn,
 	isCompaction,
 	type ToolUse,
@@ -44,34 +45,20 @@ interface Building {
 
 /**
  * The last `count` turns of the transcript at `path`, oldest first, and fewer
- * where the context holds fewer. The walk stops at a compaction as well, since
- * nothing above one is in the context any more.
+ * where the context holds fewer.
  *
  * A turn still in flight, whose prompt has been sent and answered but which no
- * newer prompt has closed, is the last one in the list: the reader is called
- * from a Stop, where that turn is the one that just ended. The oldest turn is
- * left out where the walk ran out of file before its prompt, since half a turn
- * read from its end is not what either reader is asking for.
+ * newer prompt has closed, is the last one in the list. A turn whose prompt
+ * lies outside the context is left out whole, since half a turn read from its
+ * end is not a turn.
  *
- * Raises whatever opening the file raised, as `linesBackward` does.
+ * Raises whatever opening the file raised, as `contextEntries` does.
  */
 export function recentTurns(path: string, count: number): readonly Turn[] {
 	const turns: Turn[] = [];
 	let building = opened();
 
-	for (const line of linesBackward(path)) {
-		const entry = entryIn(line);
-
-		// A subagent shares the transcript, and its turns are not this
-		// conversation.
-		if (entry === null || entry["isSidechain"]) {
-			continue;
-		}
-
-		if (isCompaction(entry)) {
-			break;
-		}
-
+	for (const entry of contextEntries(path)) {
 		if (building.at === "" && typeof entry["uuid"] === "string") {
 			building.at = entry["uuid"];
 		}

@@ -8,6 +8,7 @@
 // A transcript's lines are whatever Claude Code wrote, and a line may be
 // half-written while the file is being appended to, so every entry and every
 // field is narrowed on the way out rather than trusted.
+import { linesBackward } from "./lines-backward.mts";
 import { errorCode, fieldsOf, isTable } from "./shared/fields.mts";
 
 /** The prompt-cache lifetime a turn was billed under, as a message names it. */
@@ -107,6 +108,14 @@ export function cacheLifetime(usage: unknown): CacheTtl | null {
 }
 
 /**
+ * The lifetime an entry's request wrote the cache under, and null for an
+ * entry that wrote nothing: one that is not an assistant turn, a request that
+ * failed before the model saw it, or one served entirely from a warm cache.
+ */
+export const lifetimeOf = (entry: Record<string, unknown>): CacheTtl | null =>
+	entry["type"] === "assistant" ? cacheLifetime(turnUsage(entry)) : null;
+
+/**
  * The lifetime in force over `entries`, which arrive newest first: what the
  * newest turn among them that wrote to the cache was billed under. Null where
  * none of them wrote to it.
@@ -115,11 +124,7 @@ export function lifetimeIn(
 	entries: Iterable<Record<string, unknown>>,
 ): CacheTtl | null {
 	for (const entry of entries) {
-		if (entry["type"] !== "assistant") {
-			continue;
-		}
-
-		const lifetime = cacheLifetime(turnUsage(entry));
+		const lifetime = lifetimeOf(entry);
 
 		if (lifetime !== null) {
 			return lifetime;
@@ -208,6 +213,31 @@ export function toolUses(entry: Record<string, unknown>): readonly ToolUse[] {
 	}
 
 	return uses;
+}
+
+/**
+ * The main conversation's entries still in the context at `path`, newest
+ * first: a subagent shares the transcript, so its entries are left out, as is
+ * everything above the newest compaction.
+ *
+ * Raises whatever opening the file raised, as `linesBackward` does.
+ */
+export function* contextEntries(
+	path: string,
+): Generator<Record<string, unknown>> {
+	for (const line of linesBackward(path)) {
+		const entry = entryIn(line);
+
+		if (entry === null || entry["isSidechain"]) {
+			continue;
+		}
+
+		if (isCompaction(entry)) {
+			return;
+		}
+
+		yield entry;
+	}
 }
 
 /**
