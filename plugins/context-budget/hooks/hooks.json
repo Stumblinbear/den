@@ -1,5 +1,5 @@
 {
-	"description": "Per-model context-budget notice, measured from the transcript on every tool call and prompt, the watcher's judge on Stop, and the resume guard on SendMessage.",
+	"description": "Per-model context-budget notice, measured from the transcript on every tool call and prompt, the watcher's judge and the cache wake on Stop, and the resume guard on SendMessage.",
 	"hooks": {
 		"Stop": [
 			{
@@ -8,6 +8,11 @@
 						"type": "command",
 						"async": true,
 						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/watcher --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
+					},
+					{
+						"type": "command",
+						"async": true,
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/wake --config \"${CLAUDE_PLUGIN_DATA}/config.toml\""
 					}
 				]
 			}

@@ -104,8 +104,13 @@ interface Waiter {
 	readonly resolve: (lines: readonly string[]) => void;
 }
 
-/** How long `received` waits before it rejects. */
-const RECEIVED_BOUND_MS = 2_000;
+/**
+ * How long `received` waits before it rejects. A case that posts for itself
+ * has its lines within the moment, while one driving a hook that sleeps until
+ * a wake falls due waits that sleep out first, so the bound measures a hung
+ * run rather than a slow one.
+ */
+const RECEIVED_BOUND_MS = 10_000;
 
 /** The lines once `count` have arrived, and a rejection at the bound. */
 function awaited(

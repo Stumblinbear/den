@@ -8,7 +8,13 @@
 // Nothing is merged under the configuration a hook is handed, so a case that
 // is about one section still has to write a whole file. The sections below are
 // what a case that has no opinion about the rest composes one from.
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	appendFileSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { faultChecks } from "../../../tests/fault-checks.mts";
@@ -16,11 +22,15 @@ import {
 	childTemp,
 	dataDir,
 	fixtureDir,
+	type HookRun,
 	sessionId as pluginSessionId,
 	type Result,
 	type Runtime,
 	runHook,
+	type Started,
+	startHook,
 } from "../../../tests/harness.mts";
+import { SOCKET_VARIABLE, TOKEN_VARIABLE } from "../lib/inbox.mts";
 
 export interface RunOptions {
 	/** A copy of the hooks somewhere they are broken; the installed ones by default. */
@@ -106,6 +116,17 @@ export function transcript(...lines: readonly string[]): string {
 }
 
 /**
+ * Adds entries to a transcript a case has already pointed a hook at: the
+ * session carrying on under a run that reads the file again as it goes.
+ */
+export function appendTranscript(
+	path: string,
+	...lines: readonly string[]
+): void {
+	appendFileSync(path, `${lines.join("\n")}\n`);
+}
+
+/**
  * A session transcript with one subagent's transcript beside it, at the path
  * Claude Code writes: `<transcript without .jsonl>/subagents/agent-<name>.jsonl`.
  * `idleMin` past the 5m cache lifetime is what leaves that subagent's prompt
@@ -180,32 +201,74 @@ function subagentBeside(
 	return join(dir, "main.jsonl");
 }
 
+/** How a case calls one of this plugin's entries, and what comes back. */
+export type Runs<T> = (
+	entry: string,
+	input: Record<string, unknown>,
+	config: string,
+	options?: RunOptions,
+) => T;
+
 /**
  * Runs a hook as `hooks.json` does, under one runtime: the launcher reads
  * which interpreter a leg is about from `.runtime` in the data directory it is
  * given, and names the entry relative to the plugin directory.
  */
-export function hookRunner(
-	runtime: Runtime,
-): (
-	entry: string,
-	input: Record<string, unknown>,
-	config: string,
-	options?: RunOptions,
-) => Result {
+export function hookRunner(runtime: Runtime): Runs<Result> {
 	const data = dataDir(runtime);
 
 	return (entry, input, config, options = {}) =>
-		runHook({
-			launcher: options.launcher ?? LAUNCHER,
-			data,
-			temp: childTemp("context-budget", input),
-			argv: [`hooks/${entry}`, "--config", config, ...(options.args ?? [])],
-			input,
-			stdin: options.stdin,
-			...(options.env === undefined ? {} : { env: options.env }),
-		});
+		runHook(hookRun(data, entry, input, config, options));
 }
+
+/**
+ * The same run, left going, for a case about an entry that works on after the
+ * hook call: the async Stop entries, which Claude Code starts this way and
+ * waits for nothing from.
+ */
+export function hookStarter(runtime: Runtime): Runs<Started> {
+	const data = dataDir(runtime);
+
+	return (entry, input, config, options = {}) =>
+		startHook(hookRun(data, entry, input, config, options));
+}
+
+/**
+ * The environment one run's child is given: the two variables a session names
+ * its inbox in taken out, and what the case asked for over them.
+ *
+ * These tests run inside a Claude Code session as often as not, and the cache
+ * wake posts to whatever inbox its environment names, so a child that
+ * inherited the real pair would put its wakes into the session running the
+ * tests. Each key is set to `undefined` rather than left out: the root harness
+ * spreads the whole of `process.env` under this, and only a key named here
+ * takes the inherited one away. A case about the inbox names its own over
+ * these.
+ */
+export const hookEnv = (
+	env: RunOptions["env"] = {},
+): Readonly<Record<string, string | undefined>> => ({
+	[SOCKET_VARIABLE]: undefined,
+	[TOKEN_VARIABLE]: undefined,
+	...env,
+});
+
+/** One run of an entry, as this plugin's `hooks.json` calls for it. */
+const hookRun = (
+	data: string,
+	entry: string,
+	input: Record<string, unknown>,
+	config: string,
+	options: RunOptions,
+): HookRun => ({
+	launcher: options.launcher ?? LAUNCHER,
+	data,
+	temp: childTemp("context-budget", input),
+	argv: [`hooks/${entry}`, "--config", config, ...(options.args ?? [])],
+	input,
+	stdin: options.stdin,
+	env: hookEnv(options.env),
+});
 
 /**
  * A session record the way a real session gets one: by running the

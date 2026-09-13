@@ -36,6 +36,7 @@ import {
 	withoutParser,
 } from "./harness.mts";
 import { INVALID } from "./invalid-configs.mts";
+import { wakeRuns } from "./wake-runs.mts";
 import { watcherRuns } from "./watcher-runs.mts";
 
 /** What a fault of the shared file or the shared parser costs the session. */
@@ -207,6 +208,24 @@ for (const runtime of runtimes()) {
 		const line = reported(stop(session(), unreadableTranscript()), "internal");
 
 		assert.ok(line.includes("The watcher is off for this session"), line);
+	});
+
+	// The wake waits rather than answering, so it reports only what its first
+	// check meets: past that there is no turn left for a line to land on, and
+	// an unreadable transcript is what stops it in that first check.
+	test(name("an internal error in the wake entry names the wake"), async () => {
+		const runs = await wakeRuns(runtime);
+
+		try {
+			const line = reported(
+				runs.stop(runs.session(), unreadableTranscript()),
+				"internal",
+			);
+
+			assert.ok(line.includes("The cache wake is off for this session"), line);
+		} finally {
+			await runs.close();
+		}
 	});
 
 	for (const [what, names, sections] of INVALID) {

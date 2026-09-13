@@ -9,7 +9,7 @@
 // Node always runs; bun runs when it answers a version probe, since the two
 // strip types differently and only running both proves the sources are the
 // syntax they both accept.
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -45,8 +45,12 @@ export interface HookRun {
 	 * JSON, and a case about that has to write the text itself.
 	 */
 	readonly stdin?: string | undefined;
-	/** Anything else the child's environment needs, such as its `HOME`. */
-	readonly env?: Readonly<Record<string, string>>;
+	/**
+	 * Anything else the child's environment needs, such as its `HOME`. A key
+	 * whose value is `undefined` is left out of the child's environment, which
+	 * takes away whatever this process holds under that name.
+	 */
+	readonly env?: Readonly<Record<string, string | undefined>>;
 }
 
 const ROOT = join(fileURLToPath(new URL(".", import.meta.url)), "..");
@@ -152,14 +156,7 @@ export function runHook(run: HookRun): Result {
 		{
 			input: run.stdin ?? JSON.stringify(run.input),
 			encoding: "utf8",
-			env: {
-				// biome-ignore lint/style/noProcessEnv: the child needs PATH to find its interpreter, and everything below is what this run overrides.
-				...process.env,
-				...run.env,
-				TMPDIR: run.temp,
-				TEMP: run.temp,
-				TMP: run.temp,
-			},
+			env: childEnv(run),
 		},
 	);
 
@@ -169,3 +166,57 @@ export function runHook(run: HookRun): Result {
 		stderr: result.stderr,
 	};
 }
+
+/** A run still going, for a case with something to do while it runs. */
+export interface Started {
+	/** What the run wrote, once it has ended. */
+	ended(): Promise<Result>;
+}
+
+/**
+ * The same run as `runHook`, left going, for an entry that outlives the hook
+ * call. Claude Code runs an entry registered `"async": true` this way, and
+ * waits for nothing.
+ *
+ * The launcher gives the entry its own stdio, so the pipes here are the
+ * entry's, and what it wrote is read back whole once it has ended.
+ */
+export function startHook(run: HookRun): Started {
+	const child = spawn(
+		process.execPath,
+		[run.launcher, "--data", run.data, ...run.argv],
+		{ env: childEnv(run) },
+	);
+	let stdout = "";
+	let stderr = "";
+
+	child.stdout.setEncoding("utf8");
+	child.stderr.setEncoding("utf8");
+	child.stdout.on("data", (chunk: string) => {
+		stdout += chunk;
+	});
+	child.stderr.on("data", (chunk: string) => {
+		stderr += chunk;
+	});
+	child.stdin.end(run.stdin ?? JSON.stringify(run.input));
+
+	const ended = new Promise<Result>((resolve) => {
+		// `close` rather than `exit`: by then the pipes above have been drained.
+		child.on("close", (status) => resolve({ status, stdout, stderr }));
+		child.on("error", (error) =>
+			resolve({ status: null, stdout, stderr: String(error) }),
+		);
+	});
+
+	return { ended: () => ended };
+}
+
+/** The child's environment: this process's, with the run's keys over it. */
+const childEnv = (run: HookRun): Record<string, string | undefined> => ({
+	// biome-ignore lint/style/noProcessEnv: the child needs PATH to find its interpreter, and everything below is what this run overrides.
+	...process.env,
+	...run.env,
+	TMPDIR: run.temp,
+	TEMP: run.temp,
+	TMP: run.temp,
+});
