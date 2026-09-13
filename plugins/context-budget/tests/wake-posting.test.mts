@@ -219,4 +219,25 @@ for (const runtime of runtimes()) {
 			await runs.close();
 		}
 	});
+
+	// What every other case's bound rests on: `endedWithin` kills a run that
+	// overran, and the entry under the launcher has to go with it. This row has
+	// wakes left, so nothing else ends this run; a kill that reached only the
+	// launcher leaves the case waiting on the entry.
+	test(name("a killed run takes the waiting entry with it"), async () => {
+		const runs = await wakeRuns(runtime, WAKE_UNSPENT);
+
+		try {
+			const waiting = runs.start(runs.session(), idling());
+
+			await runs.inbox.received(2);
+			waiting.kill();
+
+			const ended = await endedWithin(waiting, "the killed run");
+
+			assert.equal(ended.status, null, "a killed run has no status");
+		} finally {
+			await runs.close();
+		}
+	});
 }

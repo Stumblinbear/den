@@ -9,7 +9,7 @@
 // Node always runs; bun runs when it answers a version probe, since the two
 // strip types differently and only running both proves the sources are the
 // syntax they both accept.
-import { spawn, spawnSync } from "node:child_process";
+import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -171,6 +171,12 @@ export function runHook(run: HookRun): Result {
 export interface Started {
 	/** What the run wrote, once it has ended. */
 	ended(): Promise<Result>;
+	/**
+	 * Ends the run and the entry under it, for a case that has seen what it
+	 * came for. `ended()` resolves with whatever was written up to then, and no
+	 * status. A run that had already ended keeps the status it ended with.
+	 */
+	kill(): void;
 }
 
 /**
@@ -185,10 +191,19 @@ export function startHook(run: HookRun): Started {
 	const child = spawn(
 		process.execPath,
 		[run.launcher, "--data", run.data, ...run.argv],
-		{ env: childEnv(run) },
+		{
+			env: childEnv(run),
+			// A process group of its own, which is what `killTree` signals to
+			// reach the entry under the launcher. The run leaves the terminal's
+			// foreground group with it, so a local Ctrl+C reaches neither one and
+			// leaves an orphan to end on its own. Windows has no groups, and
+			// `detached` there opens a console window for the run.
+			detached: process.platform !== "win32",
+		},
 	);
 	let stdout = "";
 	let stderr = "";
+	let killed = false;
 
 	child.stdout.setEncoding("utf8");
 	child.stderr.setEncoding("utf8");
@@ -202,13 +217,59 @@ export function startHook(run: HookRun): Started {
 
 	const ended = new Promise<Result>((resolve) => {
 		// `close` rather than `exit`: by then the pipes above have been drained.
-		child.on("close", (status) => resolve({ status, stdout, stderr }));
+		child.on("close", (status) => {
+			// A killed run reports no status at all: what the launcher exits
+			// with is the platform's, null for the signal on POSIX and 1 from
+			// `taskkill` on Windows.
+			resolve({ status: killed ? null : status, stdout, stderr });
+		});
 		child.on("error", (error) =>
 			resolve({ status: null, stdout, stderr: String(error) }),
 		);
 	});
 
-	return { ended: () => ended };
+	const kill = (): void => {
+		if (killTree(child)) {
+			killed = true;
+		}
+	};
+
+	return { ended: () => ended, kill };
+}
+
+/**
+ * Ends the launcher and every process under it, and says whether there was one
+ * still running to end.
+ */
+function killTree(child: ChildProcess): boolean {
+	// Both codes are set at `exit`, which comes before the `close` a run ends
+	// on, so a launcher that exited on its own while the pipes were still
+	// draining is caught here and keeps the status it exited with.
+	if (
+		child.pid === undefined ||
+		child.exitCode !== null ||
+		child.signalCode !== null
+	) {
+		return false;
+	}
+
+	if (process.platform === "win32") {
+		spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], {
+			stdio: "ignore",
+		});
+
+		return true;
+	}
+
+	try {
+		process.kill(-child.pid, "SIGKILL");
+	} catch {
+		// The group ended between the check above and this signal, and `close`
+		// is on its way with the status the run ended with.
+		return false;
+	}
+
+	return true;
 }
 
 /** The child's environment: this process's, with the run's keys over it. */

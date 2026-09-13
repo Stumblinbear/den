@@ -192,6 +192,13 @@ export async function endedWithin(run: Started, what: string): Promise<Result> {
 	});
 	const result = await Promise.race([run.ended(), bound]);
 
+	// A run that lost the race waits the fixture's whole five minutes out, and
+	// this file's own process stays up on its pipes for as long. Killing it is
+	// what gets the failure below reported at the bound.
+	if (result === null) {
+		run.kill();
+	}
+
 	assert.ok(result, `${what} was still running ${ENDS_WITHIN_MS}ms later`);
 
 	return result;
