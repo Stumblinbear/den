@@ -123,19 +123,19 @@ model = "haiku"
 tail_turns = 16
 tail_tokens = 20_000
 
-# A session idle on background work stops reading its prompt cache, and once
-# the cache's lifetime runs out the next turn rewrites the whole context at
-# full price. The wake heads that off: shortly before the expiry it posts a
-# message into the session's own inbox, the session takes one short turn, its
-# context is read from the cache at the cached rate, and the cache lives
-# another lifetime. The message asks for a progress update and nothing else,
-# and you see it as one preview line, "Message from @context-budget: Cache
-# wake 1 of 2: ...".
+# The cache wake. A session idle on background work stops reading its prompt
+# cache, and once the lifetime runs out the next turn rewrites the whole
+# context at full price. Shortly before that expiry the wake posts a message
+# into the session's own inbox: the session takes one short turn on it, reads
+# its context back at the cached rate, and the cache lives another lifetime.
+# The message asks for a progress update and nothing else, and you see it as
+# one preview line, "Message from @context-budget: Cache wake 1 of 2: ...".
 #
 # It runs on the main session only, never in a subagent, and only while
-# background work is pending: a subagent it launched, or a command it started
-# in the background. Every key here has a default, and the whole table may be
-# left out.
+# background work is pending: an agent it sent to the background, a skill it
+# forked into one, a command it started there, a workflow, or a finished agent
+# it resumed with a message. Every key here has a default, and the whole table
+# may be left out.
 [wake]
 
 # `false` switches the wake off: nothing is posted, and an idle session goes

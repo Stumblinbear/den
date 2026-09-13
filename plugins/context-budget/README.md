@@ -24,6 +24,14 @@ auto-compact choose one for you.
   resuming one whose context is large, or whose prompt cache has expired, and
   tells the agent to put the numbers to you first. A fresh launch is never
   blocked.
+- A cache wake. A session idle on background work stops reading its prompt
+  cache, and once the lifetime runs out the next turn rewrites the whole
+  context at full price. Shortly before that expiry, a hook left running from
+  the end of the last turn posts a short message into the session's own inbox.
+  The session takes one short turn on it, reads its context back at the cached
+  rate, and the cache lives another lifetime. Two wakes an idle stretch on the
+  hour lifetime and five on the five-minute one, and only while background work
+  is pending. `[wake] enabled = false` switches it off.
 - The `cut-point` skill (`/context-budget:cut-point`), which the messages send
   the agent to: a reading of the prompt cache taken at the moment it is asked
   for. A rewind at a prompt re-reads everything before it, and that stretch is
@@ -40,8 +48,9 @@ auto-compact choose one for you.
 - The `configure` skill (`/context-budget:configure`): the guided path through
   the configuration and through "why did it do that".
 
-Nothing is shown to you directly. The agent's recommendation is the whole
-user-facing surface.
+Two things reach you directly: a cache wake's preview line, and the one line a
+launcher writes when it cannot start a hook. Everything else arrives as the
+agent's recommendation.
 
 ## Requirements and what it does on your machine
 
@@ -63,6 +72,17 @@ TOML has no parser in Node, so the hooks depend on `smol-toml`. Claude Code
 installs it when it caches the plugin. There is nothing to build and nothing
 to run by hand.
 
+The wake needs cross-session messaging, which by [Claude Code's own
+page](https://code.claude.com/docs/en/cross-session-messaging) is 2.1.224 or
+newer on macOS, Linux and WSL 2, 2.1.234 on native Windows, and 2.1.248 on
+Bedrock and the other non-Anthropic providers and in a session with
+feature-flag fetching off; an older Claude Code binds no inbox and the wake
+stays silent in it. The one-line preview an arriving wake shows up as is 2.1.247 and newer;
+below that the whole message shows, body and all. The frame the wake writes
+into that inbox is undocumented, the one Claude Code 2.1.269 accepts from a
+hook of its own, so a release can change it under the plugin: a wake that stops
+arriving after an update is the first place to look.
+
 What it sends off the machine: the watcher runs `claude -p` at the end of a
 turn, and only while the context sits between the two thresholds. That run gets
 your recent prompts, the agent's replies with every tool result stripped out,
@@ -75,8 +95,12 @@ configured loads inside it: no CLAUDE.md, no plugins, no skills, no hooks, no
 MCP servers. Its system prompt is one sentence of the plugin's own in place of
 Claude Code's, so nothing of your project reaches it beyond what the prompt
 above carries: not the directory, not the branch, not what has changed there.
-`enabled = false` under `[watcher]` stops it, and nothing is sent. Nothing else
-here leaves your machine.
+`enabled = false` under `[watcher]` stops it, and nothing is sent. The wake
+sends nothing of its own: its message goes over the local socket Claude Code
+binds for the session. What it costs is the turn it wakes, one turn on the
+session's own model, your whole context read back from the cache and a short
+reply. What it saves is the full-price rewrite of that context on the first
+turn after the cache goes cold. Nothing else here leaves your machine.
 
 What is read: every hook reads your configuration file in the data directory,
 on every run. The notice hook reads the last 512 KB of the session transcript,
@@ -89,18 +113,28 @@ the two price files below. The watcher reads the same 512 KB tail at the end of
 a turn and, past the first threshold, the transcript backward to the last
 compaction, for the turn that has just ended and a count of your prompts behind
 it; only when it is about to ask the judge does it read the last sixteen turns.
-Nothing here reads your source.
+The wake reads the transcript backward to the last compaction at the end of
+every turn in the main session, for the background work still running and the
+newest turn's time and cache lifetime, and reads it again at every check while
+it waits out an idle stretch. Nothing here reads your source.
 
 What is written: one JSON file per session under `claude-context-budget/` in
 the OS temp directory, holding the transcript the last measuring run read, the
 level this session has been told about, the resume answers it has spent, where
 the watcher's pace stands and the verdict standing, plus a lock directory
 beside it while a hook is writing, and a second one for the moment a run spends
-taking over a lock left by a run that died. Nothing is written to your project.
+taking over a lock left by a run that died. A wake waiting out an idle stretch
+holds a lock directory of its own beside the record, `<session id>.wake.lock`,
+for as long as the stretch lasts. Nothing is written to your project.
 
 What they can do to a session: add a message to the agent's context, deny a
-`SendMessage` to a subagent, and start one short `claude -p` run at the end of
-a turn.
+`SendMessage` to a subagent, start one short `claude -p` run at the end of a
+turn, and post a message into the session's own inbox, which an idle session
+takes as a turn and a busy one reads between tool calls. The wake's run
+outlives the turn that started it. It waits the idle stretch out, up to one
+cache lifetime past the last wake it posted, and it survives the session's own
+exit, ending by itself no later than one lifetime after the session's last
+turn.
 
 ## Installation
 
@@ -139,8 +173,11 @@ session runs on. `/context-budget:configure` is the guided path through an
 edit.
 
 The file is read on every hook run, so an edit takes effect on the next tool
-call with no reload. Nothing is merged under it, so it carries every key below
-that has no default. A missing key is a config error naming it.
+call with no reload. A `[wake]` edit waits for the next idle stretch: the run
+waiting one out read the wake's settings when it started and re-reads only the
+transcript after that, and the Stop that would pick your new file up exits
+behind that run's lock. Nothing is merged under it, so it carries every key
+below that has no default. A missing key is a config error naming it.
 
 | Key | Type | Default | What it does |
 |---|---|---|---|
@@ -168,10 +205,18 @@ that has no default. A missing key is a config error naming it.
 | `[watcher] command` | list | the `claude -p` line the example spells out, `--tools ""`, `--safe-mode`, `--system-prompt` and `--json-schema` included | the judge invocation, as an argument list rather than a shell line; replace it whole to run the judge on something else, schema and all |
 | `[watcher] tail_turns` | count | `16` | how many recent turns the judge is shown |
 | `[watcher] tail_tokens` | count | `20000` | how much of those turns it is shown, cut from the oldest end |
+| `[wake] enabled` | bool | `true` | `false` switches the wake off from the next idle stretch on: nothing is posted, and an idle session goes cold as it would without the plugin |
+| `[wake.'1h'] enabled` | bool | `true` | `false` leaves a session on the hour lifetime to go cold |
+| `[wake.'1h'] times` | count | `2` | how many wakes one idle stretch spends there before the cache is left to expire |
+| `[wake.'1h'] before` | duration | `"3m"` | how far ahead of the expiry a wake is posted; a lead not shorter than the lifetime is a config error |
+| `[wake.'5m'] enabled` | bool | `true` | `false` leaves a session on the five-minute lifetime to go cold |
+| `[wake.'5m'] times` | count | `5` | the same count, for that lifetime |
+| `[wake.'5m'] before` | duration | `"45s"` | the same lead, under the same rule |
+| `[wake.messages] wake` | string | the instruction the example spells out | the body of the wake, under a first line the plugin writes |
 
-`[models]`, the guard's two tables of rows and `[watcher]` may each be left out
-altogether: every key under `[watcher]` has the default above, so a file
-written before the watcher existed keeps working and gains it, and a file
+`[models]`, the guard's two tables of rows, `[watcher]` and `[wake]` may each be
+left out altogether: every key under those last two has the default above, so a
+file written before either existed keeps working and gains it, and a file
 written before the guard's rows existed keeps the numbers it already had. The
 other four tables are always read, including `[resume-guard.messages]` when the
 guard is off.
@@ -205,12 +250,23 @@ lookup on to the next table. `enabled = false` on the section itself switches
 all of it off, rows and all; for the rows alone, give the section limits no
 resume of yours reaches.
 
-All four messages are read by the agent, not by you, so they are written as
+The wake's two lifetime keys are read as written and not as regular
+expressions: `'1h'`, the cache lifetime a subscription within its plan's usage
+gets, and `'5m'`, the one usage credits and an API key get. A table under any
+other key is never consulted. Both rows are read whether or not `[wake]
+enabled` is true, so a mistake in a row nothing is using still reaches you. A
+`before` is written as hours, minutes and seconds, `"45s"`, `"3m"` or
+`"1h30m"`; one as long as its lifetime falls due before the turn it counts
+from, which is why it is a config error rather than a wake that never comes.
+
+All five messages are read by the agent, not by you, so they are written as
 instructions. `[messages]` substitutes `{model}`, `{tokens}` and
 `{threshold}`. `[resume-guard.messages]` substitutes `{agent}`, `{type}`,
 `{model}`, `{tokens}`, `{reasons}`, `{large}` and `{cold}`, the last two from
 whichever row or section governed that resume. `{model}` reads "no recorded
-model" where the subagent's newest turn names none.
+model" where the subagent's newest turn names none. `[wake.messages] wake`
+substitutes `{n}`, this wake's number within the stretch, `{times}`, the row's
+count, and `{pending}`, how many background tasks are still running.
 
 One thing the `cut-point` skill needs is not in that file and is not
 configuration: what a model charges for a token read from the prompt cache,
@@ -330,22 +386,70 @@ is denied with the `used` message. A `denied` message rewritten to stop asking
 for a "Resume" option breaks the retry, since that label is what the guard
 looks for.
 
+The wake runs in the main session only, never in a subagent, and only while
+background work is pending. Pending work is a launch the transcript carries
+with nothing closing it afterwards, neither a task notification nor a stop of
+that task: an agent sent to the background, a skill forked into one, a Bash
+command started there, a workflow, or a finished agent resumed with a message.
+The read stops at the last compaction, so a launch older than one counts for
+nothing.
+
+Each idle stretch spends its own count, `times` wakes on the row for the
+lifetime in force. The count is spent against the last real turn, one of your
+prompts or a notification that background work finished, so anything you do
+starts it over and a wake's own reply does not. A run whose count is spent goes
+on waiting until the cache expires rather than exiting: the reply to its last
+wake ends a turn, Claude Code fires Stop on it, and a run that let the stretch
+go there would hand a fresh count to that Stop's own run. The later Stop finds
+the lock held and exits at once.
+
+You see a wake as one preview line, `Message from @context-budget: Cache wake 1
+of 2: 3 background tasks still running.`, and a session started with
+`--verbose` shows the whole message instead. The body under it is the agent's,
+an instruction to give you a short progress update and stop. No reply is
+needed, and none arrives.
+
+A session that binds no inbox gets no wake and no line about it: the wake has
+nowhere to post, and a Claude Code without cross-session messaging is not a
+broken plugin. `crossSessionInbound` is a different thing. The inbox stays
+bound under every value of it, so the wake posts as it always does, and the
+setting decides what happens to the message: `accept` delivers it, `hold` shows
+you a notice instead of delivering it, and `refuse` drops it. Under either of
+those last two the session takes no turn on the wake, so the wake is spent, the
+cache goes cold, and the run holds its lock until the expiry it was waiting
+for. With no value set, Claude Code delivers a message it can verify came from
+the session's own child process and holds one it cannot, and the wake sends
+the line that verifies it, so it arrives even in a session running with
+permissions bypassed, where any other peer's message waits for your approval.
+
+A busy session is not read as busy. The wake measures from the newest turn, so
+on the five-minute lifetime it falls due 4m15s after that turn, and a single
+foreground tool call running longer than that, with background work pending
+behind it, reads as an idle session and gets one wake posted into it. Claude
+reads that one between tool calls when the tool returns, inside the turn it is
+already in, rather than taking a turn on it. It takes a run left waiting by an
+earlier turn's Stop to reach that far, since the hook starts on Stop and
+nowhere else. The hour lifetime has the same shape at 57 minutes.
+
 ## Troubleshooting
 
-A configuration the hooks cannot use switches the notice, the watcher and the
-guard off while it stands, and puts one line starting `context-budget:` into
-Claude's context, asking it to pass the line on to you. `config error` names the
-file and what is wrong with it; `parser error` means `smol-toml` is missing from
-the plugin's cache directory. Every run still reads the file, so a fix takes
-effect on the next tool call.
+A configuration the hooks cannot use switches the notice, the watcher, the
+resume guard and the cache wake off while it stands, and puts one line starting
+`context-budget:` into Claude's context, asking it to pass the line on to you.
+`config error` names the file and what is wrong with it; `parser error` means
+`smol-toml` is missing from the plugin's cache directory. Every run still reads
+the file, so a fix takes effect on the next tool call.
 
 `internal error` is the third of them, and usually it is not yours to fix: the
 run stopped on something the plugin does not account for, and the line ends in
-where to report it. It names only what stopped, one of the three, because that
-is all an error of one hook's own costs: the other two go on measuring and
-guarding through it. The watcher's judge is the exception. A `command` nothing
-can start and a call that came back an error are both listed under this class,
-and their lines name the key to change rather than where to report a bug.
+where to report it. It names only what stopped, one of the four, because that
+is all an error of one hook's own costs: the other three keep working through
+it. The watcher's judge is the exception. A `command` nothing can start and a
+call that came back an error are both listed under this class, and their lines
+name the key to change rather than where to report a bug. The wake's line reads
+`The cache wake is off for this session`, and only its first check of a stretch
+can put one up: once the run is waiting, a failure ends the stretch in silence,
+since the line would land on a turn an hour later, about something else.
 
 A run puts the line up for as long as the fault stands, and the turn you fix it
 is the turn the line stops going up. Claude is asked to pass it on, and to say
@@ -391,6 +495,19 @@ comes when the wait runs out or when a commit cuts it short, rather than at the
 end of every turn. The notice and the resume guard go on working through it, and
 only the watcher is off.
 
+No wake, and no line about it, points at one of these, in the order the run
+meets them. The session binds no inbox, which is a Claude Code older than the
+versions above, a `--bare` session, or an inbox Claude Code could not bind, the
+last of which `/status` shows as `unavailable` in its `Peer address` row.
+Nothing is pending, and a foreground tool call is not pending work. The row for
+the lifetime in force is switched off. Or the cache had already passed its
+expiry when the run began, where a wake would rebuild the whole context rather
+than keep it.
+
+A wake that posts and never arrives is `crossSessionInbound`, which here is the
+session's own setting: `refuse` drops the message, and `hold` shows you a
+notice for it and delivers nothing. Both leave the cache to expire.
+
 On Node older than 22.6 with no bun on `PATH`, the hooks show you one line
 naming the floor and the version they found, and do nothing.
 
@@ -403,6 +520,12 @@ or the machine has since handed its pid to something else. While it stands,
 every later run of the session skips its own update of the file without a
 word: the notice never fires again, and a resume answer is never marked spent.
 Deleting `<session id>.lock` is what clears it.
+
+A `<session id>.wake.lock` under a live process is the wake waiting an idle
+stretch out rather than a lock nobody released. It is held for the whole
+stretch, hours where the session stays idle with work pending, and every later
+Stop of that session is meant to find it held. One left behind by a run that
+died is taken over on the same proof as the record's lock.
 
 ## Contributing
 

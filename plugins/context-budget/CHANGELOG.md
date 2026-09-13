@@ -7,6 +7,24 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Added
+
+- A cache wake. A session idle on background work stops reading its prompt
+  cache, and the turn after the lifetime runs out rewrites the whole context at
+  full price. Shortly before that expiry an async Stop hook posts a short
+  message into the session's own inbox, the session takes one short turn on it,
+  and its context is read back at the cached rate for another lifetime. It runs
+  in the main session alone, and only while a launch carries neither a task
+  notification nor a stop of that task after it: an agent sent to the
+  background, a skill forked into one, a Bash command started there, a
+  workflow, or a finished agent resumed with a message. `[wake]` carries the
+  switch, a row per cache lifetime with `times` and `before`, and
+  `[wake.messages] wake` for the body of the message; every key has a default
+  and the whole table may be left out, so a configuration written before this
+  release gains the wake as it stands. A wake is never one of your prompts
+  anywhere the plugin counts them: it arrives stamped as a message from another
+  session, which every reader of your prompts here already skips.
+
 ### Changed
 
 - The cut-point reading counts a payback in requests to the model, one per

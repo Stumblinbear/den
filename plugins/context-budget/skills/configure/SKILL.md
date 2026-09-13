@@ -1,7 +1,7 @@
 ---
 name: configure
-description: How the context-budget plugin works and how it is configured, covering thresholds, per-model rows, switching a model off, the watcher and the model it asks, the resume guard's limits, and the wording of its messages.
-when_to_use: ALWAYS invoke this skill when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, why the watcher advised what it did, or wants to change when any of them fires. Do not edit the plugin's config.toml or explain its behavior from memory; use this skill first.
+description: How the context-budget plugin works and how its configuration file is edited.
+when_to_use: ALWAYS invoke this skill when the user asks how the context-budget plugin works, why a context notice did or did not appear, why resuming a subagent was denied, why the watcher advised what it did, why a cache wake message arrived or did not, or wants to change when any of them fires, a threshold, a per-model row, the watcher's model, the guard's limits or the wording of any message. Do not edit the plugin's config.toml or explain its behavior from memory; use this skill first.
 ---
 
 # Configuring context-budget
@@ -53,7 +53,8 @@ Consequences that answer most "why did it" questions:
 - Auto-compact is Claude Code's own mechanism and runs regardless of this
   plugin; the plugin only tries to get a recommendation made before it does.
 - The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,
-  and it is the only file a session leaves there. Every run that measures
+  the only file a session leaves there beside the wake's lock directory while
+  an idle stretch is waited out. Every run that measures
   anything rewrites it: the transcript path the hook read, the level it stands
   at, the resume answers it has spent, and where the watcher's pace stands.
   That level falls again with the context, so each level can fire on the next
@@ -66,9 +67,10 @@ Consequences that answer most "why did it" questions:
   instruction to put it to the user, and says what is off and why: `parser
   error` is a missing `smol-toml` in the plugin's cache directory and `config
   error` names the file that cannot be read, parsed, or used, and either of
-  those switches the notice, the watcher and the resume guard off together,
-  since all three read that file through that parser. `internal error` is a
-  failure of the plugin's own with nothing in the configuration to fix, and it
+  those switches the notice, the watcher, the resume guard and the cache wake
+  off together, since all four read that file through that parser. `internal
+  error` is a failure of the plugin's own with nothing in the configuration to
+  fix, and it
   stops only the hook that met it, which is the one its line names. Fixing it
   takes effect on the next hook run. Every turn the fault stands, a run puts the
   line up again, and once a turn: the measurement hook says it on the user's
@@ -189,6 +191,30 @@ configured loads inside it, these hooks included, and under a one-sentence
 system prompt of the plugin's own, so nothing of the project reaches the judge
 but what the prompt carries. A `command` of your own replaces that list whole,
 schema and all, which is why the reading of the text above outlives it.
+
+The cache wake runs at the end of every turn in the main session, and only
+while background work is pending: a subagent launched, a command started in
+the background, a workflow, or a finished agent resumed. It reads the
+transcript for the newest turn's time and cache lifetime and takes the
+`[wake]` row for that lifetime. The first run of an idle stretch holds
+`<session id>.wake.lock` beside the record above and waits, re-reading the
+transcript at each check, until `before` ahead of the cache's expiry, then
+posts one message into the session's own inbox, which arrives as
+`Message from @context-budget: Cache wake 1 of 2: ...` and needs no reply.
+A row's `times` is how many wakes one stretch spends; the count starts over
+on a turn the user or a finishing task causes, and a wake's own reply is not
+one. A spent run holds the lock until the cache expires, so a lock held for
+up to an hour under a live process is the wake waiting, not a lock stuck.
+A session with no inbox, a Claude Code before cross-session messaging or a
+`--bare` session, gets no wake and no line about it; with
+`crossSessionInbound = "refuse"` the inbox stays bound, so one wake per stretch
+is posted and dropped and the cache goes cold. A `[wake]` edit takes effect at
+the next stretch, since a waiting run keeps the settings it started with. No
+message arrives either when nothing is pending, since a foreground tool call
+is not background work; when the lifetime's row is `enabled = false`; or when
+the cache had expired before the run began. On the 5m row a single tool call
+longer than about four minutes reads as idle and gets one wake, which the
+session reads between tool calls when the tool returns, inside the turn.
 
 ## Where changes go
 
