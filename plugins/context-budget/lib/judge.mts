@@ -57,8 +57,8 @@ export type Answer =
 const NONE: Answer = { kind: "none" };
 
 /**
- * The whole prompt: the arc rule the skill states, the conversation, and the
- * answer it is held to.
+ * The judge's whole prompt: the brief with its arc test, the conversation cut
+ * to about `tailTokens`, and the answer shapes it is held to.
  */
 export function judgePrompt(
 	turns: readonly Turn[],
@@ -70,10 +70,12 @@ export function judgePrompt(
 }
 
 /**
- * The one question the judge answers, and the arc test it answers it by. That
- * test is the session's own, "Judging the stopping point" in
- * `skills/context-budget/SKILL.md`: one rule written in two places, which
- * cannot be allowed to rule differently on one moment, so edit them together.
+ * The one question the judge answers, and the arc test it answers it by.
+ *
+ * @remarks
+ * The `notice` message in `hooks/config.example.toml` states the same test in
+ * a sentence for the session. The two must never rule differently on one
+ * moment, so edit them together.
  */
 const BRIEF = `You are judging one thing about a Claude Code session you are not part of: whether the arc of work it is in has just ended. You advise; the session's own agent decides what to do about it, and it can see everything you cannot.
 

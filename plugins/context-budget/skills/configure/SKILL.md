@@ -8,10 +8,9 @@ when_to_use: ALWAYS invoke this skill when the user asks how the context-budget 
 
 The data directory as it stands:
 
-!`for f in config.toml pricing.toml; do test -f "${CLAUDE_PLUGIN_DATA}/$f" && echo "$f: present" || echo "$f: absent"; done; test -f "${CLAUDE_PLUGIN_DATA}/.runtime" && echo ".runtime: $(cat "${CLAUDE_PLUGIN_DATA}/.runtime")" || echo ".runtime: absent, so bun when found and node otherwise"`
+!`for f in config.toml; do test -f "${CLAUDE_PLUGIN_DATA}/$f" && echo "$f: present" || echo "$f: absent"; done; test -f "${CLAUDE_PLUGIN_DATA}/.runtime" && echo ".runtime: $(cat "${CLAUDE_PLUGIN_DATA}/.runtime")" || echo ".runtime: absent, so bun when found and node otherwise"`
 
-No `config.toml` means nothing is measured or guarded; no `pricing.toml` means
-the shipped rates.
+No `config.toml` means nothing is measured or guarded.
 
 ## Running it at all
 
@@ -54,15 +53,13 @@ Consequences that answer most "why did it" questions:
   plugin; the plugin only tries to get a recommendation made before it does.
 - The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,
   the only file a session leaves there beside the wake's lock directory while
-  an idle stretch is waited out. Every run that measures
-  anything rewrites it: the transcript path the hook read, the level it stands
-  at, the resume answers it has spent, and where the watcher's pace stands.
-  That level falls again with the context, so each level can fire on the next
-  climb. Latest transcript only, no history. It is written even for a model
-  whose row is switched off, and even when nothing was near a threshold,
-  because the `cut-point` skill has only the session id to find the transcript
-  by. Deleting it makes the current level fire again, which is the quickest
-  way to see a message after editing it.
+  an idle stretch is waited out. It holds the level the session stands at, the
+  resume answers it has spent, and where the watcher's pace stands, each
+  written by the hook that changes it, so a session that never crosses a
+  threshold may have none. That level falls again with the context, so each
+  level can fire on the next climb. No history. Deleting it makes the current
+  level fire again, which is the quickest way to see a message after editing
+  it.
 - One line starting `context-budget:` goes into the agent's context, with an
   instruction to put it to the user, and says what is off and why: `parser
   error` is a missing `smol-toml` in the plugin's cache directory and `config
@@ -79,37 +76,10 @@ Consequences that answer most "why did it" questions:
   between runs, so the reports stop on the run that finds the fault gone, and a
   fault of the same kind in different words arrives in the new words.
 
-Neither message names a cut point. Each says how large the session is and
-sends the agent to the `cut-point` skill, `/context-budget:cut-point`, for
-one. That skill walks the transcript backward and prints which rewind cut
-points are still cached: a rewind at a prompt re-reads everything before that
-prompt, and that stretch is in the cache only while the prompt itself is
-younger than the cache lifetime. So it lists three cached prompts spread
-across the context, the oldest, the newest and the one nearest halfway between
-them by size, each a row carrying when it stops being cached, how much a cut
-there summarizes away, how much it keeps verbatim, and how many more requests
-to the model, a tool call being one, the session has to make before the cut
-has paid for itself; and what sits above them. Where the session was compacted within the cache lifetime and kept
-prompts verbatim, the reading names them, since a rewind at one of them costs
-at most the context the compaction left behind.
-
-The payback is what turns two token counts into a decision: the rewind writes
-everything it keeps back to the cache at twice a fresh input token on the
-one-hour lifetime, where carrying on would have read that same stretch at the
-cache read rate, and it saves the read of what it summarized on every
-request after that. So a cut in a session with little work left in it costs more than
-it ever returns. Every term is what the cut costs over carrying on, which is
-the only comparison worth making. It is priced at the model's cache read rate,
-which is the pricing file below and not configuration.
-
-The reading is taken when the skill is invoked and never before: a prompt
-named at the moment a threshold was crossed can be out of the cache by the
-time the agent is ready to put the choice to the user, and the notice is
-written to be acted on at the end of an arc rather than at once. The skill
-reaches the transcript through the record above, so it works from the
-session's first tool call and says so plainly in a session this plugin has
-never measured. The hook itself reads only the fixed 512 KB tail it measures,
-on every run, and walks nothing.
+Each message says how large the session is and when to recommend `/compact`:
+at the end of the arc for `notice`, at the end of the step in hand for
+`urgent`. The hook reads only the fixed 512 KB tail it measures, on every run,
+and walks nothing.
 
 The resume guard runs on every `SendMessage` the main session sends a subagent
 of its own. It reads that subagent's own transcript, beside the session
@@ -166,16 +136,15 @@ the guard it had.
 The watcher runs on `Stop`, in the background, and only while the context sits
 past `notice` and under `urgent`. It asks a small model, on the last sixteen
 turns of conversation alone, one thing: whether the session's arc of work has
-just ended. Claude Code hands the answer to the agent on its next turn, and the
-agent then prices the cut itself through the `cut-point` skill and puts it to
+just ended. Claude Code hands the answer to the agent on its next turn, and
+the agent then judges whether this is a good point to compact and puts it to
 the user every time, saying so where it would rather finish the work in hand
-first and raising it again at each pause after, until the user runs a cut or
-says they want none. The judge never names a command, a prompt or a focus line;
-those are the session's. It paces itself: an answer of "not yet" names a wait
-of one, three or eight turns, halved past the midpoint between the two
-thresholds, and a commit, a push or a task marked completed cuts a wait short.
-Turns there are the user's own prompts, so an agent woken again inside one turn
-runs no wait down. A
+first and raising it again at each pause after, until the user compacts or
+says they want none. The judge never names a command; that is the session's.
+It paces itself: an answer of "not yet" names a wait of one, three or eight
+turns, halved past the midpoint between the two thresholds, and a commit, a
+push or a task marked completed cuts a wait short. Turns there are the user's
+own prompts, so an agent woken again inside one turn runs no wait down. A
 `command` of your own is handed the prompt on stdin and writes one JSON object
 on stdout, bare or in the `result` field of a `claude --output-format json`
 envelope; anything else reads as no verdict and costs the session nothing. A
@@ -240,35 +209,6 @@ Configuration section of `../../README.md` before writing an edit: it is the
 table of every key, its type and its default, along with how a row key is
 matched and what each message substitutes.
 
-One thing is deliberately not in that file. The rate a payback figure is
-priced at is what the model charges and not configuration, so it is a
-shipped file of its own, `../../lib/pricing.toml` from here, holding what a
-token read from the prompt cache costs against one fresh input token:
-`default = 0.1`, which is every tier in Claude Code's own price table but one,
-and the `[models]` row `'fable' = 0.025`, which is that one. Every value has
-to be a number above 0 and at most 1; lower it and every cut takes
-proportionally more requests to pay for itself. Only the `cut-point` script reads
-it; the hook that injects the messages reads no price at all.
-
-Correct a rate that has gone out of date in a file of the same shape at
-
-    ${CLAUDE_PLUGIN_DATA}/pricing.toml
-
-merged by one rule: a `[models]` row whose key matches a shipped one replaces
-it where it stands, so it keeps that row's place in the order; a row with a
-new key is tried after all the shipped ones; and `default` replaces `default`.
-Keys are regular expressions matched against the model id the same way the
-configuration's rows are, and the first row that matches wins. A transcript
-whose turns name no model takes the default in both files: an id that is not
-there is not a model a row was written for, and a key like `'.*'` does not
-collect it.
-
-That file is optional and almost nobody has one, so a missing one changes
-nothing. One that cannot be read, parsed, or used is dropped whole and every
-payback is priced at the shipped rates. Unlike a config fault it costs the
-session nothing else, and nothing about the reading says it happened, so an
-edit that has no effect on the figures is the sign to look at the file.
-
 ## Checking a change
 
 A TOML typo, a missing key, or a value no hook can use is not quietly
@@ -294,27 +234,3 @@ one with an `agent-<name>.jsonl` under the transcript's `subagents/` directory:
 
 Output is the deny JSON with the filled message, or nothing when the resume
 is allowed.
-
-The cut-point script is what the messages send the agent to. It reads nothing
-from the configuration, so it can be run against any transcript directly; by
-hand it takes the path and the two pricing paths, since the payback figure is
-priced from them:
-
-    node lib/shared/launch.mjs --data "${CLAUDE_PLUGIN_DATA}" \
-      scripts/cut-point --transcript "<the .jsonl>" \
-      --pricing lib/pricing.toml \
-      --pricing-overrides "${CLAUDE_PLUGIN_DATA}/pricing.toml"
-
-In a session the skill's own preamble fills in the two pricing paths and
-`--session`, which Claude Code substitutes the session id into; the script
-reads the transcript path from that session's record. The model it prices
-against comes out of the transcript it is reading and never out of the record,
-so a reading of somebody else's transcript is priced by that transcript; where
-its turns name no model at all it prices at the table's default and says so in
-its opening line. Output is the lifetime, three cached cut points with their
-expiry, their two sizes and their payback, and what sits above them; or a line
-saying nothing is cached; or, where the session was compacted within the cache
-lifetime and kept prompts verbatim, the prompts it kept and the context it
-left behind; or, where there is no record, a line saying the hook has never
-measured that session. It always exits 0 and always prints prose: the agent
-reading it has no other way to tell what went wrong.

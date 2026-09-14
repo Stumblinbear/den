@@ -11,9 +11,6 @@
 # may be left out, and [watcher] and [wake] may each be left out with every key
 # under them defaulted. A key that is missing, or a value the hooks cannot use,
 # is one line on stderr and all of them off for the session.
-#
-# What a cached token costs a model is not configuration: it is
-# ../lib/pricing.toml.
 
 # Thresholds are absolute input token counts: prompt plus cache creation plus
 # cache read on the session's last assistant turn.
@@ -32,12 +29,9 @@ urgent = 450_000
 [models.'haiku']
 enabled = false
 
-# Fable reads a cached context at a quarter of the usual price, while a
+# Fable reads a cached context at a quarter of what Opus pays, while a
 # compaction writes back what it keeps at twice a fresh input token on the
-# one-hour lifetime. With the 45K or so a compaction writes back, as measured
-# on real sessions, one at 300K pays for itself after about 19 more requests
-# to the model, a tool call being one, so a turn or two of agent work; at
-# 150K it takes 43. That is why notice sits above [default]'s. The urgent
+# one-hour lifetime. That is why notice sits above [default]'s. The urgent
 # level leaves 500K before the 1M window fills.
 [models.'fable']
 notice = 300_000
@@ -50,31 +44,28 @@ urgent = 500_000
 #   {model}      the model id from the transcript
 #   {tokens}     the measured context, e.g. "200.4K"
 #   {threshold}  the threshold just crossed, e.g. "140K"
-#
-# Neither message names a cut point. That is the `context-budget:cut-point`
-# skill's reading, taken when the agent is ready to put the choice to the user
-# rather than baked in here and left to go stale.
 [messages]
 
-# Injected on crossing `notice`. Its job is to say once that a summarize has
-# become worth pricing, then get out of the way until the arc the agent is in
-# ends: a step inside an arc is not a point where a summarize is affordable,
-# and an agent that treats it as one recommends a compaction at every brief
-# and every launch.
+# Injected on crossing `notice`. It says once that a compaction has become
+# worth raising, then stays out of the way until the arc the agent is in ends:
+# an agent that takes a step inside an arc for that point recommends a
+# compaction at every brief and every launch. Its arc test is the one the
+# watcher's judge applies, written out in full in `lib/judge.mts`; edit the two
+# together.
 notice = """
-Context budget: this session has crossed the point where a summarize starts to pay. A summarize is worth it at the end of an arc, where the work ahead would not need the detail behind it; a step inside one, a brief written or an agent launched, is not that point, since a summary keeps what came before only in outline, and the next step still needs it exact. Until then, work as if this message had not arrived, since raising the budget early pulls the work toward stopping. When the arc ends, invoke the `context-budget:cut-point` skill and put the choice to the user in a sentence."""
+Context budget: this session has crossed the point where a summarize starts to pay. A summarize is worth it at the end of an arc, where the work ahead would not need the detail behind it; a step inside one, a brief written or an agent launched, is not that point, since a summary keeps what came before only in outline, and the next step still needs it exact. Until then, work as if this message had not arrived, since raising the budget early pulls the work toward stopping. When the arc ends, recommend `/compact` to the user in a sentence."""
 
-# Injected on crossing `urgent`. Its job is to get the choice raised at the end
-# of the step in hand rather than at the end of the arc, which is no longer
-# affordable to wait for.
+# Injected on crossing `urgent`. It gets a compaction raised at the end of the
+# step in hand, since past this level the end of the arc is too far off to wait
+# for.
 urgent = """
-Context budget: this session is past the point where waiting for the arc to end is affordable. Finish the step in hand, then invoke the `context-budget:cut-point` skill and put the choice to the user before starting anything new."""
+Context budget: this session is past the point where waiting for the arc to end is affordable. Finish the step in hand, then recommend `/compact` to the user before starting anything new."""
 
 # The watcher. Past the `notice` threshold, at the end of every turn, it asks a
 # small model one thing: whether the arc of work the session is in has just
-# ended. It hands that answer to the agent on its next turn as advice, and which
-# cut is worth taking, if any, is the agent's own to price. It never acts, and
-# the agent may decline it.
+# ended. It hands that answer to the agent on its next turn as advice, and
+# whether to compact there is the agent's own to judge. It never acts, and the
+# agent may decline it.
 #
 # The model reads the recent conversation, with the tool results left out. It
 # paces itself: a "not yet" answer says how many turns to wait, and the wait is

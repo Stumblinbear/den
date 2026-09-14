@@ -270,30 +270,6 @@ const hookRun = (
 	env: hookEnv(options.env),
 });
 
-/**
- * A session record the way a real session gets one: by running the
- * measurement hook. Writing the file by hand would let the two drift, and the
- * script reading a shape the hook had stopped writing is exactly the failure
- * the cut-point cases exist for.
- */
-export function recorder(
-	runtime: Runtime,
-): (session: string, transcriptPath: string) => Result {
-	const hook = hookRunner(runtime);
-	const config = configFile(USABLE);
-
-	return (session, transcriptPath) =>
-		hook(
-			"context-budget",
-			{
-				hook_event_name: "UserPromptSubmit",
-				session_id: session,
-				transcript_path: transcriptPath,
-			},
-			config,
-		);
-}
-
 /** The session's record, as the file on disk spells it. */
 export function record(session: string): Record<string, unknown> {
 	const file = join(

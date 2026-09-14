@@ -1,24 +1,23 @@
-// Which transcript entries `/rewind` offers as cut points, and what its rows
-// read like. A prompt the picker will not list is no use as a recommendation,
-// however cheap a cut there would be, and a prompt quoted in words that do not
-// match its row is no use either, since the user has to find it in the list.
+// The user's own prompts in a transcript, and what the user typed in them:
+// `eligible` says whether an entry is one, `asTyped` recovers the typed text,
+// and `opening` cuts it short enough to quote in a sentence.
 //
-// The rules below have to match what the `/rewind` picker lists. Nothing in a
-// transcript entry marks whether the picker would offer it, so the rules are
-// kept in step with the picker's own or not at all.
+// No field of a transcript entry marks a prompt as the user's. The rules here
+// follow the `/rewind` picker, which lists exactly those prompts, and are kept
+// in step with its own.
 import { fieldsOf, isTable } from "./shared/fields.mts";
 import { textIn, withoutReminders } from "./transcript.mts";
 
-// Long enough to be unique among the user's prompts in the picker, short
-// enough to quote inside a sentence.
+// Long enough to tell one prompt from its neighbours, short enough to quote
+// inside a sentence.
 const OPENING_CHARS = 72;
 
 /**
- * Wrapper forms the picker refuses to list: transcript-only records of what a
- * local command or a bash prompt printed, notifications from a finished
- * subagent, the periodic tick, and a message relayed from another session. A
- * slash command is *not* one of them: the picker lists it, and it is as good a
- * cut point as any typed prompt, `/compact` excepted below.
+ * The tags of the wrapper forms the picker refuses to list: what a local
+ * command or a bash prompt printed, a finished subagent's notification, and
+ * the periodic tick. A slash command's `command-name` is not among them, since
+ * the picker lists a slash command as the user's prompt; `/compact` alone is
+ * refused, in `worthOffering`.
  */
 const WRAPPED: readonly string[] = [
 	"local-command-stdout",
@@ -94,10 +93,10 @@ function worthOffering(text: string): boolean {
 	}
 
 	// The compaction's own command. The harness stores it after the boundary it
-	// caused and stamps it from before it, so a scan reads it as the first
-	// prompt of the new context, and a rewind there keeps that compaction as the
-	// first message of the context, redoing what the session has just done.
-	// Every other slash command is as good a cut point as a typed prompt.
+	// caused, stamped from before it, so a backward read meets it as the first
+	// prompt of the new context. Counted, it would give a context holding only
+	// the summary a turn nobody asked for, which the watcher would judge and
+	// whose stamp the wake would take for the newest real turn.
 	if (inner(text, "command-name")?.trim() === "/compact") {
 		return false;
 	}
@@ -106,11 +105,10 @@ function worthOffering(text: string): boolean {
 }
 
 /**
- * A prompt as the user typed it rather than as the transcript stores it: a
- * slash command by its name and arguments rather than by the XML around them,
- * and a prompt the harness prefixed with system reminders from the user's own
- * first word. Every reader that quotes a prompt back goes through this, so the
- * words a recommendation carries are the words its row in the picker carries.
+ * A prompt as the user typed it and the `/rewind` picker lists it, rather than
+ * as the transcript stores it: a slash command as its name and arguments
+ * without the XML around them, and any other prompt without the system
+ * reminders the harness put in front of it.
  */
 export function asTyped(text: string): string {
 	const command = inner(text, "command-name");
@@ -121,16 +119,11 @@ export function asTyped(text: string): string {
 }
 
 /**
- * What the picker's row for this entry reads like, so the user can match the
- * quoted words against the list in front of them.
- */
-export const openingWords = (entry: Record<string, unknown>): string =>
-	opening(asTyped(textIn(fieldsOf(entry["message"])["content"])));
-
-/**
- * The same row from the words themselves, for a reader that has the prompt's
- * text and not the entry it came in: one line, cut at a word, and long enough
- * to be unique among the prompts the picker lists beside it.
+ * A prompt's opening words, short enough to quote inside a sentence.
+ *
+ * @remarks
+ * The text comes back on one line, whole where it fits, and otherwise cut at a
+ * word where one falls late enough and ended with `...`.
  */
 export function opening(text: string): string {
 	const line = text.replace(/\s+/g, " ").trim();

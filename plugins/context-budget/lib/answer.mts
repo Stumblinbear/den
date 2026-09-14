@@ -25,7 +25,7 @@ export const ANSWER = `Answer in one of these two shapes. Where you are offered 
 
 The first is the answer for an arc that has not ended, and \`wait\` is how long before this is worth another look: \`next turn\` where the arc is closing now, \`a few turns\` where the session is mid-step, \`later\` where it has just begun.
 
-The second is the answer for an arc that has ended. \`reason\` is one sentence in the session's own terms, naming the arc that ended. The agent reads it back to the person running the session, so keep it to a line and write it in that session's words. Whether to compact or rewind, and where, is the session's to price; you do not say.`;
+The second is the answer for an arc that has ended. \`reason\` is one sentence in the session's own terms, naming the arc that ended. The agent reads it back to the person running the session, so keep it to a line and write it in that session's words. Whether and when to compact is the session's to judge; you do not say.`;
 
 /**
  * The same two shapes as a JSON Schema, which the default command hands the CLI

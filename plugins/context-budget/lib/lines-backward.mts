@@ -6,10 +6,9 @@ import { Buffer } from "node:buffer";
 import { closeSync, fstatSync, openSync, readSync } from "node:fs";
 
 /**
- * Big enough that a normal transcript's whole cached stretch is one or two
- * reads, small enough that a session idle past its cache lifetime, where the
- * newest prompt is already cold and the scan stops at it, pays for almost
- * nothing.
+ * How many bytes each read takes off the end of the file: enough that the
+ * newest turns of a typical transcript come in one or two reads, and few
+ * enough that a reader stopping among them has read little past what it needed.
  */
 export const CHUNK_BYTES = 128 * 1024;
 

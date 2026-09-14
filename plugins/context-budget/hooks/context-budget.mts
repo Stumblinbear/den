@@ -1,7 +1,6 @@
-// PostToolUse and UserPromptSubmit hook. Measures how full the session's
-// context is and injects one message when it crosses a per-model threshold, so
-// the agent finishes its task and then recommends `/compact` or a rewind
-// summarize.
+// The PostToolUse and UserPromptSubmit hook that measures how full the main
+// session's context is and, when it rises past a per-model threshold, injects
+// the message configured for that level.
 //
 // Subagents are out of scope, as they are short-lived and cannot compact.
 import process from "node:process";
@@ -49,17 +48,17 @@ async function outcome(
 	}
 
 	// Reset before any threshold is consulted, so a model with no thresholds is
-	// reset too: the context it replaced is gone, and every rung is armed
+	// reset too: the context it replaced is gone, and every level is armed
 	// again. Nothing is announced, since what the summary costs is measured on
 	// the first turn sent it.
 	if (reading.kind === "compacted") {
-		recorded(sessionId, transcript, () => RESET);
+		recorded(sessionId, () => RESET);
 
 		return null;
 	}
 
 	const limits = thresholdsFor(settings, reading.model);
-	const notice = recorded(sessionId, transcript, (told) =>
+	const notice = recorded(sessionId, (told) =>
 		limits === null ? null : crossing(told, reading, limits),
 	);
 
@@ -69,26 +68,28 @@ async function outcome(
 }
 
 /**
- * The level this run announces, and null both for a level this session has
- * already heard and for a run with nothing to say about the level. The
- * transcript is written to the record either way.
+ * The level this run announces, and null for a level the session has already
+ * heard, for a run with nothing to announce, and for a run that could not take
+ * the record's lock.
  *
- * `crossed` is handed the level the session has already been told about, which
- * is only readable under the lock, and answers with where this run leaves it
- * or null to leave it where it is.
+ * @remarks
+ * `crossed` is handed the level the session was last told about, read under
+ * the lock, and answers with where this run leaves it, or null to leave it
+ * there. The record is written only when that level changes, a fall included,
+ * since a fall lets every level above it announce again.
  */
 function recorded(
 	sessionId: string,
-	transcript: string,
 	crossed: (told: Level) => Crossing | null,
 ): NoticeLevel | null {
 	const level = updateRecord(sessionId, (before) => {
 		const now = crossed(before.level);
 
 		return {
-			// Written on every run, injected or not. See the header of
-			// `session-record.mts` for the reader that depends on it.
-			fields: { level: now?.level ?? before.level, transcript },
+			fields:
+				now === null || now.level === before.level
+					? null
+					: { level: now.level },
 			result: now?.notice ?? null,
 		};
 	});

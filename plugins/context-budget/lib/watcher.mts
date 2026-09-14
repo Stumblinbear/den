@@ -18,10 +18,9 @@ import { fieldsOf } from "./shared/fields.mts";
 import type { ToolUse } from "./transcript.mts";
 
 /**
- * Where the context stands on the watcher's own ladder, which is the notice
- * ladder with the midpoint between its two rungs added: the checks come closer
- * together as the cost of missing a cut point rises, and a delivered verdict
- * is over once the context has moved off the rung it was judged on.
+ * Where the context stands on the watcher's ladder: below the notice
+ * threshold, past it, past the midpoint between it and the urgent threshold,
+ * or past the urgent threshold.
  */
 export type Rung = "none" | "notice" | "midpoint" | "urgent";
 

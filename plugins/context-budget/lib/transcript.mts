@@ -1,13 +1,13 @@
-// What a transcript's entries mean, for the readers that have to agree about
-// it: the measurement hook, the resume guard, the cache scan and the watcher.
-// They ask the same questions of an entry, in different orders: how big was the
-// context, which cache lifetime was it written under, is this the point where
-// the context was thrown away, and what does it say happened. The answers live
-// here once rather than four times over.
+// What a transcript's entries mean, read one way by every hook: how big a
+// turn's context was (`inputTokens`, `turnUsage`, `turnModel`), which cache
+// lifetime it was written under (`lifetimeOf`, `lifetimeIn`), where the context
+// was replaced by a summary (`isCompaction`), and what an entry says
+// (`textIn`, `withoutReminders`, `toolUses`). `contextEntries`, `newestFirst`
+// and `entryIn` read the entries out, and `ifPresent` answers for a transcript
+// gone from its path.
 //
-// A transcript's lines are whatever Claude Code wrote, and a line may be
-// half-written while the file is being appended to, so every entry and every
-// field is narrowed on the way out rather than trusted.
+// A line may be half-written while Claude Code appends to the file, so every
+// entry and every field is narrowed on the way out rather than trusted.
 import { linesBackward } from "./lines-backward.mts";
 import { errorCode, fieldsOf, isTable } from "./shared/fields.mts";
 
@@ -22,10 +22,8 @@ const LIFETIME_MS: Readonly<Record<CacheTtl, number>> = {
 	"1h": 60 * 60_000,
 };
 
+/** How long a cache written under `ttl` lives, in milliseconds. */
 export const lifetimeMs = (ttl: CacheTtl): number => LIFETIME_MS[ttl];
-
-/** The longest lifetime any turn could have been billed on. */
-export const LONGEST_LIFETIME_MS = Math.max(...Object.values(LIFETIME_MS));
 
 /**
  * What `read` came back with, and null for a transcript that is not at the
@@ -91,13 +89,15 @@ export const turnModel = (entry: Record<string, unknown>): string =>
 	String(fieldsOf(entry["message"])["model"] ?? "");
 
 /**
- * The lifetime the turn's request wrote the cache under, from the split it was
- * billed in, or null when it wrote nothing at all. A request served entirely
- * from a warm cache is that null: it refreshed an entry another request wrote,
- * and refreshing one does not extend it, so it says nothing about how long
- * that entry lives.
+ * The lifetime a turn's request wrote the cache under, read from the split its
+ * usage was billed in, and null for a request that wrote nothing to the cache.
+ *
+ * @remarks
+ * A request billed under both lifetimes comes back as the hour. One served
+ * entirely from a warm cache comes back null, since reading an entry says
+ * nothing of the lifetime it was written under.
  */
-export function cacheLifetime(usage: unknown): CacheTtl | null {
+function cacheLifetime(usage: unknown): CacheTtl | null {
 	const created = fieldsOf(fieldsOf(usage)["cache_creation"]);
 
 	if (count(created["ephemeral_1h_input_tokens"]) > 0) {
@@ -106,22 +106,6 @@ export function cacheLifetime(usage: unknown): CacheTtl | null {
 
 	return count(created["ephemeral_5m_input_tokens"]) > 0 ? "5m" : null;
 }
-
-/**
- * Why the model stopped, of the two answers that matter: a turn waiting on a
- * tool call or asked to carry on has not ended, and every other answer, an
- * absent one included, is a turn that has. Absent counts as ended because a
- * transcript that records no reason gives no grounds to call a turn unfinished.
- */
-const RUNNING: ReadonlySet<unknown> = new Set(["tool_use", "pause_turn"]);
-
-/**
- * Whether this assistant turn finished its reply. The newest turn of a
- * transcript answers whether the session is mid-reply, which is what tells the
- * cache scan that the prompt above it is still being answered.
- */
-export const turnEnded = (entry: Record<string, unknown>): boolean =>
-	!RUNNING.has(fieldsOf(entry["message"])["stop_reason"]);
 
 /**
  * The lifetime an entry's request wrote the cache under, and null for an

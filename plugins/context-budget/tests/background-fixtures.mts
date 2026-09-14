@@ -1,9 +1,8 @@
 // Transcript entries background work leaves behind, in the shapes Claude Code
 // 2.1.269 writes them: the tool result of each launch, with the record beside
-// it that names the task, and the notification that ends one. They are the
-// pending-work walk's subject alone, and no pricing reader's, so they sit
-// beside `fixtures.mts` rather than in it. Importing this registers no test of
-// its own.
+// it that names the task, and the notification that ends one. Only the
+// pending-work walk's tests use them, so they sit beside `fixtures.mts` rather
+// than in it. Importing this registers no test of its own.
 
 let seq = 0;
 

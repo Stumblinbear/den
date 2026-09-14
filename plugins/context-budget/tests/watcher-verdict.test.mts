@@ -20,27 +20,23 @@ import {
 	watcherRuns,
 } from "./watcher-runs.mts";
 
-/** The advice the canned verdict comes to, written out here by hand. */
-const ADVICE = [
-	'Context watcher: after the turn that began "Now wire the verdict into the',
-	'session record", the arc looked over: the record change is landed and its',
-	"tests are green. Invoke the `context-budget:cut-point` skill and give the",
-	"user its answer in your next reply: where it names a cut, one sentence with",
-	"the command in a fenced block on its own line at the end; where it comes to",
-	"carrying on, say that and give no command. If the work in hand should finish",
-	"first, say so beside it and raise it again at each later pause, read afresh",
-	"from the skill, until the user runs a cut or says they want none.",
-].join(" ");
+/** The newest prompt of `conversation`, which the advice quotes. */
+const ASKED = "Now wire the verdict into the session record";
 
 for (const runtime of runtimes()) {
 	const name = (what: string) => `${runtime}: ${what}`;
 
+	// The advice names the turn the arc was judged after and the judge's own
+	// reason; the rest of its wording is left unasserted.
 	test(name("a good verdict is what the Stop hands the session"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
 
 		seen.answers(GOOD);
 
-		assert.equal(injected(stop(session(), conversation(NOTICE))), ADVICE);
+		const said = String(injected(stop(session(), conversation(NOTICE))));
+
+		assert.ok(said.includes(`"${ASKED}"`), said);
+		assert.ok(said.includes(GOOD.reason), said);
 	});
 
 	// The prompt the advice quotes is read against the `/rewind` picker's own
@@ -56,11 +52,15 @@ for (const runtime of runtimes()) {
 		assert.ok(said.includes('began "/review src"'), said);
 	});
 
-	// The cut is the session's to price, so a judge that still writes one is
-	// read for its reason alone: nothing it says about a command or a prompt
-	// reaches the session.
+	// Whether to compact is the session's to judge, so a cut the judge writes
+	// anyway is dropped and only its reason is read: the advice matches the same
+	// verdict without the cut.
 	test(name("a cut the judge names is not relayed"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
+
+		seen.answers(GOOD);
+
+		const plain = injected(stop(session(), conversation(NOTICE)));
 
 		seen.answers({
 			...GOOD,
@@ -68,7 +68,7 @@ for (const runtime of runtimes()) {
 			focus: "wiring the watcher into the session record, task #30",
 		});
 
-		assert.equal(injected(stop(session(), conversation(NOTICE))), ADVICE);
+		assert.equal(injected(stop(session(), conversation(NOTICE))), plain);
 	});
 
 	// An arc that ended for no stated reason is one the session cannot weigh,
@@ -89,7 +89,8 @@ for (const runtime of runtimes()) {
 
 		const said = String(injected(stop(session(), conversation(NOTICE))));
 
-		assert.ok(said.includes("the record change is landed. Invoke"), said);
+		assert.ok(said.includes("the record change is landed."), said);
+		assert.ok(!said.includes("the record change is landed.."), said);
 	});
 
 	// What `claude -p --output-format json` writes: the model's text in a
@@ -98,6 +99,10 @@ for (const runtime of runtimes()) {
 	test(name("a verdict inside the claude envelope reads the same"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
 
+		seen.answers(GOOD);
+
+		const bare = injected(stop(session(), conversation(NOTICE)));
+
 		seen.answers({
 			type: "result",
 			subtype: "success",
@@ -105,13 +110,12 @@ for (const runtime of runtimes()) {
 			result: `Here is my answer:\n\`\`\`json\n${JSON.stringify(GOOD)}\n\`\`\``,
 		});
 
-		assert.equal(injected(stop(session(), conversation(NOTICE))), ADVICE);
+		assert.equal(injected(stop(session(), conversation(NOTICE))), bare);
 	});
 
 	// The judge rules on the arc and nothing else, so its prompt carries the
-	// conversation and nothing that prices a cut: the figures are the session's
-	// to read, through the `cut-point` skill.
-	test(name("the judge is shown the turns and nothing priced"), () => {
+	// conversation and no command for it to weigh.
+	test(name("the judge is shown the turns and no command"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
 
 		seen.answers(LATER);
@@ -120,7 +124,6 @@ for (const runtime of runtimes()) {
 		const shown = seen.prompts()[0] ?? "";
 
 		assert.ok(shown.includes("<turns>"), "the conversation is shown");
-		assert.ok(!shown.includes("<reading>"), shown);
 		assert.ok(!shown.includes("/compact"), shown);
 	});
 

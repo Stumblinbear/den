@@ -27,33 +27,25 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
-- The cut-point reading counts a payback in requests to the model, one per
-  tool call, where it said turns. The figure was always that count; a turn
-  of agent work is many of them, so every payback reads sooner than the old
-  word suggested.
+- The watcher's advice and both `[messages]` ask the agent to recommend
+  `/compact` directly, with no skill to load first and no focus line to write.
+  The watcher's advice asks the agent to judge whether the ended arc is a good
+  point to compact and to put `/compact` on a line of its own where it is.
+  Edit `notice` and `urgent` in your own `config.toml` to match: a copy that
+  still names the `cut-point` skill sends the agent to a skill that is gone.
 - The example's Fable row moves to notice 300K and urgent 500K, from 400K
-  and 700K: on that count a compaction at 300K pays back in about 19
-  requests, a turn or two of agent work.
-- The `cut-point` skill takes `/compact` wherever the arc admits it, and a
-  rewind only where the arc rules `/compact` out; price then decides between
-  that cut and carrying on. Every cut is priced over the same floor now, so
-  `/compact` always pays back soonest, and choosing the lowest payback always
-  chose it.
+  and 700K: a compaction at 300K pays for itself in about 19 requests to the
+  model, a tool call being one, so a turn or two of agent work.
+- The session record no longer holds the transcript path, and the measurement
+  hook writes the record only when the level changes.
 
-### Fixed
+### Removed
 
-- Every row of the cut-point reading counts what a cut leaves behind. A rewind
-  row priced only the stretch below its prompt, so a rewind at the newest
-  prompt read as paying back far sooner than the `/compact` it very nearly is.
-  Every cut, `/compact` included, is now priced over one floor: what this
-  session's last compaction left behind, or a typical 15K where there has been
-  none or the only boundary came from the rewind picker, and the reading says
-  which.
-- The prompt a running reply is answering is left off the cut points. The
-  `cut-point` skill runs inside that reply, so a rewind there throws away the
-  reply that recommended it, and the reading listed it as the cheapest rewind
-  every time. A transcript whose last reply has finished still lists its
-  newest prompt.
+- The `cut-point` skill and `scripts/cut-point.mts`, with the rewind
+  recommendations it made and the payback it priced every cut at.
+- The `context-budget` skill.
+- `lib/pricing.toml`, and the `pricing.toml` override file under the plugin
+  data directory, which nothing reads now.
 
 ## [0.5.0] - 2026-09-12
 

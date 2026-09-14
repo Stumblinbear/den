@@ -1,17 +1,13 @@
-// What this session has been told and spent, kept in the plugin's one record
-// for it, `<os temp dir>/claude-context-budget/<session id>.json`: the level
-// the context notice last stood at, the resume answers the guard has already
-// spent, where the watcher's own pace stands, and the transcript the last
-// measuring run read. That last is how the cut-point script, handed a session
-// id and nothing else, finds the transcript to read. A hook run reads it,
-// works on the value and writes it back, all of that under the lock beside it;
-// the script only reads, and takes no lock.
+// The plugin's one record for a session, at
+// `<os temp dir>/claude-context-budget/<session id>.json`: the level the
+// context notice last stood at, the resume answers the guard has spent, and
+// the watcher's state. `updateRecord` reads and changes it under the lock
+// beside it.
 //
-// Every write merges the fields it owns over the rest and takes that lock,
-// whichever of the three entries makes it, so the transcript path, the spent
-// answers and the watcher's pace cannot drop one another. Nothing here
-// deletes the record: a session whose context has fallen back to nothing still
-// has a transcript the script has to find.
+// Each of the three hook entries writes only the fields it owns, merged over
+// the rest, so none of them drops another's. Nothing deletes the record, since
+// the answers a session has spent stay spent when its context falls back to
+// nothing.
 import { LEVELS, type Level } from "./level.mts";
 import { SESSION_STATE } from "./plugin.mts";
 import type { Locked } from "./shared/file-lock.mts";
@@ -27,10 +23,10 @@ export interface SessionRecord {
 
 /** What one run writes back: the fields it owns, and none of anyone else's. */
 export interface RecordFields {
+	/** The level the context notice now stands at. */
 	readonly level?: Level;
+	/** The uuid of every resume answer spent, replacing the list on file. */
 	readonly consumed?: readonly string[];
-	/** The transcript the run read, rewritten by every run that measures. */
-	readonly transcript?: string;
 	/**
 	 * Written whole, under the lock, by the Stop entry that owns it: what the
 	 * watcher keeps is one state rather than fields anyone merges into.
@@ -74,18 +70,6 @@ export function updateRecord<T>(
 	});
 }
 
-/**
- * The transcript the last measurement was read from, and null for a session
- * this plugin has never measured. Read without the lock: the script is not
- * changing anything, and a path half-written by a run holding the lock is one
- * this reader would rather report as absent than wait for.
- */
-export function recordedTranscript(sessionId: string): string | null {
-	const path = SESSION_STATE.read(sessionId)["transcript_path"];
-
-	return typeof path === "string" && path !== "" ? path : null;
-}
-
 /** The other way from `written`: the record as the change is handed it. */
 function readFields(record: Record<string, unknown>): SessionRecord {
 	const consumed = record["consumed"];
@@ -99,11 +83,7 @@ function readFields(record: Record<string, unknown>): SessionRecord {
 	};
 }
 
-/**
- * The fields as the file spells them. The transcript is named the way the rest
- * of Claude Code names one, since a person reading the file by hand is the
- * other audience for it.
- */
+/** The fields as the file spells them. */
 function written(fields: RecordFields): Record<string, unknown> {
 	const record: Record<string, unknown> = {};
 
@@ -113,10 +93,6 @@ function written(fields: RecordFields): Record<string, unknown> {
 
 	if (fields.consumed !== undefined) {
 		record["consumed"] = fields.consumed;
-	}
-
-	if (fields.transcript !== undefined) {
-		record["transcript_path"] = fields.transcript;
 	}
 
 	if (fields.watcher !== undefined) {

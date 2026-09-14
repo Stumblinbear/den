@@ -1,14 +1,12 @@
-// The recent conversation as a reader that is not pricing it needs: the last
-// turns, each cut down to what the user asked, what the assistant said back
-// and which tools it called. The watcher's gate reads the newest turn for the
-// tool calls that mark a landing point and counts the prompts behind it; the
-// judge reads a stretch of them as the conversation it is judging. Neither
-// wants tool results, which are most of a transcript's bulk and none of its
-// argument.
+// The recent conversation as the watcher reads it, in turns cut down to what
+// the user asked, what the assistant said back and which tools it called, with
+// the tool results left out.
 //
-// A turn begins at one of the user's own prompts, the entry `/rewind` would
-// list, and runs to the entry before the next one. That is where Claude Code
-// ends a turn too, and finding it needs nothing kept between runs.
+// `latestTurn` reads the newest `Turn` and counts the prompts behind it, for
+// the watcher's gate; `recentTurns` reads the last few, for the judge.
+//
+// A turn begins at one of the user's own prompts, as `eligible` in
+// `rewind-picker.mts` finds them, and runs to the entry before the next one.
 import { linesBackward } from "./lines-backward.mts";
 import { asTyped, eligible } from "./rewind-picker.mts";
 import { fieldsOf } from "./shared/fields.mts";

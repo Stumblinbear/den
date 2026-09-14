@@ -1,7 +1,10 @@
-// How a token count is written where a person or an agent reads it: the
-// configured messages the hooks fill in, and the cut-point reading's own rows.
-// One place, so the same number is not "162.3K" in one and "162300" in the
-// next.
+// Filling in the text the hooks show a person or an agent: `formatTokens` for
+// a token count, and `fill` for a configured message's placeholders.
+
+/**
+ * A token count as every message writes it: in thousands to one decimal
+ * place, "162.3K", and a whole thousand without the decimal, "162K".
+ */
 export const formatTokens = (tokens: number): string =>
 	`${(tokens / 1000).toFixed(1).replace(/\.0$/, "")}K`;
 

@@ -3,8 +3,8 @@
 // file path or stdin, so there is nothing to stub. The bugs these cover live
 // in the interaction between the transcript, the session record and the
 // configuration rather than in any one function: a stale measurement, a level
-// that never re-arms, a transcript the cut-point skill cannot find. Every
-// expected message is written by the test that expects it.
+// that never re-arms. Every expected message is written by the test that
+// expects it.
 //
 // The record a case starts from is the one an earlier run of the same session
 // left, so no case writes into the hook's own state.

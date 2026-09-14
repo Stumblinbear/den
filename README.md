@@ -8,9 +8,9 @@ with its own version, changelog, README and release tag.
   the main session what to do with a finished agent. Needs Node 22.6 or newer
   for the hooks.
 - [`context-budget`](plugins/context-budget): gets the agent recommending
-  `/compact` or a rewind summarize before auto-compact picks the cut point,
-  and guards against resuming a large or cold subagent. Needs Node 22.6 or
-  newer, and a configuration file before it does anything.
+  `/compact` before auto-compact picks the moment itself, and guards against
+  resuming a large or cold subagent. Needs Node 22.6 or newer, and a
+  configuration file before it does anything.
 - [`model-prompts`](plugins/model-prompts): injects the prompts you have
   written for a model whenever that model becomes the one in use. Needs Node
   22.6 or newer, and a configuration file before it does anything.

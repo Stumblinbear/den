@@ -1,24 +1,24 @@
 # context-budget
 
-A Claude Code plugin that gets the agent to recommend `/compact` or a rewind
-summarize while there is still a good cut point, instead of letting
+A Claude Code plugin that gets the agent to recommend `/compact` at the end of
+an arc of work, while the moment is still a good one, instead of letting
 auto-compact choose one for you.
 
 ## What it provides
 
 - A context notice. After every tool call and every prompt in the main
   session, a hook measures how full the context is and injects a message the
-  first time it crosses each of two thresholds. The first says how large the
-  session is and to raise it at the end of the arc in hand. The second says to
-  raise it at the end of the step in hand instead. Neither names a cut point.
+  first time it crosses each of two thresholds. The first asks the agent to
+  recommend `/compact` at the end of the arc in hand. The second asks for it at
+  the end of the step in hand instead.
 - A watcher. Past the first threshold, at the end of every turn, a background
   hook asks a small model one thing: whether the session's arc of work has just
   ended. Its answer reaches the agent on the next turn as advice: where the
-  boundary was and why the arc looks over. The agent then prices the cut
-  itself, through the `cut-point` skill, and puts it to you every time; where
-  it would rather finish the work first it says so and raises it again at each
-  pause after, until you run a cut or say you want none. It runs on your own
-  Claude subscription's allowance, a few calls in a session;
+  boundary was and why the arc looks over. The agent judges whether to compact
+  there and tells you every time, with `/compact` on a line of its own where it
+  recommends one; where it would rather finish the work first it says so and
+  raises it again at each pause after, until you compact or say you want none.
+  It runs on your own Claude subscription's allowance, a few calls in a session;
   `[watcher] enabled = false` switches it off.
 - A resume guard. Before a message is sent to a subagent, a hook denies
   resuming one whose context is large, or whose prompt cache has expired, and
@@ -32,19 +32,6 @@ auto-compact choose one for you.
   rate, and the cache lives another lifetime. Two wakes an idle stretch on the
   hour lifetime and five on the five-minute one, and only while background work
   is pending. `[wake] enabled = false` switches it off.
-- The `cut-point` skill (`/context-budget:cut-point`), which the messages send
-  the agent to: a reading of the prompt cache taken at the moment it is asked
-  for. A rewind at a prompt re-reads everything before it, and that stretch is
-  cached only while the prompt itself is younger than the session's cache
-  lifetime, so the reading lists three still-cached prompts spread across the
-  context: each with the clock time it falls out, what a cut there summarizes
-  away, what it keeps verbatim, and how many more model calls the session has
-  to make before the cut has paid for what it cost. `/compact` is priced above
-  them on the same arithmetic and carrying on unchanged below them, so the
-  three are read against one another rather than one against two blanks.
-- The `context-budget` skill, which the agent loads when it makes that
-  recommendation: how a rewind summarize differs from `/compact`, how to pick
-  a cut point, and how to judge a stopping point.
 - The `configure` skill (`/context-budget:configure`): the guided path through
   the configuration and through "why did it do that".
 
@@ -102,30 +89,28 @@ session's own model, your whole context read back from the cache and a short
 reply. What it saves is the full-price rewrite of that context on the first
 turn after the cache goes cold. Nothing else here leaves your machine.
 
-What is read: every hook reads your configuration file in the data directory,
-on every run. The notice hook reads the last 512 KB of the session transcript,
+What is read: every hook reads your configuration file in the data directory, on
+every run. The notice hook reads the last 512 KB of the session transcript,
 after every tool call and every prompt. The guard reads, on every message to a
-subagent, that subagent's whole transcript and its metadata file, and, only
-when the resume is past one of the limits, the whole session transcript, for
-your latest answer. The `cut-point` skill's command reads the session
-transcript backward from its end, as far back as the cached stretch goes, and
-the two price files below. The watcher reads the same 512 KB tail at the end of
-a turn and, past the first threshold, the transcript backward to the last
-compaction, for the turn that has just ended and a count of your prompts behind
-it; only when it is about to ask the judge does it read the last sixteen turns.
-The wake reads the transcript backward to the last compaction at the end of
-every turn in the main session, for the background work still running and the
-newest turn's time and cache lifetime, and reads it again at every check while
-it waits out an idle stretch. Nothing here reads your source.
+subagent, that subagent's whole transcript and its metadata file, and, only when
+the resume is past one of the limits, the whole session transcript, for your
+latest answer. The watcher reads the same 512 KB tail at the end of a turn and,
+past the first threshold, the transcript backward to the last compaction, for
+the turn that has just ended and a count of your prompts behind it; only when it
+is about to ask the judge does it read the last sixteen turns. The wake reads
+the transcript backward to the last compaction at the end of every turn in the
+main session, for the background work still running and the newest turn's time
+and cache lifetime, and reads it again at every check while it waits out an idle
+stretch. Nothing here reads your source.
 
-What is written: one JSON file per session under `claude-context-budget/` in
-the OS temp directory, holding the transcript the last measuring run read, the
-level this session has been told about, the resume answers it has spent, where
-the watcher's pace stands and the verdict standing, plus a lock directory
-beside it while a hook is writing, and a second one for the moment a run spends
-taking over a lock left by a run that died. A wake waiting out an idle stretch
-holds a lock directory of its own beside the record, `<session id>.wake.lock`,
-for as long as the stretch lasts. Nothing is written to your project.
+What is written: one JSON file per session under `claude-context-budget/` in the
+OS temp directory, holding the level this session has been told about, the
+resume answers it has spent, where the watcher's pace stands and the verdict
+standing, plus a lock directory beside it while a hook is writing, and a second
+one for the moment a run spends taking over a lock left by a run that died. A
+wake waiting out an idle stretch holds a lock directory of its own beside the
+record, `<session id>.wake.lock`, for as long as the stretch lasts. Nothing is
+written to your project.
 
 What they can do to a session: add a message to the agent's context, deny a
 `SendMessage` to a subagent, start one short `claude -p` run at the end of a
@@ -158,8 +143,8 @@ cp <plugin root>/hooks/config.example.toml \
 ```
 
 Nothing else is needed. When a session passes 250K tokens, the agent finishes
-what it is doing and then tells you it recommends `/compact` or a rewind
-summarize, and which. To see it sooner, lower `notice` under `[default]`.
+what it is doing and then tells you it recommends `/compact`. To see it sooner,
+lower `notice` under `[default]`.
 
 ## Configuration
 
@@ -267,20 +252,6 @@ model" where the subagent's newest turn names none. `[wake.messages] wake`
 substitutes `{n}`, this wake's number within the stretch, `{times}`, the row's
 count, and `{pending}`, how many background tasks are still running.
 
-One thing the `cut-point` skill needs is not in that file and is not
-configuration: what a model charges for a token read from the prompt cache,
-against one fresh input token, which is the rate every payback figure is
-priced at. It ships as `lib/pricing.toml`, `default = 0.1` with a `[models]`
-row `'fable' = 0.025`, keyed the same way as the rows above. A file of the
-same shape at
-
-    ~/.claude/plugins/data/context-budget-den/pricing.toml
-
-corrects a rate that has gone out of date: a row whose key matches a shipped
-one replaces it where it stands, a row with a new key is tried after all the
-shipped ones, and `default` replaces `default`. Every value has to be a number
-above 0 and at most 1. Almost nobody needs one.
-
 ## Operation and limitations
 
 The measurement is the newest assistant turn in the transcript: its prompt,
@@ -301,46 +272,6 @@ measurement: the session is put back to no level at all, whatever governs the
 model, and the next turn is measured against the thresholds afresh. Only a
 rise injects, but a fall is recorded too, so a level that has fired can fire
 again after the context comes back up.
-
-Every measuring run records the transcript it read, whether or not it injected
-anything and whether or not the model has a row that measures it. That record
-is how the `cut-point` skill finds the transcript to read, so the skill works
-from the session's first tool call onwards; in a session these hooks have never
-run in, it says so rather than guessing at a file name.
-
-The reading it prints lists three prompts and not every cached one, because
-everything newer than the oldest cached prompt is cached too and a busy hour
-would otherwise be dozens of interchangeable rows: the oldest, the newest, and
-the one nearest halfway between them by size. A prompt no turn has answered
-yet is left out, since a cut there keeps nothing verbatim, which is
-`/compact` by another name. So is the first prompt of the context, which
-summarizes nothing away. Where the session was compacted within the cache
-lifetime and kept prompts verbatim, the reading names them instead, since a
-rewind at one of them costs at most the context the compaction left behind.
-
-The payback on each row is what turns two token counts into a decision: a
-rewind writes everything it keeps back to the cache at twice a fresh input
-token on the one-hour lifetime, where carrying on would have read that same
-stretch at the cache read rate, and only then starts saving that read on every
-turn after it. So a cut in a session with little work left in it costs more
-than it ever returns.
-
-Two rows sit around those cut points, on the same arithmetic, so that the
-paybacks have something to be read against. `/compact` comes first, priced as
-a cut at the tail Claude Code keeps rather than at a prompt anyone selects;
-that tail is sized by Claude Code and never known in advance, so the row is an
-estimate, taken from what this session's own compaction left behind where
-there is one and from a typical 15K where there is not, and it says which.
-Only a `/compact` or an auto-compact counts as one there: a rewind summarize
-writes the same kind of boundary and kept the stretch the user chose, which
-measures no tail, so a session whose only boundary came out of the picker
-takes the 15K like a session with no boundary at all.
-
-Carrying on comes last: the whole context read back every turn, at the cache
-read rate, which is what every payback above it is measured against. The
-reading prices these; it recommends none of them. Which one to take is the
-`cut-point` skill's, and it weighs what the work ahead still needs verbatim
-before it reads a figure at all.
 
 The watcher paces itself, and the judge sets the pace. Past the notice
 threshold and under the urgent one it is asked whether the session has just
@@ -469,18 +400,7 @@ the one you have already dealt with.
 Deleting the session's record, `<session id>.json` under
 `claude-context-budget/` in the OS temp directory, is how you make the current
 level fire again after editing a message. It clears the resume answers the
-session has spent along with it, and leaves the `cut-point` skill with no
-transcript to read until the next tool call writes a new record.
-
-`/context-budget:cut-point` prints "No measurement recorded for this
-session" when these hooks have not run in it, which is an unconfigured plugin
-or a session started before it was installed, or when the script was run by
-hand without `--session`. Pass `--transcript <path to the session's .jsonl>` to
-read one directly.
-
-A pricing file that cannot be read, parsed or used is dropped whole and every
-payback is figured at the shipped rates, with nothing said about it. An edit
-to it that changes no figure is the sign to look at the file.
+session has spent along with it.
 
 The watcher's failures are quiet but for two. A judge that answers nothing
 inside its three minutes, and one whose answer will not parse, both read as no

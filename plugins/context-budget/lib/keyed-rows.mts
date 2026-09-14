@@ -1,9 +1,11 @@
-// Which keyed row governs a subject. The configuration's thresholds, the
-// resume guard's limits and the price table's read rates are all keyed by a
-// regular expression, matched against a model id or against an agent type, and
-// they say entirely different things, but they resolve a row the same way, and
-// a difference in which row wins is one nobody notices until a session is
-// measured, guarded or priced against the wrong one.
+// Which keyed row governs a subject, for the configuration's thresholds and
+// the resume guard's limits, whose rows are keyed by a regular expression over
+// a model id or an agent type.
+//
+// `rowFor` picks the row, `compile` turns a key into its expression, and
+// `Keyed` is what every such row carries. Both tables pick a row by the one
+// rule here, since a difference between them goes unnoticed until a session is
+// measured or guarded against the wrong row.
 
 /** What every keyed row carries, whatever it carries beside it. */
 export interface Keyed {
