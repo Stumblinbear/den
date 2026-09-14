@@ -36,17 +36,12 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   the code and the task's design basis. A judge compares suitable proposals,
   or reports missing input or no suitable proposal, and you choose. The script
   ships under `workflows/`.
-- `review`: launches the reviewer on a pending change with the diff already
-  in its first message. The argument is a git diff range, optionally followed
-  by `--plan <path>` naming the plan or brief the change was written to, and
-  nothing else. Omit the range for the working tree against HEAD.
-- `comment-review`: the same for the comment-reviewer, without the plan.
 - `diff-page`: renders a git diff range as one page file, a collapsible
   section per file with old and new line numbers and coloured lines, and
   sends you the file, for reading a change from a phone or away from the
   terminal. Untracked files appear as the new-file hunks they become once
-  added. The argument is a git diff range as for `review`; omit it for the
-  working tree against HEAD. Nothing is published unless you ask for a link.
+  added. The argument is a git diff range; omit it for the working tree
+  against HEAD. Nothing is published unless you ask for a link.
 - `plan-page`: renders a plan written in the `slicing` shape as one page file,
   the first screen, a step table and a section per step with its state, the
   code it rests on under its caption, coloured diff sketches and the decisions
@@ -167,7 +162,7 @@ file, and the hook run does nothing. The data directory survives plugin updates.
 
 The plugin declares no dependencies, so Claude Code installs nothing for it.
 
-The `review` and `comment-review` skills render the review scope with
+The `reviewer` and `comment-reviewer` agents render the review scope with
 `git` through `bash`, so both have to be available where the session runs.
 A working-tree scope includes untracked files that are not ignored, rendered
 as the new files they would become; a range between two revisions does not.
@@ -211,13 +206,9 @@ Start a session and invoke the lead rules:
 The session then cites code by path and line, sends reviews and research to
 the standing agents, and, once a design is pinned, asks how to hand the
 implementation off: fork, switch model, or brief, each priced on the context
-you would be carrying. After a change is written, authorize a review:
-
-```
-/den:review
-```
-
-The reviewer reads the working tree against HEAD and reports its findings. On
+you would be carrying. After a change is written, ask for a review in words;
+the session launches `den:reviewer` on the change's diff range. The reviewer
+reads the working tree against HEAD by default and reports its findings. On
 the next prompt you submit, the main session is reminded to relay all of them
 with a recommendation each.
 

@@ -8,8 +8,11 @@ skills:
 ---
 
 You rewrite the comments in a change. The code is settled; only comments
-move. The scope is the diff named in your instructions (default: working
-tree and staged against HEAD); a file that is all insertions is read whole.
+move. The launch message names a git diff range, empty for the working tree
+and staged against HEAD. Read the scope with
+`bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<range>"`, whose
+output is the whole change, down to the untracked files a plain `git diff`
+leaves out. A file that is all insertions is read whole.
 
 Work one file at a time: read the file whole, then go through its comments
 top to bottom, and make each Edit when you reach the comment, reading
@@ -30,8 +33,9 @@ Every inline comment in scope is written again by the `writing-for-humans`
 inline-comment reference, or cut where the code beside it shows the fact. A
 guard for an editor found in a doc comment moves to the site it guards.
 
-Change only comments and doc comments, with Edit, site by site; never run
-git. Then run the formatter in check mode and, in Rust, `cargo doc
+Change only comments and doc comments, with Edit, site by site; git reads
+the scope and nothing else, since staging and committing are the lead's.
+Then run the formatter in check mode and, in Rust, `cargo doc
 --no-deps` for the crate. Report the counts: doc comments in scope,
 rewritten, unchanged, added; inline comments in scope, rewritten, cut,
 unchanged. Then one row per gap. Return raw data, not prose for a human.

@@ -50,6 +50,13 @@ minor bump may change behavior.
 
 ### Removed
 
+- The `review` and `comment-review` skills, and `review-scope.sh` with them.
+  A reviewer is launched through the Agent tool instead: a forked skill whose
+  name is already running refuses to background and runs inline, blocking the
+  turn, so two reviews could never run at once. `reviewer` and
+  `comment-reviewer` now render their own scope with `diff-scope.sh`, and the
+  plan reaches the reviewer as a path in the launch prompt rather than through
+  `--plan`.
 - The `Switch model` handoff route, with its `PostModelSwitch` hook, the
   `handoff-switch` entry point and the `--target` argument the reading priced
   it for. The Handoff question now offers a fork or a brief, and den's floor

@@ -48,14 +48,14 @@ export const agentLaunch = (
  */
 export const forkedSkill = (id: string, timestamp: string): string =>
 	result(
-		'Skill "den:review" launched (forked execution, running in the background).\n\nRunning in the background as @den-review',
+		'Skill "example:review" launched (forked execution, running in the background).\n\nRunning in the background as @example-review',
 		{
 			success: true,
-			commandName: "den:review",
+			commandName: "example:review",
 			status: "forked",
 			background: true,
 			agentId: id,
-			result: "Running in the background as @den-review",
+			result: "Running in the background as @example-review",
 		},
 		timestamp,
 	);

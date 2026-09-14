@@ -195,10 +195,8 @@ did not declare.
 
 ## Review
 
-Every change gets a fresh review by `den:reviewer`, launched through
-`/den:review` with the diff scope and the path of the plan or brief the
-change was written to, and nothing else, since what the launch prompt says
-about the change seeds the reviewer's conclusions. A fix round is closed by
+Every change gets a fresh review by `den:reviewer`, launched through the
+Agent tool on the diff range of the change. A fix round is closed by
 a fresh `den:closure-verifier` given the findings as the report worded them,
 the relevant design basis and the scope of the fixed tree, which reads each fix
 for what it opened as well as what it closed.
@@ -244,9 +242,9 @@ its test out of the tree with it.
 ## Commits
 
 Once a step's implementation and review have settled, a `den:comment-reviewer`
-pass, launched with `/den:comment-review`, runs before the commit is proposed;
-an earlier pass is wasted churn. Then propose the commit and wait for its own
-approval.
+pass, launched through the Agent tool on the step's diff range, runs before
+the commit is proposed; an earlier pass is wasted churn. Then propose the
+commit and wait for its own approval.
 
 ## Talking to the user
 

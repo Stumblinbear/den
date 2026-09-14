@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
-# Renders the review scope for the review and comment-review skills:
-# repository, range, status, stat, and the diff itself when it fits.
+# Renders the review scope for the reviewer and comment-reviewer agents,
+# which run it themselves: repository, range, status, stat, and the diff
+# itself when it fits.
 #
-# Skill substitution output past roughly 30,000 characters is replaced by a
-# file path plus a 2KB preview, which the reviewer then reads back in chunks
-# at a higher token cost than pulling the diff itself. So the diff is inlined
-# only when the whole rendering stays under that ceiling; otherwise the stat
+# Bash tool output past roughly 30,000 characters is replaced by a file path
+# plus a 2KB preview, which the reviewer then reads back in chunks at a
+# higher token cost than pulling the diff itself. So the diff is inlined only
+# when the whole rendering stays under that ceiling; otherwise the stat
 # serves as the map and the reviewer pulls per file, the way hand-launched
 # reviewers already work.
 #
-# The skill passes its whole argument string as one word so shell
-# metacharacters in it reach this script instead of breaking the harness
-# eval. Split it back into `git diff` arguments here; none means HEAD.
+# The range arrives as one argument so shell metacharacters in it reach this
+# script rather than the caller's command line. Split it back into `git diff`
+# arguments here; none means HEAD.
 set -u
 
 # Every git call names a non-ASCII path unescaped. Under the default
