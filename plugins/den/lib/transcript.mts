@@ -1,8 +1,6 @@
-// What the tail of a session transcript says, for the two readers that ask:
-// the handoff reading, which wants the newest turn's context size, and the
-// switch hook, which wants the newest AskUserQuestion answer and whether the
-// user has typed since. Both walk the same entries newest-first, so the walk
-// and what an entry means live here once.
+// What the tail of a session transcript says, for the reader that asks: the
+// handoff reading, which wants the newest turn's context size. It walks the
+// entries newest-first, so the walk and what an entry means live here once.
 //
 // A transcript's lines are whatever Claude Code wrote, and the last one may
 // be half-written while the file is appended to, so every field is narrowed
@@ -34,13 +32,6 @@ export interface Turn {
  */
 export interface Compacted {
 	readonly kind: "compacted";
-}
-
-/** One answered AskUserQuestion, as the transcript records it. */
-export interface Answer {
-	readonly questions: readonly { header: string; question: string }[];
-	/** Question text to the label chosen. */
-	readonly answers: Readonly<Record<string, string>>;
 }
 
 /**
@@ -135,134 +126,9 @@ export function newestTurn(entries: readonly Entry[]): Turn | Compacted | null {
  * `compact_boundary` system entry then an `isCompactSummary` user entry, so
  * either alone marks where the context was replaced.
  */
-export const isCompaction = (entry: Entry): boolean =>
+const isCompaction = (entry: Entry): boolean =>
 	(entry["type"] === "system" && entry["subtype"] === "compact_boundary") ||
 	(entry["type"] === "user" && entry["isCompactSummary"] === true);
-
-/**
- * Something the user typed, as opposed to what Claude Code writes under the
- * user role: a tool result, a background task's completion notice (a
- * `<task-notification>` body, with `promptSource: "system"` or, in an
- * SDK-driven session, `"sdk"`), a slash command's output and the caveat a
- * resumed session gets (opening on `<local-command-`), and a skill's body
- * (`isMeta`). A typed prompt carries `promptSource` of `typed`, `queued` or
- * `sdk`, or none on older builds, so the field is read for what it rules
- * out rather than required.
- *
- * A slash command is string content opening on `<command-name>` or
- * `<command-message>`. The command alone is not the user saying anything,
- * but words after its name are: `/den:lead drop the row` is typed,
- * `/den:lead` is not. `/model` is the exception, since its argument
- * is the model.
- */
-export function isUserPrompt(entry: Entry): boolean {
-	if (
-		entry["type"] !== "user" ||
-		entry["isSidechain"] ||
-		entry["promptSource"] === "system" ||
-		entry["toolUseResult"] !== undefined
-	) {
-		return false;
-	}
-
-	const content = fieldsOf(entry["message"])["content"];
-
-	if (typeof content === "string") {
-		const text = content.trim();
-		const command = commandOf(entry);
-
-		if (command !== null) {
-			return command.name !== MODEL_COMMAND && command.args !== "";
-		}
-
-		return (
-			text !== "" &&
-			entry["isMeta"] !== true &&
-			!text.startsWith("<local-command-") &&
-			!text.startsWith("<task-notification>")
-		);
-	}
-
-	return (
-		entry["isMeta"] !== true &&
-		Array.isArray(content) &&
-		content.some((block) => fieldsOf(block)["type"] === "text") &&
-		!content.some((block) => fieldsOf(block)["type"] === "tool_result")
-	);
-}
-
-/**
- * The answered question this entry is, or null. Claude Code writes an
- * AskUserQuestion result as a user entry whose `toolUseResult` carries the
- * questions asked and the label chosen for each, keyed by question text.
- */
-export function askedAnswer(entry: Entry): Answer | null {
-	if (entry["type"] !== "user" || entry["isSidechain"]) {
-		return null;
-	}
-
-	const result = fieldsOf(entry["toolUseResult"]);
-	const asked = result["questions"];
-	const chosen = result["answers"];
-
-	if (!Array.isArray(asked) || !isTable(chosen)) {
-		return null;
-	}
-
-	const questions = asked.map((question) => ({
-		header: String(fieldsOf(question)["header"] ?? ""),
-		question: String(fieldsOf(question)["question"] ?? ""),
-	}));
-	const answers: Record<string, string> = {};
-
-	for (const [question, label] of Object.entries(chosen)) {
-		if (typeof label === "string") {
-			answers[question] = label;
-		}
-	}
-
-	return { questions, answers };
-}
-
-/**
- * The command that switches the session's model, as its entry names it. Its
- * argument is the model, not the user saying anything.
- */
-const MODEL_COMMAND = "/model";
-
-/**
- * The slash command this entry records, or null. Claude Code writes one as
- * string content under the user role opening on `<command-name>` or
- * `<command-message>`, with what followed the name in `<command-args>`.
- */
-function commandOf(
-	entry: Entry,
-): { readonly name: string; readonly args: string } | null {
-	if (entry["type"] !== "user" || entry["isSidechain"]) {
-		return null;
-	}
-
-	const content = fieldsOf(entry["message"])["content"];
-
-	if (typeof content !== "string") {
-		return null;
-	}
-
-	const text = content.trim();
-
-	if (!/^<command-(name|message)>/.test(text)) {
-		return null;
-	}
-
-	return {
-		name: (
-			/<command-name>([^<]*)<\/command-name>/.exec(text)?.[1] ?? ""
-		).trim(),
-		args: (
-			/<command-args>([\s\S]*?)<\/command-args>/.exec(text)?.[1] ?? ""
-		).trim(),
-	};
-}
 
 const count = (value: unknown): number =>
 	typeof value === "number" && Number.isFinite(value) ? value : 0;

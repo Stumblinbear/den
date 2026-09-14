@@ -63,6 +63,12 @@ A library is proposed, not picked: the best-recommended option with its
 maturity, maintenance, footprint, license and lock-in, and where the choice
 is real, a runner-up beside it. The user decides.
 
+The ladder runs down as well: a dependency whose model forces a workaround, a
+fixed size, a shape the design fights, is weighed against owning the sliver of
+it that is used, and that option is on the list. When the choice is between two
+copies of one thing, neither is on the list too; and a warning about a type's
+size is a question about its representation before it is an allow.
+
 ## Simplicity is a tool, not a lean
 
 KISS, YAGNI and the deletion test remove indirection, speculative
@@ -76,3 +82,10 @@ current job, not a later one; a simplification that would drop one of those
 has crossed from cutting indirection to cutting the job. A library's callers
 are outside the tree, which `den:code-architecture` covers under the deletion
 test.
+
+The life of the thing bounds the effort spent on it: a scaffold, a dev-only
+surface, a placeholder a later step replaces, or a mechanism serving a sliver
+of the cases gets the least that keeps it honest, an allow with its reason over
+a restructure and deletion over a study, and its value is measured before it is
+kept. When every option on the table keeps the invariant, the choice is one
+clause and a default; the round is for the invariant.

@@ -26,12 +26,10 @@ work is lost:
   (ICLR 2024), is the one unambiguous result the other way: review by the
   agent that did the work catches little, so review stays with fresh agents.
 
-Claude Code offers two ways to carry a context into implementation without a
-summary. A fork inherits the whole conversation on the parent's model; a
+Claude Code offers a way to carry a context into implementation without a
+summary: a fork inherits the whole conversation on the parent's model, and a
 first request measured on 2026-09-09 read 104,584 tokens from the parent's
-cache and wrote only its instruction. A `/model` switch keeps the
-conversation and re-reads it once, uncached, on the new model. Nothing lets
-the session switch its own model, so a switch is always the user's keystroke.
+cache and wrote only its instruction.
 
 The user's constraint is usage: the strongest model implementing every task
 exhausts a day's allowance in an afternoon. Only the user can weigh that
@@ -41,10 +39,9 @@ against what a handoff loses.
 
 We will hand implementation that follows from the session's own decisions off
 with its context kept, and let the user choose how. Before coupled
-implementation starts, the session prices the current context for a fork, a
-model switch and a brief, in cache-miss tokens, and asks. A fork runs the
-implementation on the same model out of view; a switch runs it in the session
-on the model the user picks; a brief goes to a standing implementer as before.
+implementation starts, the session prices the current context for a fork and
+a brief, in cache-miss tokens, and asks. A fork runs the implementation on
+the same model out of view; a brief goes to a standing implementer as before.
 
 We will keep the brief for work that is independent of the session's context:
 parallel units such as a sweep across files, and tasks a fresh agent can do
@@ -65,40 +62,25 @@ We will keep review with fresh agents in every case.
 - **Fork only.** Lossless, keeps the main context clean, cached at spawn.
   Runs on the parent model, so it addresses context pollution and leaves the
   usage constraint where it was.
-- **Switch only.** Lossless and cheaper per turn. Pays one uncached read of
-  the whole context, fills the main context with implementation, and needs
-  the user's keystroke.
 
-None of the last three dominates: which is right depends on the context's
+Neither of the last two dominates: which is right depends on the context's
 size and the user's allowance that day, so the decision is put to the user
 each time with the figures in front of them.
 
 ## Consequences
 
-- A `handoff-cost` skill, a transcript record written by a prompt hook, and a
-  `PostModelSwitch` hook that reads the standing answer off the transcript
-  now ship with den. The hooks read the session's own transcript tail, which
-  den's hooks did not do before.
-- The switch path is two user actions, the answer and the `/model` command,
-  since no hook or tool can switch the model. The hook exists so that the
-  switch is unambiguously the user starting the task: a switch made with the
-  answer standing is that intent and nothing else, where a typed "go" after
-  a switch could be read either way. What invoked the switch does not
-  matter; the hook reads the switch event, not the command, since the
-  command's transcript entry is written after the event fires. Answering and
-  then typing anything else overtakes the answer, and the switch is then
-  silent.
+- A `handoff-cost` skill and a transcript record written by a prompt hook now
+  ship with den. The reading reads the session's own transcript tail, which
+  den did not do before.
 - The reading prices context reads only. Output tokens dominate an
   implementation's cost and are unknown before it runs, and the reading says
   so.
 - Small fixes and edits go to a fork too, with a short instruction and no
   reading: at 104,584 tokens read from cache and 1,948 written, a spawn costs
   nothing over doing them in the session, and the context stays clean.
-- The main context is no longer clean by construction. A switch fills it with
-  implementation; a fork does not. Context-size guidance stays the user's.
 - The lead's delegation default in `skills/lead/SKILL.md` is
   rewritten; the README's first line no longer says the main session
   delegates all production work.
-- No controlled study compares these three paths for coding agents under an
-  equal token budget. The choice is put to the user because the evidence
-  ranks the brief last and does not rank the other two.
+- No controlled study compares these paths for coding agents under an equal
+  token budget. The evidence ranks the brief last, and the choice is still
+  put to the user, who alone can weigh fidelity against their allowance.

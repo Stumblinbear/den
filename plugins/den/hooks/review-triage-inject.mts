@@ -12,7 +12,9 @@ import {
 import { hookInput } from "../lib/shared/hook-input.mts";
 
 // A pointer, not a restatement: the rules live in the lead skill's
-// Review section, and this fires many turns after that skill was loaded.
+// Review section, and this fires many turns after that skill was loaded. The
+// one rule stated here rather than pointed at is the test that decides which
+// findings reach the user, which is one clause long.
 function reminder(pending: readonly Flag[]): string {
 	const named = who(pending);
 
@@ -24,7 +26,8 @@ function reminder(pending: readonly Flag[]): string {
 		"reasoning, explained for someone who has not read the code; what is",
 		"unquestionably wrong goes back to its agent as the defect, not the",
 		"reviewer's repair. Keep unanswered questions and NEEDS-DECISION verdicts",
-		"unresolved.",
+		"unresolved, and each item is classed by whether a reader could take it",
+		"either way, not by its size.",
 	].join(" ");
 }
 

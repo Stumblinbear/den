@@ -48,16 +48,17 @@ the affected decision while independent work continues.
 ## Decisions only
 
 What is asked is a decision, and only one that is the user's to make. A fact
-the code, the docs or the git history holds, or a convention the codebase
-already establishes, is looked up rather than asked: a turn spent confirming what
-you could have read is a turn not spent on a decision. Placement, module
-boundaries, interface depth, type shape and naming left open after design
-exploration belong to the implementer, so they go in the brief as intent rather
-than to the user as a question. One of them that is itself a requirement (a
-user-facing name, a CLI flag, a config key) is a decision like any other, and is
-asked. Classify a choice by its consequences: an internal-looking interface or
-fallback that changes behavior beyond the agreed contract is still a design
-decision, even when the code change is small.
+the code, the docs or the git history holds, a convention the codebase already
+establishes, or a choice a written rule of the project or of these skills
+already answers, is looked up and applied rather than asked: a turn spent
+confirming what you could have read is a turn not spent on a decision.
+Placement, module boundaries, interface depth, type shape and naming left open
+after design exploration belong to the implementer, so they go in the brief as
+intent rather than to the user as a question. One of them that is itself a
+requirement (a user-facing name, a CLI flag, a config key) is a decision like
+any other, and is asked. Classify a choice by its consequences: an
+internal-looking interface or fallback that changes behavior beyond the agreed
+contract is still a design decision, even when the code change is small.
 
 ## One question at a time
 

@@ -27,20 +27,43 @@ symptom; concept count is the cause.
 - **Module roots are tables of contents.** The file at a module's root declares
   and re-exports; it is not a dumping ground for "doesn't fit anywhere else"
   code. Growing logic there is a concept that wants its own file.
-- **Name modules after the concept (a domain noun), not the technical role.**
-  `tree`, not `data_structures`. Mechanism modules carry no domain knowledge.
+- **Name a thing for what it is.** A module, type, field or function is
+  named for the specific thing it is, in the domain's terms and in the
+  vocabulary its siblings already use, with its role in the name (an
+  identifier is an `Id`): `tree`, not `data_structures`; the thing, not the
+  category it belongs to or what it resembles. A name that makes a claim,
+  `default`, `common`, `simple`, holds only while the claim is true. A
+  generic name is the reader's first guess made permanent and the next
+  writer's dumping ground; a mechanism module carries no domain knowledge.
 - **Don't escalate visibility to enable a split.** If a split forces you to
   widen a field's visibility so another file can reach it, the boundary is
   wrong.
 - **Make invalid states unrepresentable.** Organization decides where code
   lives; type design decides which states can exist at all. Shape types so the
   set of constructible values approximates the set of valid domain states:
-  sum types over tag-plus-nullable-payloads, refined wrappers over re-checked
-  primitives, and refinement pushed to the boundary rather than repeated at
-  every call site. The states a value passes through in time count as much
-  as the combinations of its fields: a value exists only once what it needs
-  has happened, so a method fails on its arguments and never on the object's
-  history.
+  a classification the code branches on is an enum or a constructor, an error
+  included, never a string, a flag, a bool parameter that picks a kind or a
+  field that is "not yet"; a refined wrapper over a re-checked primitive; a
+  type's range from the domain, not from the encoding it happens to fit; and
+  refinement pushed to the boundary rather than repeated at every call site.
+  The states a value passes through in time count as much as the combinations
+  of its fields: a value exists only once what it needs has happened, so a
+  method fails on its arguments and never on the object's history. Input the
+  code does not act on is refused, since accepting it promises a meaning it
+  does not have, and a refusal of a legitimate input is a defect.
+- **One fact, one home.** A fact is stated once, on the thing it is a
+  property of, and every other site derives it or is handed it. A second
+  copy is a check waiting to be written, and the check is the tell: a
+  comparison of two values from one source, a parameter beside the value it
+  came from, a fact read before the code that needs it runs and then
+  guarded, a setting copied into each record it produced, a condition at a
+  distance restating a fact the code already states. A number that decides
+  an outcome and lives in no setting is a fact with no home.
+- **Siblings share one shape and one path.** Things that play the same role
+  are represented the same way and reached by the same code; two peers
+  stored as different kinds, or a second path to a state the first path
+  already reaches, are one thing twice, and the second must mirror the first
+  forever.
 
 ## Interfaces
 
@@ -79,6 +102,7 @@ have fewer methods, simpler parameters, and more hidden inside.
 - Writing a type whose methods each forward to one call on a field.
 - A test constructing a module's private parts, or asserting on its internal
   state, to reach behaviour the interface doesn't expose.
+- Comparing, or passing side by side, two values that came from one source.
 - A method that errors or branches on what the value has been through rather
   than on what it was given: a field that is "not yet", a flag that records
   which constructor ran or which method has been called.

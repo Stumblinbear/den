@@ -16,6 +16,46 @@ minor bump may change behavior.
   the user for reading a plan away from the terminal. `slicing` now names that
   shape, and the lead puts each plan to the user as a page. The page is
   written under the OS temp directory and nothing is published.
+- A `PreToolUse` hook on `Edit` and `Write`: an edit to a file under a
+  `skills`, `agents`, `hooks` or `references` directory, or to a `SKILL.md`
+  or `CLAUDE.md`, carries one line saying to write it under the
+  `writing-for-agents` standard and to verify the change by running the agent
+  it steers. Every other path passes in silence, and no edit is blocked.
+- `code-architecture` preloaded by the opus and fable implementers, and
+  invoked by a fork before its first edit, since a skill that must hold every
+  time is not left to the agent's choice to invoke it.
+
+### Changed
+
+- A quick change the lead would have made by hand goes to a fork instead,
+  without a route question, since a fork spawn reads this context from cache
+  and keeps the file reads and the edit output out of it.
+- One test decides whose call an item is, in the `lead` skill's new
+  `Whose call` section: whether a competent reader could take it either way,
+  not the size of the change. The triage reminders, the reviewer's
+  `[decision]` finding and the `handoff-cost` gate before a launch class an
+  item the same way.
+- `code-architecture` carries one fact one home, siblings sharing one shape
+  and one path, a classification as a type rather than a string or a flag, an
+  unread input refused, and names that say the specific thing.
+- The implementer definitions write a test for a defect that was observed or
+  for the rule the change introduces, pin the promises a change makes rather
+  than details nobody was promised, and mirror the workspace's conventions
+  rather than the surrounding file's.
+- `scoping` applies a choice a written rule of the project or of these
+  skills already answers rather than asking it.
+- `slicing` names every site a removed shape has, and reads an entry against
+  the defect its step removes; `design-decisions` weighs owning the sliver of
+  a dependency that is used, and bounds the effort by the life of the thing.
+
+### Removed
+
+- The `Switch model` handoff route, with its `PostModelSwitch` hook, the
+  `handoff-switch` entry point and the `--target` argument the reading priced
+  it for. The Handoff question now offers a fork or a brief, and den's floor
+  drops to Claude Code 2.1.232, the release that turned the fork launch on.
+  The transcript reader loses what only the switch asked of it: the newest
+  answered question, and whether the user has typed since.
 
 ## [0.6.0] - 2026-09-12
 

@@ -28,8 +28,10 @@ One entry per finding, opened by one line:
 A defect carries a priority: P0 release blocker or critical failure, P1
 urgent defect, P2 ordinary defect, P3 low-impact defect still worth fixing.
 A quality finding is a pattern worth questioning; a decision finding is a
-choice that does not serve the project's goals, with the plainer route and
-what the choice costs.
+choice the brief or plan did not make and a reader could take the other way, a
+stored format, a public surface, a dependency, a grammar or convention,
+behaviour the user sees, stated with what it decided, the plainer route, and
+what the choice costs; it is a finding whatever the diff's size.
 
 Cite the smallest range that shows the problem. Follow with one short
 paragraph: the affected scenario and why it is wrong. Then, for a defect,

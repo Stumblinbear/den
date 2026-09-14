@@ -1,10 +1,8 @@
 // What the handoff-cost skill's preamble runs: the reading of the current
-// context priced for a fork, a model switch and a brief. Run on demand rather
-// than fed from a file, so the reading is never older than the moment the
-// skill was invoked.
+// context priced for a fork and a brief. Run on demand rather than fed from a
+// file, so the reading is never older than the moment the skill was invoked.
 //
-// Arguments: `--session <id>`, and `--target <model>` for the switch row,
-// which defaults to opus.
+// Argument: `--session <id>`.
 import process from "node:process";
 import { measuredFrom, reading, unknown } from "../lib/handoff.mts";
 import { recordedTranscript } from "../lib/session-record.mts";
@@ -34,4 +32,4 @@ function state() {
 		: measuredFrom(newestTurn(entries));
 }
 
-process.stdout.write(`${reading(state(), argument("--target"))}\n`);
+process.stdout.write(`${reading(state())}\n`);

@@ -1,5 +1,5 @@
 {
-	"description": "Review-triage and implementer-triage relays, the transcript record, and the handoff switch.",
+	"description": "Review-triage and implementer-triage relays, the transcript record, and the reminder on an edit to text an agent follows.",
 	"hooks": {
 		"SubagentStop": [
 			{
@@ -39,12 +39,13 @@
 				]
 			}
 		],
-		"PostModelSwitch": [
+		"PreToolUse": [
 			{
+				"matcher": "^(Edit|Write)$",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/handoff-switch"
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/agent-text-audit"
 					}
 				]
 			}

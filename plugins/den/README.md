@@ -130,17 +130,15 @@ Hooks, registered while the plugin is enabled:
   instruction it made and item it left undone to you with a call on each; the
   route a send-back takes is yours whenever the round already needs your
   answer.
+- Agent-text audit: an edit or write to a file under a `skills`, `agents`,
+  `hooks` or `references` directory, or to a `SKILL.md` or `CLAUDE.md`, adds
+  one line to the session's context before the edit, saying to write it under
+  the `writing-for-agents` standard and to verify the change by running the
+  agent it steers. Every other path passes in silence, and no edit is ever
+  blocked.
 - Transcript record: each prompt you submit leaves the session's transcript
   path in a small file, once, so the `handoff-cost` reading can find the
   transcript it measures.
-- Handoff switch: when you answer `Switch model` on the Handoff question and
-  then run `/model`, the switch adds one line to the session's context saying
-  implementation starts now, inline; the line reaches the session with the
-  next prompt you send. It reads the answer off the transcript at the moment
-  of the switch, so a prompt you typed in between, or another question
-  answered since, leaves the switch silent, and so does a switch you did not
-  make yourself: a resume restoring the model, or an automatic one. A switch
-  you made while the answer stands is the go, whatever invoked it.
 
 No hook denies a tool call, reads your source, or changes a file in your
 project. Each adds text to the main session's context, or nothing.
@@ -151,12 +149,10 @@ The hooks are TypeScript and run with no build step. Claude Code starts them
 with `node`, so **Node 22.6 or newer** is the floor. They run under bun
 instead whenever `bun` is on `PATH`.
 
-Claude Code **2.1.251 or newer**: the handoff switch runs on the
-`PostModelSwitch` event that version added, and a fork of the session is the
-`subagent_type: "fork"` launch that 2.1.232 turned on by default in
-interactive sessions (print mode leaves it off). On an older build the switch
-never speaks and the Fork answer names a type that does not exist; everything
-else works.
+Claude Code **2.1.232 or newer**: a fork of the session is the
+`subagent_type: "fork"` launch that version turned on by default in
+interactive sessions (print mode leaves it off). On an older build the Fork
+answer names a type that does not exist; everything else works.
 
 A file named `.runtime` in the plugin's data directory forces the choice for
 this plugin. It holds one word, `bun` or `node`:
@@ -178,8 +174,8 @@ as the new files they would become; a range between two revisions does not.
 
 What the hooks read: the last half megabyte of the session's own transcript,
 on a model switch and when the `handoff-cost` reading runs, for the newest
-turn's size and the newest question you answered. Nothing in your project is
-opened.
+turn's size and the newest question you answered; and the path of the file an
+edit is about to change. Nothing in your project is opened.
 
 What the hooks write: one small JSON file per finished agent, under
 `claude-review-triage/` and `claude-implementer-triage/` in the OS temp
@@ -189,8 +185,8 @@ the session's subdirectory stays. And one file per session under
 `claude-den-session/` there, naming the transcript.
 
 What the hooks can do to a session: add one reminder per relay to the context
-of the next prompt you submit, and one line on a model switch that carries
-out a standing `Switch model` answer. Nothing is shown to you, and no tool
+of the next prompt you submit, and one line before an edit to a skill, an
+agent definition, a hook or a rules file. Nothing is shown to you, and no tool
 call is ever blocked.
 
 ## Installation

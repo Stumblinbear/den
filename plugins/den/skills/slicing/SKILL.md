@@ -59,6 +59,8 @@ carrying:
   it touches is once it lands, since a step cut around a method leaves the
   type around it as it was, and what that type has become is what the next
   step inherits;
+- every site a shape the step removes still has, in the layers the step
+  touches, since a removal that leaves one is the shape moved;
 - the existing code the step rests on, pasted in a fence whose info string
   is `lang path:from-to`, and the change sketched in a `diff` fence, since
   the reader judges a cut by the code it cuts, not by prose about it;
@@ -78,6 +80,8 @@ the next entry and each tag. A falsified assumption re-cuts the smallest
 remaining part it invalidated; a change to the goal or to a commitment that
 is expensive to undo re-plans the whole and goes to the person who decides
 it. A single step is a valid plan for a small change, and is stated as one.
+An entry is read against the defect the step exists to remove, since an
+entry that keeps the defect narrower is not a cut.
 
 ## Interrogate the first attempt
 

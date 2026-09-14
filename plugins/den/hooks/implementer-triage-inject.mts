@@ -13,7 +13,8 @@ import { hookInput } from "../lib/shared/hook-input.mts";
 
 // Names the lead skill's Implementer reports section, which carries
 // these rules in full: the reminder fires many turns after that skill was
-// loaded.
+// loaded. The one rule stated here rather than pointed at is the test that
+// decides which items reach the user, which is one clause long.
 function reminder(pending: readonly Flag[]): string {
 	const named = who(pending);
 
@@ -25,7 +26,8 @@ function reminder(pending: readonly Flag[]): string {
 		"answer, send back or defer call and its reasoning. What contradicts the",
 		"brief or instruction goes back at once, to the agent that made it or a",
 		"standing implementer, and on the route the user chooses where the round",
-		"carries a question.",
+		"carries a question, and each item is classed by whether a reader could",
+		"take it either way, not by its size.",
 	].join(" ");
 }
 
