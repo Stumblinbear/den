@@ -53,6 +53,18 @@ this session's own model of the code are hearsay: they go stale or lie, and a
 reason found in a comment is checked against the design as it stands before it
 is repeated.
 
+## The goal travels with the ask
+
+The goal, in the user's terms and not the ask restated, stands beside the
+task at the top of the plan, the brief, every fix brief and every launch
+that carries the ask, and each stage is read against it and not only
+against the stage before it: a brief for whether it reaches the goal, a fix
+for whether what it removes stood in the way. A goal that can only be
+written as the ask restated is one question to the user before anything is
+built, since every later stage is judged by it. A fix ask arrives past its
+diagnosis: it names the symptom it is for, and the symptom is what
+`den:diagnosing` takes.
+
 ## Diagnostics
 
 IDE and compiler diagnostics in a file an agent is editing are mid-edit
@@ -110,8 +122,8 @@ approval. Future plans constrain choices without expanding authorized scope.
 Implementation has no implicit deadline. Carry time constraints into briefs
 only when the user sets them. Weigh correctness, coherence and maintenance
 cost when assessing the work; extra implementation effort is not an unstated
-reason to accept a weaker solution. Distinguish the task's intended outcome
-from explicit scope fences so the brief leaves room for engineering judgment.
+reason to accept a weaker solution. Distinguish the task's goal from
+explicit scope fences so the brief leaves room for engineering judgment.
 
 ## Steps
 
@@ -199,10 +211,11 @@ did not declare.
 ## Review
 
 Every change gets a fresh review by `den:reviewer`, launched through the
-Agent tool on the diff range of the change. A fix round is closed by
-a fresh `den:closure-verifier` given the findings as the report worded them,
-the relevant design basis and the scope of the fixed tree, which reads each fix
-for what it opened as well as what it closed.
+Agent tool on the diff range of the change, with the goal and the path of
+the plan or brief. A fix round is closed by a fresh `den:closure-verifier`
+given the goal, the findings as the report worded them, the relevant design
+basis and the scope of the fixed tree, which reads each fix for what it
+opened as well as what it closed.
 
 Triage unresolved questions separately from findings: answer from
 existing evidence where possible, otherwise put the decision and its effect
@@ -242,6 +255,12 @@ verified by reading gets its test written first, through a normal product
 seam, with the red run in the report. A finding skipped or deferred takes
 its test out of the tree with it.
 
+A fix round is read against the goal and the rounds before it. Fixes
+landing in one unit while the findings name mechanisms elsewhere say the
+unit is compensating for something upstream: that is a restructure question
+to the user with the patch list, not another round. The signal is the
+cluster and not the count, since covering every scenario takes rounds.
+
 ## Commits
 
 Once a step's implementation and review have settled, a `den:comment-reviewer`
@@ -254,11 +273,14 @@ commit and wait for its own approval.
 A question is answered before anything else happens: no edit, no launch, no
 proposal in the message that carries the answer, since the answer is what was
 asked for and the action is theirs to choose. An instruction is taken at its
-literal scope, and the wider change it suggests is a proposal. Data asked for
-is given as it is. A term the user has not used is defined in the sentence
-that first uses it, because a name they cannot place is not information. A
-decision they have made is not raised again as a concern, and a finding about
-code the round removes is not relayed. A decision waiting on them is restated
+literal scope, and the wider change it suggests is a proposal. What the ask
+assumes, and what it is one way of reaching, is said in the same turn when
+it is not plain, since asking builds nothing and widens nothing. Data asked
+for is given as it is. A term the user has not used is defined in the
+sentence that first uses it, because a name they cannot place is not
+information. A decision they have made is reopened on an observation they
+did not have when they made it, and on nothing else; a finding about code
+the round removes is not relayed. A decision waiting on them is restated
 in full, with what is needed to answer it, in every message until it is
 answered. A durable record, a task or a note, holds the decision and the ask;
 the facts the code will state when the task is done are read then, since a
