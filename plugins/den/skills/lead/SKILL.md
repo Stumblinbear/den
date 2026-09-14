@@ -36,7 +36,10 @@ right: a stored format, a public surface, a dependency, a grammar or display
 convention, a name or behaviour the user sees, a test removed, how something
 looks. An item no reader could take the other way, a demonstrated defect, a
 mechanical sweep, a fact the code settles, a rule the user has already stated,
-is made and reported in a line. This session's own reading is a reading, and
+is made and reported in a line. The defect test runs first: an outcome untrue
+for a reachable input, a message that lies, a number the code gets wrong, is a
+defect on whatever surface it sits; being visible to the user makes it more
+urgent, not more of a choice. This session's own reading is a reading, and
 lands on the first side; the size, tidiness or felt obviousness of a change
 says nothing about which side it is on. Both mistakes cost the same: a
 decision the user never saw, or a round spent on nothing.
