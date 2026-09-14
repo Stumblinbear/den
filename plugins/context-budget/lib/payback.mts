@@ -3,6 +3,10 @@
 // priced at is the one term of the three that varies by model, so it comes in
 // from the price table rather than living here.
 //
+// The summary is two costs and not one: `SUMMARY_TOKENS` to generate it, once,
+// and `TYPICAL_CUT_FLOOR` to carry it, on every request after the cut. Only
+// the second is a term a deeper cut cannot shrink.
+//
 // A cut is a rewind at a prompt or a `/compact`, and the arithmetic cannot
 // tell them apart: both summarize a prefix away and write the rest back. All
 // that differs is where the line falls, which the caller knows and this file
@@ -38,27 +42,42 @@ export interface Cut {
 }
 
 /**
- * What `/compact` keeps in a session with no compaction of its own to measure:
- * the summary it writes and the recent exchanges it leaves under that. Claude
- * Code sizes that tail itself and says nothing about it beforehand, so this is
- * an estimate, and a reading that quotes it prints it as one.
+ * What a cut leaves behind however deep it cuts: the summary it writes, and
+ * whatever the session carries above the conversation itself, its project
+ * instructions and skill listings included. A rewind pays it as surely as
+ * `/compact` does, since both write a summary and both sit under the same
+ * preamble.
  *
- * It is allowed to be rough. At the context sizes the reading is asked for,
- * twice this tail moves the payback by a turn or two: 15K of 200K on the hour
- * comes back in 4 turns and 30K in 6.
+ * It does not scale with what was summarized. The size of a conversation
+ * before a compaction and the size it leaves behind are uncorrelated; what the
+ * floor tracks is the project, from around 12K where the preamble is light to
+ * around 34K where it is heavy. So a session's own last compaction is what
+ * predicts its next one, and this constant is for a session that has none.
  */
-export const TYPICAL_COMPACT_TAIL = 15_000;
+export const TYPICAL_CUT_FLOOR = 15_000;
 
 /**
- * The cut `/compact` makes: everything above the tail it keeps summarized
- * away, that tail written back in one piece, which is a cut at a line nobody
- * has to select. Clamped so that a context no larger than the tail summarizes
- * nothing away, and so never pays back.
+ * The cut that keeps `verbatimTokens` of the conversation: everything above
+ * that stretch summarized away, the stretch and the floor written back in one
+ * piece. `/compact` is the same cut with no stretch of its own, since the tail
+ * it keeps is inside the floor measured from it.
+ *
+ * A cut deep enough to leave more than the context already holds summarizes
+ * nothing away, so there is no saving in it and `paybackRequests` returns
+ * null. Its `keptTokens` still says what it would leave, which is what tells
+ * the reading it is a cut not worth offering.
  */
-export function compactCut(contextTokens: number, tailTokens: number): Cut {
-	const keptTokens = Math.min(tailTokens, contextTokens);
+export function cutKeeping(
+	contextTokens: number,
+	floorTokens: number,
+	verbatimTokens: number,
+): Cut {
+	const keptTokens = floorTokens + verbatimTokens;
 
-	return { prefixTokens: contextTokens - keptTokens, keptTokens };
+	return {
+		prefixTokens: Math.max(0, contextTokens - keptTokens),
+		keptTokens,
+	};
 }
 
 /**

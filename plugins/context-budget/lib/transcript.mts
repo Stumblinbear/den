@@ -108,6 +108,22 @@ export function cacheLifetime(usage: unknown): CacheTtl | null {
 }
 
 /**
+ * Why the model stopped, of the two answers that matter: a turn waiting on a
+ * tool call or asked to carry on has not ended, and every other answer, an
+ * absent one included, is a turn that has. Absent counts as ended because a
+ * transcript that records no reason gives no grounds to call a turn unfinished.
+ */
+const RUNNING: ReadonlySet<unknown> = new Set(["tool_use", "pause_turn"]);
+
+/**
+ * Whether this assistant turn finished its reply. The newest turn of a
+ * transcript answers whether the session is mid-reply, which is what tells the
+ * cache scan that the prompt above it is still being answered.
+ */
+export const turnEnded = (entry: Record<string, unknown>): boolean =>
+	!RUNNING.has(fieldsOf(entry["message"])["stop_reason"]);
+
+/**
  * The lifetime an entry's request wrote the cache under, and null for an
  * entry that wrote nothing: one that is not an assistant turn, a request that
  * failed before the model saw it, or one served entirely from a warm cache.

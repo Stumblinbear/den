@@ -32,6 +32,7 @@ import {
 	isCompaction,
 	LONGEST_LIFETIME_MS,
 	lifetimeMs,
+	turnEnded,
 	turnModel,
 	turnUsage,
 } from "./transcript.mts";
@@ -77,8 +78,14 @@ export interface CacheWindow {
 	 * once it has met the turn that priced it.
 	 */
 	readonly contextTokens: number | null;
-	/** The picker-eligible prompts whose prefix is still cached, oldest first. */
+	/**
+	 * The picker-eligible prompts whose prefix is still cached, oldest first,
+	 * without the one a running reply is answering: a cut there is the turn in
+	 * progress and `/compact`, which the reading prices as its own row.
+	 */
 	readonly prompts: readonly CachedPrompt[];
+	/** Whether the newest prompt was left out of `prompts` for that reason. */
+	readonly answering: boolean;
 	readonly above: Above;
 	/** When the scan was taken, which is what every expiry is judged against. */
 	readonly at: Date;
@@ -110,6 +117,12 @@ interface Walk {
 	readonly warm: Settled[];
 	/** True once a prompt the walk met was found already cold. */
 	colder: boolean;
+	/** True once the walk is past the newest prompt of the transcript. */
+	metPrompt: boolean;
+	/** True where the newest turn had not ended, so a reply is still running. */
+	turnRunning: boolean;
+	/** True once the newest prompt was left out for its reply still running. */
+	answering: boolean;
 	readonly boundary: BoundaryReader;
 	/** True once the walk is past a compaction, and reading its boundary. */
 	preserved: boolean;
@@ -133,6 +146,9 @@ export function scanCacheWindow(path: string, now = Date.now()): CacheWindow {
 		pending: [],
 		warm: [],
 		colder: false,
+		metPrompt: false,
+		turnRunning: false,
+		answering: false,
 		boundary: boundaryReader(),
 		preserved: false,
 	};
@@ -178,10 +194,24 @@ function belowBoundary(
 		return false;
 	}
 
+	// The newest prompt of a transcript whose reply is still running is the one
+	// being answered right now, which is how the scan meets it: the cut-point
+	// script runs from inside that reply. A rewind there discards the reply
+	// that recommended it and keeps whatever it has spent so far, which is
+	// `/compact` with the turn in progress stapled on.
+	const newest = !walk.metPrompt;
+
+	walk.metPrompt = true;
+
+	if (newest && walk.turnRunning) {
+		walk.answering = true;
+
+		return false;
+	}
+
 	// A prompt with no turn yet to answer it: walking backward, `context` is
-	// still null for exactly those. Its prefix is the whole current context,
-	// so a cut there keeps nothing verbatim (`/compact` by another name), and
-	// listing it would displace the newest prompt that is a cut point.
+	// still null for exactly those, and a prefix the walk cannot size prices
+	// nothing.
 	if (walk.context === null) {
 		return false;
 	}
@@ -225,6 +255,7 @@ function tookTurn(
 	if (walk.context === null) {
 		walk.context = prefixTokens;
 		walk.model = turnModel(entry);
+		walk.turnRunning = !turnEnded(entry);
 	}
 
 	for (const prompt of walk.unresolved) {
@@ -304,6 +335,7 @@ function ended(walk: Walk, now: number): CacheWindow {
 				(context ?? prompt.prefixTokens) - prompt.prefixTokens,
 			),
 		})),
+		answering: walk.answering,
 		above: endedAbove(walk, compaction),
 		at: new Date(now),
 	};

@@ -45,6 +45,12 @@ export interface TurnOptions {
 	readonly text?: string;
 	/** What it called, which the watcher reads for a landing point. */
 	readonly calls?: readonly ToolCall[];
+	/**
+	 * True for a turn that has not ended, which is what the newest turn of a
+	 * transcript read mid-reply looks like: the model stopped to call a tool
+	 * and the reply carries on after it.
+	 */
+	readonly running?: boolean;
 }
 
 /**
@@ -60,6 +66,7 @@ export const assistant = (
 		uuid = `assistant-${seq++}`,
 		text = "",
 		calls = [],
+		running = false,
 	}: TurnOptions = {},
 ): string =>
 	JSON.stringify({
@@ -69,6 +76,7 @@ export const assistant = (
 		uuid,
 		message: {
 			model,
+			stop_reason: running ? "tool_use" : "end_turn",
 			content: [
 				...(text === "" ? [] : [{ type: "text", text }]),
 				...calls.map((call) => ({

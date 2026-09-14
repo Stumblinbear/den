@@ -6,134 +6,142 @@
 // reach it. Getting the user file wrong must cost the session nothing but the
 // accuracy of one number: it is dropped whole, the shipped rates stand, and
 // nothing is said about it.
+//
+// What a rate does to a payback is `payback.test.mts`, and which rate a
+// transcript is priced at is `reading.test.mts`.
 import assert from "node:assert/strict";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
-import { runtimes } from "../../../tests/harness.mts";
-import { assistant, at, prompt } from "./fixtures.mts";
-import { recorder, sessionId, transcript } from "./harness.mts";
-import { pricingOverride, reading, scriptRunner } from "./script-runs.mts";
+import { fixtureDir } from "../../../tests/harness.mts";
+import { loadPricing, readMultiplier } from "../lib/pricing.mts";
+import { PLUGIN } from "./harness.mts";
 
-/**
- * The same nine turns the payback cases are read against, so the figures here
- * are the shipped ones moving and nothing else.
- */
-const paybackTranscript = (model: string): string =>
-	transcript(
-		assistant(80_000, { minutesAgo: 200, model }),
-		prompt("The prompt from before lunch", at(190)),
-		assistant(110_000, { minutesAgo: 41, model }),
-		prompt("Read the brief and start on the scanner", at(40)),
-		assistant(120_000, { minutesAgo: 39, model }),
-		assistant(140_000, { minutesAgo: 38, model }),
-		assistant(160_000, { minutesAgo: 37, model }),
-		prompt("Now add the skill that takes a fresh reading", at(36)),
-		assistant(180_000, { minutesAgo: 35, model }),
-		assistant(190_000, { minutesAgo: 34, model }),
-		assistant(195_000, { minutesAgo: 33, model }),
-		assistant(198_000, { minutesAgo: 32, model }),
-		assistant(200_000, { minutesAgo: 31, model }),
-	);
+const SHIPPED = join(PLUGIN, "lib", "pricing.toml");
 
-for (const runtime of runtimes()) {
-	const script = scriptRunner(runtime);
-	const measure = recorder(runtime);
-	const name = (what: string) => `${runtime}: ${what}`;
+let seq = 0;
 
-	/** A session whose record points at `path`, as a measured session's does. */
-	const measured = (path: string): string => {
-		const session = sessionId(runtime);
+/** A user file beside the shipped one, as `~/.claude/plugins/data` holds. */
+function override(toml: string): string {
+	seq += 1;
 
-		measure(session, path);
+	const path = join(fixtureDir("pricing"), `override-${seq}.toml`);
 
-		return session;
-	};
+	writeFileSync(path, toml);
 
-	test(
-		name("a user price table replaces the rate the payback is figured at"),
-		() => {
-			// A table that halves what the model is said to charge for a cached
-			// read. Half the saving per turn is nearly twice as long before the
-			// write back has been earned: 19 turns becomes 37 and 7 becomes 14.
-			const out = reading(
-				script(
-					measured(paybackTranscript("claude-opus-5")),
-					[],
-					pricingOverride("default = 0.05\n"),
-				),
-			);
-
-			assert.match(out, /keeps 90K, pays back after 37 requests/);
-			assert.match(out, /keeps 40K, pays back after 14 requests/);
-		},
-	);
-
-	test(name("a row the shipped table has no key for is tried after it"), () => {
-		// `'claude-'` matches every id there is, Fable's included, so where it is
-		// tried decides both readings. A key the shipped file does not have goes
-		// behind the shipped rows, where it prices Opus and leaves Fable on the
-		// row that was written for it. In front of them it would quietly take
-		// that exception away.
-		const over = pricingOverride("[models]\n'claude-' = 0.5\n");
-		const opus = measured(paybackTranscript("claude-opus-5"));
-		const fable = measured(paybackTranscript("claude-fable-5-1"));
-
-		assert.match(
-			reading(script(opus, [], over)),
-			/keeps 90K, pays back after 4 requests/,
-			"no shipped row matches Opus, so the added one does",
-		);
-		assert.match(
-			reading(script(fable, [], over)),
-			/keeps 90K, pays back after 73 requests/,
-			"the shipped `fable` row is tried first and still wins",
-		);
-	});
-
-	test(name("a price the API cannot charge is dropped whole"), () => {
-		// 5 would price a cached token at five fresh ones and read as a cut
-		// paying for itself in a turn or two. The file goes and the reading stays,
-		// at the rates the plugin ships and the figures the payback cases assert.
-		assert.match(
-			reading(
-				script(
-					measured(paybackTranscript("claude-opus-5")),
-					[],
-					pricingOverride("default = 5\n"),
-				),
-			),
-			/keeps 90K, pays back after 19 requests/,
-		);
-	});
-
-	test(
-		name("a transcript that names no model takes the table's default"),
-		() => {
-			// An empty model id is not a model a row can be written for: it is a
-			// transcript that says nothing about what it was sent to. A row keyed
-			// to match anything ('.*', '^', '') would otherwise take an empty id
-			// as a match and price the reading at a rate the opening line then
-			// calls the default.
-			const out = reading(
-				script(
-					"",
-					[
-						"--transcript",
-						transcript(
-							assistant(110_000, { minutesAgo: 41, model: "" }),
-							prompt("Read the brief and start on the scanner", at(40)),
-							prompt("Now add the skill that takes a fresh reading", at(36)),
-							assistant(200_000, { minutesAgo: 35, model: "" }),
-						),
-					],
-					pricingOverride("[models]\n'.*' = 0.5\n"),
-				),
-			);
-
-			assert.match(
-				out,
-				/Prompt cache, read at \d\d:\d\d \(1h lifetime, payback at the default 0\.1x cache read\)\./,
-			);
-			assert.match(out, /keeps 90K, pays back after 19 requests/);
-		},
-	);
+	return path;
 }
+
+/** The merged table, from the shipped rates and an optional user file. */
+const table = (overrides: string | null = null) =>
+	loadPricing({ shipped: SHIPPED, overrides });
+
+test("the shipped table prices every tier but Fable at the same rate", async () => {
+	const pricing = await table();
+
+	assert.equal(readMultiplier(pricing, "claude-opus-5"), 0.1);
+	assert.equal(readMultiplier(pricing, "claude-haiku-4-5-20251001"), 0.1);
+	assert.equal(
+		readMultiplier(pricing, "claude-fable-5-1"),
+		0.025,
+		"the one tier with a row of its own",
+	);
+});
+
+test("a user file replaces the default the rest of the models take", async () => {
+	const pricing = await table(override("default = 0.05\n"));
+
+	assert.equal(readMultiplier(pricing, "claude-opus-5"), 0.05);
+	assert.equal(
+		readMultiplier(pricing, "claude-fable-5-1"),
+		0.025,
+		"a file correcting the default says nothing about a row",
+	);
+});
+
+test("a row with a key the shipped table lacks is tried after every shipped row", async () => {
+	// `'claude-'` matches every id there is, Fable's included, so where it is
+	// tried decides both answers. Behind the shipped rows it prices Opus and
+	// leaves Fable on the row written for it; in front of them it would quietly
+	// take that exception away.
+	const pricing = await table(override("[models]\n'claude-' = 0.5\n"));
+
+	assert.equal(
+		readMultiplier(pricing, "claude-opus-5"),
+		0.5,
+		"no shipped row matches Opus, so the added one does",
+	);
+	assert.equal(
+		readMultiplier(pricing, "claude-fable-5-1"),
+		0.025,
+		"the shipped `fable` row is tried first and still wins",
+	);
+});
+
+test("a row whose key matches a shipped one replaces it where it stands", async () => {
+	const pricing = await table(override("[models]\n'fable' = 0.4\n"));
+
+	assert.equal(readMultiplier(pricing, "claude-fable-5-1"), 0.4);
+	assert.equal(readMultiplier(pricing, "claude-opus-5"), 0.1);
+});
+
+test("a price the API cannot charge drops the whole user file", async () => {
+	// 5 would price a cached token at five fresh ones, and a cut would read as
+	// paying for itself in a turn or two. Half a price list is not a price list
+	// anybody wrote, so the file goes and the shipped rates stand.
+	for (const bad of ["default = 5\n", "default = 0\n", "default = -1\n"]) {
+		assert.equal(
+			readMultiplier(await table(override(bad)), "claude-opus-5"),
+			0.1,
+			bad,
+		);
+	}
+});
+
+test("a user row that will not compile drops the whole file too", async () => {
+	const pricing = await table(override("[models]\n'(' = 0.5\n"));
+
+	assert.equal(readMultiplier(pricing, "claude-opus-5"), 0.1);
+});
+
+test("a user file that is not there costs the reading nothing", async () => {
+	const missing = join(fixtureDir("no-pricing"), "never-written.toml");
+
+	assert.equal(readMultiplier(await table(missing), "claude-opus-5"), 0.1);
+});
+
+test("an empty model id takes the default, never a row that matches anything", async () => {
+	// An empty id is not a model a row can be written for: it is a transcript
+	// saying nothing about what it was sent to. A row keyed to match anything
+	// would otherwise take it as a match and price the reading at a rate the
+	// opening line then calls the default.
+	const pricing = await table(override("[models]\n'.*' = 0.5\n"));
+
+	assert.equal(
+		readMultiplier(pricing, ""),
+		0.1,
+		"the catch-all row is there and an empty id still does not match it",
+	);
+	assert.equal(
+		readMultiplier(pricing, "claude-opus-5"),
+		0.5,
+		"a real id does, which is what makes the empty one a refusal, not a miss",
+	);
+});
+
+test("there is no table where there is no shipped file to read", async () => {
+	assert.equal(await loadPricing({ shipped: null, overrides: null }), null);
+	assert.equal(
+		await loadPricing({
+			shipped: join(fixtureDir("no-pricing"), "absent.toml"),
+			overrides: null,
+		}),
+		null,
+		"and none where the shipped file cannot be read",
+	);
+	assert.equal(
+		readMultiplier(null, "claude-opus-5"),
+		null,
+		"which is what makes a reading fall back to the default rate",
+	);
+});

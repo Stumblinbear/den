@@ -34,6 +34,26 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - The example's Fable row moves to notice 300K and urgent 500K, from 400K
   and 700K: on that count a compaction at 300K pays back in about 19
   requests, a turn or two of agent work.
+- The `cut-point` skill takes `/compact` wherever the arc admits it, and a
+  rewind only where the arc rules `/compact` out; price then decides between
+  that cut and carrying on. Every cut is priced over the same floor now, so
+  `/compact` always pays back soonest, and choosing the lowest payback always
+  chose it.
+
+### Fixed
+
+- Every row of the cut-point reading counts what a cut leaves behind. A rewind
+  row priced only the stretch below its prompt, so a rewind at the newest
+  prompt read as paying back far sooner than the `/compact` it very nearly is.
+  Every cut, `/compact` included, is now priced over one floor: what this
+  session's last compaction left behind, or a typical 15K where there has been
+  none or the only boundary came from the rewind picker, and the reading says
+  which.
+- The prompt a running reply is answering is left off the cut points. The
+  `cut-point` skill runs inside that reply, so a rewind there throws away the
+  reply that recommended it, and the reading listed it as the cheapest rewind
+  every time. A transcript whose last reply has finished still lists its
+  newest prompt.
 
 ## [0.5.0] - 2026-09-12
 
