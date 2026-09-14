@@ -25,9 +25,9 @@ defect is verified by reading and give the check in words.
 
 One entry per finding, opened by one line:
 
-`[P1] Imperative finding title | path/to/file.mjs:line`
-`[quality] Imperative finding title | path/to/file.mjs:line`
-`[decision] Imperative finding title | path/to/file.mjs:line`
+`[P1] cache-path | Imperative finding title | path/to/file.mjs:line | haiku`
+`[quality] flag-name | Imperative finding title | path/to/file.mjs:line | opus`
+`[decision] stored-format | Imperative finding title | path/to/file.mjs:line | opus`
 
 A defect carries a priority: P0 release blocker or critical failure, P1
 urgent defect, P2 ordinary defect, P3 low-impact defect still worth fixing.
@@ -37,6 +37,10 @@ stored format, a public surface, a dependency, a grammar or convention,
 behaviour the user sees, stated with what it decided, the plainer route, and
 what the choice costs; it is a finding whatever the diff's size.
 
+Each finding carries a short id of your own, unique in the report, since a
+ruling comes back under it, and the tier that can fix it: `haiku` when the
+repair and the test fully specify the fix, `opus` otherwise.
+
 Cite the smallest range that shows the problem. Follow with one short
 paragraph: the affected scenario and why it is wrong. Then, for a defect,
 the test's path and the red run's output, or the discriminating check in
@@ -44,5 +48,7 @@ words where no test was written; and the repair if you have one. Mark
 `pre-existing` what the change did not introduce.
 
 Then list what you examined and cleared, so silence is known to be covered.
-If there are no findings, say `No findings.` Keep unresolved questions, and
-what an answer would change, separate from findings.
+If there are no findings, say `No findings.` Keep unresolved questions
+separate from findings, each under its own id, with what an answer would
+change and whether the answer would change the code, since only a question
+that would change the code holds the fix round.
