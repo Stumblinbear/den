@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 
 export interface AgentOptions {
 	readonly agentType: string;
+	readonly model?: string;
 	readonly schema?: {
 		readonly required: readonly string[];
 		readonly properties: Record<string, unknown>;
@@ -22,7 +23,7 @@ type Workflow = (
 ) => Promise<unknown>;
 
 export function runWorkflow(
-	name: "design-exploration",
+	name: "design-exploration" | "implement",
 	args: unknown,
 	agent: Agent,
 ): Promise<unknown> {
