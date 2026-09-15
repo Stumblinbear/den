@@ -24,11 +24,19 @@ function reminder(pending: readonly Flag[]): string {
 		"rules: every declared choice, question back, deviation from the brief or",
 		"instruction and left-undone item reaches the user with your accept,",
 		"answer, send back or defer call and its reason, read against the task's",
-		"goal, one paragraph an item. What contradicts the",
+		"goal, one paragraph an item. A fixer inside a `den:review-and-fix` run",
+		"reports into the run: the Opus fixer's questions come back at the `fix`",
+		"stop, a haiku fixer's go to the Opus fixer, and contested findings come",
+		"back at the `contested` stop, each answered under its id,",
+		"and the rest reach you in `carried` on the run's next return, stopped or",
+		"final, triaged before any relaunch, which drops it; a send-back goes to a",
+		"standing implementer after the run returns, since the fixer cannot be",
+		"resumed. From an",
+		"implementer or fork launched through the Agent tool, what contradicts the",
 		"brief or instruction goes back at once, to the agent that made it or a",
-		"standing implementer, and on the route the user chooses where the round",
-		"carries a question, and each item is classed by whether a reader could",
-		"take it either way, not by its size.",
+		"standing implementer, on the route the user chooses where the round",
+		"carries a question. Each item is classed by whether a reader could take",
+		"it either way, not by its size.",
 	].join(" ");
 }
 

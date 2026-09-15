@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'review-and-fix',
+  name: 'review-and-fix-workflow',
   description: 'The working tree from review to clean: review, fix rounds, closure, comment; stops on a decision',
   phases: [
     { title: 'Review' },
@@ -13,7 +13,7 @@ const input = args && typeof args === 'object' && !Array.isArray(args) ? args : 
 const { goal, plan, basis, rulings, reviewer, fixRounds, answers } = input
 
 if (typeof goal !== 'string' || goal.trim() === '') {
-  throw new Error('review-and-fix takes `goal`, what the change is for in the user\'s terms, as nonempty text')
+  throw new Error('review-and-fix-workflow takes `goal`, what the change is for in the user\'s terms, as nonempty text')
 }
 if (plan !== undefined && (typeof plan !== 'string' || plan.trim() === '')) {
   throw new Error('`plan` is the path of the plan the change belongs to')
@@ -39,7 +39,7 @@ if (answers !== undefined && (typeof answers !== 'object' || answers === null ||
 // A relaunch repeats these arguments with the answers appended, so a key from
 // outside this list is a misspelling of one in it.
 if (Object.keys(input).some((key) => !['goal', 'plan', 'basis', 'rulings', 'reviewer', 'fixRounds', 'answers'].includes(key))) {
-  throw new Error('review-and-fix takes `goal`, `plan`, `basis`, `rulings`, `reviewer`, `fixRounds` and `answers` and nothing else')
+  throw new Error('review-and-fix-workflow takes `goal`, `plan`, `basis`, `rulings`, `reviewer`, `fixRounds` and `answers` and nothing else')
 }
 
 const QUESTION = {
@@ -174,12 +174,14 @@ const CLOSURE = {
       items: {
         type: 'object',
         properties: {
-          id: { type: 'string', description: 'a short slug for this item, used by no other item in your report; the instruction comes back under it' },
+          id: { type: 'string', description: 'a short slug for this item, used by no other item in your report; a ruling comes back under it' },
           units: { type: 'string', description: 'the unit the fixes landed in' },
+          path: { type: 'string', description: 'the file that unit is in' },
+          line: { type: 'integer', description: 'the first line of that unit' },
           mechanisms: { type: 'string', description: 'the mechanisms the findings name' },
           patches: { type: 'string', description: 'the patches so far, round by round' },
         },
-        required: ['id', 'units', 'mechanisms', 'patches'],
+        required: ['id', 'units', 'path', 'line', 'mechanisms', 'patches'],
       },
     },
   },
@@ -208,7 +210,7 @@ function reviewScope(goal, plan) {
 // that reader does with it.
 const ANSWERED = 'Questions answered earlier in this run, each under the id its asker gave it:'
 
-function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions, restructureAnswers) {
+function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions) {
   const parts = [`Goal: ${goal}`]
 
   if (findings.length) {
@@ -219,7 +221,9 @@ them, the repair and the lead's instruction, which settles what the fix does.`,
       JSON.stringify(findings, null, 2),
       `A finding whose evidence is a failing test is fixed when that test
 passes. A finding the reviewer verified by reading gets its test first, red
-before the fix, with the red run in your report.`,
+before the fix, with the red run in your report.${findings.some((finding) => finding.kind === 'restructure') ? ` A finding of kind \`restructure\` carries
+the closure verifier's evidence and, where it has one, the lead's instruction,
+and takes no red test: the next closure pass judges it.` : ''}`,
     )
   }
   if (removal.length) {
@@ -247,13 +251,6 @@ the lead's.`)
       `An answer settles its question for the whole run, so where one bears on a
 finding you were given it decides how that finding is fixed. ${ANSWERED}`,
       JSON.stringify(answeredQuestions, null, 2),
-    )
-  }
-  if (restructureAnswers.length) {
-    parts.push(
-      `The closure verifier found the place another round would patch again. What
-the lead says this round runs under:`,
-      ...restructureAnswers,
     )
   }
 
@@ -576,9 +573,10 @@ function roundRecord(round, findings, removed) {
   return entry
 }
 
-// A ruling of skip drops the finding, leaving its test to come out of the tree,
-// and a ruling of fix sends it back to a fixer under its own id with the lead's
-// instruction, which is what that fixer runs the finding by.
+// Returns the findings ruled fix, each under its own id with the lead's
+// instruction where the ruling gives one, and queues each finding ruled skip in
+// `removal` for a fixer to take its test out of the tree. A restructure finding
+// has no test in the tree, so a ruling of skip drops it without queueing it.
 function rule(findings, ruling) {
   const fix = []
 
@@ -586,13 +584,40 @@ function rule(findings, ruling) {
     const answer = ruling[finding.id]
 
     if (answer.action === 'skip') {
-      removal.push(finding)
+      if (finding.kind !== 'restructure') {
+        removal.push(finding)
+      }
     } else {
       fix.push(answer.instruction === undefined ? finding : { ...finding, instruction: answer.instruction })
     }
   }
 
   return fix
+}
+
+// Returns a finding of kind `restructure` for each item the lead ruled fix,
+// under the item's id and with the ruling's instruction where it gives one, for
+// a fixer to do and the next closure pass to judge. An item ruled skip is
+// dropped, and nothing comes out of the tree for it.
+function ruleRestructures(items, ruling) {
+  return items
+    .filter((item) => ruling[item.id].action === 'fix')
+    .map((item) => {
+      const finding = {
+        id: item.id,
+        kind: 'restructure',
+        title: 'Restructure the unit the fixes keep landing in',
+        path: item.path,
+        line: item.line,
+        evidence: `The fixes land in ${item.units}, while the findings name ${item.mechanisms}. The patches so far: ${item.patches}`,
+        // Haiku takes a fix its repair and test spell out, and a restructure
+        // carries neither.
+        tier: 'opus',
+      }
+      const { instruction } = ruling[item.id]
+
+      return instruction === undefined ? finding : { ...finding, instruction }
+    })
 }
 
 // A finding that moves up a tier is one the reviewer or the round tiered wrong,
@@ -675,12 +700,11 @@ open = [...open, ...rule(decided, ruling)]
 
 let allowed = fixRounds
 let round = 0
-let restructureAnswers = []
 
 while (open.length || removal.length) {
   if (round === allowed) {
     const cap = { id: 'fix-rounds' }
-    const more = stop('fixRounds', [cap], [], { round })
+    const more = stop('fixRounds', [cap], [], { fixRounds: [cap], round })
     if (more.bail) {
       return more.bail
     }
@@ -710,7 +734,7 @@ while (open.length || removal.length) {
   if (haiku.length || (removal.length && !opus.length)) {
     const stage = `fix:${round}:haiku`
     const given = [...haiku, ...removal]
-    const report = await agent(fixBrief(goal, haiku, removal, plan, rulings, answeredQuestions, restructureAnswers), {
+    const report = await agent(fixBrief(goal, haiku, removal, plan, rulings, answeredQuestions), {
       label: stage,
       phase: 'Fix',
       agentType: 'den:implementer-haiku',
@@ -728,7 +752,7 @@ while (open.length || removal.length) {
   }
 
   if (opus.length || removal.length) {
-    const brief = fixBrief(goal, opus, removal, plan, rulings, answeredQuestions, restructureAnswers)
+    const brief = fixBrief(goal, opus, removal, plan, rulings, answeredQuestions)
     const given = [...opus, ...removal]
     const thread = []
     let stage = `fix:${round}:opus`
@@ -761,10 +785,6 @@ while (open.length || removal.length) {
     removal = []
     contest(contested, report.contested, given)
   }
-
-  // The lead's restructure answers were given for the round these fixers just
-  // ran, so no later round reads them.
-  restructureAnswers = []
 
   let deferred = []
   if (contested.length) {
@@ -853,8 +873,11 @@ while (open.length || removal.length) {
     if (ruled.bail) {
       return ruled.bail
     }
-    for (const item of closure.restructure) {
-      checkText(item.id, ruled.answers[item.id])
+    // No fixer has edited the tree for a restructure item or an opened decision,
+    // so each is ruled on as the reviewer's decision findings are, with the
+    // instruction optional.
+    for (const finding of [...closure.restructure, ...openedDecisions]) {
+      checkRuling(finding.id, ruled.answers[finding.id])
     }
     // Every finding the round had open went to a fixer, so an undecided one is
     // ruled on with the fix already in the tree for it.
@@ -863,13 +886,11 @@ while (open.length || removal.length) {
       checkBlocked(finding.id, ruled.answers[finding.id])
       checkEdited(finding.id, ruled.answers[finding.id])
     }
-    // A decision the verifier opened has been to no fixer, so it is ruled on as
-    // the reviewer's decision findings are, with the instruction optional.
-    for (const finding of openedDecisions) {
-      checkRuling(finding.id, ruled.answers[finding.id])
-    }
-    restructureAnswers = closure.restructure.map((item) => ruled.answers[item.id])
-    open = [...open, ...rule([...undecided, ...openedDecisions], ruled.answers)]
+    open = [
+      ...open,
+      ...ruleRestructures(closure.restructure, ruled.answers),
+      ...rule([...undecided, ...openedDecisions], ruled.answers),
+    ]
   }
 }
 

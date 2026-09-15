@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'design-exploration',
+  name: 'design-exploration-workflow',
   description: 'Three blind explorers propose against one design basis; a judge assesses suitability; the user chooses',
   phases: [
     { title: 'Explore', detail: 'three explorers, three angles, none sees another' },
@@ -14,7 +14,7 @@ const ask = args && typeof args === 'object' && !Array.isArray(args) ? args.ask 
 const decisions = args && typeof args === 'object' && !Array.isArray(args) ? args.decisions : undefined
 const basis = args && typeof args === 'object' && !Array.isArray(args) ? args.basis : undefined
 if (typeof ask !== 'string' || ask.trim() === '' || ask.length > 6000) {
-  throw new Error('design-exploration takes `ask`, the change to decompose, under 6000 characters')
+  throw new Error('design-exploration-workflow takes `ask`, the change to decompose, under 6000 characters')
 }
 if (decisions !== undefined && (typeof decisions !== 'string' || decisions.length > 6000)) {
   throw new Error('`decisions` is the settled scoping decisions as text, under 6000 characters')
@@ -23,7 +23,7 @@ if (typeof basis !== 'string' || basis.trim() === '' || basis.length > 6000) {
   throw new Error('`basis` is the design basis as nonempty text, at most 6000 characters')
 }
 if (Object.keys(args).some((key) => !['ask', 'decisions', 'basis'].includes(key))) {
-  throw new Error('design-exploration takes `ask`, `decisions` and `basis` and nothing else')
+  throw new Error('design-exploration-workflow takes `ask`, `decisions` and `basis` and nothing else')
 }
 
 const DESIGN = {

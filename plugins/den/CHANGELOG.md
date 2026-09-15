@@ -24,9 +24,17 @@ minor bump may change behavior.
 - `code-architecture` preloaded by the opus and fable implementers, since a
   skill that must hold every time is not left to the agent's choice to invoke
   it.
+- A `review-and-fix` skill and workflow that take the working tree from
+  review to clean and stop only for a decision.
 
 ### Changed
 
+- The `lead` skill reviews every change through `review-and-fix`.
+- A `slicing` plan states its goal on a `Goal:` line, which `plan-page`
+  picks out.
+- The workflows are named `design-exploration-workflow` and
+  `review-and-fix-workflow`, since a skill that shares a workflow's name
+  never loads.
 - A quick change the lead would have made by hand goes to a fork instead,
   without a route question, since a fork spawn reads this context from cache
   and keeps the file reads and the edit output out of it.

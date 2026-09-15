@@ -46,10 +46,11 @@ uses it; a red test as its own step when the fix is the risky part.
 One markdown file, read by the person who decides it before any code
 exists and by each step's implementer after, so it shows the code a step
 rests on rather than describing it. `# Title`, a date line, then one
-screen: a paragraph of problem and goal, a `Not doing:` line, a
-`Constraints:` line, and one sentence on why the steps are in this order.
-Under `## How the pieces call each other`, a text fence naming each piece
-with its file and step.
+screen: a paragraph of the problem, a `Goal:` line with what the change is
+for in the user's terms, which each step's brief and review launch quote
+rather than paraphrase, a `Not doing:` line, a `Constraints:` line, and
+one sentence on why the steps are in this order. Under `## How the pieces
+call each other`, a text fence naming each piece with its file and step.
 
 Then one `## Step N: title [pending]` per step, the tag one of `committed`,
 `in progress` and `pending` and the step's whole record of state, each

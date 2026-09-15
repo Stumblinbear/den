@@ -33,8 +33,9 @@ the fixes opened is. Read this round's fixes with the rounds before them,
 since the rounds show what one round cannot: the place another round would
 patch again. That place is the finding, whatever edge of it this round
 reached. Report it once as the restructure item, under an id of your own,
-with where the fixes land, the mechanisms the findings name and the patch
-list across the rounds, and leave the item empty otherwise.
+with the unit the fixes land in and that unit's path and first line, the
+mechanisms the findings name and the patch list across the rounds, and leave
+the item empty otherwise.
 
 The description of a fix is not evidence. Read the cited code and call
 paths, then read what the fix touched for what it opened: a finding half closed,

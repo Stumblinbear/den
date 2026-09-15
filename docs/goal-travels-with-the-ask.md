@@ -4,7 +4,7 @@ Status: accepted 2026-09-14, with three changes to the workflow part: the
 reviewer is given the goal, the restructure observation is its own item in
 the closure report rather than a NEEDS-DECISION verdict, and the closure
 verifier is shown the rounds before it. The workflow part lands in the
-review-and-fix workflow's fix-loop step; the lead-skill text is drafted and
+`review-and-fix-workflow` fix-loop step; the lead-skill text is drafted and
 lands in the step that routes the lead through that workflow. The plan is
 the review-and-fix plan of the same date.
 
@@ -98,7 +98,7 @@ line 113 renamed to "goal" so the concept has one word, and the closure
 launch at line 203 carrying the goal. The closure-verifier definition gains
 the goal in its launch prompt and judges the round against it.
 
-## For the fix loop in the review-and-fix workflow
+## For the fix loop in `review-and-fix-workflow`
 
 The workflow was recut the day this was accepted: the implementer runs
 through the Agent tool and the workflow starts at the review, so it runs

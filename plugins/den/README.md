@@ -29,12 +29,17 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   consequential choices: up to five questions, or as many as it takes when
   you ask for the pass. That limit applies only to task scoping; project
   discovery is unbounded. Unanswered decisions remain open.
-- `design-exploration`: runs the design-exploration workflow before a brief is
-  written for a change that adds a module, a persisted format, a public
-  surface or a new mechanism: three explorers propose decompositions against
-  the code and the task's design basis. A judge compares suitable proposals,
-  or reports missing input or no suitable proposal, and you choose. The script
-  ships under `workflows/`.
+- `design-exploration`: runs the `design-exploration-workflow` workflow
+  before a brief is written for a change that adds a module, a persisted
+  format, a public surface or a new mechanism: three explorers propose
+  decompositions against the code and the task's design basis. A judge
+  compares suitable proposals, or reports missing input or no suitable
+  proposal, and you choose. The script ships under `workflows/`.
+- `review-and-fix`: runs the `review-and-fix-workflow` workflow on the
+  working tree: a review against the task's goal, fix rounds each closed by a
+  fresh verifier, and a comment pass. It edits your working tree without
+  asking, stops only for a decision, and picks up where it stopped. The
+  script ships under `workflows/`.
 - `diff-page`: renders a git diff range as one page file, a collapsible
   section per file with old and new line numbers and coloured lines, and
   sends you the file, for reading a change from a phone or away from the
@@ -70,7 +75,7 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   that keeps it from reading as machine-written, with a catalog of the tells.
 - `unsafety-author`: Rust `# Safety` contracts and unsafe documentation.
 
-Agents, launched through the Agent tool as `den:<name>`:
+Agents, launched as `den:<name>` through the Agent tool or by a workflow:
 
 - `reviewer` (fable): reads one change adversarially against the plan or
   brief it was written to and returns every issue as evidence: defects with
@@ -106,16 +111,18 @@ Agents, launched through the Agent tool as `den:<name>`:
 
 Hooks, registered while the plugin is enabled:
 
-- Review triage: a finished `den:reviewer` or
-  `den:closure-verifier` is recorded, and the next
-  prompt you submit carries a reminder to relay every finding with a
-  fix/defer/skip recommendation and keep unanswered questions unresolved.
-- Implementer triage: a finished implementer or fork of the session is
-  recorded, and the next prompt you submit carries a reminder to put every
-  choice it declared, question it asked, deviation from its brief or
-  instruction it made and item it left undone to you with a call on each; the
-  route a send-back takes is yours whenever the round already needs your
-  answer.
+- Review triage: a finished `den:reviewer` or `den:closure-verifier`, as a
+  `review-and-fix` run launches them, is recorded, and the next prompt you
+  submit carries a reminder to answer every item the run stopped on, with a
+  fix or skip call on each finding, and to triage what each return carries,
+  a stopped one's before the run is relaunched.
+- Implementer triage: a finished implementer, fork of the session or
+  `review-and-fix` fixer is recorded, and the next prompt you submit carries
+  a reminder to put every choice it declared, question it asked, deviation
+  from its brief or instruction it made and item it left undone to you with a
+  call on each. A fixer's questions and contested findings come back at the
+  run's stops; for an implementer or fork, the route a send-back takes is
+  yours whenever the round already needs your answer.
 - Agent-text audit: an edit or write to a file under a `skills`, `agents`,
   `hooks` or `references` directory, or to a `SKILL.md` or `CLAUDE.md`, adds
   one line to the session's context before the edit, saying to write it under
@@ -188,16 +195,16 @@ Start a session and invoke the lead rules:
 /den:lead
 ```
 
-The session then cites code by path and line, sends reviews and research to
-the standing agents, and, once a design is pinned, proposes the implementer
-and the step's scope and waits for your go. A quick change the session would
-otherwise make by hand goes to a fork of itself instead, which keeps the file
-reads, the edit output and the test run out of your main context. After a
-change is written, ask for a review in words; the session launches
-`den:reviewer` on the change's diff range. The reviewer reads the working tree
-against HEAD by default and reports its findings. On the next prompt you
-submit, the main session is reminded to relay all of them with a
-recommendation each.
+The session then cites code by path and line, sends research to the standing
+agents, and, once a design is pinned, proposes the implementer and the step's
+scope and waits for your go. A quick change the session would otherwise make
+by hand goes to a fork of itself instead, which keeps the file reads, the edit
+output and the test run out of your main context. Once the change is in the
+working tree and the session has put the implementer's report to you, it runs
+`review-and-fix` on the tree with the task's goal. The session wakes at each
+stop, brings you the decisions that are yours, and relaunches the run with
+the answers. When the run returns, it relays what the fixers chose and left
+open, and proposes the commit.
 
 ## Operation and limitations
 

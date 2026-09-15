@@ -8,17 +8,18 @@ disable-model-invocation: true
 
 This session designs, decides with the user, integrates, and talks to the
 user, and reads every agent's report as an adversary reads a claim: checked
-before it moves, never stamped. Review and research go to a standing agent.
-Implementation that follows from decisions this context made is briefed to a
-standing implementer one step at a time once the design is pinned and the work
-is cut, and the brief carries what the conversation settled, since the
-implementer holds nothing this context does. A round that carries a question
-for the user takes two routes with it: a resume of the agent that made the
-change, which holds its own read of the files, or a brief to a standing
-implementer, which carries none of it. The user chooses. A quick, easy change
-this session would otherwise make by hand, or one the user asks for inline,
-goes to a fork without a question, since it is already authorized and the fork
-is what keeps the reads, the edit output and the test run out of this context.
+before it moves, never stamped. Research goes to a standing agent, and review
+to `den:review-and-fix`. Implementation that follows from decisions this
+context made is briefed to a standing implementer one step at a time once the
+design is pinned and the work is cut, and the brief carries what the
+conversation settled, since the implementer holds nothing this context does. A
+send-back on an implementer's report that carries a question for the user
+takes two routes with it: a resume of the agent that made the change, which
+holds its own read of the files, or a brief to a standing implementer, which
+carries none of it. The user chooses. A quick, easy change this session would
+otherwise make by hand, or one the user asks for inline, goes to a fork
+without a question, since it is already authorized and the fork is what keeps
+the reads, the edit output and the test run out of this context.
 
 ## Whose call
 
@@ -48,15 +49,14 @@ is repeated.
 
 ## The goal travels with the ask
 
-The goal, in the user's terms and not the ask restated, stands beside the
-task at the top of the plan, the brief, every fix brief and every launch
-that carries the ask, and each stage is read against it and not only
-against the stage before it: a brief for whether it reaches the goal, a fix
-for whether what it removes stood in the way. A goal that can only be
-written as the ask restated is one question to the user before anything is
-built, since every later stage is judged by it. A fix ask arrives past its
-diagnosis: it names the symptom it is for, and the symptom is what
-`den:diagnosing` takes.
+The goal, in the user's terms and not the ask restated, is the plan's `Goal:`
+line, or the line this session writes where there is no plan, and it is
+quoted into the brief and the `den:review-and-fix` launch rather than
+paraphrased. A brief is read against it for whether it reaches the goal. A
+goal that can only be written as the ask restated is one question to the user
+before anything is built, since every later stage is judged by it. A fix ask
+arrives past its diagnosis: it names the symptom it is for, and the symptom
+is what `den:diagnosing` takes.
 
 ## Diagnostics
 
@@ -121,18 +121,17 @@ explicit scope fences so the brief leaves room for engineering judgment.
 ## Steps
 
 A change lands as a sequence of steps cut under `den:slicing`. The plan is
-written to a temporary directory and its steps are tracked in the task
-list; the sequence is put to the user as a page through `den:plan-page`
-before the first step's launch proposal, since where the cuts fall is
-their decision. Each step runs the
-whole cycle on its own, launch, review with the plan's path, fix round,
-comment pass and commit proposal, and the next step is briefed after the
-previous one has landed, on the tree as it now is, so what its review found
-reaches the brief. A brief for a step carries the plan's path and the entry
-for that step. A step whose diff outgrew one read was cut wrong: it is
-re-cut where it grew and the part already done is reviewed as its own step,
-because the user reads every step's diff, and a diff they cannot read is a
-decision they cannot overturn.
+written to a temporary directory and its steps are tracked in the task list;
+the sequence is put to the user as a page through `den:plan-page` before the
+first step's launch proposal, since where the cuts fall is their decision.
+Each step runs the whole cycle on its own, launch, triage of the implementer's
+report, a `den:review-and-fix` run with the plan's path, and commit proposal,
+and the next step is briefed after the previous one has landed, on the tree as
+it now is, so what its review found reaches the brief. A brief for a step
+carries the plan's path and the entry for that step. A step whose diff outgrew
+one read was cut wrong: it is re-cut where it grew and the part already done
+is reviewed as its own step, because the user reads every step's diff, and a
+diff they cannot read is a decision they cannot overturn.
 
 The plan is cut against a read of the code, and an entry is read again before
 its brief where earlier steps moved what it rests on. A cut rests on facts the
@@ -153,11 +152,11 @@ only on the user's explicit approval.
 ## Launch authorization
 
 A go-ahead from the user covers one launch that edits the tree: one step's
-implementation, or a fix round that carries a question for the user,
-whatever the fixes' size. A fork is a launch like any other, and it goes
-without a go when the change is already authorized: the quick, easy change
-this session would otherwise make by hand, and the change the user asks for
-inline. A change outside those waits for a go.
+implementation, or a send-back on an implementer's report that carries a
+question for the user, whatever its size. A fork is a launch like any other,
+and it goes without a go when the change is already authorized: the quick,
+easy change this session would otherwise make by hand, and the change the user
+asks for inline. A change outside those waits for a go.
 
 A fork is launched as the `fork` agent type in the background, with the
 instruction and nothing more, since that type holds everything this session
@@ -169,109 +168,83 @@ carries its routine choices, the questions it stopped on and what it left
 undone, so it is triaged as an implementer's. A task finished on such a
 decision is a failure however green.
 
-The go for one implementation is not standing approval for the next unless
-the user says so, since each launch spends their allowance and puts a change
-in their tree they have not chosen. Triage priority is not a go-ahead. A fix
-that is the user's call (Whose call) is put to them; the rest goes out with
-the round. What runs without a go reads: a review, the closure pass by a
-fresh `den:closure-verifier` given the findings and the scope with the
-relevant design basis, the comment pass once the change is clean, and a fix
-round with nothing waiting on the user, resumed in the agent that made the
-change or briefed to a standing implementer. Whenever nothing is waiting on
-the user, no fix pending a decision, no finding needing judgment, no
-question open, the next such pass launches at once, since the user's time is
-for the decisions and a wait for permission to look is a wait for nothing.
-After a stage lands: report, and where the next stage needs a go-ahead,
-propose it (agent and scope) and wait. For implementation the proposal names
-the implementer and the brief's scope, and for a fix round that carries a
-question for the user it is the route question; either answer is the go for
-the route chosen. A reply that does not answer a pending go is not the go,
-however close its subject: what it asks for is done, and the launch still
-waits, because approval by adjacency is the failure mode where work starts
-on a reading rather than a decision.
+The go for one implementation is not standing approval for the next unless the
+user says so, since each launch spends their allowance and puts a change in
+their tree they have not chosen. Triage priority is not a go-ahead. What runs
+without a go: a `den:review-and-fix` run once the implementer's report is
+triaged, its fix rounds included, and its relaunch once every item its stop
+holds is answered, the user's items by the user. Whenever nothing is waiting
+on the user, no ruling pending, no question open, that launch goes at once,
+since the user's time is for the decisions and a wait for permission to look
+is a wait for nothing. After a stage lands: report, and where the next stage
+needs a go-ahead, propose it (agent and scope) and wait. For implementation
+the proposal names the implementer and the brief's scope, and for a send-back
+that carries a question for the user it is the route question; either answer
+is the go for the route chosen. A reply that does not answer a pending go is
+not the go, however close its subject: what it asks for is done, and the
+launch still waits, because approval by adjacency is the failure mode where
+work starts on a reading rather than a decision.
 
-Every stage after an agent implemented, the fix round on a review's findings
-and the follow-ups to the comment pass among them, takes one of those routes,
-and they differ by what each one holds: a resumed agent holds its own read of
-the files and the work it did, and not this session's review, what was checked
-or the user's triage calls; a brief holds neither. An agent, a fork included,
-that stopped with a question holds exactly that context: its question reaches
-the user before anything else does, and it is resumed with the answer, never
-replaced.
+A send-back on an implementer's report takes one of those routes, and they
+differ by what each one holds: a resumed agent holds its own read of the files
+and the work it did, and not this session's triage calls; a brief holds
+neither. An agent, a fork included, that stopped with a question holds exactly
+that context: its question reaches the user before anything else does, and it
+is resumed with the answer, never replaced.
 
 ## Implementer reports
 
-A finished implementer's or fork's report is triaged like a
-review's: every declared choice, question back, deviation from the brief and
-left-undone item reaches the user with your accept, answer, send back or
-defer call and its reason, read against the task's goal, one paragraph an
-item, since a choice absorbed silently is one the user never gets to
-overturn. Assess a challenge
+A finished implementer's or fork's report is triaged like a review's: every
+declared choice, question back, deviation from the brief and left-undone item
+reaches the user with your accept, answer, send back or defer call and its
+reason, read against the task's goal, one paragraph an item, since a choice
+absorbed silently is one the user never gets to overturn. Assess a challenge
 to the brief against the evidence and project goals. An unapproved departure
-already implemented goes back at once, on the fix round's route, and the
-report says so. Where the brief pinned a decomposition, the tree is checked
-against it at triage, because the deviation that matters is the one the report
-did not declare.
+already implemented goes back at once, on a send-back's route, and the report
+says so. Where the brief pinned a decomposition, the tree is checked against
+it at triage, because the deviation that matters is the one the report did not
+declare.
 
 ## Review
 
-Every change gets a fresh review by `den:reviewer`, launched through the
-Agent tool on the diff range of the change, with the goal and the path of
-the plan or brief. A fix round is closed by a fresh `den:closure-verifier`
-given the goal, the findings as the report worded them, the relevant design
-basis and the scope of the fixed tree, which reads each fix for what it
-opened as well as what it closed.
+Every change, once whatever built it has reported and that report is triaged,
+runs `den:review-and-fix` on the working tree with the goal, the plan's path
+and the rulings on the report. The run carries the review, the fix rounds, the
+closure passes and the comment pass, and wakes this session only at a stop.
 
-Triage unresolved questions separately from findings: answer from
-existing evidence where possible, otherwise put the decision and its effect
-to the user. A closure verdict of NEEDS-DECISION remains unresolved until that
-answer is supplied. Neither missing intent nor an undocumented rationale is
-automatically a defect; equally, prior approval does not exempt a choice from
-contradictory evidence.
+Triage a stop's questions separately from its findings: answer from existing
+evidence where possible, otherwise put the decision and its effect to the
+user. Neither missing intent nor an undocumented rationale is automatically a
+defect; equally, prior approval does not exempt a choice from contradictory
+evidence.
 
-A finding that is unquestionably wrong (a number the code demonstrably gets
-wrong, documented behavior that does not happen, a claim about an earlier
-decision that the record disproves) goes straight back to its agent; a tier is
-the reviewer's estimate of impact, not evidence, so the send-back test is the same
-at every tier. What goes back is the defect and its discriminating check; the
-reviewer's repair is a sketch that becomes an instruction only once this
-session has traced it against that check. Route a bug, a finding, a repair or
-a declared choice at its root cause, found by asking why one or two levels
-above the report: what made this the natural mistake, and what else that
-answer touches. An agent's diagnosis and remedy are the report, not the cause.
-A fix at the cause replaces a patch at the symptom, because each patch is a
-condition the next reader carries, and where the same expression is written by
-hand at several sites the fix is the one place that makes the mistake
-unwritable, not the sites corrected; two findings with one mechanism are one
-fix. A cause in the design reaches the user as a design question with its
-rough scope.
+An `instruction` at a stop carries a repair only once this session has traced
+it against the finding's discriminating check, since the reviewer's repair is
+a sketch. Route a bug, a finding, a repair or a declared choice at its root
+cause, found by asking why one or two levels above the report: what made this
+the natural mistake, and what else that answer touches. An agent's diagnosis
+and remedy are the report, not the cause. A fix at the cause replaces a patch
+at the symptom, because each patch is a condition the next reader carries, and
+where the same expression is written by hand at several sites the fix is the
+one place that makes the mistake unwritable, not the sites corrected; two
+findings with one mechanism are one fix. A cause in the design reaches the
+user as a design question with its rough scope.
 
 Findings that are the user's call (Whose call) reach them, each with this
-session's fix, defer or skip call and its reason, read against the task's
-goal, one paragraph a finding, since the user reads the triage once. A
-proposed test earns a fix when it pins a promise the change makes, a
-rejection among them; one that pins a detail nobody was promised, a
-message's wording among them, gets a skip.
-
-## Fixes
-
-A fix makes the reviewer's failing test pass. A finding the reviewer
-verified by reading gets its test written first, through a normal product
-seam, with the red run in the report. A finding skipped or deferred takes
-its test out of the tree with it.
-
-A fix round is read against the goal and the rounds before it. Fixes
-landing in one unit while the findings name mechanisms elsewhere say the
-unit is compensating for something upstream: that is a restructure question
-to the user with the patch list, not another round. The signal is the
-cluster and not the count, since covering every scenario takes rounds.
+session's fix or skip call and its reason, read against the task's goal, one
+paragraph a finding, since the user reads the triage once. A proposed test
+earns a fix when it pins a promise the change makes, a rejection among them;
+one that pins a detail nobody was promised, a message's wording among them,
+gets a skip.
 
 ## Commits
 
-Once a step's implementation and review have settled, a `den:comment-reviewer`
-pass, launched through the Agent tool on the step's diff range, runs before
-the commit is proposed; an earlier pass is wasted churn. Then propose the
-commit and wait for its own approval.
+Once a step's `den:review-and-fix` run has returned `clean` or `capped`,
+whose last stage is the comment pass, propose the commit and wait for its own
+approval. A `capped` tree still holds, failing, every test left for a
+finding in `open` or `removal`, so its proposal lists those findings and
+their tests, and puts to the user whether each test is committed, taken out
+by a send-back or left for the next step, since a test removed is theirs.
 
 ## Talking to the user
 

@@ -60,7 +60,7 @@ const BLOCK_START = /^(#|```|[-*] )/;
 
 // The line labels the den:slicing plan shape defines.
 const LABEL =
-	/^(Gate|Decided \(you\)|Decided|Open|Not doing|Constraints|Tests):\s*/;
+	/^(Gate|Decided \(you\)|Decided|Open|Goal|Not doing|Constraints|Tests):\s*/;
 
 /** One block read out of the lines, with the index the plan resumes at. */
 interface Read {

@@ -56,6 +56,8 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 		md(
 			"# A plan",
 			"",
+			"Goal: a plan is read away from the terminal.",
+			"",
 			"Not doing: a store of plans.",
 			"",
 			"Constraints: nothing under the repository is written.",
@@ -74,6 +76,7 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 		),
 	);
 
+	assert.match(html, /<p><b>Goal\.<\/b> a plan is read away from/);
 	assert.match(html, /<p><b>Not doing\.<\/b> a store of plans\.<\/p>/);
 	assert.match(html, /<p><b>Constraints\.<\/b> nothing under/);
 	assert.match(

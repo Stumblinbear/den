@@ -15,7 +15,7 @@ leaving the decomposition open for their independent judgment:
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/design-exploration.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/design-exploration-workflow.js",
   args: { ask, basis, decisions },
 })
 ```
