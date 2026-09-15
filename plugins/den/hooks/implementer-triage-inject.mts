@@ -11,10 +11,10 @@ import {
 } from "../lib/relay.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
 
-// Names the lead skill's Implementer reports section, which carries
-// these rules in full: the reminder fires many turns after that skill was
-// loaded. The one rule stated here rather than pointed at is the test that
-// decides which items reach the user, which is one clause long.
+// The reminder for `pending` implementers that reported finishing: how many
+// they were and who, then the triage rules in brief. The rules live in full in
+// the lead skill's Implementer reports section, which the reminder names
+// because it fires many turns after that skill was loaded.
 function reminder(pending: readonly Flag[]): string {
 	const named = who(pending);
 
@@ -23,7 +23,8 @@ function reminder(pending: readonly Flag[]): string {
 		"Triage each report under the lead skill's implementer report",
 		"rules: every declared choice, question back, deviation from the brief or",
 		"instruction and left-undone item reaches the user with your accept,",
-		"answer, send back or defer call and its reasoning. What contradicts the",
+		"answer, send back or defer call and its reason, read against the task's",
+		"goal, one paragraph an item. What contradicts the",
 		"brief or instruction goes back at once, to the agent that made it or a",
 		"standing implementer, and on the route the user chooses where the round",
 		"carries a question, and each item is classed by whether a reader could",

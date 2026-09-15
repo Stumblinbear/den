@@ -11,10 +11,10 @@ import {
 } from "../lib/relay.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
 
-// A pointer, not a restatement: the rules live in the lead skill's
-// Review section, and this fires many turns after that skill was loaded. The
-// one rule stated here rather than pointed at is the test that decides which
-// findings reach the user, which is one clause long.
+// The reminder for `pending` review agents that completed: how many they were
+// and who, then the triage rules in brief. The rules live in full in the lead
+// skill's Review section, which the reminder names because it fires many turns
+// after that skill was loaded.
 function reminder(pending: readonly Flag[]): string {
 	const named = who(pending);
 
@@ -23,7 +23,7 @@ function reminder(pending: readonly Flag[]): string {
 		"Triage their findings and unresolved questions under the lead",
 		"skill's review rules: every finding reaches the user with your fix,",
 		"defer or skip call and its",
-		"reasoning, explained for someone who has not read the code; what is",
+		"reason, read against the task's goal, one paragraph a finding; what is",
 		"unquestionably wrong goes back to its agent as the defect, not the",
 		"reviewer's repair. Keep unanswered questions and NEEDS-DECISION verdicts",
 		"unresolved, and each item is classed by whether a reader could take it",

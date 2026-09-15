@@ -204,8 +204,8 @@ replaced.
 A finished implementer's or fork's report is triaged like a
 review's: every declared choice, question back, deviation from the brief and
 left-undone item reaches the user with your accept, answer, send back or
-defer call and its reasoning, explained for someone who has not read the
-code, since a choice absorbed silently is one the user never gets to
+defer call and its reason, read against the task's goal, one paragraph an
+item, since a choice absorbed silently is one the user never gets to
 overturn. Assess a challenge
 to the brief against the evidence and project goals. An unapproved departure
 already implemented goes back at once, on the fix round's route, and the
@@ -247,11 +247,11 @@ fix. A cause in the design reaches the user as a design question with its
 rough scope.
 
 Findings that are the user's call (Whose call) reach them, each with this
-session's fix, defer or skip call and its reasoning, explained for a reader who
-has not read the code: what is in play, what changes, what goes observably
-wrong, then the mechanism. A proposed test earns a fix when it pins a promise
-the change makes, a rejection among them; one that pins a detail nobody was
-promised, a message's wording among them, gets a skip.
+session's fix, defer or skip call and its reason, read against the task's
+goal, one paragraph a finding, since the user reads the triage once. A
+proposed test earns a fix when it pins a promise the change makes, a
+rejection among them; one that pins a detail nobody was promised, a
+message's wording among them, gets a skip.
 
 ## Fixes
 
