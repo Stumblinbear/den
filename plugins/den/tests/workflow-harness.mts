@@ -23,7 +23,7 @@ type Workflow = (
 ) => Promise<unknown>;
 
 export function runWorkflow(
-	name: "design-exploration" | "implement",
+	name: "design-exploration" | "review-and-fix",
 	args: unknown,
 	agent: Agent,
 ): Promise<unknown> {
