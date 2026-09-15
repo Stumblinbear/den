@@ -218,7 +218,9 @@ function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions) {
   parts.push(`Before any edit, read the decisions the lead has settled and sort
 the findings against them. A finding whose fix would undo a settled decision
 goes under \`contested\` with the decision and your reason, and stays unfixed:
-reopening a decision is the lead's.`)
+reopening a decision is the lead's. A test the reviewer wrote for such a
+finding stays red in the tree; the lead takes it out when the finding is
+ruled, so a red test is never a reason to fix past a decision.`)
   if (rulings) {
     parts.push('The decisions the lead has settled:', rulings)
   }

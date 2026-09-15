@@ -12,7 +12,9 @@ minor bump may change behavior.
 - The `review-and-fix-workflow`'s fix brief carries the lead's rulings before
   the findings and tells the fixer to sort the findings against them before
   any edit, so a finding whose fix would undo a ruling is contested in a
-  paragraph rather than after a red test and a build.
+  paragraph rather than after a red test and a build. The brief also says a
+  reviewer's test for a contested finding stays red for the lead to take out,
+  since a fixer once crossed a ruling to turn such a test green.
 
 ### Fixed
 
