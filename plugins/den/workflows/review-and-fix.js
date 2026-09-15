@@ -204,7 +204,11 @@ function reviewScope(goal, plan) {
   return `${SCOPE}\n\nGoal: ${goal}${written}`
 }
 
-function fixBrief(goal, findings, removal, plan, rulings, restructureAnswers) {
+// The list reads the same to every reader; the sentence before it says what
+// that reader does with it.
+const ANSWERED = 'Questions answered earlier in this run, each under the id its asker gave it:'
+
+function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions, restructureAnswers) {
   const parts = [`Goal: ${goal}`]
 
   if (findings.length) {
@@ -237,6 +241,13 @@ the lead's.`)
   }
   if (rulings) {
     parts.push('The decisions the lead has settled:', rulings)
+  }
+  if (answeredQuestions.length) {
+    parts.push(
+      `An answer settles its question for the whole run, so where one bears on a
+finding you were given it decides how that finding is fixed. ${ANSWERED}`,
+      JSON.stringify(answeredQuestions, null, 2),
+    )
   }
   if (restructureAnswers.length) {
     parts.push(
@@ -272,7 +283,7 @@ Every question raised on these findings, each with its answer:
 ${JSON.stringify(thread, null, 2)}`
 }
 
-function closureScope(goal, open, removed, rounds, basis, plan, rulings) {
+function closureScope(goal, open, removed, rounds, basis, plan, rulings, answeredQuestions) {
   const parts = [
     `Goal: ${goal}`,
     SCOPE,
@@ -304,6 +315,13 @@ you read those deleted tests as the removals they are:`,
   }
   if (rulings) {
     parts.push('The decisions the lead has settled:', rulings)
+  }
+  if (answeredQuestions.length) {
+    parts.push(
+      `An answer settles its question for the whole run, so a fix that turns on one
+is judged against it and the decision behind it is made. ${ANSWERED}`,
+      JSON.stringify(answeredQuestions, null, 2),
+    )
   }
 
   return parts.join('\n\n')
@@ -358,6 +376,9 @@ const stages = []
 // answered stop, and fixes clustering across rounds are invisible without them.
 const earlierRounds = []
 const consumed = new Set()
+// Every question the lead has answered, the question as its asker wrote it with
+// the answer under its id.
+const answeredQuestions = []
 // The findings the round is fixing, and the findings ruled skip whose tests no
 // fixer has been told to take out yet.
 let open = []
@@ -469,9 +490,22 @@ function checkEdited(id, answer) {
 }
 
 function checkRounds(id, answer) {
-  if (!Number.isInteger(answer) || answer < 1) {
-    throw new Error(`${id} is how many more fix rounds to allow, a whole number above zero`)
+  if (!Number.isInteger(answer) || answer < 0) {
+    throw new Error(`${id} is how many more fix rounds to allow, a whole number, or 0 to end the fixing here: the comment pass runs on the tree as it is and the run returns what is still open`)
   }
+}
+
+// An answer that stops where its question was raised is a wake the workflow
+// owed nothing for: the next fixer asks the same question, and the closure
+// verifier judges the choice unsettled. So the answered question is kept, and
+// every fix brief and closure launch after it carries the whole list.
+function settle(question, answer) {
+  checkText(question.id, answer)
+
+  const settled = { ...question, answer }
+  answeredQuestions.push(settled)
+
+  return settled
 }
 
 function answered(questions, at, held) {
@@ -479,11 +513,8 @@ function answered(questions, at, held) {
   if (raised.bail) {
     return raised
   }
-  for (const question of questions) {
-    checkText(question.id, raised.answers[question.id])
-  }
 
-  return { thread: questions.map((question) => ({ ...question, answer: raised.answers[question.id] })) }
+  return { thread: questions.map((question) => settle(question, raised.answers[question.id])) }
 }
 
 // The lead triages these at the next stop or at the end, so every report's
@@ -579,7 +610,7 @@ if (decided.length || blocking.length) {
     checkRuling(decision.id, ruled.answers[decision.id])
   }
   for (const question of blocking) {
-    checkText(question.id, ruled.answers[question.id])
+    settle(question, ruled.answers[question.id])
   }
   ruling = ruled.answers
 }
@@ -593,11 +624,17 @@ let restructureAnswers = []
 while (open.length || removal.length) {
   if (round === allowed) {
     const cap = { id: 'fix-rounds' }
-    const more = stop('fixRounds', [cap], [], { open, round })
+    const more = stop('fixRounds', [cap], [], { open, round, ...(removal.length ? { removal } : {}) })
     if (more.bail) {
       return more.bail
     }
     checkRounds(cap.id, more.answers[cap.id])
+
+    // Nothing left to fix that the lead wants fixed: the comment pass still
+    // runs, so the tree the run leaves behind is a landed one.
+    if (more.answers[cap.id] === 0) {
+      break
+    }
     allowed += more.answers[cap.id]
   }
   round += 1
@@ -617,7 +654,7 @@ while (open.length || removal.length) {
   if (haiku.length || (removal.length && !opus.length)) {
     const stage = `fix:${round}:haiku`
     const given = [...haiku, ...removal]
-    const report = await agent(fixBrief(goal, haiku, removal, plan, rulings, restructureAnswers), {
+    const report = await agent(fixBrief(goal, haiku, removal, plan, rulings, answeredQuestions, restructureAnswers), {
       label: stage,
       phase: 'Fix',
       agentType: 'den:implementer-haiku',
@@ -634,7 +671,7 @@ while (open.length || removal.length) {
   }
 
   if (opus.length || removal.length) {
-    const brief = fixBrief(goal, opus, removal, plan, rulings, restructureAnswers)
+    const brief = fixBrief(goal, opus, removal, plan, rulings, answeredQuestions, restructureAnswers)
     const given = [...opus, ...removal]
     const thread = []
     let stage = `fix:${round}:opus`
@@ -701,7 +738,7 @@ while (open.length || removal.length) {
 
   phase('Close')
   const stage = `close:${round}`
-  const closure = await agent(closureScope(goal, open, removed, earlierRounds, basis, plan, rulings), {
+  const closure = await agent(closureScope(goal, open, removed, earlierRounds, basis, plan, rulings, answeredQuestions), {
     label: stage,
     phase: 'Close',
     agentType: 'den:closure-verifier',
@@ -795,5 +832,18 @@ checkReport(comments, 'comment', [])
 stages.push({ stage: 'comment', report: comments })
 
 checkAnswersUsed()
+
+// The loop runs until nothing is open and no test waits removal, so whatever is
+// left is what the lead's zero at the cap ended the fixing on.
+if (open.length || removal.length) {
+  return {
+    status: 'capped',
+    open,
+    ...(removal.length ? { removal } : {}),
+    rounds: round,
+    stages,
+    carried,
+  }
+}
 
 return { status: 'clean', rounds: round, stages, carried }

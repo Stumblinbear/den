@@ -185,6 +185,7 @@ interface Outcome {
 	readonly restructure?: readonly unknown[];
 	readonly undecided?: readonly unknown[];
 	readonly open?: readonly unknown[];
+	readonly removal?: readonly unknown[];
 	readonly stages: readonly Stage[];
 	readonly carried: Record<string, readonly unknown[]>;
 }
@@ -269,6 +270,8 @@ const SKIPPED = "The lead ruled these findings skip.";
 const OPEN = "names it by:";
 const ROUNDS =
 	"The rounds before this one, each with the findings it fixed and the verdicts they ended in, and under `removed` the skipped findings whose tests it took out:";
+const ANSWERS =
+	"Questions answered earlier in this run, each under the id its asker gave it:";
 const REPORT = "The report it stopped with:";
 const THREAD = "Every question raised on these findings, each with its answer:";
 
@@ -311,6 +314,9 @@ function removalIn(prompt: string): {
 
 const roundsIn = (prompt: string) =>
 	blockIn(prompt, ROUNDS) as Record<string, unknown>[];
+
+const answersIn = (prompt: string) =>
+	blockIn(prompt, ANSWERS) as Record<string, unknown>[];
 
 const stateIn = (prompt: string) =>
 	blockIn(prompt, REPORT) as Record<string, unknown>;
@@ -502,6 +508,56 @@ test("what the lead has settled reaches every fixer and the closure verifier", a
 	assert.equal(carrying.length, 3);
 	for (const prompt of carrying) {
 		assert.ok(prompt.includes(settled), prompt.slice(0, 60));
+	}
+});
+
+test("the answer to a reviewer's question reaches the first fix brief and the first closure launch", async () => {
+	const raised = asked();
+	const answer = "The caller owns the flag.";
+	const { prompts, result } = await record(
+		{ ...ARGS, answers: { [raised.id]: answer } },
+		{ review: reviewed({ findings: [finding()], questions: [raised] }) },
+	);
+
+	assert.equal(result.status, "clean");
+	for (const prompt of [prompts[1] ?? "", prompts[2] ?? ""]) {
+		assert.deepEqual(answersIn(prompt), [{ ...raised, answer }]);
+	}
+});
+
+test("the answer to a fixer's question reaches that round's closure launch and the next round's fix brief", async () => {
+	const judged = finding({ id: "flag-name", tier: "opus" });
+	const raised = question(1, { finding: judged.id });
+	const answer = "The loader owns it";
+	const { prompts, result } = await record(
+		{ ...ARGS, answers: { [raised.id]: answer } },
+		{
+			review: reviewed({ findings: [judged] }),
+			fix: (_prompt, _type, launch) =>
+				launch === 1 ? fixed({ questions: [raised] }) : fixed(),
+			close: (prompt, round) =>
+				round === 1
+					? closed({ verdicts: [verdict(judged.id, "REOPENED")] })
+					: closing(prompt),
+		},
+	);
+
+	assert.equal(result.status, "clean");
+	// The brief the question was asked from was built before the answer existed.
+	assert.ok(!(prompts[1] ?? "").includes(ANSWERS));
+	for (const prompt of [prompts[3] ?? "", prompts[4] ?? ""]) {
+		assert.deepEqual(answersIn(prompt), [{ ...raised, answer }]);
+	}
+});
+
+test("a run that answered no question carries no answered questions", async () => {
+	const { prompts, result } = await record(ARGS, {
+		review: reviewed({ findings: [finding()] }),
+	});
+
+	assert.equal(result.status, "clean");
+	for (const prompt of prompts) {
+		assert.ok(!prompt.includes(ANSWERS), prompt.slice(0, 60));
 	}
 });
 
@@ -1175,6 +1231,70 @@ test("the round cap stops the run, and its answer is how many more rounds to all
 
 	assert.equal(clean.status, "clean");
 	assert.equal(clean.rounds, 3);
+});
+
+test("a zero answer at the round cap ends the fixing and lands the run", async () => {
+	const defect = finding();
+	const launched: string[] = [];
+	const run = agents({ review: reviewed({ findings: [defect] }) });
+	const result = outcome(
+		await runWorkflow(
+			"review-and-fix",
+			{ ...ARGS, fixRounds: 0, answers: { "fix-rounds": 0 } },
+			async (prompt, options) => {
+				launched.push(options.agentType);
+				return run(prompt, options);
+			},
+		),
+	);
+
+	assert.deepEqual(launched, ["den:reviewer", "den:comment-reviewer"]);
+	assert.equal(result.status, "capped");
+	assert.equal(result.rounds, 0);
+	assert.deepEqual(result.open, [defect]);
+	assert.equal(result.removal, undefined);
+	assert.deepEqual(
+		result.stages.map((entry) => entry.stage),
+		["comment"],
+	);
+	assert.deepEqual(result.carried, EMPTY_CARRIED);
+});
+
+test("a capped run carries the findings whose tests are still in the tree", async () => {
+	const decision = finding({ kind: "decision", tier: "opus" });
+	const { prompts, result } = await record(
+		{
+			...ARGS,
+			fixRounds: 0,
+			answers: { [decision.id]: { action: "skip" }, "fix-rounds": 0 },
+		},
+		{ review: reviewed({ findings: [decision] }) },
+	);
+
+	assert.equal(result.status, "capped");
+	assert.deepEqual(result.open, []);
+	assert.deepEqual(result.removal, [decision]);
+	assert.equal(prompts.length, 2);
+});
+
+test("a capped run with a ruled-skip finding includes removal in the stopped return at fixRounds", async () => {
+	const decision = finding({ kind: "decision", tier: "opus" });
+	const result = outcome(
+		await runWorkflow(
+			"review-and-fix",
+			{
+				...ARGS,
+				fixRounds: 0,
+				answers: { [decision.id]: { action: "skip" } },
+			},
+			agents({ review: reviewed({ findings: [decision] }) }),
+		),
+	);
+
+	assert.equal(result.at, "fixRounds");
+	assert.equal(result.status, "stopped");
+	assert.equal(result.round, 0);
+	assert.deepEqual(result.removal, [decision]);
 });
 
 test("a contested finding from either fixer stops the run, leaves that round's closure, and comes back when the lead rules fix", async () => {
@@ -2033,7 +2153,7 @@ test("an answer of the wrong shape for what it answers fails at the stop", async
 		);
 	}
 
-	const counts: readonly unknown[] = [0, 1.5, "three", { action: "fix" }];
+	const counts: readonly unknown[] = [-1, 1.5, "three", { action: "fix" }];
 	for (const answer of counts) {
 		await assert.rejects(
 			runWorkflow(
