@@ -213,6 +213,16 @@ const ANSWERED = 'Questions answered earlier in this run, each under the id its 
 function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions) {
   const parts = [`Goal: ${goal}`]
 
+  // The rulings come before the findings, so a finding that collides with one
+  // is sorted out before a test is written or a build is spent on it.
+  parts.push(`Before any edit, read the decisions the lead has settled and sort
+the findings against them. A finding whose fix would undo a settled decision
+goes under \`contested\` with the decision and your reason, and stays unfixed:
+reopening a decision is the lead's.`)
+  if (rulings) {
+    parts.push('The decisions the lead has settled:', rulings)
+  }
+
   if (findings.length) {
     parts.push(
       `Fix the findings below, each under the id your questions and contested
@@ -236,15 +246,8 @@ findings name stays as it is:`,
     )
   }
 
-  parts.push(`A finding whose fix would undo a settled decision goes under \`contested\`
-with the decision and your reason, and stays unfixed: reopening a decision is
-the lead's.`)
-
   if (plan) {
     parts.push(`The plan this change belongs to is at ${plan}.`)
-  }
-  if (rulings) {
-    parts.push('The decisions the lead has settled:', rulings)
   }
   if (answeredQuestions.length) {
     parts.push(

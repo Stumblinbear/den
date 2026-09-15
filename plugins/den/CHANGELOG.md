@@ -7,6 +7,13 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+
+- The `review-and-fix-workflow`'s fix brief carries the lead's rulings before
+  the findings and tells the fixer to sort the findings against them before
+  any edit, so a finding whose fix would undo a ruling is contested in a
+  paragraph rather than after a red test and a build.
+
 ### Fixed
 
 - The `review-and-fix` and `design-exploration` skills launch their workflow
