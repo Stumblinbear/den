@@ -1,5 +1,5 @@
 {
-	"description": "Review-triage and implementer-triage relays, the transcript record, and the reminder on an edit to text an agent follows.",
+	"description": "Review-triage and implementer-triage relays, and the reminder on an edit to text an agent follows.",
 	"hooks": {
 		"SubagentStop": [
 			{
@@ -31,10 +31,6 @@
 					{
 						"type": "command",
 						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-triage-inject"
-					},
-					{
-						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/transcript-record"
 					}
 				]
 			}

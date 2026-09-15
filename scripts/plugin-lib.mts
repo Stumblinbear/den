@@ -48,7 +48,7 @@ interface Plugin {
 
 const PLUGINS: readonly Plugin[] = [
 	{ name: "context-budget", files: CONFIGURED },
-	{ name: "den", files: [...EVERY_PLUGIN, ...SESSION_RECORD] },
+	{ name: "den", files: EVERY_PLUGIN },
 	{ name: "model-prompts", files: CONFIGURED },
 ];
 

@@ -21,9 +21,9 @@ minor bump may change behavior.
   or `CLAUDE.md`, carries one line saying to write it under the
   `writing-for-agents` standard and to verify the change by running the agent
   it steers. Every other path passes in silence, and no edit is blocked.
-- `code-architecture` preloaded by the opus and fable implementers, and
-  invoked by a fork before its first edit, since a skill that must hold every
-  time is not left to the agent's choice to invoke it.
+- `code-architecture` preloaded by the opus and fable implementers, since a
+  skill that must hold every time is not left to the agent's choice to invoke
+  it.
 
 ### Changed
 
@@ -32,9 +32,8 @@ minor bump may change behavior.
   and keeps the file reads and the edit output out of it.
 - One test decides whose call an item is, in the `lead` skill's new
   `Whose call` section: whether a competent reader could take it either way,
-  not the size of the change. The triage reminders, the reviewer's
-  `[decision]` finding and the `handoff-cost` gate before a launch class an
-  item the same way.
+  not the size of the change. The triage reminders and the reviewer's
+  `[decision]` finding class an item the same way.
 - `code-architecture` carries one fact one home, siblings sharing one shape
   and one path, a classification as a type rather than a string or a flag, an
   unread input refused, and names that say the specific thing.
@@ -59,10 +58,17 @@ minor bump may change behavior.
   `--plan`.
 - The `Switch model` handoff route, with its `PostModelSwitch` hook, the
   `handoff-switch` entry point and the `--target` argument the reading priced
-  it for. The Handoff question now offers a fork or a brief, and den's floor
-  drops to Claude Code 2.1.232, the release that turned the fork launch on.
-  The transcript reader loses what only the switch asked of it: the newest
-  answered question, and whether the user has typed since.
+  it for. Removing it drops den's floor to Claude Code 2.1.232, the release
+  that turned the fork launch on.
+- The `Handoff` question and the `handoff-cost` reading it ended in, with the
+  fork as a route for handing implementation off: the skill, its script, the
+  `handoff`, `transcript` and `session-record` modules, and the
+  `transcript-record` hook that left the transcript path for the reading to
+  find. The fork had gone unused as a handoff since it shipped, so the
+  question priced a route the rules never took. Implementation is briefed to
+  a standing implementer, and a fix round that carries a question takes a
+  resume or a brief. A quick change the lead would otherwise make by hand
+  still goes to a fork, without a question.
 
 ## [0.6.0] - 2026-09-12
 

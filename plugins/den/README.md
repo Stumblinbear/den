@@ -1,9 +1,8 @@
 # den
 
 A gated agent workflow for Claude Code. The main session designs and decides
-with you; implementation is handed off with its context kept, by a fork or a
-model switch, or briefed to a standing agent when it needs none; reviews go
-to fresh agents; every launch is authorized on its own.
+with you; implementation is briefed to a standing agent; reviews go to fresh
+agents; every launch is authorized on its own.
 
 ## What it provides
 
@@ -54,14 +53,6 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   techniques for cutting what looks atomic, and the interrogation of the
   first attempt, which is presumed wrong until each cut has answered the
   questions you would ask of it.
-- `handoff-cost`: the reading the session arrives with before coupled
-  implementation starts: what a fork of the session, a switch of its model
-  and a brief each carry of the current context, as cache-miss token counts,
-  followed by the question that puts the choice to you. A fork keeps the
-  context and the model and works out of view; a switch keeps the context on
-  the model you switch to and implements in the session; a brief carries none
-  of it. Pass a model as the argument to price the switch against something
-  other than opus.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
 - `design-decisions`: how an engineering choice is made and stated: the
@@ -131,9 +122,6 @@ Hooks, registered while the plugin is enabled:
   the `writing-for-agents` standard and to verify the change by running the
   agent it steers. Every other path passes in silence, and no edit is ever
   blocked.
-- Transcript record: each prompt you submit leaves the session's transcript
-  path in a small file, once, so the `handoff-cost` reading can find the
-  transcript it measures.
 
 No hook denies a tool call, reads your source, or changes a file in your
 project. Each adds text to the main session's context, or nothing.
@@ -146,8 +134,8 @@ instead whenever `bun` is on `PATH`.
 
 Claude Code **2.1.232 or newer**: a fork of the session is the
 `subagent_type: "fork"` launch that version turned on by default in
-interactive sessions (print mode leaves it off). On an older build the Fork
-answer names a type that does not exist; everything else works.
+interactive sessions (print mode leaves it off). On an older build a fork
+launch names a type that does not exist; everything else works.
 
 A file named `.runtime` in the plugin's data directory forces the choice for
 this plugin. It holds one word, `bun` or `node`:
@@ -167,17 +155,14 @@ The `reviewer` and `comment-reviewer` agents render the review scope with
 A working-tree scope includes untracked files that are not ignored, rendered
 as the new files they would become; a range between two revisions does not.
 
-What the hooks read: the last half megabyte of the session's own transcript,
-on a model switch and when the `handoff-cost` reading runs, for the newest
-turn's size and the newest question you answered; and the path of the file an
-edit is about to change. Nothing in your project is opened.
+What the hooks read: the path of the file an edit is about to change. Nothing
+in your project is opened.
 
 What the hooks write: one small JSON file per finished agent, under
 `claude-review-triage/` and `claude-implementer-triage/` in the OS temp
 directory, inside a subdirectory named for the session so that one session
 never hears another's agents. The file is deleted as its reminder is injected;
-the session's subdirectory stays. And one file per session under
-`claude-den-session/` there, naming the transcript.
+the session's subdirectory stays.
 
 What the hooks can do to a session: add one reminder per relay to the context
 of the next prompt you submit, and one line before an edit to a skill, an
@@ -204,13 +189,15 @@ Start a session and invoke the lead rules:
 ```
 
 The session then cites code by path and line, sends reviews and research to
-the standing agents, and, once a design is pinned, asks how to hand the
-implementation off: fork, switch model, or brief, each priced on the context
-you would be carrying. After a change is written, ask for a review in words;
-the session launches `den:reviewer` on the change's diff range. The reviewer
-reads the working tree against HEAD by default and reports its findings. On
-the next prompt you submit, the main session is reminded to relay all of them
-with a recommendation each.
+the standing agents, and, once a design is pinned, proposes the implementer
+and the step's scope and waits for your go. A quick change the session would
+otherwise make by hand goes to a fork of itself instead, which keeps the file
+reads, the edit output and the test run out of your main context. After a
+change is written, ask for a review in words; the session launches
+`den:reviewer` on the change's diff range. The reviewer reads the working tree
+against HEAD by default and reports its findings. On the next prompt you
+submit, the main session is reminded to relay all of them with a
+recommendation each.
 
 ## Operation and limitations
 
@@ -246,9 +233,6 @@ the default.
 
 If a reminder never arrives, the two temp directories above hold the pending
 flags. Deleting them resets both relays; the next completion starts over.
-
-If the `handoff-cost` reading says no transcript is recorded, submit any
-prompt: the record is written on the first prompt after den is enabled.
 
 ## Contributing
 

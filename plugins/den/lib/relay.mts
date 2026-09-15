@@ -32,17 +32,18 @@ export interface Flag {
 }
 
 /**
- * Where a relay's pending flags wait: a directory of its own under the OS temp
- * directory, since every file in it is worthless once its reminder has been
- * injected, with one subdirectory per session, since the temp directory is
- * the machine's and a flag another session's agent left would otherwise be
- * announced here. Both halves of a pair take the directory from here, so the
- * half that writes a flag and the half that reads it cannot name it
- * differently. Null when the input carries no session id: a flag nobody
- * could read back is not worth writing. Rests on a SubagentStop carrying the
- * parent session's id, the same one the next UserPromptSubmit carries, which
- * `transcript-record` already relies on; were that ever false, both relays
- * would fall silent.
+ * Where this session's pending review-triage flags wait.
+ *
+ * @remarks
+ * Both halves of the pair take the directory from here, so the half that
+ * writes a flag and the half that reads it cannot name it differently. That
+ * rests on a SubagentStop carrying the parent session's id, the same one the
+ * next UserPromptSubmit carries; a session where the two differ gets a
+ * reminder from neither relay, and no error either.
+ *
+ * @param input - a hook input, read for `session_id`
+ * @returns null when the input carries no session id, since a flag nobody
+ * could read back is not worth writing
  */
 export function reviewTriageDir(input: Record<string, unknown>): string | null {
 	return triageDir("claude-review-triage", input);
@@ -54,6 +55,13 @@ export function implementerTriageDir(
 	return triageDir("claude-implementer-triage", input);
 }
 
+/**
+ * One relay's flag directory for one session: under the OS temp directory,
+ * since every file in it is worthless once its reminder has been injected,
+ * and under a subdirectory per session, since the temp directory is the
+ * machine's and a flag another session's agent left would otherwise be
+ * announced here.
+ */
 function triageDir(
 	relay: string,
 	input: Record<string, unknown>,
