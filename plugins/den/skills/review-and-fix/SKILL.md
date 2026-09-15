@@ -14,7 +14,7 @@ step before is committed first.
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/review-and-fix-workflow.js",
+  name: "den:review-and-fix-workflow",
   args: { goal, plan, basis, rulings, reviewer, fixRounds: 3 },
 })
 ```
@@ -83,7 +83,7 @@ answered by not relaunching.
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/review-and-fix-workflow.js",
+  name: "den:review-and-fix-workflow",
   args: { goal, plan, basis, rulings, reviewer, fixRounds, answers },
   resumeFromRunId: "<the runId the stopped return came with>",
 })

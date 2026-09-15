@@ -7,6 +7,15 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Fixed
+
+- The `review-and-fix` and `design-exploration` skills launch their workflow
+  by name, `den:review-and-fix-workflow` and `den:design-exploration-workflow`,
+  instead of by a path under the plugin root. The `Workflow` tool refuses a
+  `scriptPath` outside the session's working directory, so every launch from
+  a project failed until the script was copied into it; the tool registers a
+  plugin's `workflows/` under the plugin's name, which needs no copy.
+
 ### Added
 
 - A `plan-page` skill, `/den:plan-page <path>`, that renders a plan written in
