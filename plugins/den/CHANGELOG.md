@@ -9,6 +9,23 @@ minor bump may change behavior.
 
 ### Changed
 
+- The `review-and-fix-workflow` takes `repo`, the absolute path of the
+  repository whose working tree is reviewed, and a launch without it fails.
+  Every agent the run launches is told that repository beside the range and
+  runs every command there and names every search path under it,
+  since each one inherits the session's working directory, and a run launched
+  from one repository to review another reviewed the wrong tree. `diff-scope.sh`
+  takes the repository as its first argument and the range as its second, and
+  the `reviewer` and `comment-reviewer` agents call it that way.
+- The `review-and-fix-workflow`'s return carries each piece once. `open` and
+  `removal` hold the findings as the reviewer wrote them, the review is no
+  longer a stage under `stages`, since its findings reach the lead under
+  `open`, `decisions`, `questions`, `carried.preExisting` and `removal`, and
+  what the reviewer cleared stays in the journal. A review with four findings
+  once pushed a stop past the host's cap on a tool result. `carried` no longer
+  carries `escalations`; a finding that moved to Opus is listed at that tier
+  under `open`, or under `removal` when it is a test the reviewer left red,
+  and the tier move is not reported on its own.
 - The `review-and-fix-workflow`'s fix brief carries the lead's rulings before
   the findings and tells the fixer to sort the findings against them before
   any edit, so a finding whose fix would undo a ruling is contested in a

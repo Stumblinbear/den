@@ -149,13 +149,23 @@ test("an unresolved judge outcome cannot select a design", async () => {
 
 const GOAL = "An empty path fails where the caller can see it.";
 
+const REPO = "/work/loader";
+
 const ARGS = {
+	repo: REPO,
 	goal: GOAL,
 	plan: "docs/plans/loader.md",
 	basis: "Confirmed: the loader owns the guard (user).",
 	reviewer: "fable",
 	fixRounds: 3,
 };
+
+/** The scope block every launch opens with, as the workflow composes it. */
+const SCOPE = `Repository: ${REPO}
+Range: HEAD
+
+Every command runs there and every search names a path under it: the directory
+you start in may be another tree.`;
 
 /** The lists a fixer's report carries into `stages`. */
 const TRIAGED = new Set([
@@ -172,7 +182,6 @@ const EMPTY_CARRIED = {
 	unsure: [],
 	preExisting: [],
 	asides: [],
-	escalations: [],
 };
 
 interface Stage {
@@ -223,8 +232,8 @@ const finding = (over: Record<string, unknown> = {}) => ({
 	...over,
 });
 
-/** A finding narrowed to what a list of pending work shows. */
-const pendingRecord = ({
+/** A finding ruled skip, narrowed to what a round record shows as removed. */
+const removedRecord = ({
 	id,
 	title,
 	path,
@@ -411,6 +420,10 @@ async function record(
 
 test("invalid review-and-fix-workflow arguments are rejected before any agent launches", async () => {
 	const rejected: readonly (readonly [Record<string, unknown>, RegExp])[] = [
+		[{ ...ARGS, repo: undefined }, /repo/],
+		[{ ...ARGS, repo: "  " }, /repo/],
+		// A relative path names whatever tree the agent reading it stands in.
+		[{ ...ARGS, repo: "plugins/den" }, /repo/],
 		[{ ...ARGS, goal: "  " }, /goal/],
 		[{ ...ARGS, goal: undefined }, /goal/],
 		[{ ...ARGS, plan: 7 }, /plan/],
@@ -440,7 +453,7 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 	}
 });
 
-test("the reviewer reads the working tree against HEAD, with the goal and the plan", async () => {
+test("the reviewer reads the repository's working tree against HEAD, with the goal and the plan", async () => {
 	const launched: {
 		readonly type: string;
 		readonly model: string | undefined;
@@ -465,12 +478,28 @@ test("the reviewer reads the working tree against HEAD, with the goal and the pl
 	]);
 	assert.equal(
 		scope,
-		`Range: HEAD\n\nGoal: ${GOAL}\n\nPlan: docs/plans/loader.md`,
+		`${SCOPE}\n\nGoal: ${GOAL}\n\nPlan: docs/plans/loader.md`,
 	);
 
 	const bare = await record({ ...ARGS, plan: undefined });
 
-	assert.equal(bare.prompts[0], `Range: HEAD\n\nGoal: ${GOAL}`);
+	assert.equal(bare.prompts[0], `${SCOPE}\n\nGoal: ${GOAL}`);
+});
+
+// Every agent inherits the session's working directory, so a lead reviewing a
+// change in another checkout gets its own tree worked on unless each launch
+// says where the work is.
+test("every agent the run launches is told which repository to work in", async () => {
+	const { prompts, result } = await record(ARGS, {
+		review: reviewed({ findings: [finding()] }),
+	});
+
+	assert.equal(result.status, "clean");
+	// The reviewer, the haiku fixer, the closure verifier and the comment pass.
+	assert.equal(prompts.length, 4);
+	for (const prompt of prompts) {
+		assert.ok(prompt.includes(SCOPE), prompt.slice(0, 80));
+	}
 });
 
 test("the goal opens every fix brief and every closure launch", async () => {
@@ -694,7 +723,7 @@ test("a restructure item stops before the next fixer, and the stop's open list l
 	assert.equal(launches.length, 1);
 	// A ruling of skip drops the item, so the list of what the next round takes
 	// up however the stop is answered holds only the opened finding.
-	assert.deepEqual(stopped.open, [pendingRecord(cacheKey())]);
+	assert.deepEqual(stopped.open, [cacheKey()]);
 });
 
 test("a restructure item ruled fix is an Opus finding under its id, which the Opus fixer takes when every other open finding is haiku", async () => {
@@ -964,7 +993,7 @@ test("a round whose closure pass was skipped reaches the next one with what it r
 		{
 			round: 1,
 			findings: [],
-			removed: [pendingRecord(decision)],
+			removed: [removedRecord(decision)],
 		},
 	]);
 });
@@ -1001,16 +1030,6 @@ test("a haiku question about a test to take out hands it to the same round's Opu
 	assert.deepEqual(launched, [
 		{ type: "den:implementer-haiku", removal: [decision] },
 		{ type: "den:implementer-opus", removal: [{ ...decision, tier: "opus" }] },
-	]);
-	assert.deepEqual(result.carried["escalations"], [
-		{
-			id: decision.id,
-			title: decision.title,
-			path: decision.path,
-			line: decision.line,
-			reason: "question",
-			round: 1,
-		},
 	]);
 });
 
@@ -1227,16 +1246,6 @@ test("a haiku question hands its finding to the same round's Opus fixer", async 
 		type: "den:implementer-opus",
 		findings: [{ ...mechanical, tier: "opus" }],
 	});
-	assert.deepEqual(result.carried["escalations"], [
-		{
-			id: mechanical.id,
-			title: mechanical.title,
-			path: mechanical.path,
-			line: mechanical.line,
-			reason: "question",
-			round: 1,
-		},
-	]);
 });
 
 test("a reopened finding and a finding the closure opened make the next round's open list", async () => {
@@ -1273,16 +1282,6 @@ test("a reopened finding and a finding the closure opened make the next round's 
 	assert.deepEqual(briefs[0], [defect]);
 	// Reopening moved the finding off the tier that could not close it.
 	assert.deepEqual(briefs[1], [{ ...defect, tier: "opus" }, opened]);
-	assert.deepEqual(result.carried["escalations"], [
-		{
-			id: defect.id,
-			title: defect.title,
-			path: defect.path,
-			line: defect.line,
-			reason: "reopened",
-			round: 1,
-		},
-	]);
 });
 
 test("a finding the closure opens under an open finding's id is renamed", async () => {
@@ -1379,7 +1378,7 @@ test("the round cap stops the run, and its answer is how many more rounds to all
 	assert.equal(first.stop, 0);
 	assert.equal(first.round, 1);
 	assert.deepEqual(first.fixRounds, [{ id: "fix-rounds" }]);
-	assert.deepEqual(first.open, [pendingRecord(defect)]);
+	assert.deepEqual(first.open, [defect]);
 
 	const second = outcome(
 		await runWorkflow(
@@ -1424,7 +1423,7 @@ test("a zero answer at the round cap ends the fixing and lands the run", async (
 	assert.deepEqual(launched, ["den:reviewer", "den:comment-reviewer"]);
 	assert.equal(result.status, "capped");
 	assert.equal(result.rounds, 0);
-	assert.deepEqual(result.open, [pendingRecord(defect)]);
+	assert.deepEqual(result.open, [defect]);
 	assert.equal(result.removal, undefined);
 	assert.deepEqual(
 		result.stages.map((entry) => entry.stage),
@@ -1446,7 +1445,7 @@ test("a capped run carries the findings whose tests are still in the tree", asyn
 
 	assert.equal(result.status, "capped");
 	assert.deepEqual(result.open, []);
-	assert.deepEqual(result.removal, [pendingRecord(decision)]);
+	assert.deepEqual(result.removal, [decision]);
 	assert.equal(prompts.length, 2);
 });
 
@@ -1467,7 +1466,7 @@ test("a capped run with a ruled-skip finding includes removal in the stopped ret
 	assert.equal(result.at, "fixRounds");
 	assert.equal(result.status, "stopped");
 	assert.equal(result.round, 0);
-	assert.deepEqual(result.removal, [pendingRecord(decision)]);
+	assert.deepEqual(result.removal, [decision]);
 });
 
 test("the review stop says which findings a fixer takes up whatever the lead rules", async () => {
@@ -1489,8 +1488,13 @@ test("the review stop says which findings a fixer takes up whatever the lead rul
 	assert.equal(result.at, "review");
 	// The decision waits on the lead's ruling and the pre-existing finding is
 	// carried, so neither is what a fixer takes up.
-	assert.deepEqual(result.open, [pendingRecord(defect)]);
+	assert.deepEqual(result.open, [defect]);
 	assert.equal(result.removal, undefined);
+	// Each finding of the review arrives once and whole, and the review is no
+	// stage: a second copy of each crowds the host's cap on the return.
+	assert.deepEqual(result.decisions, [decision]);
+	assert.deepEqual(result.carried["preExisting"], [old]);
+	assert.deepEqual(result.stages, []);
 });
 
 test("the fix stop says what the round still has open", async () => {
@@ -1511,10 +1515,7 @@ test("the fix stop says what the round still has open", async () => {
 	);
 
 	assert.equal(result.at, "fix");
-	assert.deepEqual(result.open, [
-		pendingRecord(mechanical),
-		pendingRecord(judged),
-	]);
+	assert.deepEqual(result.open, [mechanical, judged]);
 	assert.equal(result.removal, undefined);
 });
 
@@ -1541,10 +1542,7 @@ test("a fix stop reached mid-round on a removal finding includes that finding", 
 
 	assert.equal(result.at, "fix");
 	assert.deepEqual(result.open, []);
-	assert.deepEqual(result.removal, [pendingRecord(skipped)]);
-	// The finding was already at Opus, so the haiku fixer's question moved no
-	// tier.
-	assert.deepEqual(result.carried["escalations"], []);
+	assert.deepEqual(result.removal, [skipped]);
 });
 
 test("the contested stop says what the round has open beside what it contested", async () => {
@@ -1568,7 +1566,7 @@ test("the contested stop says what the round has open beside what it contested",
 
 	assert.equal(result.at, "contested");
 	// A contested finding comes back only when the lead rules fix.
-	assert.deepEqual(result.open, [pendingRecord(kept)]);
+	assert.deepEqual(result.open, [kept]);
 	assert.equal(result.removal, undefined);
 });
 
@@ -1600,7 +1598,7 @@ test("the fix stop leaves out a finding the round already contested", async () =
 	assert.equal(result.at, "fix");
 	// The contested finding comes back at the contested stop, which this one
 	// precedes.
-	assert.deepEqual(result.open, [pendingRecord(asking)]);
+	assert.deepEqual(result.open, [asking]);
 });
 
 test("the closure stop says what the next round takes up whatever the lead rules", async () => {
@@ -1632,21 +1630,8 @@ test("the closure stop says what the next round takes up whatever the lead rules
 	assert.equal(result.at, "closure");
 	// The undecided finding comes back only when the lead rules fix. The
 	// reopened one is listed at the tier that will take it.
-	assert.deepEqual(result.open, [
-		pendingRecord({ ...reopened, tier: "opus" }),
-		pendingRecord(opened),
-	]);
+	assert.deepEqual(result.open, [{ ...reopened, tier: "opus" }, opened]);
 	assert.equal(result.removal, undefined);
-	assert.deepEqual(result.carried["escalations"], [
-		{
-			id: reopened.id,
-			title: reopened.title,
-			path: reopened.path,
-			line: reopened.line,
-			reason: "reopened",
-			round: 1,
-		},
-	]);
 });
 
 test("a contested finding the lead ruled on reaches that round's closure stop, open or waiting removal", async () => {
@@ -1674,7 +1659,7 @@ test("a contested finding the lead ruled on reaches that round's closure stop, o
 	);
 
 	assert.equal(fixing.at, "closure");
-	assert.deepEqual(fixing.open, [pendingRecord(blocked)]);
+	assert.deepEqual(fixing.open, [{ ...blocked, instruction }]);
 	assert.equal(fixing.removal, undefined);
 
 	const skipping = outcome(
@@ -1687,7 +1672,7 @@ test("a contested finding the lead ruled on reaches that round's closure stop, o
 
 	assert.equal(skipping.at, "closure");
 	assert.deepEqual(skipping.open, []);
-	assert.deepEqual(skipping.removal, [pendingRecord(blocked)]);
+	assert.deepEqual(skipping.removal, [blocked]);
 });
 
 test("a contested finding from either fixer stops the run, leaves that round's closure, and comes back when the lead rules fix", async () => {
@@ -2157,35 +2142,6 @@ test("a finding the closure cannot decide, whose id the lead already ruled on, s
 	assert.equal(clean.status, "clean");
 });
 
-test("a finding the haiku fixer handed to Opus is escalated once, not again when closure reopens the Opus fix", async () => {
-	const mechanical = finding();
-	const result = outcome(
-		await runWorkflow(
-			"review-and-fix-workflow",
-			ARGS,
-			agents({
-				review: reviewed({ findings: [mechanical] }),
-				fix: (_prompt, type) =>
-					type === "den:implementer-haiku"
-						? fixed({ questions: [question(1)] })
-						: fixed(),
-				close: (prompt, round) =>
-					round === 1
-						? closed({ verdicts: [verdict(mechanical.id, "REOPENED")] })
-						: closing(prompt),
-			}),
-		),
-	);
-
-	assert.equal(result.status, "clean");
-	assert.deepEqual(
-		result.carried["escalations"]?.map(
-			(item) => (item as { reason: string }).reason,
-		),
-		["question"],
-	);
-});
-
 test("a decision finding the closure opens stops the run before a fixer takes it", async () => {
 	const defect = finding({ tier: "opus" });
 	const opened = finding({
@@ -2416,10 +2372,10 @@ test("the comment reviewer runs on the scope alone, once nothing is open and no 
 		"den:implementer-haiku",
 		"den:comment-reviewer",
 	]);
-	assert.equal(scope, "Range: HEAD");
+	assert.equal(scope, SCOPE);
 });
 
-test("a clean return carries every list the rounds filled, with one stage entry per agent", async () => {
+test("a clean return carries every list the rounds filled, with one stage entry per agent after the review", async () => {
 	const deviations = [
 		{
 			what: "Named the guard loadGuard",
@@ -2449,7 +2405,7 @@ test("a clean return carries every list the rounds filled, with one stage entry 
 	});
 	assert.deepEqual(
 		result.stages.map((entry) => entry.stage),
-		["review", "fix:1:haiku", "close:1", "comment"],
+		["fix:1:haiku", "close:1", "comment"],
 	);
 });
 
@@ -2478,7 +2434,7 @@ test("a clean return's fixer stage carries the lists the lead triages and nothin
 	assert.deepEqual(entry?.report["deviations"], deviations);
 });
 
-test("a stopped return's fixer stage is trimmed the same way, and the review's stays whole", async () => {
+test("a stopped return's fixer stage is trimmed the same way, and the review is no stage of it", async () => {
 	const kept = finding({ id: "flag-name", tier: "opus" });
 	const blocked = finding({ tier: "opus" });
 	const contested = {
@@ -2498,9 +2454,14 @@ test("a stopped return's fixer stage is trimmed the same way, and the review's s
 	);
 
 	assert.equal(result.at, "contested");
+	// No ruling reads what the reviewer cleared, and its findings are already
+	// under `open` and `contested`.
 	assert.deepEqual(
-		result.stages.map((stage) => new Set(Object.keys(stage.report))),
-		[new Set(["findings", "cleared", "questions"]), TRIAGED],
+		result.stages.map((stage) => [
+			stage.stage,
+			new Set(Object.keys(stage.report)),
+		]),
+		[["fix:1:opus", TRIAGED]],
 	);
 });
 

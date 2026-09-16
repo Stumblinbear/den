@@ -10,8 +10,13 @@ export const meta = {
 }
 
 const input = args && typeof args === 'object' && !Array.isArray(args) ? args : {}
-const { goal, plan, basis, rulings, reviewer, fixRounds, answers } = input
+const { repo, goal, plan, basis, rulings, reviewer, fixRounds, answers } = input
 
+// Each agent stands in the session's working directory, so a relative path
+// would resolve against the very tree this argument is here to override.
+if (typeof repo !== 'string' || !/^([A-Za-z]:[\\/]|[\\/])/.test(repo)) {
+  throw new Error('`repo` is the absolute path of the repository whose working tree is reviewed')
+}
 if (typeof goal !== 'string' || goal.trim() === '') {
   throw new Error('review-and-fix-workflow takes `goal`, what the change is for in the user\'s terms, as nonempty text')
 }
@@ -38,8 +43,8 @@ if (answers !== undefined && (typeof answers !== 'object' || answers === null ||
 }
 // A relaunch repeats these arguments with the answers appended, so a key from
 // outside this list is a misspelling of one in it.
-if (Object.keys(input).some((key) => !['goal', 'plan', 'basis', 'rulings', 'reviewer', 'fixRounds', 'answers'].includes(key))) {
-  throw new Error('review-and-fix-workflow takes `goal`, `plan`, `basis`, `rulings`, `reviewer`, `fixRounds` and `answers` and nothing else')
+if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'basis', 'rulings', 'reviewer', 'fixRounds', 'answers'].includes(key))) {
+  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `basis`, `rulings`, `reviewer`, `fixRounds` and `answers` and nothing else')
 }
 
 const QUESTION = {
@@ -194,9 +199,15 @@ const COMMENTS = {
   required: ['report'],
 }
 
-// The workflow reads what is in the working tree: the lead rules commit each
-// step before the next is briefed.
-const SCOPE = 'Range: HEAD'
+// The range is HEAD because the workflow reads what is in the working tree:
+// the lead rules commit each step before the next is briefed. The repository
+// is named because an agent inherits the session's working directory, another
+// tree whenever the lead reviews a change outside the repository it sits in.
+const SCOPE = `Repository: ${repo}
+Range: HEAD
+
+Every command runs there and every search names a path under it: the directory
+you start in may be another tree.`
 
 // A reviewer handed an account of the change reviews the account instead of the
 // change, so the scope, the goal and the plan are the whole message.
@@ -211,7 +222,7 @@ function reviewScope(goal, plan) {
 const ANSWERED = 'Questions answered earlier in this run, each under the id its asker gave it:'
 
 function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions) {
-  const parts = [`Goal: ${goal}`]
+  const parts = [`Goal: ${goal}`, SCOPE]
 
   // The rulings come before the findings, so a finding that collides with one
   // is sorted out before a test is written or a build is spent on it.
@@ -371,8 +382,8 @@ function checkVerdicts(verdicts, open, stage) {
   }
 }
 
-const carried = { deviations: [], choices: [], unsure: [], preExisting: [], asides: [], escalations: [] }
-// One entry per agent launched, oldest first.
+const carried = { deviations: [], choices: [], unsure: [], preExisting: [], asides: [] }
+// One entry per agent launched after the review, oldest first.
 const stages = []
 // One record per round already run, kept whole: `stages` is trimmed at every
 // answered stop, and fixes clustering across rounds are invisible without them.
@@ -420,11 +431,10 @@ function rename(items, claimed, siblings) {
   }
 }
 
-// Narrows a finding to what a list of pending work shows the lead: its id, its
-// title, where it is, and the tier that will take it. The finding reached the
-// lead whole in the report that raised it, and the host truncates a long
-// return.
-function record(finding) {
+// Narrows a finding ruled skip to what a verifier reads it for in a round
+// record: which finding it was, where, and which tier took its test out. The
+// rest of the finding decides nothing there.
+function removedRecord(finding) {
   return {
     id: finding.id,
     title: finding.title,
@@ -460,8 +470,8 @@ function stop(at, awaiting, reported, held) {
         status: 'stopped',
         stop: n,
         at,
-        open: open.map(record),
-        ...(removal.length ? { removal: removal.map(record) } : {}),
+        open,
+        ...(removal.length ? { removal } : {}),
         ...held,
         stages,
         carried,
@@ -572,7 +582,7 @@ function roundRecord(round, findings, removed) {
   const entry = { round, findings }
 
   if (removed.length) {
-    entry.removed = removed.map(record)
+    entry.removed = removed.map(removedRecord)
   }
 
   return entry
@@ -629,13 +639,10 @@ function ruleRestructures(items, ruling) {
     })
 }
 
-// A finding that moves up a tier is one the reviewer or the round tiered wrong,
-// which the lead reads at the next stop or at the end. The open list takes the
-// moved finding in place of the one it held, so the tier every later round and
-// every closure prompt reads is the tier the finding last ran at.
-function escalate(finding, reason, round) {
-  carried.escalations.push({ id: finding.id, title: finding.title, path: finding.path, line: finding.line, reason, round })
-
+// Moves a finding to the Opus tier and puts the moved copy into the open list
+// in place of the one it held, so the tier every later round and every closure
+// prompt reads is the tier the finding last ran at.
+function escalate(finding) {
   const moved = { ...finding, tier: 'opus' }
   open = open.map((item) => (item === finding ? moved : item))
 
@@ -674,8 +681,11 @@ const review = await agent(reviewScope(goal, plan), {
 checkReport(review, 'review', REVIEW_LISTS)
 const reported = [...review.findings, ...review.questions]
 checkIds(reported, 'review')
-stages.push({ stage: 'review', report: review })
 
+// The review pushes no stage. Every finding of it reaches the lead under
+// `open`, `decisions`, `questions`, `carried.preExisting` or `removal`, and a
+// second copy of each crowds the host's cap on a tool result; no ruling reads
+// what the reviewer cleared.
 carried.preExisting.push(...review.findings.filter((finding) => finding.preExisting))
 // A decision finding is the reviewer's class for a choice a reader could take
 // the other way, and it is the lead's to rule on.
@@ -755,8 +765,8 @@ while (open.length || removal.length) {
     // what it asked about goes to this round's Opus fixer rather than to the
     // lead. A removal it asked nothing about is done, and leaves the list.
     const raised = new Set(report.questions.map((question) => question.finding))
-    opus = [...opus, ...haiku.filter((finding) => raised.has(finding.id)).map((finding) => escalate(finding, 'question', round))]
-    removal = removal.filter((finding) => raised.has(finding.id)).map((finding) => (finding.tier === 'haiku' ? escalate(finding, 'question', round) : finding))
+    opus = [...opus, ...haiku.filter((finding) => raised.has(finding.id)).map((finding) => escalate(finding))]
+    removal = removal.filter((finding) => raised.has(finding.id)).map((finding) => (finding.tier === 'haiku' ? escalate(finding) : finding))
     contest(contested, report.contested, given)
   }
 
@@ -864,7 +874,7 @@ while (open.length || removal.length) {
 
   // A reopened fix was not what its tier could do, so it runs on Opus from
   // here.
-  const escalated = reopened.map((finding) => (finding.tier === 'haiku' ? escalate(finding, 'reopened', round) : finding))
+  const escalated = reopened.map((finding) => (finding.tier === 'haiku' ? escalate(finding) : finding))
 
   // What the next round takes up however the lead answers the stop below.
   open = [...escalated, ...opened, ...deferred]
@@ -920,8 +930,8 @@ checkAnswersUsed()
 if (open.length || removal.length) {
   return {
     status: 'capped',
-    open: open.map(record),
-    ...(removal.length ? { removal: removal.map(record) } : {}),
+    open,
+    ...(removal.length ? { removal } : {}),
     rounds: round,
     stages,
     carried,

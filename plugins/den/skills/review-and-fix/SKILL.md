@@ -10,21 +10,18 @@ allowed-tools: Workflow
 
 Run the workflow once the change is in the working tree and the report of
 whatever built it is triaged. It reviews the working tree against HEAD, so the
-step before is committed first. The tree is the one the session stands in:
-every agent the run launches inherits the session's working directory,
-whatever tree the basis names, so a change on another worktree is reviewed
-from a session whose working directory is that worktree, and a relaunch is
-made from the same directory as the launch.
+step before is committed first.
 
 ```
 Workflow({
   name: "den:review-and-fix-workflow",
-  args: { goal, plan, basis, rulings, reviewer, fixRounds: 3 },
+  args: { repo, goal, plan, basis, rulings, reviewer, fixRounds: 3 },
 })
 ```
 
 | Argument | Value |
 | --- | --- |
+| `repo` | Required. The absolute path of the repository whose working tree is reviewed. Every agent the run launches works there, whatever directory the session stands in. |
 | `goal` | Required. What the change is for, in the user's terms: the plan's `Goal:` line, quoted. It opens the review and every fix and closure launch. |
 | `plan` | The plan's path, when the change is a step of one. |
 | `basis` | Required. The design basis, at most 6000 characters. |
@@ -53,14 +50,15 @@ A stopped run returns `status: "stopped"`, `at` naming the stop, the items it
 holds, and:
 
 - `open`: the findings the next fixer takes up however the stop is answered,
-  by id, title, path, line and tier;
+  each whole, with the lead's `instruction` where a ruling of fix gave one;
 - `removal`, when present: findings ruled skip whose tests still wait to come
   out;
-- `stages`: every agent's report since the last answered stop;
+- `stages`: every agent's report since the last answered stop, the review
+  apart, since its findings arrive under `open`, `decisions`, `questions` and
+  `carried`;
 - `carried`: the `deviations`, `choices` and `unsure` items the fixers
-  declared, `preExisting` findings, which no fixer takes, `asides`, the
-  reviewer's questions that change no code, and `escalations`, all since the
-  last answered stop.
+  declared, `preExisting` findings, which no fixer takes, and `asides`, the
+  reviewer's questions that change no code, all since the last answered stop.
 
 Answer every item the stop holds, under its id. `open` and `removal` take no
 answer, and a key for one of their findings fails the run at its next stop.
@@ -89,7 +87,7 @@ re-plan rather than rule on is answered by not relaunching.
 ```
 Workflow({
   name: "den:review-and-fix-workflow",
-  args: { goal, plan, basis, rulings, reviewer, fixRounds, answers },
+  args: { repo, goal, plan, basis, rulings, reviewer, fixRounds, answers },
   resumeFromRunId: "<the runId the stopped return came with>",
 })
 ```
@@ -112,9 +110,6 @@ follows a `0` at the round limit: the comment pass ran on the tree as it is,
 and `open` and `removal` list what was left. Both carry `rounds`, and
 `stages` and `carried` since the last answered stop, with the comment
 reviewer's report last in `stages`; `carried` is triaged as an implementer's
-report is. Each `escalations` entry is a finding the reviewer tiered `haiku`
-that ran on Opus, with `reason` `question` when the haiku fixer asked about
-it and `reopened` when closure reopened its haiku fix; it asks nothing, and
-the triage reports it in a line. A run that throws is incomplete, not clean:
-its message names the cause, and one that failed on an answer is relaunched
+report is. A run that throws is incomplete, not clean: its
+message names the cause, and one that failed on an answer is relaunched
 on its run id with the answers corrected.

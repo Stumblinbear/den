@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Renders the review scope for the reviewer and comment-reviewer agents,
-# which run it themselves: repository, range, status, stat, and the diff
-# itself when it fits.
+# Renders a review scope for the reviewer and comment-reviewer agents, which
+# run this script themselves: the repository, the range, the status, the stat,
+# and the diff itself when the whole rendering fits. Bash tool output past
+# roughly 30,000 characters comes back as a file path and a 2KB preview, which
+# costs the reviewer more to read back than pulling the diff per file, so past
+# that ceiling the stat is the map and the per-file commands are printed in
+# place of the diff.
 #
-# Bash tool output past roughly 30,000 characters is replaced by a file path
-# plus a 2KB preview, which the reviewer then reads back in chunks at a
-# higher token cost than pulling the diff itself. So the diff is inlined only
-# when the whole rendering stays under that ceiling; otherwise the stat
-# serves as the map and the reviewer pulls per file, the way hand-launched
-# reviewers already work.
-#
-# The range arrives as one argument so shell metacharacters in it reach this
-# script rather than the caller's command line. Split it back into `git diff`
-# arguments here; none means HEAD.
+# The repository is the first argument and the range the second. The agent
+# running this inherits the session's working directory, another tree whenever
+# the review runs outside the repository the session sits in, so the repository
+# is named rather than taken from the cwd. The range arrives as one argument,
+# which keeps shell metacharacters in it off the caller's command line; it is
+# split back into `git diff` arguments here, and an empty one means HEAD.
 set -u
 
 # Every git call names a non-ASCII path unescaped. Under the default
@@ -23,7 +23,13 @@ set -u
 # environment, since it has to hold for every call below.
 export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.quotePath GIT_CONFIG_VALUE_0=false
 
-read -ra args <<< "${1-}"
+repo="${1-}"
+if [ -z "$repo" ]; then
+  printf 'The repository whose working tree is rendered is the first argument, and the range the second.\n'
+  exit 0
+fi
+
+read -ra args <<< "${2-}"
 if [ "${#args[@]}" -eq 0 ]; then
   args=(HEAD)
 fi
@@ -51,10 +57,13 @@ for arg in "$@"; do
   fi
 done
 
-if ! root=$(git rev-parse --show-toplevel 2>&1); then
-  printf 'Not inside a git repository: %s\n' "$root"
+if ! root=$(git -C "$repo" rev-parse --show-toplevel 2>&1); then
+  printf 'No git repository at %s: %s\n' "$repo" "$root"
   exit 0
 fi
+# Everything below reads the repository through the cwd: the git calls, the
+# untracked listing, the hunks taken for it and the line counts.
+cd "$root" || exit 0
 
 # Warnings git prints on success (line-ending notices under core.autocrlf)
 # would otherwise land inside the diff fence, so stderr is kept apart and
@@ -65,20 +74,11 @@ if ! diff=$(git diff --no-color --no-ext-diff --diff-algorithm=histogram "$@" 2>
   exit 0
 fi
 
-# Untracked files are outside the index, so `git diff` never shows them, and
-# a new module is the part of a change a review has to read. When the range
-# compares against the working tree, each untracked, non-ignored file is
-# rendered as the new-file hunk it becomes once added, without touching the
-# index. A range between two revisions has no working tree in it.
-#
-# The tracked diff and the status are repository-wide and root-relative
-# whatever the cwd, so this listing is too: `--full-name` and the `:/`
-# pathspec cover the whole tree when no pathspec was given, and each hunk is
-# taken from the root, since `--no-index` resolves a relative path against
-# the cwd and, on Git for Windows, `/dev/null` arrives rewritten to the
-# relative `nul`. The empty-array expansions are guarded for bash 3.2, where
-# `set -u` treats them as unbound. The listing is null-delimited, so a name
-# holding a newline still arrives whole.
+# Untracked files are outside the index, so `git diff` never shows them, and a
+# new module is the part of a change a review has to read. Each untracked,
+# non-ignored file is rendered as the new-file hunk it becomes once added,
+# without touching the index. Only a range against the working tree has such
+# files: a range between two revisions does not.
 untracked=()
 read -ra revwords <<< "$revs"
 case "$revs" in
@@ -88,6 +88,11 @@ case "$revs" in
       while IFS= read -r -d '' file; do
         [ -n "$file" ] && untracked+=("$file")
       done < <(
+        # `:/` covers the whole tree whatever the cwd and `--full-name` prints
+        # each path from the root, so the listing matches the tracked diff and
+        # the status. Under bash 3.2 `set -u` treats an empty array's expansion
+        # as unbound, so the pathspec goes in through a branch here and a `+`
+        # expansion below.
         if [ "${#paths[@]}" -eq 0 ]; then
           git ls-files --others --exclude-standard --full-name -z -- ':/'
         else
@@ -99,17 +104,19 @@ case "$revs" in
 esac
 newstat=""
 for file in ${untracked[@]+"${untracked[@]}"}; do
-  # --no-index exits 1 whenever the file has content, which is the normal case.
-  hunk=$(git -C "$root" diff --no-color --no-ext-diff --no-index -- /dev/null "$file" 2>/dev/null || true)
+  # Both paths resolve against the cwd, which is the root: on Git for Windows
+  # `/dev/null` arrives rewritten to a relative `nul`. `--no-index` exits 1
+  # whenever the file has content, the normal case.
+  hunk=$(git diff --no-color --no-ext-diff --no-index -- /dev/null "$file" 2>/dev/null || true)
   diff="${diff:+$diff
 }$hunk"
   # grep counts a last line without a newline; wc -l does not.
-  newstat="$newstat$(printf ' %s | new file, %s lines' "$file" "$(grep -c '' "$root/$file")")
+  newstat="$newstat$(printf ' %s | new file, %s lines' "$file" "$(grep -c '' "$file")")
 "
 done
 
-# --porcelain keeps status paths root-relative like the stat and diff headers,
-# whatever the session shell's cwd or the user's status config.
+# --porcelain ignores the user's status config, so status paths are
+# root-relative like the stat and the diff headers.
 header=$(
   printf 'Repository: %s\n' "$root"
   printf 'Range: `git diff %s`\n\n' "$range"
@@ -136,6 +143,6 @@ if [ "$rendered" -le "$budget" ]; then
   printf 'Diff:\n````diff\n%s\n````\n' "$diff"
 else
   printf 'Status, stat, and diff together come to %s characters, past the inline ceiling, so the diff is not rendered here. ' "$rendered"
-  printf 'Pull it per file with `git diff %s -- <path>`; a stat line marked `new file` is an untracked file, which `git diff` cannot show, so read it directly. ' "$revs"
-  printf 'A single file past about 500 changed lines overflows the same ceiling; slice it, for example `git diff %s -- <path> | sed -n "1,400p"`.\n' "$revs"
+  printf 'Pull it per file with `git -C %s diff %s -- <path>`; a stat line marked `new file` is an untracked file, which `git diff` cannot show, so read it directly at `%s/<path>`. ' "$root" "$revs" "$root"
+  printf 'A single file past about 500 changed lines overflows the same ceiling; slice it, for example `git -C %s diff %s -- <path> | sed -n "1,400p"`.\n' "$root" "$revs"
 fi
