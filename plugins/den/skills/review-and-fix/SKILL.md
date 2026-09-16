@@ -10,7 +10,11 @@ allowed-tools: Workflow
 
 Run the workflow once the change is in the working tree and the report of
 whatever built it is triaged. It reviews the working tree against HEAD, so the
-step before is committed first.
+step before is committed first. The tree is the one the session stands in:
+every agent the run launches inherits the session's working directory,
+whatever tree the basis names, so a change on another worktree is reviewed
+from a session whose working directory is that worktree, and a relaunch is
+made from the same directory as the launch.
 
 ```
 Workflow({
