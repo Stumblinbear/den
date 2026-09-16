@@ -34,18 +34,17 @@ decisions by linking to them. Put substantial new topics under `docs/direction/`
 with boundaries and filenames that reflect the project rather than interview
 order. Small topics can share a file.
 
-Each topic keeps its established direction, reasons, consequential unknowns,
-sources and confirmation dates together. Preserve the relationships between
-goals, including priorities, dependencies and tradeoffs; a preference alone does
-not establish what should be built next. Distinguish long-term direction,
+Each topic keeps its established direction, reasons, consequential unknowns
+and sources together; a decision carries no date. Preserve the relationships
+between goals, including priorities, dependencies and tradeoffs; a preference
+alone does not establish what should be built next. Distinguish long-term direction,
 current milestone requirements and deliberately deferred work. A detailed
 decision has one authoritative home; summaries link there.
 
 Keep confirmed user direction distinct from interpretations and open questions.
 Preserve the reason and revisit condition for deliberate deferrals. For
 unfinished discovery, retain its interrupted status and each unresolved
-question's context, consequences and what would help answer it. An edit or
-reorganization does not renew a statement's confirmation date.
+question's context, consequences and what would help answer it.
 
 ## Make the result usable
 
@@ -57,6 +56,6 @@ future task. Keep the entry point useful without requiring every topic to be rea
 
 Update affected links and summaries when direction changes or moves. Check that
 links resolve and that reorganizing has preserved decisions, qualifications,
-reasons, sources and unresolved questions. For substantive changes, make clear
-what direction changed and on whose authority. Report the document locations,
-meaningful changes and questions that still require the user's decision.
+reasons, sources and unresolved questions. Report the document locations,
+meaningful changes, what direction changed and on whose authority, and the
+questions that still require the user's decision.
