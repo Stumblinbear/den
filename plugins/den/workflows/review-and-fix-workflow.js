@@ -589,8 +589,12 @@ function rule(findings, ruling) {
     const answer = ruling[finding.id]
 
     if (answer.action === 'skip') {
+      // A ruling of skip leaves the tree as it stands, so an instruction an
+      // earlier ruling of fix attached would contradict the removal it now goes
+      // out under, and is dropped with the finding.
       if (finding.kind !== 'restructure') {
-        removal.push(finding)
+        const { instruction: _, ...bare } = finding
+        removal.push(bare)
       }
     } else {
       fix.push(answer.instruction === undefined ? finding : { ...finding, instruction: answer.instruction })

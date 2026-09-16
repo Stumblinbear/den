@@ -78,10 +78,11 @@ on relaunching.
 | `closure` | `restructure`: fixes landing in one unit while the findings name mechanisms elsewhere, with where that unit is and the patch list; `undecided`: findings closure marked NEEDS-DECISION, with its reason; `decisions`: decision findings the closure opened | a restructure item: as a decision at `review`; ruled fix, it joins the next round at opus with the instruction if one is given, so the Opus fixer takes it and the next closure pass gives it a verdict, and ruled skip, it is dropped, with no test to take out; an undecided finding: `{ "action": "fix", "instruction": "..." }`, since a fixer has already edited for it, and reverting that edit and dropping its test is one instruction; an opened decision: as at `review` |
 | `fixRounds` | `fixRounds`: the item the stop waits under; `round`, the rounds run so far | under that item's id: how many more rounds, a whole number; `0` ends the fixing, and the comment pass runs on the tree as it is |
 
-`skip` drops the finding and takes its test out of the tree, and carries no
-instruction. An answered question reaches every later fix brief and closure
-launch. A restructure item the lead would re-plan rather than rule on is
-answered by not relaunching.
+`fix` asks for a change to the tree, and its `instruction` says which. `skip`
+leaves the tree as it stands, so it carries no instruction, and what the
+reviewer added for the finding leaves with it. An answered question reaches
+every later fix brief and closure launch. A restructure item the lead would
+re-plan rather than rule on is answered by not relaunching.
 
 ## Relaunch
 
