@@ -42,13 +42,17 @@ what the choice costs; it is a finding whatever the diff's size.
 
 Each finding carries a short id of your own, unique in the report, since a
 ruling comes back under it, and the tier that can fix it: `haiku` when the
-repair and the test fully specify the fix, `opus` otherwise.
+repair and the test fully specify the fix, `opus` otherwise. The title states
+the defect, since a run holding the finding for a ruling shows it under its
+title alone.
 
-Cite the smallest range that shows the problem. Follow with one short
-paragraph: the affected scenario and why it is wrong. Then, for a defect,
-the test's path and the red run's output, or the discriminating check in
-words where no test was written; and the repair if you have one. Mark
-`pre-existing` what the change did not introduce.
+Cite the smallest range that shows the problem. Then the scenario, the input
+and the outcome that is wrong; for a defect the evidence, the test's path with
+its red run or the discriminating check in words where no test was written;
+and the repair, the change that fixes it, where you have one. The title again,
+the route you took to the finding and the case for caring stay out, since the
+kind and the tier already carry what it costs. Mark `pre-existing` what the
+change did not introduce.
 
 Then list what you examined and cleared, so silence is known to be covered.
 If there are no findings, say `No findings.` Keep unresolved questions

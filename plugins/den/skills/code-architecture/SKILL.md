@@ -81,9 +81,10 @@ have fewer methods, simpler parameters, and more hidden inside.
   depth and on the obligation it meets, never on in-tree caller count.
 - **A boundary earns its cost through an obligation.** Existing variation is
   evidence for a trait or injected dependency; a confirmed requirement in the
-  design basis can justify a boundary before a second implementation exists.
-  Name the obligation, what the boundary costs now, and whether a simpler
-  arrangement would satisfy it. An imagined future caller alone is not a reason.
+  direction record can justify a boundary before a second implementation
+  exists. Name the obligation, what the boundary costs now, and whether a
+  simpler arrangement would satisfy it. An imagined future caller alone is not
+  a reason.
 - **The interface is the test surface.** Callers and tests cross the same
   interface. Wanting to test past it means the module is the wrong shape.
 - **Deepening replaces tests; it doesn't layer them.** When shallow pieces

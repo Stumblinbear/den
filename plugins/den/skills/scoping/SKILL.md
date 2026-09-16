@@ -1,7 +1,7 @@
 ---
 name: scoping
-description: Establishes the task's design basis and settles consequential decisions before a brief is written, one question at a time, with existing context read first and confirmed direction kept distinct from assumptions.
-when_to_use: ALWAYS invoke this skill before writing a brief with an unresolved consequential decision, when implementation exposes a conflict with the design basis, and when the user says "scope this", "grill me", or "interview me". Do not settle the missing decision in a brief or workaround; use this skill first.
+description: Reads the direction record and settles consequential decisions before a brief is written, one question at a time, with existing context read first and confirmed direction kept distinct from assumptions.
+when_to_use: ALWAYS invoke this skill before writing a brief with an unresolved consequential decision, when implementation exposes a conflict with the direction record, and when the user says "scope this", "grill me", or "interview me". Do not settle the missing decision in a brief or workaround; use this skill first.
 ---
 
 # Scoping
@@ -11,18 +11,21 @@ round to build and a round to undo. This pass connects the task to the project's
 direction and puts readings that would produce materially different work to
 the user as decisions, before the brief is written.
 
-## Design basis
+## The direction record
 
-Derive a compact design basis from the project-direction record, supplied
-context and the user's answers: this feature's purpose, relevant constraints
-and planned developments, and which statements remain assumptions. Name the
-source of each consequential statement. Code establishes current behavior;
-the user's direction establishes
-what the project is working toward. Keep inferred architectural implications
-distinct from requirements and settled design decisions.
+The project's direction record holds this feature's purpose, the relevant
+constraints and planned developments, and which statements remain assumptions.
+Read it alongside the supplied context and the user's answers. Code
+establishes current behavior; the record establishes what the project is
+working toward.
 
-Read available goals, roadmap or design documents and reuse answers already
-given. Invoke `den:project-direction` when establishing or reconsidering the
+What this pass establishes or corrects about that direction goes back into
+the record through `den:direction-docs`, since exploration and the brief carry
+the record's path and the explorers and the implementer read it there.
+Task-specific decisions stay with the task unless they also change the broader
+direction.
+
+Invoke `den:project-direction` when establishing or reconsidering the
 broader direction is necessary; that discovery has no time or question budget
 and is not part of this pass. Preserve questions deliberately left open or
 recorded when the user ended discovery, and revisit them when new evidence
@@ -32,13 +35,14 @@ can constrain a boundary without authorizing its implementation.
 ## When the pass runs
 
 The pass runs before a brief and reopens when implementation exposes a conflict
-with its design basis. When a decision would produce materially different work
-and the available direction does not settle it, open the pass yourself and keep
-it to the questions whose answers change what gets built -- the user came with
-work to do, not an interview. When existing context settles the consequential
-choices, carry the basis straight to the brief without new questions. Diff size
-does not settle whether a choice is expensive to reverse.
-When the user asks for the pass, it is unbounded and no ask is too small for it.
+with the direction record. When a decision would produce materially different
+work and the available direction does not settle it, open the pass yourself and
+keep it to the questions whose answers change what gets built. The user came
+with work to do, not an interview. When existing context settles the
+consequential choices, carry the record's path straight to the brief without
+new questions. Diff size does not settle whether a choice is expensive to
+reverse. When the user asks for the pass, it is unbounded and no ask is too
+small for it.
 
 Existing code, a passing regression test, or a previously accepted local fix
 establishes behavior, not agreement with the assumption behind it. When new
@@ -90,12 +94,9 @@ still open. Independent work can continue.
 
 ## Where the answers go
 
-Carry the design basis, settled decisions and unresolved questions separately
-into exploration and the implementation brief, preserving reasons and sources.
-The basis explains what a design must serve; the decisions record choices
-already made. When no brief follows, report those three as the outcome.
-
-When an agreed clarification establishes or changes project direction, use
-`den:direction-docs` to update the durable record. Keep task-specific decisions
-in the brief unless they also change that broader direction. Reading direction
-for the design basis does not require the documentation skill.
+Carry into exploration and the implementation brief the record's path, the
+settled decisions as a list, one decision with its reason each, and the
+unresolved questions. The path rather than a restatement, so that what the
+explorers and the implementer read is the record as it stands. When no brief
+follows, report those three as the outcome. Reading the record does not
+require `den:direction-docs`.

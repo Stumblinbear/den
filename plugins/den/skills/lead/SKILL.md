@@ -23,20 +23,20 @@ the reads, the edit output and the test run out of this context.
 
 ## Whose call
 
-An item is the user's when a competent reader could take it either way and be
-right, which is when each way buys something the other gives up: a stored
-format, a public surface, a dependency, a grammar or display convention, a
-name or behaviour the user sees, a test removed, how something looks. An item
-where one way buys nothing, a demonstrated defect, a mechanical sweep, a fact
-the code settles, a rule the user has already stated, is made and reported in
-a line. The defect test runs first: an outcome untrue
-for a reachable input, a message that lies, a number the code gets wrong, is a
-defect on whatever surface it sits; being visible to the user makes it more
-urgent, not more of a choice. This session's own reading is a reading, and
-lands on the first side; a way this session cannot name the purchase of is
-not a reading, and the size, tidiness or felt obviousness of a change says
-nothing about which side it is on. Both mistakes cost the same: a decision
-the user never saw, or a round spent on nothing.
+An item is the user's when it changes what the change is for, what it would
+cost to undo once landed, or a decision they made, on evidence they did not
+have then: a stored format, a public surface, a dependency, a test removed,
+the shape of a step. Everything inside a change they have decided, a key's
+name, what a list narrows to, where a sentence sits, which of two working
+shapes a helper takes, is this session's: made on the goal and reported in a
+line that names the way not taken, so the user overturns it in a word rather
+than answers it in a round. The defect test runs first: an outcome untrue for
+a reachable input, a message that lies, a number the code gets wrong, is a
+defect on whatever surface it sits, and being visible to the user makes it
+more urgent, not more of a choice. The two mistakes do not cost the same: a
+call made that was theirs costs a revert of one line; a question put that was
+this session's costs a round, and a message that is a queue of them teaches
+the user that nothing moves until they answer.
 
 ## Claims about code
 
@@ -76,7 +76,10 @@ of answered questions.
 A brief pins behavior, external constraints, and the decisions already made, and
 states intent for everything else; wording is pinned only where the exact
 wording is the deliverable, since a pin is a decision the implementer can only
-question, not make.
+question, not make. A brief is the intended shape, and the goal governs it:
+its fence names what the change is not for, never a count of items or a list
+of files, since an implementer that meets the goal past the items has done
+the work and one that stops at the items beside a defect has not.
 
 Every pin names its source, the user's word, an external constraint or the
 code, and its reason; a pin with neither, a habit, an encoding's convenience,
@@ -87,14 +90,15 @@ specification of it. A lean goes to the user as a recommendation with its
 cost, never into the part the implementer reads as permission.
 
 Where the ask leaves one of those decisions open, `den:scoping` settles it
-with the user before the brief is written. Carry the design basis it
-establishes into exploration, the brief and review: relevant project purpose
-and constraints, planned developments, sources and remaining assumptions.
-Keep this basis separate from the accepted design and its reasons.
+with the user before the brief is written. What it clarifies about the
+project's direction goes into the direction record, and exploration and the
+brief carry that record's path and the decisions scoping settled, each with
+its reason. An agent that reads the record itself reads the direction as it
+stands; a restatement drifts from the day it is written.
 A change that adds a module, a persisted format, a public surface or a new
 mechanism has its decomposition chosen before the brief by
 `den:design-exploration`: a few explorers propose shapes against the code and
-the design basis, a judge assesses their suitability, the user chooses, and
+the direction record, a judge assesses their suitability, the user chooses, and
 the brief pins the choice. The rest
 of placement, interface depth, type shape and naming belongs to the implementer,
 unless one of them is itself a requirement, and the brief says which. A question
@@ -211,6 +215,10 @@ Every change, once whatever built it has reported and that report is triaged,
 runs `den:review-and-fix` on the working tree with the goal, the plan's path
 and the rulings on the report. The run carries the review, the fix rounds, the
 closure passes and the comment pass, and wakes this session only at a stop.
+What the run did is read from `rounds` on every return, stopped or landed, and
+the transcripts and the journal stay closed: the items a stop holds and what
+the fixers declared arrive beside it word for word, since a ruling and a triage
+turn on the words their writer chose.
 
 Triage a stop's questions separately from its findings: answer from existing
 evidence where possible, otherwise put the decision and its effect to the
@@ -239,8 +247,8 @@ gets a skip.
 
 ## Commits
 
-Once a step's `den:review-and-fix` run has returned `clean` or `capped`,
-whose last stage is the comment pass, propose the commit and wait for its own
+Once a step's `den:review-and-fix` run has returned `clean` or `capped`, both
+of which the comment pass ran before, propose the commit and wait for its own
 approval. A `capped` tree still holds, failing, every test left for a
 finding in `open` or `removal`, so its proposal lists those findings and
 their tests, and puts to the user whether each test is committed, taken out

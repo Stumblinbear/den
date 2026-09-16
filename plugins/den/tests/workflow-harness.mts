@@ -26,6 +26,7 @@ export function runWorkflow(
 	name: "design-exploration-workflow" | "review-and-fix-workflow",
 	args: unknown,
 	agent: Agent,
+	log: (message: string) => void = () => {},
 ): Promise<unknown> {
 	const source = readFileSync(
 		new URL(`../workflows/${name}.js`, import.meta.url),
@@ -49,7 +50,7 @@ export function runWorkflow(
 		agent,
 		(tasks) => Promise.all(tasks.map((task) => task())),
 		() => {},
-		() => {},
+		log,
 	);
 }
 
@@ -63,6 +64,7 @@ export const proposal = () => ({
 	costs: "One additional boundary.",
 	choices: [],
 	assumptions: [],
+	contested: [],
 	questions: [],
 });
 

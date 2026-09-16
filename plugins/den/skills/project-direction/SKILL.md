@@ -86,6 +86,7 @@ not itself completion. Scoping's bound on task questions does not apply here.
    remaining questions.
 
    Return the document location, established direction, discovery status and
-   remaining questions. Scoping derives the current task's design basis from
-   that record. Unresolved direction holds up only the decisions that depend
-   on it; future plans inform choices without authorizing their implementation.
+   remaining questions. Scoping reads that record and carries its path into
+   exploration and the brief. Unresolved direction holds up only the
+   decisions that depend on it; future plans inform choices without
+   authorizing their implementation.

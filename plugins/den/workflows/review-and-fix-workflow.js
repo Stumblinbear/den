@@ -10,7 +10,7 @@ export const meta = {
 }
 
 const input = args && typeof args === 'object' && !Array.isArray(args) ? args : {}
-const { repo, goal, plan, basis, rulings, reviewer, fixRounds, answers } = input
+const { repo, goal, plan, rulings, reviewer, fixRounds, answers } = input
 
 // Each agent stands in the session's working directory, so a relative path
 // would resolve against the very tree this argument is here to override.
@@ -23,11 +23,12 @@ if (typeof goal !== 'string' || goal.trim() === '') {
 if (plan !== undefined && (typeof plan !== 'string' || plan.trim() === '')) {
   throw new Error('`plan` is the path of the plan the change belongs to')
 }
-if (typeof basis !== 'string' || basis.trim() === '' || basis.length > 6000) {
-  throw new Error('`basis` is the design basis as nonempty text, at most 6000 characters')
-}
-if (rulings !== undefined && (typeof rulings !== 'string' || rulings.length > 6000)) {
-  throw new Error('`rulings` is what the lead has settled, as text, under 6000 characters')
+// Sized for one decision and its reason: every fix brief and every closure
+// launch carries the whole list.
+const RULING_LIMIT = 400
+if (rulings !== undefined && (!Array.isArray(rulings) ||
+  rulings.some((ruling) => typeof ruling !== 'string' || ruling.trim() === '' || ruling.length > RULING_LIMIT))) {
+  throw new Error(`\`rulings\` lists the decisions settled on the implementer's report, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
 }
 if (!['fable', 'opus'].includes(reviewer)) {
   throw new Error('`reviewer` is the model the review runs on, `fable` or `opus`')
@@ -43,15 +44,15 @@ if (answers !== undefined && (typeof answers !== 'object' || answers === null ||
 }
 // A relaunch repeats these arguments with the answers appended, so a key from
 // outside this list is a misspelling of one in it.
-if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'basis', 'rulings', 'reviewer', 'fixRounds', 'answers'].includes(key))) {
-  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `basis`, `rulings`, `reviewer`, `fixRounds` and `answers` and nothing else')
+if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'reviewer', 'fixRounds', 'answers'].includes(key))) {
+  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `rulings`, `reviewer`, `fixRounds` and `answers` and nothing else')
 }
 
 const QUESTION = {
   type: 'object',
   properties: {
     id: { type: 'string', description: 'a short slug for this question, used by no other item in your report; the answer comes back under it' },
-    finding: { type: 'string', description: 'the id of the finding the question is about' },
+    finding: { type: 'string', description: 'the id of the finding the question is about, from the findings this brief carries; left out when the question is about the work as a whole' },
     question: { type: 'string' },
     evidence: { type: 'string', description: 'what you found, at file:line' },
     alternatives: {
@@ -67,13 +68,13 @@ const QUESTION = {
     },
     waits: { type: 'string', description: 'the work left undone because it depends on this answer' },
   },
-  required: ['id', 'finding', 'question', 'evidence', 'alternatives', 'waits'],
+  required: ['id', 'question', 'evidence', 'alternatives', 'waits'],
 }
 
 const FIX = {
   type: 'object',
   properties: {
-    built: { type: 'string', description: 'what is in the tree now, for a reader who has not seen it' },
+    built: { type: 'string', description: 'the change now in the tree, for a reader who has not seen it; the order the edits went in and what you tried first decide nothing for that reader' },
     questions: { type: 'array', items: QUESTION, description: 'every question you stopped on; empty when none' },
     contested: {
       type: 'array',
@@ -82,36 +83,50 @@ const FIX = {
         type: 'object',
         properties: {
           finding: { type: 'string', description: 'the id of the finding the decision blocks' },
-          decision: { type: 'string' },
-          reason: { type: 'string' },
+          decision: { type: 'string', description: 'the settled decision the repair would undo: a ruling by its number in the list, or an answered question by its id' },
+          reason: { type: 'string', description: 'what in the repair collides with that decision' },
         },
         required: ['finding', 'decision', 'reason'],
       },
     },
     deviations: {
       type: 'array',
-      description: 'every departure from the brief, with the fact that forced it',
+      description: 'every departure from the brief; empty when none',
       items: {
         type: 'object',
         properties: {
-          what: { type: 'string' },
-          forcedBy: { type: 'string' },
+          what: { type: 'string', description: 'the departure, in the terms the brief used' },
+          forcedBy: { type: 'string', description: 'the fact in the tree that forced it; the reasoning that led you there is not one' },
           where: { type: 'string', description: 'file:line' },
         },
         required: ['what', 'forcedBy', 'where'],
       },
     },
-    choices: { type: 'array', items: { type: 'string' }, description: 'every choice the brief did not make' },
-    unsure: {
+    choices: {
       type: 'array',
-      description: 'everything you are unsure of',
+      description: 'every choice the brief did not make; empty when none. The lead rules by weighing the two, and what you rejected on the way is neither',
       items: {
         type: 'object',
-        properties: { what: { type: 'string' }, why: { type: 'string' } },
+        properties: {
+          chose: { type: 'string', description: 'what you chose, as a phrase' },
+          over: { type: 'string', description: 'what it was chosen over' },
+        },
+        required: ['chose', 'over'],
+      },
+    },
+    unsure: {
+      type: 'array',
+      description: 'everything you are unsure of; empty when none',
+      items: {
+        type: 'object',
+        properties: {
+          what: { type: 'string', description: 'the part of the work you cannot stand behind' },
+          why: { type: 'string', description: 'what leaves it unsettled: the check you could not run, the case no test reaches' },
+        },
         required: ['what', 'why'],
       },
     },
-    verification: { type: 'string', description: 'the build, test and lint results, as exact counts' },
+    verification: { type: 'string', description: 'the build, test and lint results in the figures the tools printed, since a run reported as passing is one nobody can check' },
   },
   required: ['built', 'questions', 'contested', 'deviations', 'choices', 'unsure', 'verification'],
 }
@@ -121,12 +136,12 @@ const FINDING = {
   properties: {
     id: { type: 'string', description: 'a short slug for this finding, used by no other item in your report; a ruling comes back under it' },
     kind: { type: 'string', enum: ['P0', 'P1', 'P2', 'P3', 'quality', 'decision'] },
-    title: { type: 'string', description: 'imperative' },
+    title: { type: 'string', description: 'the defect, imperative; a stop shows an open finding under its title alone, so it names what is wrong rather than that something is' },
     path: { type: 'string' },
     line: { type: 'integer', description: 'the first line of the smallest range that shows it' },
-    scenario: { type: 'string', description: 'the affected scenario and why it is wrong' },
-    evidence: { type: 'string', description: 'the path of the failing test and its red run, or the discriminating check in words' },
-    repair: { type: 'string' },
+    scenario: { type: 'string', description: 'the input and the outcome that is wrong. The title again, the route you took to find it and the case for caring are out: kind and tier carry what it costs' },
+    evidence: { type: 'string', description: 'what shows the wrong outcome and where: the failing test\'s path with its red run, or the check that discriminates it, in words' },
+    repair: { type: 'string', description: 'the change that fixes it, where you have one' },
     preExisting: { type: 'boolean', description: 'true when the change did not introduce it' },
     tier: { type: 'string', enum: ['haiku', 'opus'], description: 'haiku when the repair and its test fully specify the fix, opus otherwise' },
   },
@@ -167,7 +182,7 @@ const CLOSURE = {
         properties: {
           id: { type: 'string', description: 'the id of the finding this verdict is on' },
           verdict: { type: 'string', enum: ['CLOSED', 'REOPENED', 'NEEDS-DECISION'] },
-          reason: { type: 'string' },
+          reason: { type: 'string', description: 'what you read in the tree that decides the verdict; the finding restated is not it' },
         },
         required: ['id', 'verdict', 'reason'],
       },
@@ -220,6 +235,9 @@ function reviewScope(goal, plan) {
 // The list reads the same to every reader; the sentence before it says what
 // that reader does with it.
 const ANSWERED = 'Questions answered earlier in this run, each under the id its asker gave it:'
+const RULINGS = 'The decisions the lead has settled, each under its number:'
+
+const numbered = (items) => items.map((item, index) => `${index + 1}. ${item}`).join('\n')
 
 function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions) {
   const parts = [`Goal: ${goal}`, SCOPE]
@@ -228,23 +246,30 @@ function fixBrief(goal, findings, removal, plan, rulings, answeredQuestions) {
   // is sorted out before a test is written or a build is spent on it.
   parts.push(`Before any edit, read the decisions the lead has settled and sort
 the findings against them. A finding whose fix would undo a settled decision
-goes under \`contested\` with the decision and your reason, and stays unfixed:
-reopening a decision is the lead's. A test the reviewer wrote for such a
-finding stays red in the tree; the lead takes it out when the finding is
-ruled, so a red test is never a reason to fix past a decision.`)
-  if (rulings) {
-    parts.push('The decisions the lead has settled:', rulings)
+goes under \`contested\` with the decision, by its number, and your reason, and
+stays unfixed: reopening a decision is the lead's. A test the reviewer wrote
+for such a finding stays red in the tree; the lead takes it out when the
+finding is ruled, so a red test is never a reason to fix past a decision.`)
+  if (rulings?.length) {
+    parts.push(RULINGS, numbered(rulings))
   }
 
   if (findings.length) {
     parts.push(
       `Fix the findings below, each under the id your questions and contested
-items name it by. A finding carries the reviewer's evidence and, where it has
-them, the repair and the lead's instruction, which settles what the fix does.`,
+items name it by. A question's \`finding\` names one this brief carries or is
+left out: a question about the work as a whole, or about a finding the brief
+does not carry, reaches the lead as it stands. A finding carries the
+reviewer's evidence and, where it has them, the repair and the lead's
+instruction, which settles what the fix does.`,
       JSON.stringify(findings, null, 2),
       `A finding whose evidence is a failing test is fixed when that test
 passes. A finding the reviewer verified by reading gets its test first, red
-before the fix, with the red run in your report.${findings.some((finding) => finding.kind === 'restructure') ? ` A finding of kind \`restructure\` carries
+before the fix, with the red run in your report, when what it fixes is a
+promise: what a caller may pass and what comes back, a rejection among them,
+or a format another program reads. A finding about a detail nobody promised,
+a log line or a message's wording among them, takes no test, and the check
+in words the reviewer gave is its verification.${findings.some((finding) => finding.kind === 'restructure') ? ` A finding of kind \`restructure\` carries
 the closure verifier's evidence and, where it has one, the lead's instruction,
 and takes no red test: the next closure pass judges it.` : ''}`,
     )
@@ -296,7 +321,7 @@ Every question raised on these findings, each with its answer:
 ${JSON.stringify(thread, null, 2)}`
 }
 
-function closureScope(goal, open, removed, rounds, basis, plan, rulings, answeredQuestions) {
+function closureScope(goal, open, removed, rounds, plan, rulings, answeredQuestions) {
   const parts = [
     `Goal: ${goal}`,
     SCOPE,
@@ -317,17 +342,15 @@ you read those deleted tests as the removals they are:`,
   if (rounds.length) {
     parts.push(
       'The rounds before this one, each with the findings it fixed and the verdicts they ended in, and under `removed` the skipped findings whose tests it took out:',
-      JSON.stringify(rounds, null, 2),
+      JSON.stringify(rounds.map(judgedRecord), null, 2),
     )
   }
-
-  parts.push('Design basis:', basis)
 
   if (plan) {
     parts.push(`The plan this change belongs to is at ${plan}.`)
   }
-  if (rulings) {
-    parts.push('The decisions the lead has settled:', rulings)
+  if (rulings?.length) {
+    parts.push(RULINGS, numbered(rulings))
   }
   if (answeredQuestions.length) {
     parts.push(
@@ -361,16 +384,6 @@ function checkIds(items, stage) {
   }
 }
 
-// A question goes to the next tier and a contested finding goes to the lead by
-// the finding each names, so a name from outside the brief has nowhere to go.
-function checkGiven(items, given, stage) {
-  const ids = new Set(given.map((finding) => finding.id))
-  const stray = items.map((item) => item.finding).filter((id) => !ids.has(id))
-  if (stray.length) {
-    throw new Error(`${stage} named ${stray.join(', ')}, which its brief did not carry`)
-  }
-}
-
 // The open list is what the round is judged on, so a finding left without a
 // verdict would close by silence and a verdict for anything else lands nowhere.
 function checkVerdicts(verdicts, open, stage) {
@@ -383,11 +396,10 @@ function checkVerdicts(verdicts, open, stage) {
 }
 
 const carried = { deviations: [], choices: [], unsure: [], preExisting: [], asides: [] }
-// One entry per agent launched after the review, oldest first.
-const stages = []
-// One record per round already run, kept whole: `stages` is trimmed at every
-// answered stop, and fixes clustering across rounds are invisible without them.
-const earlierRounds = []
+// One record per round already run. The lead reads them as the run's account,
+// and each closure pass reads the rounds before it, since fixes clustering
+// across rounds are invisible inside any one of them.
+const rounds = []
 const consumed = new Set()
 // Every question the lead has answered, the question as its asker wrote it with
 // the answer under its id.
@@ -444,6 +456,42 @@ function removedRecord(finding) {
   }
 }
 
+// Narrows a finding, open or waiting removal, to what a stop is read for:
+// which finding the next fixer takes up and where. The lead rules on nothing
+// in `open`, and a finding a round worked is accounted for under its round.
+function openRecord(finding) {
+  return {
+    id: finding.id,
+    title: finding.title,
+    path: finding.path,
+    kind: finding.kind,
+    tier: finding.tier,
+  }
+}
+
+// The host shows about this much of a workflow result and cuts the tail. The
+// figure is measured: of returns of 15,556 and 15,208 characters it showed
+// 8,246 and 8,133 (2026-09-16).
+const RETURN_BUDGET = 8000
+
+// Builds every return the lead reads. The host cuts a long return at its tail,
+// so what the lead reads once leads: `stated`, the items this stop exists to
+// have answered, then the declarations the next relaunch clears, then the
+// rounds, and last `rosters`, which every stop prints in full.
+function returned(stated, rosters = {}) {
+  const result = { ...stated, carried, rounds, ...rosters }
+
+  // A cut return reaches the lead with no sign of what it lost, so the size of
+  // each key goes to the log, which the cut does not reach.
+  const size = JSON.stringify(result).length
+  if (size > RETURN_BUDGET) {
+    const sizes = Object.entries(result).map(([key, value]) => `${key} ${JSON.stringify(value).length}`).join(', ')
+    log(`the return is ${size} characters against the ${RETURN_BUDGET} the host shows, per key: ${sizes}`)
+  }
+
+  return result
+}
+
 // Holds the items waiting on the lead and returns their answers once a
 // relaunch carries every one. Short of that it returns the run's whole result
 // under `bail`, which its caller returns as the script's value. A relaunch
@@ -465,17 +513,15 @@ function stop(at, awaiting, reported, held) {
   if (given.length === 0) {
     checkAnswersUsed()
 
+    // A held question is read against the finding it names, so that finding
+    // travels whole.
+    const asked = new Set(awaiting.map((item) => item.finding))
+
     return {
-      bail: {
-        status: 'stopped',
-        stop: n,
-        at,
-        open,
-        ...(removal.length ? { removal } : {}),
-        ...held,
-        stages,
-        carried,
-      },
+      bail: returned({ status: 'stopped', stop: n, at, ...held }, {
+        open: open.map((finding) => (asked.has(finding.id) ? finding : openRecord(finding))),
+        ...(removal.length ? { removal: removal.map((finding) => (asked.has(finding.id) ? finding : openRecord(finding))) } : {}),
+      }),
     }
   }
   if (given.length !== ids.length) {
@@ -485,9 +531,8 @@ function stop(at, awaiting, reported, held) {
     consumed.add(id)
   }
 
-  // The lead read everything up to this stop in the return it is answering, so
-  // the next return starts from empty.
-  stages.length = 0
+  // The lead triaged these in the return it is answering, so the next return
+  // carries what the run declares after this stop.
   for (const list of Object.values(carried)) {
     list.length = 0
   }
@@ -574,15 +619,44 @@ function carry(report) {
 
 const byId = (items) => new Map(items.map((item) => [item.id, item]))
 
-// Records what a round leaves for the verifiers after it: the findings it
-// judged, and the skipped findings whose tests it took out. A round that judged
-// nothing is recorded too, since a deleted test no record explains reads as a
-// fix.
-function roundRecord(round, findings, removed) {
-  const entry = { round, findings }
+// Records what a round leaves: the findings it judged, the skipped findings
+// whose tests it took out, and the figures each of its fixers verified with. A
+// round that judged nothing is recorded too, since a deleted test no record
+// explains reads as a fix. Keep a fixer's own account of what it built out of
+// the record: it is unbounded prose, and two rounds of it push the return past
+// the budget the lead is shown, while the verifier's reason per finding says
+// the same thing bounded by the finding count.
+function roundRecord(round, findings, removed, fixes) {
+  const entry = { round, findings, fixes: fixes.map(verifiedRecord) }
 
   if (removed.length) {
     entry.removed = removed.map(removedRecord)
+  }
+
+  return entry
+}
+
+// What one fixer of the round in progress left, in its own words. The fix and
+// contested stops carry these, and the lead answers a fixer's question from
+// that fixer's own account of the tree. `tier` says which fixer, since a round
+// runs one per tier and a continuation runs at the tier it continues.
+function fixRecord(tier, report) {
+  return { tier, built: report.built, verification: report.verification }
+}
+
+function verifiedRecord({ tier, verification }) {
+  return { tier, verification }
+}
+
+// Narrows a round record to what a closure pass reads it for: the findings the
+// rounds before it judged, and the tests they took out. Why a verdict fell and
+// what a fixer wrote of its work belong to the lead's account of the run; a
+// verifier reads the tree itself.
+function judgedRecord({ round, findings, removed }) {
+  const entry = { round, findings: findings.map(({ reason: _, ...judged }) => judged) }
+
+  if (removed) {
+    entry.removed = removed
   }
 
   return entry
@@ -658,16 +732,31 @@ function contest(contested, items, given) {
   open = open.filter((finding) => !claimed.some((item) => item.finding === finding))
 }
 
+// Takes a fixer's report and returns what this stage routes: the questions
+// naming a finding this fixer was given, the questions naming none, and the
+// contested findings.
+//
+// An item routes by the finding it names, so what is left over names a finding
+// the fixer never had, an id read out of the rulings text among them. The lead
+// is its only reader: it goes to `carried.asides` under `stage`, and the round
+// goes on around it.
 function takeFix(report, given, stage) {
   checkReport(report, stage, FIX_LISTS)
   checkIds(report.questions, stage)
-  checkGiven([...report.questions, ...report.contested], given, stage)
-
-  // The entry carries the lists the lead triages and nothing else: what the
-  // fixer built and how it verified it are in the tree and its tests.
-  stages.push({ stage, report: Object.fromEntries(FIX_LISTS.map((list) => [list, report[list]])) })
 
   carry(report)
+
+  const ids = new Set(given.map((finding) => finding.id))
+  const questions = report.questions.filter((question) => ids.has(question.finding))
+  const general = report.questions.filter((question) => question.finding === undefined)
+  const contested = report.contested.filter((item) => ids.has(item.finding))
+  const routed = new Set([...questions, ...general, ...contested])
+
+  carried.asides.push(...[...report.questions, ...report.contested]
+    .filter((item) => !routed.has(item))
+    .map((item) => ({ stage, ...item })))
+
+  return { questions, general, contested }
 }
 
 phase('Review')
@@ -682,17 +771,16 @@ checkReport(review, 'review', REVIEW_LISTS)
 const reported = [...review.findings, ...review.questions]
 checkIds(reported, 'review')
 
-// The review pushes no stage. Every finding of it reaches the lead under
-// `open`, `decisions`, `questions`, `carried.preExisting` or `removal`, and a
-// second copy of each crowds the host's cap on a tool result; no ruling reads
-// what the reviewer cleared.
+// A pre-existing finding is the lead's to route elsewhere.
 carried.preExisting.push(...review.findings.filter((finding) => finding.preExisting))
 // A decision finding is the reviewer's class for a choice a reader could take
 // the other way, and it is the lead's to rule on.
 const decided = review.findings.filter((finding) => finding.kind === 'decision' && !finding.preExisting)
 
 const blocking = review.questions.filter((question) => question.changesCode)
-carried.asides.push(...review.questions.filter((question) => !question.changesCode))
+// The lead reads the reviewer's questions and the fixers' as one list, so every
+// aside carries the stage that filed it.
+carried.asides.push(...review.questions.filter((question) => !question.changesCode).map((question) => ({ stage: 'review', ...question })))
 
 // The findings a fixer takes up however the lead rules the decisions and
 // answers the blocking questions.
@@ -744,6 +832,8 @@ while (open.length || removal.length) {
 
   phase('Fix')
   const contested = []
+  // One record per fixer this round runs, oldest first.
+  const fixes = []
   const haiku = open.filter((finding) => finding.tier === 'haiku')
   let opus = open.filter((finding) => finding.tier === 'opus')
 
@@ -759,15 +849,19 @@ while (open.length || removal.length) {
       agentType: 'den:implementer-haiku',
       schema: FIX,
     })
-    takeFix(report, given, stage)
+    const filed = takeFix(report, given, stage)
+    fixes.push(fixRecord('haiku', report))
+    // A question at this tier travels with the finding it names, so one naming
+    // no finding has no reader in the round and goes to the lead.
+    carried.asides.push(...filed.general.map((question) => ({ stage, ...question })))
 
     // A question at this tier means the fix was not mechanical after all, so
     // what it asked about goes to this round's Opus fixer rather than to the
     // lead. A removal it asked nothing about is done, and leaves the list.
-    const raised = new Set(report.questions.map((question) => question.finding))
+    const raised = new Set(filed.questions.map((question) => question.finding))
     opus = [...opus, ...haiku.filter((finding) => raised.has(finding.id)).map((finding) => escalate(finding))]
     removal = removal.filter((finding) => raised.has(finding.id)).map((finding) => (finding.tier === 'haiku' ? escalate(finding) : finding))
-    contest(contested, report.contested, given)
+    contest(contested, filed.contested, given)
   }
 
   if (opus.length || removal.length) {
@@ -781,12 +875,19 @@ while (open.length || removal.length) {
       agentType: 'den:implementer-opus',
       schema: FIX,
     })
-    takeFix(report, given, stage)
+    let filed = takeFix(report, given, stage)
+    fixes.push(fixRecord('opus', report))
+
+    // This tier's questions wake the lead, and the lead reads a question about
+    // the work as a whole as readily as one about a finding.
+    let asked = [...filed.questions, ...filed.general]
 
     // A continuation is a fresh agent, so it reads the brief the round opened
     // with, whatever has happened since.
-    while (report.questions.length) {
-      const continuation = answered(report.questions, 'fix', { built: report.built, verification: report.verification, round })
+    while (asked.length) {
+      // The lead answers from the fixer's own account of the tree, so the
+      // round's records so far travel with the questions.
+      const continuation = answered(asked, 'fix', { round, fixes })
       if (continuation.bail) {
         return continuation.bail
       }
@@ -799,16 +900,18 @@ while (open.length || removal.length) {
         agentType: 'den:implementer-opus',
         schema: FIX,
       })
-      takeFix(report, given, stage)
+      filed = takeFix(report, given, stage)
+      fixes.push(fixRecord('opus', report))
+      asked = [...filed.questions, ...filed.general]
     }
     removal = []
-    contest(contested, report.contested, given)
+    contest(contested, filed.contested, given)
   }
 
   let deferred = []
   if (contested.length) {
     const held = contested.map((item) => item.finding)
-    const ruled = stop('contested', held, [], { contested, round })
+    const ruled = stop('contested', held, [], { contested, round, fixes })
     if (ruled.bail) {
       return ruled.bail
     }
@@ -823,14 +926,14 @@ while (open.length || removal.length) {
   // contested, or one that only took tests out, leaves no fix for a verifier to
   // read.
   if (!open.length) {
-    earlierRounds.push(roundRecord(round, [], removed))
+    rounds.push(roundRecord(round, [], removed, fixes))
     open = deferred
     continue
   }
 
   phase('Close')
   const stage = `close:${round}`
-  const closure = await agent(closureScope(goal, open, removed, earlierRounds, basis, plan, rulings, answeredQuestions), {
+  const closure = await agent(closureScope(goal, open, removed, rounds, plan, rulings, answeredQuestions), {
     label: stage,
     phase: 'Close',
     agentType: 'den:closure-verifier',
@@ -856,14 +959,12 @@ while (open.length || removal.length) {
   rename(fresh, issued(), fresh)
   rename(undecided, consumed, fresh)
 
-  stages.push({ stage, report: closure })
-  const findings = open.map((finding) => ({
-    id: finding.id,
-    title: finding.title,
-    path: finding.path,
-    verdict: judged.get(finding).verdict,
-  }))
-  earlierRounds.push(roundRecord(round, findings, removed))
+  const findings = open.map((finding) => {
+    const { verdict, reason } = judged.get(finding)
+
+    return { id: finding.id, title: finding.title, path: finding.path, verdict, reason }
+  })
+  rounds.push(roundRecord(round, findings, removed, fixes))
 
   // A decision finding is the lead's to rule on whoever raised it, and a
   // pre-existing one is carried, so what the verifier opens is triaged the way
@@ -921,21 +1022,18 @@ const comments = await agent(SCOPE, {
   schema: COMMENTS,
 })
 checkReport(comments, 'comment', [])
-stages.push({ stage: 'comment', report: comments })
 
 checkAnswersUsed()
 
-// The loop runs until nothing is open and no test waits removal, so anything
-// left here is what the lead's zero at the round cap ended the fixing on.
+// The loop runs until nothing is open and no test waits removal, so what is
+// left here is what the lead's zero at the round cap ended the fixing on. These
+// findings stay whole: the user decides one by one what becomes of the test the
+// reviewer left in the tree for each.
 if (open.length || removal.length) {
-  return {
-    status: 'capped',
+  return returned({ status: 'capped', comment: comments.report }, {
     open,
     ...(removal.length ? { removal } : {}),
-    rounds: round,
-    stages,
-    carried,
-  }
+  })
 }
 
-return { status: 'clean', rounds: round, stages, carried }
+return returned({ status: 'clean', comment: comments.report })

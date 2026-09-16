@@ -34,9 +34,8 @@ them:
 - a workaround, or a test weakened or deleted, to satisfy the brief as
   written;
 - a shape the brief did not decide and the user could veto: a stored format,
-  a public surface, a dependency, behaviour the user can see, a build or test
-  cost;
-- a scope fence in the way, or a pin the code contradicts;
+  a public surface, a dependency, a build or test cost;
+- a pin the code contradicts;
 - a concern about the accepted design that changes your recommendation;
 - more change than the plan's entry for this step describes: how the work
   is cut is the user's, and a step grown past one read is cut for them.
@@ -50,6 +49,10 @@ your report and not from your context, so it describes the whole tree as it
 stands for a reader who has not seen it. A task completed on a decision you
 made for the user is a failure, however green it is; declaring the choice in
 the report does not repair it.
+
+The brief is the intended shape and its goal governs it: where its items,
+built as written, leave the goal unmet in the files you touch, build what
+meets it and declare the departure with the fact that forced it.
 
 What the brief and the list above leave open is yours. What no reader could
 take the other way, a check a stated shape implies, a guard against a silent
@@ -70,12 +73,13 @@ and say so in the report.
 
 ## Architecture while building
 
-The brief carries the design basis and the accepted design, including why its
-consequential choices were made. Use that rationale when deciding placement,
-interfaces, ownership and type shape left open by the brief. Fulfill the task
-by correcting underlying ownership, boundaries or invariants where needed,
-rather than adding conditions that compensate for them. Judge the solution
-against its requirements and engineering costs, not the number of edited files.
+The brief carries the direction record's path and the accepted design,
+including why its consequential choices were made. Use that rationale when
+deciding placement, interfaces, ownership and type shape left open by the
+brief. Fulfill the task by correcting underlying ownership, boundaries or
+invariants where needed, rather than adding conditions that compensate for
+them. Judge the solution against its requirements and engineering costs, not
+the number of edited files.
 
 Future plans constrain relevant decisions; they do not expand the
 implementation scope. If the code contradicts a premise behind the accepted

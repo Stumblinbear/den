@@ -32,7 +32,7 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
 - `design-exploration`: runs the `design-exploration-workflow` workflow
   before a brief is written for a change that adds a module, a persisted
   format, a public surface or a new mechanism: three explorers propose
-  decompositions against the code and the task's design basis. A judge
+  decompositions against the code and the project's direction record. A judge
   compares suitable proposals, or reports missing input or no suitable
   proposal, and you choose. The script ships under `workflows/`.
 - `review-and-fix`: runs the `review-and-fix-workflow` workflow on the
@@ -89,11 +89,11 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
 - `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
 - `implementer-opus` (opus): the default implementer. Executes a pinned brief,
-  uses the design basis to make choices left open, declares those choices and
-  deviations, and stops dependent work on broken assumptions. Implementation
-  has no implicit deadline; necessary adjacent refactoring is assessed against
-  the task's requirements, with changes to accepted designs or explicit scope
-  fences brought back to you before implementation.
+  uses the direction record to make choices left open, declares those choices
+  and deviations, and stops dependent work on broken assumptions.
+  Implementation has no implicit deadline; necessary adjacent refactoring is
+  assessed against the task's requirements, with changes to accepted designs
+  or explicit scope fences brought back to you before implementation.
 - `implementer-haiku` (haiku): mechanical work where the compiler is the spec.
 - `implementer-fable` (fable): derivation-dense work where a wrong result
   still passes the tests.
@@ -217,16 +217,17 @@ The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:lead`. The skills and agents do nothing until you invoke or
 launch them.
 
-The design basis uses available goals, roadmap or design documents and your
-answers. Future plans can constrain today's choices without authorizing extra
-implementation. `project-direction` establishes or updates that context when
-it is missing, conflicting or superseded. It uses `direction-docs` to record
-that understanding. `direction-docs` maintains the direction documents,
-with `docs/project-direction.md` as a short entry point and substantial
-topics under `docs/direction/`. Described topic links and relevant cross-links
-let later tasks locate the direction they need. A short pointer from the project's
-agent instructions or documentation entry point makes that entry discoverable.
-It keeps confirmed direction, interpretations and unresolved questions distinguishable.
+A brief and an exploration carry the direction record's path, and the agents
+read the record there. Future plans can constrain today's choices without
+authorizing extra implementation. `project-direction` establishes or updates
+that context when it is missing, conflicting or superseded. It uses
+`direction-docs` to record that understanding. `direction-docs` maintains the
+direction documents, with `docs/project-direction.md` as a short entry point
+and substantial topics under `docs/direction/`. Described topic links and
+relevant cross-links let later tasks locate the direction they need. A short
+pointer from the project's agent instructions or documentation entry point
+makes that entry discoverable. It keeps confirmed direction, interpretations
+and unresolved questions distinguishable.
 
 ## Troubleshooting
 

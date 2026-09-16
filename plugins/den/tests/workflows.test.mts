@@ -7,8 +7,14 @@ import {
 	runWorkflow,
 } from "./workflow-harness.mts";
 
-const BASIS =
-	"Confirmed: two independently maintained hosts (user). Assumption: a third host may follow.";
+const DIRECTION = "/work/loader/docs/project-direction.md";
+
+const DECISIONS = [
+	"The loader owns the host registry, since a second owner would repeat its guard.",
+	"Existing configurations keep working, the user having said so.",
+];
+
+const EXPLORE = { ask: "Add a host", direction: DIRECTION };
 
 test("design context and uncertainty survive the explorer-to-judge handoff", async () => {
 	const questions = ["Must existing configurations survive a host migration?"];
@@ -22,10 +28,16 @@ test("design context and uncertainty survive the explorer-to-judge handoff", asy
 	};
 	const result = await runWorkflow(
 		"design-exploration-workflow",
-		{ ask: "Add a host", decisions: "Retain the existing host", basis: BASIS },
+		{ ...EXPLORE, decisions: DECISIONS },
 		async (prompt, options) => {
-			assert.ok(prompt.includes(BASIS));
-			assert.ok(prompt.includes("Retain the existing host"));
+			assert.ok(prompt.includes(`Direction record: ${DIRECTION}`));
+			assert.ok(
+				prompt.includes(
+					`Settled decisions:
+1. ${DECISIONS[0]}
+2. ${DECISIONS[1]}`,
+				),
+			);
 			if (options.agentType === "den:design-explorer") {
 				explorers += 1;
 				assert.ok(options.schema?.required.includes("questions"));
@@ -44,17 +56,46 @@ test("design context and uncertainty survive the explorer-to-judge handoff", asy
 	assert.deepEqual((result as { ranking: unknown }).ranking, verdict);
 });
 
-test("design basis is required and invalid context is rejected before dispatch", async () => {
-	for (const basis of [undefined, null, 7, "", " ", "x".repeat(6001)]) {
+test("the direction record and the decision list are checked before dispatch", async () => {
+	const rejected: readonly (readonly [Record<string, unknown>, RegExp])[] = [
+		[{ direction: undefined }, /direction/],
+		[{ direction: 7 }, /direction/],
+		[{ direction: " " }, /direction/],
+		// A relative path resolves against the tree the run was launched from.
+		[{ direction: "docs/project-direction.md" }, /direction/],
+		[{ decisions: "The loader owns the host registry" }, /decisions/],
+		[{ decisions: [7] }, /decisions/],
+		[{ decisions: [" "] }, /decisions/],
+		[{ decisions: ["x".repeat(401)] }, /decisions/],
+		[{ basis: "Two hosts, independently maintained" }, /nothing else/],
+	];
+
+	for (const [override, message] of rejected) {
 		await assert.rejects(
 			runWorkflow(
 				"design-exploration-workflow",
-				{ ask: "Add a host", basis },
+				{ ...EXPLORE, ...override },
 				async () => {
 					assert.fail("invalid context must not launch an agent");
 				},
 			),
-			/basis/,
+			message,
+		);
+	}
+});
+
+test("a launch with no settled decision carries no decision list", async () => {
+	for (const decisions of [undefined, []]) {
+		await runWorkflow(
+			"design-exploration-workflow",
+			{ ...EXPLORE, decisions },
+			async (prompt, options) => {
+				assert.ok(!prompt.includes("Settled decisions"));
+
+				return options.agentType === "den:design-explorer"
+					? proposal()
+					: noSuitableProposal();
+			},
 		);
 	}
 });
@@ -64,7 +105,7 @@ test("a missing design result cannot become a smaller successful comparison", as
 	await assert.rejects(
 		runWorkflow(
 			"design-exploration-workflow",
-			{ ask: "Add a host", basis: BASIS },
+			EXPLORE,
 			async (_prompt, options) => {
 				assert.equal(options.agentType, "den:design-explorer");
 				return index++ === 1 ? null : proposal();
@@ -79,7 +120,7 @@ test("a judge cannot recommend an absent or unresolved proposal", async () => {
 		await assert.rejects(
 			runWorkflow(
 				"design-exploration-workflow",
-				{ ask: "Add a host", basis: BASIS },
+				EXPLORE,
 				async (_prompt, options) =>
 					options.agentType === "den:design-explorer"
 						? {
@@ -123,7 +164,7 @@ test("a selectable design and unresolved outcomes retain distinct results", asyn
 		};
 		const result = await runWorkflow(
 			"design-exploration-workflow",
-			{ ask: "Add a host", basis: BASIS },
+			EXPLORE,
 			async (_prompt, options) =>
 				options.agentType === "den:design-explorer" ? proposal() : verdict,
 		);
@@ -136,7 +177,7 @@ test("an unresolved judge outcome cannot select a design", async () => {
 		await assert.rejects(
 			runWorkflow(
 				"design-exploration-workflow",
-				{ ask: "Add a host", basis: BASIS },
+				EXPLORE,
 				async (_prompt, options) =>
 					options.agentType === "den:design-explorer"
 						? proposal()
@@ -155,7 +196,6 @@ const ARGS = {
 	repo: REPO,
 	goal: GOAL,
 	plan: "docs/plans/loader.md",
-	basis: "Confirmed: the loader owns the guard (user).",
 	reviewer: "fable",
 	fixRounds: 3,
 };
@@ -167,15 +207,6 @@ Range: HEAD
 Every command runs there and every search names a path under it: the directory
 you start in may be another tree.`;
 
-/** The lists a fixer's report carries into `stages`. */
-const TRIAGED = new Set([
-	"questions",
-	"contested",
-	"deviations",
-	"choices",
-	"unsure",
-]);
-
 const EMPTY_CARRIED = {
 	deviations: [],
 	choices: [],
@@ -184,19 +215,16 @@ const EMPTY_CARRIED = {
 	asides: [],
 };
 
-interface Stage {
-	readonly stage: string;
-	readonly report: Record<string, unknown>;
-}
-
 interface Outcome {
 	readonly status: string;
 	readonly stop?: number;
 	readonly at?: string;
 	readonly round?: number;
-	readonly rounds?: number;
+	readonly rounds?: readonly Record<string, unknown>[];
+	readonly comment?: string;
 	readonly built?: string;
 	readonly verification?: string;
+	readonly fixes?: readonly unknown[];
 	readonly questions?: readonly unknown[];
 	readonly decisions?: readonly unknown[];
 	readonly contested?: readonly unknown[];
@@ -205,7 +233,6 @@ interface Outcome {
 	readonly fixRounds?: readonly unknown[];
 	readonly open?: readonly unknown[];
 	readonly removal?: readonly unknown[];
-	readonly stages: readonly Stage[];
 	readonly carried: Record<string, readonly unknown[]>;
 }
 
@@ -241,6 +268,15 @@ const removedRecord = ({
 	tier,
 }: Record<string, unknown>) => ({ id, title, path, line, tier });
 
+/** An open finding, as a stop shows one it holds no item on. */
+const openRecord = ({
+	id,
+	title,
+	path,
+	kind,
+	tier,
+}: Record<string, unknown>) => ({ id, title, path, kind, tier });
+
 const asked = (over: Record<string, unknown> = {}) => ({
 	id: "flag-owner",
 	question: "Whose call is the flag?",
@@ -268,6 +304,25 @@ const fixed = (over: Record<string, unknown> = {}) => ({
 	unsure: [],
 	verification: "14 tests, 0 failures.",
 	...over,
+});
+
+/** A fixer's report as a stop inside its own round carries it. */
+const fixRecord = (
+	tier: string,
+	report: Record<string, unknown> = fixed(),
+) => ({
+	tier,
+	built: report["built"],
+	verification: report["verification"],
+});
+
+/** A fixer's report as a judged round's record keeps it. */
+const verifiedRecord = (
+	tier: string,
+	report: Record<string, unknown> = fixed(),
+) => ({
+	tier,
+	verification: report["verification"],
 });
 
 const closed = (over: Record<string, unknown> = {}) => ({
@@ -427,10 +482,11 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 		[{ ...ARGS, goal: "  " }, /goal/],
 		[{ ...ARGS, goal: undefined }, /goal/],
 		[{ ...ARGS, plan: 7 }, /plan/],
-		[{ ...ARGS, basis: undefined }, /basis/],
-		[{ ...ARGS, basis: "x".repeat(6001) }, /basis/],
 		[{ ...ARGS, rulings: 7 }, /rulings/],
-		[{ ...ARGS, rulings: "x".repeat(6001) }, /rulings/],
+		[{ ...ARGS, rulings: ["x".repeat(401)] }, /rulings/],
+		[{ ...ARGS, rulings: [" "] }, /rulings/],
+		// The per-decision limit bites only where each decision is its own item.
+		[{ ...ARGS, rulings: "The loader owns the guard" }, /rulings/],
 		[{ ...ARGS, decisions: "The loader owns the guard" }, /nothing else/],
 		[{ ...ARGS, reviewer: "haiku" }, /reviewer/],
 		[{ ...ARGS, reviewer: undefined }, /reviewer/],
@@ -438,6 +494,7 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 		[{ ...ARGS, fixRounds: undefined }, /fixRounds/],
 		[{ ...ARGS, answers: [["The loader owns it"]] }, /answers/],
 		[{ ...ARGS, answers: { "guard-1": null } }, /answers/],
+		[{ ...ARGS, basis: "The loader owns the guard" }, /nothing else/],
 		[{ ...ARGS, brief: "Move the guard into the loader." }, /nothing else/],
 		[{ ...ARGS, implementer: "opus" }, /nothing else/],
 		[{ ...ARGS, range: "HEAD~1" }, /nothing else/],
@@ -489,7 +546,7 @@ test("the reviewer reads the repository's working tree against HEAD, with the go
 // Every agent inherits the session's working directory, so a lead reviewing a
 // change in another checkout gets its own tree worked on unless each launch
 // says where the work is.
-test("every agent the run launches is told which repository to work in", async () => {
+test("every agent that works a tree is told which repository to work in", async () => {
 	const { prompts, result } = await record(ARGS, {
 		review: reviewed({ findings: [finding()] }),
 	});
@@ -540,7 +597,7 @@ test("what the lead has settled reaches every fixer and the closure verifier", a
 	};
 	await runWorkflow(
 		"review-and-fix-workflow",
-		{ ...ARGS, rulings: settled },
+		{ ...ARGS, rulings: [settled] },
 		agents({
 			review: reviewed({
 				findings: [finding(), finding({ id: "flag-name", tier: "opus" })],
@@ -558,7 +615,7 @@ test("what the lead has settled reaches every fixer and the closure verifier", a
 
 	assert.equal(carrying.length, 3);
 	for (const prompt of carrying) {
-		assert.ok(prompt.includes(settled), prompt.slice(0, 60));
+		assert.ok(prompt.includes(`1. ${settled}`), prompt.slice(0, 60));
 	}
 });
 
@@ -723,7 +780,7 @@ test("a restructure item stops before the next fixer, and the stop's open list l
 	assert.equal(launches.length, 1);
 	// A ruling of skip drops the item, so the list of what the next round takes
 	// up however the stop is answered holds only the opened finding.
-	assert.deepEqual(stopped.open, [cacheKey()]);
+	assert.deepEqual(stopped.open, [openRecord(cacheKey())]);
 });
 
 test("a restructure item ruled fix is an Opus finding under its id, which the Opus fixer takes when every other open finding is haiku", async () => {
@@ -948,7 +1005,7 @@ test("a round that only takes a test out of the tree launches no closure pass", 
 	// Round two took the skipped decision's test out and changed nothing else,
 	// so it left no fix for a verifier to read.
 	assert.equal(result.status, "clean");
-	assert.equal(result.rounds, 2);
+	assert.equal(result.rounds?.length, 2);
 	assert.deepEqual(launched, [
 		"den:reviewer",
 		"den:implementer-opus",
@@ -986,7 +1043,7 @@ test("a round whose closure pass was skipped reaches the next one with what it r
 	);
 
 	assert.equal(result.status, "clean");
-	assert.equal(result.rounds, 2);
+	assert.equal(result.rounds?.length, 2);
 	// Round one had nothing left open to judge, so it ran no closure pass, and
 	// the test it took out reaches a verifier only in its record.
 	assert.deepEqual(roundsIn(prompts[3] ?? ""), [
@@ -1278,7 +1335,7 @@ test("a reopened finding and a finding the closure opened make the next round's 
 	);
 
 	assert.equal(result.status, "clean");
-	assert.equal(result.rounds, 2);
+	assert.equal(result.rounds?.length, 2);
 	assert.deepEqual(briefs[0], [defect]);
 	// Reopening moved the finding off the tier that could not close it.
 	assert.deepEqual(briefs[1], [{ ...defect, tier: "opus" }, opened]);
@@ -1378,7 +1435,7 @@ test("the round cap stops the run, and its answer is how many more rounds to all
 	assert.equal(first.stop, 0);
 	assert.equal(first.round, 1);
 	assert.deepEqual(first.fixRounds, [{ id: "fix-rounds" }]);
-	assert.deepEqual(first.open, [defect]);
+	assert.deepEqual(first.open, [openRecord(defect)]);
 
 	const second = outcome(
 		await runWorkflow(
@@ -1402,7 +1459,7 @@ test("the round cap stops the run, and its answer is how many more rounds to all
 	);
 
 	assert.equal(clean.status, "clean");
-	assert.equal(clean.rounds, 3);
+	assert.equal(clean.rounds?.length, 3);
 });
 
 test("a zero answer at the round cap ends the fixing and lands the run", async () => {
@@ -1422,14 +1479,23 @@ test("a zero answer at the round cap ends the fixing and lands the run", async (
 
 	assert.deepEqual(launched, ["den:reviewer", "den:comment-reviewer"]);
 	assert.equal(result.status, "capped");
-	assert.equal(result.rounds, 0);
+	// No round ran, so the comment pass read the tree as the review left it.
+	assert.deepEqual(result.rounds, []);
+	assert.equal(result.comment, commented().report);
+	// A capped return carries each finding whole: the user decides one by one
+	// what becomes of the test the reviewer left in the tree for it.
 	assert.deepEqual(result.open, [defect]);
 	assert.equal(result.removal, undefined);
-	assert.deepEqual(
-		result.stages.map((entry) => entry.stage),
-		["comment"],
-	);
 	assert.deepEqual(result.carried, EMPTY_CARRIED);
+	// The host cuts a long return at its tail, so the roster every stop prints
+	// again comes last.
+	assert.deepEqual(Object.keys(result), [
+		"status",
+		"comment",
+		"carried",
+		"rounds",
+		"open",
+	]);
 });
 
 test("a capped run carries the findings whose tests are still in the tree", async () => {
@@ -1466,7 +1532,7 @@ test("a capped run with a ruled-skip finding includes removal in the stopped ret
 	assert.equal(result.at, "fixRounds");
 	assert.equal(result.status, "stopped");
 	assert.equal(result.round, 0);
-	assert.deepEqual(result.removal, [decision]);
+	assert.deepEqual(result.removal, [openRecord(decision)]);
 });
 
 test("the review stop says which findings a fixer takes up whatever the lead rules", async () => {
@@ -1488,13 +1554,24 @@ test("the review stop says which findings a fixer takes up whatever the lead rul
 	assert.equal(result.at, "review");
 	// The decision waits on the lead's ruling and the pre-existing finding is
 	// carried, so neither is what a fixer takes up.
-	assert.deepEqual(result.open, [defect]);
+	assert.deepEqual(result.open, [openRecord(defect)]);
 	assert.equal(result.removal, undefined);
-	// Each finding of the review arrives once and whole, and the review is no
-	// stage: a second copy of each crowds the host's cap on the return.
+	// The lead rules on a decision by the scenario and the evidence the reviewer
+	// wrote, so a held item arrives whole.
 	assert.deepEqual(result.decisions, [decision]);
 	assert.deepEqual(result.carried["preExisting"], [old]);
-	assert.deepEqual(result.stages, []);
+	// The host cuts a long return at its tail, so the items this stop holds and
+	// the declarations the lead triages stand ahead of the roster.
+	assert.deepEqual(Object.keys(result), [
+		"status",
+		"stop",
+		"at",
+		"decisions",
+		"questions",
+		"carried",
+		"rounds",
+		"open",
+	]);
 });
 
 test("the fix stop says what the round still has open", async () => {
@@ -1515,7 +1592,9 @@ test("the fix stop says what the round still has open", async () => {
 	);
 
 	assert.equal(result.at, "fix");
-	assert.deepEqual(result.open, [mechanical, judged]);
+	// The stop's question names the second finding, which the lead answers
+	// against its scenario and evidence, so that one stays whole.
+	assert.deepEqual(result.open, [openRecord(mechanical), judged]);
 	assert.equal(result.removal, undefined);
 });
 
@@ -1566,8 +1645,11 @@ test("the contested stop says what the round has open beside what it contested",
 
 	assert.equal(result.at, "contested");
 	// A contested finding comes back only when the lead rules fix.
-	assert.deepEqual(result.open, [kept]);
+	assert.deepEqual(result.open, [openRecord(kept)]);
 	assert.equal(result.removal, undefined);
+	assert.deepEqual(result.fixes, [
+		fixRecord("opus", fixed({ contested: [contested] })),
+	]);
 });
 
 test("the fix stop leaves out a finding the round already contested", async () => {
@@ -1630,7 +1712,10 @@ test("the closure stop says what the next round takes up whatever the lead rules
 	assert.equal(result.at, "closure");
 	// The undecided finding comes back only when the lead rules fix. The
 	// reopened one is listed at the tier that will take it.
-	assert.deepEqual(result.open, [{ ...reopened, tier: "opus" }, opened]);
+	assert.deepEqual(result.open, [
+		openRecord({ ...reopened, tier: "opus" }),
+		openRecord(opened),
+	]);
 	assert.equal(result.removal, undefined);
 });
 
@@ -1659,7 +1744,8 @@ test("a contested finding the lead ruled on reaches that round's closure stop, o
 	);
 
 	assert.equal(fixing.at, "closure");
-	assert.deepEqual(fixing.open, [{ ...blocked, instruction }]);
+	// The instruction is the lead's own words, so the narrowed record drops it.
+	assert.deepEqual(fixing.open, [openRecord(blocked)]);
 	assert.equal(fixing.removal, undefined);
 
 	const skipping = outcome(
@@ -1672,7 +1758,7 @@ test("a contested finding the lead ruled on reaches that round's closure stop, o
 
 	assert.equal(skipping.at, "closure");
 	assert.deepEqual(skipping.open, []);
-	assert.deepEqual(skipping.removal, [blocked]);
+	assert.deepEqual(skipping.removal, [openRecord(blocked)]);
 });
 
 test("a contested finding from either fixer stops the run, leaves that round's closure, and comes back when the lead rules fix", async () => {
@@ -2081,7 +2167,7 @@ test("a finding the closure cannot decide stops the run with the reason it gave"
 	);
 
 	assert.equal(clean.status, "clean");
-	assert.equal(clean.rounds, 2);
+	assert.equal(clean.rounds?.length, 2);
 });
 
 test("a finding the closure cannot decide, whose id the lead already ruled on, stops under the id the answer must come under", async () => {
@@ -2197,7 +2283,7 @@ test("a pre-existing finding the closure opens is carried, not sent to a fixer",
 	);
 
 	assert.equal(result.status, "clean");
-	assert.equal(result.rounds, 1);
+	assert.equal(result.rounds?.length, 1);
 	assert.deepEqual(briefs, [[defect]]);
 	assert.deepEqual(result.carried["preExisting"], [old]);
 });
@@ -2303,8 +2389,12 @@ test("an Opus fixer's questions stop the run with what it built, and a fresh fix
 	assert.equal(stopped.at, "fix");
 	assert.equal(stopped.round, 1);
 	assert.deepEqual(stopped.questions, [raised]);
-	assert.equal(stopped.built, "The flag moved; the guard did not.");
-	assert.equal(stopped.verification, "14 tests, 0 failures.");
+	// A round is recorded when it ends, so a stop inside the first one carries
+	// no round; the fixer that asked reaches the lead under `fixes`.
+	assert.equal(stopped.built, undefined);
+	assert.equal(stopped.verification, undefined);
+	assert.deepEqual(stopped.rounds, []);
+	assert.deepEqual(stopped.fixes, [fixRecord("opus", stopper)]);
 
 	const { prompts, result } = await record(
 		{ ...ARGS, answers: { "guard-1": "The loader owns it" } },
@@ -2375,7 +2465,7 @@ test("the comment reviewer runs on the scope alone, once nothing is open and no 
 	assert.equal(scope, SCOPE);
 });
 
-test("a clean return carries every list the rounds filled, with one stage entry per agent after the review", async () => {
+test("a clean return carries every list the rounds filled and the account of what they did", async () => {
 	const deviations = [
 		{
 			what: "Named the guard loadGuard",
@@ -2383,15 +2473,22 @@ test("a clean return carries every list the rounds filled, with one stage entry 
 			where: "lib/loader.mjs:8",
 		},
 	];
-	const choices = ["Put the guard beside the loader's own tests"];
+	const choices = [
+		{
+			chose: "The guard beside the loader's own tests",
+			over: "A test file of its own",
+		},
+	];
 	const unsure = [{ what: "The cache path", why: "No test covers it" }];
+	const defect = finding();
+	const report = fixed({ deviations, choices, unsure });
 	const result = outcome(
 		await runWorkflow(
 			"review-and-fix-workflow",
 			ARGS,
 			agents({
-				review: reviewed({ findings: [finding()] }),
-				fix: () => fixed({ deviations, choices, unsure }),
+				review: reviewed({ findings: [defect] }),
+				fix: () => report,
 			}),
 		),
 	);
@@ -2403,66 +2500,81 @@ test("a clean return carries every list the rounds filled, with one stage entry 
 		choices,
 		unsure,
 	});
-	assert.deepEqual(
-		result.stages.map((entry) => entry.stage),
-		["fix:1:haiku", "close:1", "comment"],
-	);
-});
-
-test("a clean return's fixer stage carries the lists the lead triages and nothing else", async () => {
-	const deviations = [
+	assert.deepEqual(result.rounds, [
 		{
-			what: "Named the guard loadGuard",
-			forcedBy: "The brief's name is taken",
-			where: "lib/loader.mjs:8",
+			round: 1,
+			findings: [
+				{
+					id: defect.id,
+					title: defect.title,
+					path: defect.path,
+					verdict: "CLOSED",
+					reason: verdict(defect.id).reason,
+				},
+			],
+			fixes: [verifiedRecord("haiku", report)],
 		},
-	];
-	const result = outcome(
-		await runWorkflow(
-			"review-and-fix-workflow",
-			ARGS,
-			agents({
-				review: reviewed({ findings: [finding()] }),
-				fix: () => fixed({ deviations }),
-			}),
-		),
-	);
-	const entry = result.stages.find((stage) => stage.stage === "fix:1:haiku");
-
-	assert.equal(result.status, "clean");
-	assert.deepEqual(new Set(Object.keys(entry?.report ?? {})), TRIAGED);
-	assert.deepEqual(entry?.report["deviations"], deviations);
+	]);
+	assert.equal(result.comment, commented().report);
+	assert.deepEqual(Object.keys(result), [
+		"status",
+		"comment",
+		"carried",
+		"rounds",
+	]);
 });
 
-test("a stopped return's fixer stage is trimmed the same way, and the review is no stage of it", async () => {
-	const kept = finding({ id: "flag-name", tier: "opus" });
-	const blocked = finding({ tier: "opus" });
-	const contested = {
-		finding: blocked.id,
-		decision: "The loader owns the guard",
-		reason: "The repair moves it to the caller.",
-	};
-	const result = outcome(
+test("a closure stop accounts for the round it has just judged", async () => {
+	const defect = finding();
+	const reason = "The stored format decides which guard is right.";
+	const report = fixed();
+	const stopped = outcome(
 		await runWorkflow(
 			"review-and-fix-workflow",
 			ARGS,
 			agents({
-				review: reviewed({ findings: [kept, blocked] }),
-				fix: () => fixed({ contested: [contested] }),
+				review: reviewed({ findings: [defect] }),
+				fix: () => report,
+				close: () =>
+					closed({
+						verdicts: [{ id: defect.id, verdict: "NEEDS-DECISION", reason }],
+					}),
 			}),
 		),
 	);
 
-	assert.equal(result.at, "contested");
-	// No ruling reads what the reviewer cleared, and its findings are already
-	// under `open` and `contested`.
-	assert.deepEqual(
-		result.stages.map((stage) => [
-			stage.stage,
-			new Set(Object.keys(stage.report)),
-		]),
-		[["fix:1:opus", TRIAGED]],
-	);
+	assert.equal(stopped.at, "closure");
+	// The lead rules on the finding from the round that worked it, so a stop
+	// carries the round it has just judged.
+	assert.deepEqual(stopped.rounds, [
+		{
+			round: 1,
+			findings: [
+				{
+					id: defect.id,
+					title: defect.title,
+					path: defect.path,
+					verdict: "NEEDS-DECISION",
+					reason,
+				},
+			],
+			fixes: [verifiedRecord("haiku", report)],
+		},
+	]);
+	// The comment pass runs once nothing is open, so a stop carries none.
+	assert.equal(stopped.comment, undefined);
+	assert.deepEqual(Object.keys(stopped), [
+		"status",
+		"stop",
+		"at",
+		"restructure",
+		"undecided",
+		"decisions",
+		"round",
+		"carried",
+		"rounds",
+		"open",
+	]);
 });
 
 test("a reviewer's question that changes no code, and a pre-existing decision finding, are carried without a stop", async () => {
@@ -2477,8 +2589,8 @@ test("a reviewer's question that changes no code, and a pre-existing decision fi
 	);
 
 	assert.equal(result.status, "clean");
-	assert.equal(result.rounds, 0);
-	assert.deepEqual(result.carried["asides"], [host]);
+	assert.equal(result.rounds?.length, 0);
+	assert.deepEqual(result.carried["asides"], [{ stage: "review", ...host }]);
 	assert.deepEqual(result.carried["preExisting"], [old]);
 });
 
@@ -2586,34 +2698,73 @@ test("a report that gives one id to two items is rejected at its stage", async (
 	}
 });
 
-test("a fixer's question or contested item naming a finding its brief did not carry fails at its stage", async () => {
+test("a fixer's question or contested item naming a finding its brief did not carry reaches the lead, and the round goes on", async () => {
 	const defect = finding();
-	const reports: readonly Reports[] = [
-		{
-			review: reviewed({ findings: [defect] }),
-			fix: () => fixed({ questions: [question(1, { finding: "cache-path" })] }),
-		},
-		{
-			review: reviewed({ findings: [defect] }),
-			fix: () =>
-				fixed({
-					contested: [
-						{
-							finding: "cache-path",
-							decision: "The loader owns the guard",
-							reason: "The repair moves it.",
-						},
-					],
-				}),
-		},
-	];
+	// A fixer reads the ids of earlier rounds' findings in the rulings, so an id
+	// it echoes from there reaches no route of this run.
+	const stray = question(1, { finding: "cache-path" });
+	const blocked = {
+		finding: "cache-path",
+		decision: "The loader owns the guard",
+		reason: "The repair moves it.",
+	};
+	const { prompts, result } = await record(ARGS, {
+		review: reviewed({ findings: [defect] }),
+		fix: (_prompt, _type, launch) =>
+			launch === 1
+				? fixed({ questions: [stray], contested: [blocked] })
+				: fixed(),
+	});
 
-	for (const report of reports) {
-		await assert.rejects(
-			runWorkflow("review-and-fix-workflow", ARGS, agents(report)),
-			/its brief did not carry/,
-		);
-	}
+	assert.equal(result.status, "clean");
+	assert.deepEqual(result.carried["asides"], [
+		{ stage: "fix:1:haiku", ...stray },
+		{ stage: "fix:1:haiku", ...blocked },
+	]);
+	// Four launches: the reviewer, the haiku fixer, the closure pass and the
+	// comment pass. Nothing was escalated, contested or stopped on, and the
+	// round closed the finding it was given.
+	assert.equal(prompts.length, 4);
+});
+
+test("a question about no finding reaches the lead at the fix stop, and the haiku tier's is carried", async () => {
+	const defect = finding({ tier: "opus" });
+	const whole = question(1, { finding: undefined });
+
+	const stopped = outcome(
+		await runWorkflow(
+			"review-and-fix-workflow",
+			ARGS,
+			agents({
+				review: reviewed({ findings: [defect] }),
+				fix: (_prompt, _type, launch) =>
+					launch === 1 ? fixed({ questions: [whole] }) : fixed(),
+			}),
+		),
+	);
+
+	assert.equal(stopped.at, "fix");
+	assert.deepEqual(stopped.questions, [whole]);
+	assert.deepEqual(stopped.carried["asides"], []);
+
+	// A haiku question moves the finding it names to the round's Opus fixer, so
+	// one naming no finding has no reader but the lead.
+	const carried = outcome(
+		await runWorkflow(
+			"review-and-fix-workflow",
+			ARGS,
+			agents({
+				review: reviewed({ findings: [finding()] }),
+				fix: (_prompt, _type, launch) =>
+					launch === 1 ? fixed({ questions: [whole] }) : fixed(),
+			}),
+		),
+	);
+
+	assert.equal(carried.status, "clean");
+	assert.deepEqual(carried.carried["asides"], [
+		{ stage: "fix:1:haiku", ...whole },
+	]);
 });
 
 test("an answer of the wrong shape for what it answers fails at the stop", async () => {
@@ -2744,9 +2895,18 @@ test("a stopped return carries what the fixers declared before the stop, and the
 
 	assert.equal(clean.status, "clean");
 	assert.deepEqual(clean.carried, EMPTY_CARRIED);
+	// An answered stop empties the declarations, not the account of the run, so
+	// the round before the stop is still in the return that lands.
+	assert.deepEqual(
+		clean.rounds?.map((entry) => entry["round"]),
+		[1, 2],
+	);
+	assert.deepEqual(clean.rounds?.[0]?.["fixes"], [
+		verifiedRecord("haiku", fixed({ deviations: before })),
+	]);
 });
 
-test("a resumed run returns nothing from before the stop its answers reply to", async () => {
+test("an answered stop empties what the lead triaged", async () => {
 	const decision = finding({
 		id: "stored-field",
 		kind: "decision",
@@ -2761,20 +2921,98 @@ test("a resumed run returns nothing from before the stop its answers reply to", 
 			where: "lib/loader.mjs:20",
 		},
 	];
-	const result = outcome(
+	const { result } = await record(
+		{ ...ARGS, answers: { "stored-field": { action: "fix" } } },
+		{
+			review: reviewed({ findings: [decision, old], questions: [host] }),
+			fix: () => fixed({ deviations: since }),
+		},
+	);
+
+	// The lead triaged the review stop's lists in the return it answered, the
+	// pre-existing finding and the aside among them.
+	assert.deepEqual(result.carried, { ...EMPTY_CARRIED, deviations: since });
+});
+
+test("an explorer's challenge to a settled decision reaches the judge and the result under contested", async () => {
+	const contested = [
+		{ decision: 1, reason: "The code already owns the host boundary." },
+	];
+	let judged = "";
+	const result = (await runWorkflow(
+		"design-exploration-workflow",
+		{ ...EXPLORE, decisions: DECISIONS },
+		async (prompt, options) => {
+			if (options.agentType === "den:design-explorer") {
+				assert.ok(options.schema?.required.includes("contested"));
+				return { ...proposal(), contested };
+			}
+			judged = prompt;
+			return {
+				...noSuitableProposal(),
+				outcome: "recommendation",
+				recommendation: 1,
+				ranking: [{ index: 1, rank: 1, strengths: "Fits", costs: "One seam" }],
+				questions: [],
+			};
+		},
+	)) as { designs: readonly { design: { contested: unknown } }[] };
+
+	assert.ok(judged.includes('"decision": 1'), judged.slice(-200));
+	for (const { design } of result.designs) {
+		assert.deepEqual(design.contested, contested);
+	}
+});
+
+test("an explorer's challenge naming a decision the settled list does not have fails the run", async () => {
+	// Two decisions are settled in the first run and none in the second, so a
+	// challenge to a third names nothing the judge or the user can reopen.
+	for (const decisions of [DECISIONS, undefined]) {
+		await assert.rejects(
+			runWorkflow(
+				"design-exploration-workflow",
+				{ ...EXPLORE, decisions },
+				async (_prompt, options) =>
+					options.agentType === "den:design-explorer"
+						? {
+								...proposal(),
+								contested: [
+									{ decision: 3, reason: "The code owns the boundary." },
+								],
+							}
+						: noSuitableProposal(),
+			),
+			/contested/,
+		);
+	}
+});
+
+test("a return past what the host shows logs its size per key and still returns", async () => {
+	const logged: string[] = [];
+	const decision = finding({
+		id: "stored-field",
+		kind: "decision",
+		scenario: "x".repeat(9000),
+	});
+	const stopped = outcome(
 		await runWorkflow(
 			"review-and-fix-workflow",
-			{ ...ARGS, answers: { "stored-field": { action: "fix" } } },
-			agents({
-				review: reviewed({ findings: [decision, old], questions: [host] }),
-				fix: () => fixed({ deviations: since }),
-			}),
+			ARGS,
+			agents({ review: reviewed({ findings: [decision] }) }),
+			(message) => {
+				logged.push(message);
+			},
 		),
 	);
 
-	assert.deepEqual(result.carried, { ...EMPTY_CARRIED, deviations: since });
-	assert.deepEqual(
-		result.stages.map((entry) => entry.stage),
-		["fix:1:opus", "close:1", "comment"],
-	);
+	assert.equal(stopped.at, "review");
+	assert.equal(logged.length, 1);
+	assert.match(logged[0] ?? "", /against the 8000/);
+	assert.match(logged[0] ?? "", /decisions 9\d{3}/);
+
+	// A return inside the budget logs nothing.
+	await runWorkflow("review-and-fix-workflow", ARGS, agents({}), (message) => {
+		logged.push(message);
+	});
+	assert.equal(logged.length, 1);
 });

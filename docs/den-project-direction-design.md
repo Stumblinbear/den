@@ -88,6 +88,9 @@ report that choice as unresolved and continue only independent work.
 
 ### 2. Design exploration uses a common basis
 
+Superseded: the basis is the project's direction record, read by the
+explorers and the judge at its path; the launch carries no restatement of it.
+
 Update `skills/design-exploration/SKILL.md`, its workflow input validation, and
 the explorer/judge prompts together. Add an explicit `basis` input separate from
 `ask` and `decisions`. Carry the same basis into every explorer and the judge.
@@ -154,6 +157,9 @@ remain challengeable when
 evidence contradicts their rationale. Require an identified cost or conflict
 for a finding; silence in documentation alone is an unanswered question.
 Carry the basis and rationale to closure when they bear on the finding.
+
+Superseded: the review carries no basis; the closure verifier judges
+against the findings, the goal and the plan's path.
 
 ### 5. Architectural heuristics support the decision
 

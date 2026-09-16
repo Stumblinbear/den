@@ -9,6 +9,86 @@ minor bump may change behavior.
 
 ### Changed
 
+- The `review-and-fix-workflow`'s `rulings` is a list: one decision with its
+  reason per item, each at most 400 characters, numbered in every fix brief and
+  closure launch, and a contested finding names the ruling by its number. The
+  free text it replaces carried a 5,000-character restatement of an
+  implementer's report into every fixer's brief.
+- A `fix` or `contested` stop carries the round's `fixes` so far, each with
+  the tier, what the fixer `built` in its own words and its figures, so the
+  lead answers a fixer's question with that fixer's account of the tree in
+  front of it. A judged round's `fixes` keep the tier and the figures alone:
+  the verifier's reason per finding is the account of what was built, and a
+  fixer's own prose put two rounds past the size the host shows of a return.
+- A fixer's `choices` are objects, what it `chose` and what it was chosen
+  `over`, rather than free text.
+- Every return the `review-and-fix-workflow` makes is measured against the
+  8,000 characters the host shows of a result, and one past that logs its size
+  per key, since the host cuts the rest from the tail without a sign.
+- An explorer's proposal in the `design-exploration-workflow` carries
+  `contested`: every settled decision the code challenges, by its number, with
+  the reason and the alternative, so a challenge reaches the judge and the user
+  as an item rather than inside a question's prose.
+- The `design-exploration-workflow` takes `direction`, the absolute path of
+  the project's direction record, in place of `basis`, which was up to 6000
+  characters of the lead's restatement of that record. Every explorer and the
+  judge get the path under `Direction record:` and read the record themselves,
+  the way the reviewer reads the plan at its path, so what they work from is
+  the record as it stands and not a reading of it that drifts from the day it
+  was written. `decisions` is now a list, one settled decision with its reason
+  each and at most 400 characters, rendered as a numbered list that a proposal
+  or an assessment cites by number, and left out of the launch when it is
+  empty. The `scoping` and `lead` skills carry the record's path and that list
+  into exploration and the brief, and what scoping clarifies about the
+  project's direction goes into the record through `direction-docs` rather
+  than into a basis written for one run.
+- The `review-and-fix-workflow`'s return carries each piece once and no longer
+  carries `stages`. Every return accounts for the run under `rounds`, a record
+  for each round: the findings the round worked with their verdicts and the
+  verifier's reason for each, under `removed` the skipped findings whose tests
+  it took out, and under `fixes` the figures each of the round's fixers
+  verified the tree with, by tier.
+  A landed return carried `rounds` as a count, which is now the array's length,
+  and it carries the comment reviewer's report under `comment`. No agent's
+  report is in the return: the fixers' were trimmed there to the lists the lead
+  triaged, and the review was left out to keep a stop under the host's cap on a
+  tool result, which a review with four findings once pushed a stop past. The
+  review's findings reach the lead under `open`, `decisions`, `questions`,
+  `carried.preExisting` and `removal`, and what the reviewer cleared stays in
+  the journal. `carried` no longer carries `escalations`; a finding that moved
+  to Opus is listed at that tier under `open`, or under `removal` when it is a
+  test the reviewer left red, and the tier move is not reported on its own.
+- At a stop, `open` and `removal` narrow to each finding's `id`, `title`,
+  `path`, `kind` and `tier`, except a finding a held question names, which
+  stays whole for the ruling. A capped return still carries every finding
+  whole, since the user decides one by one what becomes of the test left
+  in the tree for it. The fix stop's own `built` and `verification` keys go;
+  what each fixer built and verified reaches the lead under the round's
+  `fixes`. Every return is built in one order, the items the stop holds and
+  the comment pass's report first, then `carried`, then `rounds`, then `open`
+  and `removal`, since the host cuts a long result at its tail and what a stop
+  prints again survives losing it.
+- A fixer's question may name no finding. One about the work as a whole
+  reaches the lead at the fix stop from the Opus fixer, and under
+  `carried.asides` from the haiku fixer, whose questions never wake the
+  lead; one naming a finding the fixer was not given, an id echoed from
+  the rulings text among them, is carried under `carried.asides` and the
+  round goes on, where it used to end the run after the fixer's work was
+  done. Every aside carries the `stage` that filed it, the reviewer's
+  questions included.
+- The `FINDING`, `FIX` and closure schema descriptions and the reviewer's
+  output rule say what each field holds and what it leaves out: a scenario is
+  the input and the outcome that is wrong, evidence is what check shows it and
+  where, a repair is the change, a title states the defect, a choice is what
+  was chosen over what, a deviation is what departed and what forced it. The
+  title restated, the route the writer took to the finding, the alternatives
+  rejected and the case for caring stay out, since the kind and the tier carry
+  what a finding costs.
+- A fix brief asks for a red test before the fix where what the finding fixes
+  is a promise: what a caller may pass and what comes back, a rejection among
+  them, or a format another program reads. A finding about a detail nobody
+  promised, a log line or a message's wording among them, takes no test, and
+  the reviewer's check in words is its verification.
 - The `review-and-fix-workflow` takes `repo`, the absolute path of the
   repository whose working tree is reviewed, and a launch without it fails.
   Every agent the run launches is told that repository beside the range and
@@ -17,21 +97,21 @@ minor bump may change behavior.
   from one repository to review another reviewed the wrong tree. `diff-scope.sh`
   takes the repository as its first argument and the range as its second, and
   the `reviewer` and `comment-reviewer` agents call it that way.
-- The `review-and-fix-workflow`'s return carries each piece once. `open` and
-  `removal` hold the findings as the reviewer wrote them, the review is no
-  longer a stage under `stages`, since its findings reach the lead under
-  `open`, `decisions`, `questions`, `carried.preExisting` and `removal`, and
-  what the reviewer cleared stays in the journal. A review with four findings
-  once pushed a stop past the host's cap on a tool result. `carried` no longer
-  carries `escalations`; a finding that moved to Opus is listed at that tier
-  under `open`, or under `removal` when it is a test the reviewer left red,
-  and the tier move is not reported on its own.
 - The `review-and-fix-workflow`'s fix brief carries the lead's rulings before
   the findings and tells the fixer to sort the findings against them before
   any edit, so a finding whose fix would undo a ruling is contested in a
   paragraph rather than after a red test and a build. The brief also says a
   reviewer's test for a contested finding stays red for the lead to take out,
   since a fixer once crossed a ruling to turn such a test green.
+
+### Removed
+
+- The `review-and-fix-workflow`'s `basis` argument, which reached the closure
+  verifier alone. The verifier judges fixes against the findings, the goal and
+  the plan's path, which carries the design; a design basis pasted into its
+  launch puts the launcher's conclusions where the judge's own reading belongs.
+  Exploration reads the direction record at its path instead, under its own
+  entry above.
 
 ### Fixed
 

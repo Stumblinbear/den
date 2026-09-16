@@ -21,10 +21,11 @@ coherence and maintenance costs still decide whether the effort is justified.
 ## Check the constraint behind the choice
 
 When a change needs a workaround, trace the constraint that makes it necessary
-back to the design basis. An implementation choice can be reconsidered; a user
-requirement or external obligation must still be met. Compare accommodating the
-existing arrangement with correcting that arrangement before choosing the local
-patch. Reuse is valuable when the reused behavior serves the intended design.
+back to the direction record. An implementation choice can be reconsidered; a
+user requirement or external obligation must still be met. Compare
+accommodating the existing arrangement with correcting that arrangement before
+choosing the local patch. Reuse is valuable when the reused behavior serves
+the intended design.
 
 Development shortcuts need an explicit purpose and boundary. Ease of getting a
 prototype running does not settle the product's behavior. When preserving or

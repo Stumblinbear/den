@@ -1,29 +1,38 @@
 export const meta = {
   name: 'design-exploration-workflow',
-  description: 'Three blind explorers propose against one design basis; a judge assesses suitability; the user chooses',
+  description: 'Three blind explorers propose against one direction record; a judge assesses suitability; the user chooses',
   phases: [
     { title: 'Explore', detail: 'three explorers, three angles, none sees another' },
     { title: 'Judge', detail: 'project fit, current cost and cost of change; no selection when none is suitable' },
   ],
 }
 
-// Explorers share requirements, not the lead's preferred decomposition
-// or another explorer's conclusions. The basis preserves sources and the
-// distinction between confirmed direction and assumptions as scoped.
+// The launch carries requirements alone: no preferred decomposition, no
+// other explorer's conclusions. `direction` travels as a path so each
+// explorer reads the record itself; a restatement drifts as the record
+// moves on.
 const ask = args && typeof args === 'object' && !Array.isArray(args) ? args.ask : undefined
 const decisions = args && typeof args === 'object' && !Array.isArray(args) ? args.decisions : undefined
-const basis = args && typeof args === 'object' && !Array.isArray(args) ? args.basis : undefined
+const direction = args && typeof args === 'object' && !Array.isArray(args) ? args.direction : undefined
+
+// Sized for one decision and its reason: every explorer's launch carries the
+// whole list.
+const DECISION_LIMIT = 400
+
 if (typeof ask !== 'string' || ask.trim() === '' || ask.length > 6000) {
   throw new Error('design-exploration-workflow takes `ask`, the change to decompose, under 6000 characters')
 }
-if (decisions !== undefined && (typeof decisions !== 'string' || decisions.length > 6000)) {
-  throw new Error('`decisions` is the settled scoping decisions as text, under 6000 characters')
+if (decisions !== undefined && (!Array.isArray(decisions) || decisions.some((decision) =>
+  typeof decision !== 'string' || decision.trim() === '' || decision.length > DECISION_LIMIT))) {
+  throw new Error(`\`decisions\` is a list of settled decisions, each one decision with its reason, at most ${DECISION_LIMIT} characters`)
 }
-if (typeof basis !== 'string' || basis.trim() === '' || basis.length > 6000) {
-  throw new Error('`basis` is the design basis as nonempty text, at most 6000 characters')
+// An agent resolves a relative path against the session's working directory,
+// the tree the run was launched from rather than the record's own.
+if (typeof direction !== 'string' || !/^([A-Za-z]:[\\/]|[\\/])/.test(direction)) {
+  throw new Error('`direction` is the absolute path of the direction record, the file or the directory')
 }
-if (Object.keys(args).some((key) => !['ask', 'decisions', 'basis'].includes(key))) {
-  throw new Error('design-exploration-workflow takes `ask`, `decisions` and `basis` and nothing else')
+if (Object.keys(args).some((key) => !['ask', 'decisions', 'direction'].includes(key))) {
+  throw new Error('design-exploration-workflow takes `ask`, `decisions` and `direction` and nothing else')
 }
 
 const DESIGN = {
@@ -61,16 +70,28 @@ const DESIGN = {
         type: 'object',
         properties: {
           choice: { type: 'string' },
-          serves: { type: 'string', description: 'the requirement or stated change scenario this choice serves, with its source' },
+          serves: { type: 'string', description: 'the requirement or stated change scenario this choice serves, with its source; a settled decision by its number' },
           cost: { type: 'string', description: 'current cost and what reversing the choice would require' },
         },
         required: ['choice', 'serves', 'cost'],
       },
     },
     assumptions: { type: 'array', items: { type: 'string' }, description: 'unconfirmed premises, and what would change if each proved false' },
+    contested: {
+      type: 'array',
+      description: 'every settled decision the evidence in the code challenges; empty when none. The decision stands until the user reopens it, so the proposal keeps to it and the challenge travels here',
+      items: {
+        type: 'object',
+        properties: {
+          decision: { type: 'integer', description: 'the decision\'s number in the settled list' },
+          reason: { type: 'string', description: 'what in the code or the direction record challenges it, and the alternative' },
+        },
+        required: ['decision', 'reason'],
+      },
+    },
     questions: { type: 'array', items: { type: 'string' }, description: 'missing decisions and how their answers change the proposal; empty when none' },
   },
-  required: ['status', 'summary', 'modules', 'state', 'seams', 'reversal', 'costs', 'choices', 'assumptions', 'questions'],
+  required: ['status', 'summary', 'modules', 'state', 'seams', 'reversal', 'costs', 'choices', 'assumptions', 'contested', 'questions'],
 }
 
 const RANKING = {
@@ -92,7 +113,7 @@ const RANKING = {
         required: ['index', 'rank', 'strengths', 'costs'],
       },
     },
-    differences: { type: 'string', description: 'decisive tradeoffs, unmet requirements, excluded proposals, and evidence that could reverse the recommendation' },
+    differences: { type: 'string', description: 'decisive tradeoffs, unmet requirements, excluded proposals, and evidence that could reverse the recommendation; a settled decision by its number' },
     questions: { type: 'array', items: { type: 'string' }, description: 'unresolved decisions or evidence needed before selection; empty when none' },
   },
   required: ['outcome', 'recommendation', 'ranking', 'differences', 'questions'],
@@ -100,12 +121,17 @@ const RANKING = {
 
 const ANGLES = [
   'the smallest shape that does the job',
-  'the shape that supports the stated change scenarios at the lowest cost of change; use only scenarios in the design basis',
+  'the shape that supports the stated change scenarios at the lowest cost of change; use only scenarios the direction record states',
   'the shape a maintainer of this repository would recognize as its own',
 ]
 
-const settled = decisions ? `\n\nSettled decisions:\n${decisions}` : ''
-const context = `Ask: ${ask}\n\nDesign basis:\n${basis}${settled}`
+const settled = decisions && decisions.length
+  ? `\n\nSettled decisions:\n${decisions.map((decision, index) => `${index + 1}. ${decision}`).join('\n')}`
+  : ''
+const context = `Ask: ${ask}
+
+Direction record: ${direction}
+Read the record itself; this launch carries no restatement of it.${settled}`
 
 const proposals = await parallel(
   ANGLES.map((angle, index) => () =>
@@ -124,6 +150,13 @@ if (proposals.length !== ANGLES.length || proposals.some((design) =>
   !design || !['proposed', 'needs-input'].includes(design.status) ||
   !Array.isArray(design.questions) || !Array.isArray(design.assumptions))) {
   throw new Error('Design exploration incomplete: an explorer returned no usable result')
+}
+const decisionCount = decisions?.length ?? 0
+for (const design of proposals) {
+  if (!Array.isArray(design.contested) || design.contested.some((item) =>
+    !Number.isInteger(item.decision) || item.decision < 1 || item.decision > decisionCount)) {
+    throw new Error('Invalid contested: an explorer\'s challenge must name a settled decision by its number')
+  }
 }
 const designs = proposals.map((design, index) => ({ index, angle: ANGLES[index], design }))
 log(`${designs.length} proposals`)
