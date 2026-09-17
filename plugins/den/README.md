@@ -35,11 +35,13 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   decompositions against the code and the project's direction record. A judge
   compares suitable proposals, or reports missing input or no suitable
   proposal, and you choose. The script ships under `workflows/`.
-- `review-and-fix`: runs the `review-and-fix-workflow` workflow on the
-  working tree: a review against the task's goal, fix rounds each closed by a
-  fresh verifier, and a comment pass. It edits your working tree without
-  asking, stops only for a decision, and picks up where it stopped. The
-  script ships under `workflows/`.
+- `review-and-fix`: runs the `review-and-fix-workflow` workflow on the working
+  tree in one pass: a review against the task's goal, one Opus fixer over every
+  finding at P2 and above, a closure pass that gives a reopened finding one
+  retry, and a comment pass over a tree the run left nothing open in. It edits
+  your working tree without asking and never waits on the session; what it does
+  not fix comes back for the session to route. The script ships under
+  `workflows/`.
 - `diff-page`: renders a git diff range as one page file, a collapsible
   section per file with old and new line numbers and coloured lines, and
   sends you the file, for reading a change from a phone or away from the
@@ -81,8 +83,8 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   brief it was written to and returns every issue as evidence: defects with
   a priority and a failing test left in the tree, or a discriminating check
   where a test would need heavy scaffolding, questionable patterns, and choices
-  that do not serve the project's goals, with unresolved questions kept
-  separate. The tests it writes are the only files it touches.
+  that do not serve the project's goals; a question it would ask arrives as
+  a decision finding. The tests it writes are the only files it touches.
 - `closure-verifier` (opus): verdicts a review's findings against the fixed
   tree, CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION
   keeps an item unresolved when closure depends on a product decision.
@@ -113,16 +115,15 @@ Hooks, registered while the plugin is enabled:
 
 - Review triage: a finished `den:reviewer` or `den:closure-verifier`, as a
   `review-and-fix` run launches them, is recorded, and the next prompt you
-  submit carries a reminder to answer every item the run stopped on, with a
-  fix or skip call on each finding, and to triage what each return carries,
-  a stopped one's before the run is relaunched.
+  submit carries a reminder to triage everything the run's return holds, with
+  a call on each item.
 - Implementer triage: a finished implementer, fork of the session or
   `review-and-fix` fixer is recorded, and the next prompt you submit carries
   a reminder to put every choice it declared, question it asked, deviation
   from its brief or instruction it made and item it left undone to you with a
-  call on each. A fixer's questions and contested findings come back at the
-  run's stops; for an implementer or fork, the route a send-back takes is
-  yours whenever the round already needs your answer.
+  call on each. A fixer inside a run declares its choices in the run's
+  return; for an implementer or fork, the route a send-back takes is yours
+  whenever the round already needs your answer.
 - Agent-text audit: an edit or write to a file under a `skills`, `agents`,
   `hooks` or `references` directory, or to a `SKILL.md` or `CLAUDE.md`, adds
   one line to the session's context before the edit, saying to write it under
@@ -201,10 +202,10 @@ scope and waits for your go. A quick change the session would otherwise make
 by hand goes to a fork of itself instead, which keeps the file reads, the edit
 output and the test run out of your main context. Once the change is in the
 working tree and the session has put the implementer's report to you, it runs
-`review-and-fix` on the tree with the task's goal. The session wakes at each
-stop, brings you the decisions that are yours, and relaunches the run with
-the answers. When the run returns, it relays what the fixers chose and left
-open, and proposes the commit.
+`review-and-fix` on the tree with the task's goal. The run fixes the defects
+it finds and returns once; the session brings you the decisions that are
+yours, launches a fixer for what it rules, reviews again, and proposes the
+commit.
 
 ## Operation and limitations
 

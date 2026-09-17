@@ -21,17 +21,13 @@ function reminder(pending: readonly Flag[]): string {
 	return [
 		`${pending.length} review agent(s) completed${named ? ` (${named})` : ""}.`,
 		"They ran inside a `den:review-and-fix` run, and its return holds what is",
-		"yours. At a stop, answer every item it holds under its id, in the shape",
-		"the `den:review-and-fix` skill gives that stop, and put the user's items",
-		"to them under the lead skill's review rules, each with your fix or skip",
-		"call and its reason, read against the task's goal, one paragraph an",
-		"item; an instruction carries the",
-		"reviewer's repair only once you have traced it. Findings the run fixed",
-		"and closed take no call. Triage `carried` as an implementer's report on",
-		"every return, a stop's before relaunching, since the relaunch drops it;",
-		"a send-back goes to a standing implementer after the run returns.",
-		"Each item is classed by whether a reader could take it either way, not",
-		"by its size.",
+		"yours: triage every item it holds under the lead skill's review rules,",
+		"each with your call and its reason, read against the task's goal, one",
+		"paragraph an item, and put the user's items to them. What changes the",
+		"tree goes to one fixer in one brief, and a brief carries the reviewer's",
+		"repair only once you have traced it. Findings the run fixed and closed",
+		"take no call. Triage `carried` as an implementer's report. Each item is",
+		"classed by whether a reader could take it either way, not by its size.",
 	].join(" ");
 }
 

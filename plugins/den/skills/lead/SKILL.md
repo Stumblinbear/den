@@ -147,8 +147,9 @@ Use the standing definitions, not general-purpose agents with the discipline
 re-typed per brief; choosing the agent chooses the model tier. Route by how much
 unreviewable judgment the agent exercises between check-ins: opus
 implements from a brief, sonnet surveys, haiku does mechanics where
-the compiler is the spec, fable reviews code and does root-cause and
-derivation work. "Read X and report what is there" is a survey, not
+the compiler is the spec, fable reviews and implements where the correctness
+argument is a derivation and a wrong result passes green, and does root-cause
+work. "Read X and report what is there" is a survey, not
 research. State the model in the user-facing message at every launch and
 resume. `den:implementer-fable` is proposed with a rationale and launched
 only on the user's explicit approval.
@@ -176,14 +177,17 @@ The go for one implementation is not standing approval for the next unless the
 user says so, since each launch spends their allowance and puts a change in
 their tree they have not chosen. Triage priority is not a go-ahead. What runs
 without a go: a `den:review-and-fix` run once the implementer's report is
-triaged, its fix rounds included, and its relaunch once every item its stop
-holds is answered, the user's items by the user. Whenever nothing is waiting
-on the user, no ruling pending, no question open, that launch goes at once,
-since the user's time is for the decisions and a wait for permission to look
-is a wait for nothing. After a stage lands: report, and where the next stage
-needs a go-ahead, propose it (agent and scope) and wait. For implementation
-the proposal names the implementer and the brief's scope, and for a send-back
-that carries a question for the user it is the route question; either answer
+triaged, its fix passes included, the one fixer briefed from its return on the
+items this session rules, and a fresh run once those fixes have landed. A
+brief carrying an item the user ruled waits for their go: the ruling settles
+what the fix is, not that this session spends a launch on it. Whenever nothing
+is waiting on the user, no ruling pending, no question open, that launch goes
+at once, since the user's time is for the decisions and a wait for permission
+to look is a wait for nothing. After a stage lands: report, and where the
+next stage needs a go-ahead, propose it (agent and scope) and wait. For
+implementation the proposal names the implementer and the brief's scope, and
+for a send-back that carries a question for the user it is the route
+question; either answer
 is the go for the route chosen. A reply that does not answer a pending go is
 not the go, however close its subject: what it asks for is done, and the
 launch still waits, because approval by adjacency is the failure mode where
@@ -213,22 +217,28 @@ declare.
 
 Every change, once whatever built it has reported and that report is triaged,
 runs `den:review-and-fix` on the working tree with the goal, the plan's path
-and the rulings on the report. The run carries the review, the fix rounds, the
-closure passes and the comment pass, and wakes this session only at a stop.
-What the run did is read from `rounds` on every return, stopped or landed, and
-the transcripts and the journal stay closed: the items a stop holds and what
-the fixers declared arrive beside it word for word, since a ruling and a triage
-turn on the words their writer chose.
+and the rulings on the report. The run is one pass, review, fix, closure and
+comment, and it never waits on this session: it fixes the defects at P2 and
+above, gives a reopened fix one more pass, and returns everything else whole.
+What the run did is read from `passes`, and the transcripts and the journal
+stay closed: what the return holds arrives word for word, since a ruling and
+a triage turn on the words their writer chose.
 
-Triage a stop's questions separately from its findings: answer from existing
-evidence where possible, otherwise put the decision and its effect to the
-user. Neither missing intent nor an undocumented rationale is automatically a
-defect; equally, prior approval does not exempt a choice from contradictory
-evidence.
+The return is triaged as one list: each item gets this session's call, and
+every call that changes the tree, a finding left open, a decision ruled fix, a
+sweep of `deferred`, goes to one standing implementer or one fork in one
+brief, since the items were found in one read and a fixer given them one at a
+time leaves the copies. A finding the fixes introduced is read for the
+mechanism before any fixer is briefed, since it is a problem the run made. A
+fix for a finding left open or introduced is followed by a fresh run over the
+tree; a sweep of `deferred`, and the tests it takes out, land without one,
+since they are below the line the run itself fixes. Neither missing intent
+nor an undocumented rationale is automatically a defect; equally, prior
+approval does not exempt a choice from contradictory evidence.
 
-An `instruction` at a stop carries a repair only once this session has traced
-it against the finding's discriminating check, since the reviewer's repair is
-a sketch. Route a bug, a finding, a repair or a declared choice at its root
+A brief for a finding carries the reviewer's repair only once this session has
+traced it against the finding's discriminating check, since the repair is a
+sketch. Route a bug, a finding, a repair or a declared choice at its root
 cause, found by asking why one or two levels above the report: what made this
 the natural mistake, and what else that answer touches. An agent's diagnosis
 and remedy are the report, not the cause. A fix at the cause replaces a patch
@@ -243,16 +253,20 @@ session's fix or skip call and its reason, read against the task's goal, one
 paragraph a finding, since the user reads the triage once. A proposed test
 earns a fix when it pins a promise the change makes, a rejection among them;
 one that pins a detail nobody was promised, a message's wording among them,
-gets a skip.
+gets a skip. A finding ruled skip, from whichever list, goes into the next
+run's `rulings` with its reason, and the fixer this session launches takes
+its test out of the tree, since a run with no record of the ruling finds and
+fixes what the user chose to leave.
 
 ## Commits
 
-Once a step's `den:review-and-fix` run has returned `clean` or `capped`, both
-of which the comment pass ran before, propose the commit and wait for its own
-approval. The proposal lists the return's `comment.gaps`, since each is a
-comment that stands on a claim the code in scope does not show, and the user
-decides whether such a claim is committed. A `capped` tree still holds,
-failing, every test left for a finding in `open` or `removal`, so its
+Once a step's `den:review-and-fix` run has returned `clean`, propose the
+commit and wait for its own approval. The proposal follows this session's own
+run of the project's tests and checks, since a fixer's pass count is a claim.
+The proposal lists the return's `comment.gaps`, since each is a comment that
+stands on a claim the code in scope does not show, and the user decides
+whether such a claim is committed. A test the reviewer left in the tree is
+still red for every finding not fixed, under `deferred` or ruled skip, so the
 proposal lists those findings and their tests, and puts to the user whether
 each test is committed, taken out by a send-back or left for the next step,
 since a test removed is theirs.
