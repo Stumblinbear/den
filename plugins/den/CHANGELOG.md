@@ -9,6 +9,13 @@ minor bump may change behavior.
 
 ### Changed
 
+- `slicing` treats a change as one step until a boundary earns its place by
+  one of two tests, landing the first piece changes what the second should be
+  or the pieces exceed one read, and the read bound is generous: several
+  hundred lines across a few mechanisms. A risk orders the steps and makes
+  none, and the cutting techniques honour a boundary rather than make one,
+  since plans were splitting simple changes into steps a reviewer could have
+  read together.
 - The comment pass returns `counts` (doc comments in scope, rewritten and
   added; inline comments in scope, rewritten, added and cut) and `gaps`, one
   per comment kept although the code in scope cannot show its claim, with the
