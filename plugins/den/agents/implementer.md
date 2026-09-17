@@ -1,6 +1,6 @@
 ---
 name: implementer
-description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at medium effort.
+description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at medium effort, for a brief that leaves routine choices open.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: opus
 effort: medium

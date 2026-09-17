@@ -1,8 +1,8 @@
 // Writes the effort variants of den's implementer, and checks the committed
 // variants still match it. An agent definition sets one effort level and has
 // nothing to include a shared body from, so the body lives once in
-// `implementer.md` and each variant is that file with its name and its effort
-// changed.
+// `implementer.md` and each variant is that file with its name, its effort and
+// its description's closing clause changed.
 //
 //   node scripts/agent-variants.mts            write
 //   node scripts/agent-variants.mts --check    list what drifted and exit non-zero
@@ -15,8 +15,25 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const AGENTS = join(ROOT, "plugins", "den", "agents");
 
 const SOURCE = "implementer";
+
 const SOURCE_EFFORT = "medium";
-const VARIANT_EFFORTS: readonly string[] = ["low", "high"];
+
+/**
+ * One effort level, and the brief its description says it is for. The lead
+ * skill's Agents list is the home of the rule for picking among them; the
+ * clause here is what a session without that skill has to go on. The source's
+ * own clause is in `implementer.md` and nowhere else, so rewording it there
+ * is the whole edit.
+ */
+interface Tier {
+	readonly effort: string;
+	readonly brief: string;
+}
+
+const VARIANTS: readonly Tier[] = [
+	{ effort: "low", brief: "pins every decision" },
+	{ effort: "high", brief: "leaves a decision open" },
+];
 
 // The haiku implementer shares the prefix and none of the body: it is written
 // by hand, for another model and another kind of work.
@@ -41,35 +58,44 @@ const contents = (path: string): string | null => {
  * carrying a line a variant changes would otherwise produce a variant that
  * silently kept the source's value.
  */
-function swap(text: string, from: string, to: string): string {
+function swap(text: string, from: string | RegExp, to: string): string {
 	const parts = text.split(from);
 
 	if (parts.length !== 2) {
+		const sought = typeof from === "string" ? JSON.stringify(from) : from;
+
 		throw new Error(
-			`${named(pathOf(SOURCE))} holds ${parts.length - 1} of ${JSON.stringify(from)}, and a variant needs exactly one`,
+			`${named(pathOf(SOURCE))} holds ${parts.length - 1} of ${sought}, and a variant needs exactly one`,
 		);
 	}
 
 	return parts.join(to);
 }
 
-function variant(source: string, effort: string): string {
+/**
+ * How the source's description ends, whatever brief it names: the one
+ * sentence in a description that differs by tier.
+ */
+const SOURCE_ENDING = new RegExp(
+	` at ${SOURCE_EFFORT} effort, for a brief that [^.\\n]+\\.\\n`,
+);
+
+const ending = (tier: Tier): string =>
+	` at ${tier.effort} effort, for a brief that ${tier.brief}.\n`;
+
+function variant(source: string, tier: Tier): string {
 	const renamed = swap(
 		source,
 		`\nname: ${SOURCE}\n`,
-		`\nname: ${SOURCE}-${effort}\n`,
+		`\nname: ${SOURCE}-${tier.effort}\n`,
 	);
 	const pinned = swap(
 		renamed,
 		`\neffort: ${SOURCE_EFFORT}\n`,
-		`\neffort: ${effort}\n`,
+		`\neffort: ${tier.effort}\n`,
 	);
 
-	return swap(
-		pinned,
-		` at ${SOURCE_EFFORT} effort.\n`,
-		` at ${effort} effort.\n`,
-	);
+	return swap(pinned, SOURCE_ENDING, ending(tier));
 }
 
 function source(): string {
@@ -93,7 +119,7 @@ const strays = (): readonly string[] =>
 		.filter(
 			(suffix): suffix is string =>
 				suffix !== undefined &&
-				!VARIANT_EFFORTS.includes(suffix) &&
+				!VARIANTS.some((tier) => tier.effort === suffix) &&
 				!HAND_WRITTEN.includes(suffix),
 		)
 		.map(
@@ -104,9 +130,9 @@ const strays = (): readonly string[] =>
 function write(): void {
 	const text = source();
 
-	for (const effort of VARIANT_EFFORTS) {
-		const path = pathOf(`${SOURCE}-${effort}`);
-		const made = variant(text, effort);
+	for (const tier of VARIANTS) {
+		const path = pathOf(`${SOURCE}-${tier.effort}`);
+		const made = variant(text, tier);
 
 		if (contents(path) !== made) {
 			writeFileSync(path, made);
@@ -119,13 +145,13 @@ function check(): void {
 	const text = source();
 	const problems: string[] = [...strays()];
 
-	for (const effort of VARIANT_EFFORTS) {
-		const path = pathOf(`${SOURCE}-${effort}`);
+	for (const tier of VARIANTS) {
+		const path = pathOf(`${SOURCE}-${tier.effort}`);
 		const copy = contents(path);
 
 		if (copy === null) {
 			problems.push(`${named(path)} is missing`);
-		} else if (copy !== variant(text, effort)) {
+		} else if (copy !== variant(text, tier)) {
 			problems.push(`${named(path)} differs from ${named(pathOf(SOURCE))}`);
 		}
 	}
@@ -146,11 +172,22 @@ function check(): void {
 
 const args = process.argv.slice(2);
 
-if (args.length === 0) {
-	write();
-} else if (args.length === 1 && args[0] === "--check") {
-	check();
-} else {
-	process.stderr.write("agent-variants: usage: agent-variants.mts [--check]\n");
+// A source the variants cannot be made from, missing or without a line they
+// change, is a finding like drift is, said in a line rather than a stack.
+try {
+	if (args.length === 0) {
+		write();
+	} else if (args.length === 1 && args[0] === "--check") {
+		check();
+	} else {
+		process.stderr.write(
+			"agent-variants: usage: agent-variants.mts [--check]\n",
+		);
+		process.exitCode = 1;
+	}
+} catch (error) {
+	const reason = error instanceof Error ? error.message : String(error);
+
+	process.stderr.write(`agent-variants: ${reason}\n`);
 	process.exitCode = 1;
 }

@@ -12,6 +12,9 @@ minor bump may change behavior.
 - The implementer's prompt no longer tells it to expect hard free choices in
   the brief, which `implementer-low` is picked for the absence of. Its stop
   rules carry what it does with what the brief left out.
+- Each effort level's description names the brief it is for, one that pins
+  every decision, leaves routine choices open, or leaves a decision open, so a
+  session without the lead skill has something to pick a level by.
 
 ## [0.7.0] - 2026-09-17
 

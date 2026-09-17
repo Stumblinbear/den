@@ -1,6 +1,6 @@
 ---
 name: implementer-high
-description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at high effort.
+description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at high effort, for a brief that leaves a decision open.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: opus
 effort: high

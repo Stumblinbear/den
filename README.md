@@ -81,11 +81,11 @@ fails and names any copy that has drifted, and any file in a plugin's
 `lib/shared/` that nothing puts there.
 
 den's `implementer-low` and `implementer-high` agents are
-`plugins/den/agents/implementer.md` with the name and the effort level
-changed, since an agent definition sets one effort level and can include
-nothing. After editing `implementer.md`, run `npm run agent-variants`.
-`npm run check` fails and names a variant that has drifted, and an
-`implementer-*.md` the script does not write.
+`plugins/den/agents/implementer.md` with the name, the effort level and the
+description's closing clause changed, since an agent definition sets one
+effort level and can include nothing. After editing `implementer.md`, run
+`npm run agent-variants`. `npm run check` fails and names a variant that has
+drifted, and an `implementer-*.md` the script does not write.
 
 `npm install` also points `core.hooksPath` at `.githooks`, so `git commit`
 runs `biome check --staged`, `tsc --noEmit` and the two copy checks before it

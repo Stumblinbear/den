@@ -1,6 +1,6 @@
 ---
 name: implementer-low
-description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at low effort.
+description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at low effort, for a brief that pins every decision.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: opus
 effort: low
