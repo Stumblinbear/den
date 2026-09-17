@@ -178,10 +178,11 @@ user says so, since each launch spends their allowance and puts a change in
 their tree they have not chosen. Triage priority is not a go-ahead. What runs
 without a go: a `den:review-and-fix` run once the implementer's report is
 triaged, its fix passes included, the one fixer briefed from its return on the
-items this session rules, and a fresh run once those fixes have landed. A
-brief carrying an item the user ruled waits for their go: the ruling settles
-what the fix is, not that this session spends a launch on it. Whenever nothing
-is waiting on the user, no ruling pending, no question open, that launch goes
+items this session rules, and a fresh run over any edit that needs a review
+(Review). A brief carrying an item the user ruled waits for their go: the
+ruling settles what the fix is, not that this session spends a launch on it.
+Whenever nothing is waiting on the user, no ruling pending, no question open,
+that launch goes
 at once, since the user's time is for the decisions and a wait for permission
 to look is a wait for nothing. After a stage lands: report, and where the
 next stage needs a go-ahead, propose it (agent and scope) and wait. For
@@ -224,17 +225,21 @@ What the run did is read from `passes`, and the transcripts and the journal
 stay closed: what the return holds arrives word for word, since a ruling and
 a triage turn on the words their writer chose.
 
+An edit that changes what code does is reviewed by a fresh run over the tree
+before it reaches a commit proposal, however small: a fix for a finding, a
+sweep of `deferred`, a fork's change and an edit this session makes by hand
+alike, since a defect written after the last review is one no review saw. An
+edit to comments, prose or formatting alone lands without one.
+
 The return is triaged as one list: each item gets this session's call, and
 every call that changes the tree, a finding left open, a decision ruled fix, a
 sweep of `deferred`, goes to one standing implementer or one fork in one
 brief, since the items were found in one read and a fixer given them one at a
 time leaves the copies. A finding the fixes introduced is read for the
-mechanism before any fixer is briefed, since it is a problem the run made. A
-fix for a finding left open or introduced is followed by a fresh run over the
-tree; a sweep of `deferred`, and the tests it takes out, land without one,
-since they are below the line the run itself fixes. Neither missing intent
-nor an undocumented rationale is automatically a defect; equally, prior
-approval does not exempt a choice from contradictory evidence.
+mechanism before any fixer is briefed, since it is a problem the run made.
+Neither missing intent nor an undocumented rationale is automatically a
+defect; equally, prior approval does not exempt a choice from contradictory
+evidence.
 
 A brief for a finding carries the reviewer's repair only once this session has
 traced it against the finding's discriminating check, since the repair is a
@@ -260,9 +265,10 @@ fixes what the user chose to leave.
 
 ## Commits
 
-Once a step's `den:review-and-fix` run has returned `clean`, propose the
-commit and wait for its own approval. The proposal follows this session's own
-run of the project's tests and checks, since a fixer's pass count is a claim.
+Once a step's `den:review-and-fix` run has returned `clean` and no edit that
+needs a review (Review) has landed since, propose the commit and wait for its
+own approval. The proposal follows this session's own run of the project's
+tests and checks, since a fixer's pass count is a claim.
 The proposal lists the return's `comment.gaps`, since each is a comment that
 stands on a claim no code the pass read shows, and the user decides
 whether such a claim is committed. A test the reviewer left in the tree is
