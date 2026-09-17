@@ -1,7 +1,7 @@
 ---
 name: review-and-fix
-description: How the review-and-fix-workflow workflow is launched on the working tree and what its return holds.
-when_to_use: ALWAYS invoke this skill when a change in the working tree is ready for review, and when a review-and-fix-workflow run returns. Do not launch den:reviewer, den:closure-verifier or den:comment-reviewer on a change directly; use this skill first.
+description: How the review-and-fix-workflow workflow is launched on the working tree and what the run does.
+when_to_use: ALWAYS invoke this skill when a change in the working tree is ready for review. Do not launch den:reviewer, den:closure-verifier or den:comment-reviewer on a change directly; use this skill first.
 user-invocable: false
 allowed-tools: Workflow
 ---
@@ -58,36 +58,6 @@ on.
 
 ## The return
 
-`status` is `clean` when every finding the run fixed closed and nothing was
-introduced, so the comment pass ran; `open` otherwise. `carried` and
-`passes` always come back; every other key is present only when it holds
-something, and the ones this session acts on come first, since the host cuts
-a long result at its tail:
-
-- `open`: findings the run could not close, each whole with its `verdict`
-  and the verifier's `reason`: REOPENED after the second pass, or
-  NEEDS-DECISION, where a fix is in the tree and only a ruling says what
-  becomes of it.
-- `introduced`: findings at P2 or above the fixes introduced, whole. The
-  run stopped on them.
-- `decisions`: the reviewer's decision findings, whole, for the user under
-  the lead skill's Whose call.
-- `deferred`: the P3 and quality findings, whole, with the test the reviewer
-  left in the tree for each named in its evidence. One fork sweeps them, or
-  the user leaves them.
-- `comment`, on a clean run: the comment pass's `counts` and its `gaps`, each
-  a comment kept although no code the pass read shows its claim, which the
-  commit proposal lists.
-- `carried`: the fixers' `deviations`, `choices` (each what it `chose` and
-  what it was chosen `over`) and `unsure` items, and `preExisting` findings,
-  triaged as an implementer's report is.
-- `passes`: the run's account of itself, one record per fix pass, each
-  finding with its verdict and, where the verdict is not CLOSED, the
-  verifier's reason. What a fixer verified stays in the journal.
-
-Everything the return holds is this session's to settle. A fixer for what it
-rules is launched through the Agent tool as a standing implementer, briefed
-with the findings and the calls on them as one change. A tree changed that
-way is reviewed again by a fresh run over the whole change, since a fix is
-read in the change it fixes. A run that throws is incomplete, not open: its
-message names the cause.
+The return is ruled under `den:triage`, which holds what each of its keys
+carries. A run that throws is incomplete, not open: its message names the
+cause.

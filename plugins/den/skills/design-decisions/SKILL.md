@@ -38,12 +38,11 @@ within the agreed contract; reopen only the consequential choice it leaves open.
 
 Every engineering choice costs something, so a recommendation names what it
 buys, what it costs, and the alternative rejected and why. A choice that is
-cheap to undo gets a clause. One that is expensive to undo, a persisted
-format, a public surface, a dependency, gets the tradeoffs laid out and the
-decision left to the user. Naming the cost is what lets the reader, or your
-own next step, judge the call with eyes open; a recommendation with no cost
-named reads as the only option and is questioned late, when undoing it costs
-a round.
+cheap to undo gets a clause. A one-way door, such as a stored format, a public
+surface or a dependency, gets the tradeoffs laid out and the decision left to
+the user. Naming the cost is what lets the reader, or your own next step,
+judge the call with eyes open; a recommendation with no cost named reads as
+the only option and is questioned late, when undoing it costs a round.
 
 A choice declared in a report takes the same form: the reason it was made is
 the tradeoff, not the fact that it was open.

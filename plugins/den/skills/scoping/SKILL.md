@@ -75,8 +75,8 @@ yourself: each answer rewrites it, and a preview commits you to questions the
 next answer may retire.
 
 Every question carries your recommended answer with what it buys and what it
-costs, in the form `den:design-decisions` sets. When the work is expensive to
-undo, spend one question on a premortem, assuming it shipped and failed and
+costs, in the form `den:design-decisions` sets. When the work is a one-way
+door, spend one question on a premortem, assuming it shipped and failed and
 asking which failure the user fears, because the walk forward through the
 decision tree cannot reach that answer.
 
@@ -88,8 +88,8 @@ the tool hides the prose written before it.
 
 The pass ends at the user saying done, or when every consequential decision is
 settled. Record what remains open and what depends on it. An assumption may carry
-reversible work forward; an unresolved choice that would change an expensive
-commitment waits for the user's answer. Ending the pass answers nothing that is
+reversible work forward; an unresolved choice on a one-way door waits for
+the user's answer. Ending the pass answers nothing that is
 still open. Independent work can continue.
 
 ## Where the answers go

@@ -1,7 +1,7 @@
 ---
 name: writing-for-agents
 description: Principles for instructions an LLM agent will follow, with the calibration for current models.
-when_to_use: ALWAYS invoke this skill before writing or editing any text an agent will follow, whether an agent definition, a CLAUDE.md or rules file, a hook's injected text, a brief or launch prompt for a subagent, or a message a plugin prints to the model, and when an agent keeps ignoring an instruction, before strengthening it. Do not write or edit such text directly; use this skill first.
+when_to_use: ALWAYS invoke this skill before writing or editing any text an agent will follow, whether an agent definition, a CLAUDE.md or rules file, a hook's injected text, a launch prompt for a subagent, or a message a plugin prints to the model, and when an agent keeps ignoring an instruction, before strengthening it. Do not write or edit such text directly; use this skill first.
 user-invocable: false
 ---
 
@@ -24,7 +24,12 @@ tutorials, and behavior the model already gets right unprompted.
   example of the wanted behavior outperforms a prohibition, and one short
   instruction outperforms an enumerated list of bad patterns.
 - **Give the reason, not only the rule.** The model generalizes from the why;
-  a bare NEVER doesn't transfer to adjacent cases it wasn't written for.
+  a bare NEVER doesn't transfer to adjacent cases it wasn't written for. A
+  rule carries its reason once: a reason hung on every sentence turns each
+  into a clause chain the reader parses twice.
+- **Set a list as a list.** Three or more items folded into a sentence's
+  commas read as clauses of it, so they are set as a list or given one name.
+  A list that recurs across texts gets the name.
 - **Write at the right altitude.** Between two failure poles: brittle
   enumerated logic that shatters on unanticipated cases, and vague guidance
   that gives no concrete signal. Concrete enough to steer, loose enough to
@@ -47,7 +52,10 @@ tutorials, and behavior the model already gets right unprompted.
 - **Start minimal, grow against observed failures.** Begin with the least
   instruction that could work, add only what closes a failure you actually
   saw, not one you imagined. Where possible, build the eval before the
-  instructions.
+  instructions. A failure seen in the field is first read as a case of a rule
+  already written: that rule is changed until it covers the case, and a
+  sentence is added only when no rule owns the failure. An example appended
+  per incident turns a rule back into the enumerated list it replaced.
 - **Keep referenced material one level deep.** Agents read nested references
   partially or not at all, so anything two hops away is effectively unwritten.
 
@@ -63,7 +71,11 @@ MUST") are a per-rule lever for the one rule that needs it. Used broadly
 they devalue to noise.
 
 Contradictions get resolved arbitrarily: when two rules collide, you don't
-get to pick which one wins. One home per rule.
+get to pick which one wins. One home per rule. A rule several agents need
+lives in one place each of them loads, a preloaded skill or a shared file,
+and an agent's own definition holds only what is that agent's alone: a rule
+pasted into each role is corrected in some copies and not in others the first
+time it changes.
 
 ## Calibrate to the model generation
 
@@ -99,5 +111,6 @@ For each rule in an existing instruction set, in order:
    instructions? (Yes → move it where it loads only when relevant.)
 5. Phrased negatively without a why? (Rewrite positive + rationale.)
 6. Duplicates or contradicts another rule anywhere in the hierarchy?
-   (Keep one home.)
+   (Keep one home. Search the hierarchy for a distinctive phrase of the
+   rule, since a read of one file cannot show its copies.)
 

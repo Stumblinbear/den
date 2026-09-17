@@ -230,7 +230,7 @@ for (const runtime of runtimes()) {
 		const matched = run(
 			"implementer-triage-flag",
 			temp,
-			stop("den:implementer-opus", "opus-1"),
+			stop("den:implementer", "opus-1"),
 		);
 
 		assert.equal(matched.status, 0, matched.stderr);
@@ -250,7 +250,7 @@ for (const runtime of runtimes()) {
 		// The matcher, not the hook, keeps a reviewer's completion out.
 		assert.equal(
 			matcherFor("implementer-triage-flag"),
-			"^(den:implementer-opus|den:implementer-haiku|den:implementer-fable|fork)$",
+			"^(den:implementer|den:implementer-haiku|fork)$",
 		);
 	});
 
@@ -259,23 +259,19 @@ for (const runtime of runtimes()) {
 		() => {
 			const temp = fixtureDir("implementer-inject");
 
+			run("implementer-triage-flag", temp, stop("den:implementer", "opus-1"));
 			run(
 				"implementer-triage-flag",
 				temp,
-				stop("den:implementer-opus", "opus-1"),
-			);
-			run(
-				"implementer-triage-flag",
-				temp,
-				stop("den:implementer-fable", "fable-1"),
+				stop("den:implementer-haiku", "haiku-1"),
 			);
 
 			const context = injected(
 				run("implementer-triage-inject", temp, prompt()),
 			);
 
-			assert.ok(context.includes("den:implementer-opus"), context);
-			assert.ok(context.includes("den:implementer-fable"), context);
+			assert.match(context, /den:implementer[,)]/);
+			assert.ok(context.includes("den:implementer-haiku"), context);
 			assert.deepEqual(pending(temp, IMPLEMENTER), []);
 
 			// The flags are consumed, so the next prompt has nothing to say.

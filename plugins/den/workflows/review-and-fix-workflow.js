@@ -236,22 +236,13 @@ or the sentence the schema asks for.`,
     JSON.stringify(findings, null, 2),
     `A finding whose evidence is a failing test is fixed when that test
 passes. A finding the reviewer verified by reading gets its test first, red
-before the fix, with the red run in your report, when what it fixes is a
-promise: what a caller may pass and what comes back, a rejection among them,
-or a format another program reads. A finding about a detail nobody promised,
-a message's wording or a log call among them, that the log fired as much as
-what it said, takes no test, and the check in words the reviewer gave is its
-verification. A test that showed a defect red, the reviewer's or yours, has
-done its first job when it goes green: it proved the fix. It stays in the
-tree only where it earns its upkeep, which is where the mistake it catches
-would be hard to see by reading the code: a race, an ordering between steps,
-bookkeeping across calls, arithmetic. Where the fix is plain in the code, a
-forwarded value or a one-line guard a reviewer takes in at a glance, the test
-comes out after its green run, and it reaches the lead under \`deviations\`
-with both runs. A failing test no finding
-here names belongs to a finding the lead rules on; it stays red and
-untouched, since a red run is no reason to fix past a decision that is the
-lead's.`,
+before the fix with the red run in your report, where the testing rules you
+hold give it one; where they give it none, the check in words the reviewer
+gave is its verification. A test that comes out after its green run, the
+reviewer's or yours, reaches the lead under \`deviations\` with both runs. A
+failing test no finding here names belongs to a finding the lead rules on; it
+stays red and untouched, since a red run is no reason to fix past a decision
+that is the lead's.`,
   ]
 
   if (RULED) {
@@ -384,7 +375,7 @@ async function fix(pass, findings) {
   const report = await agent(fixBrief(findings), {
     label: stage,
     phase: 'Fix',
-    agentType: 'den:implementer-opus',
+    agentType: 'den:implementer',
     schema: FIX,
   })
   checkReport(report, stage, ['deviations', 'choices', 'unsure'])

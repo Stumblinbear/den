@@ -12,27 +12,16 @@ import {
 import { hookInput } from "../lib/shared/hook-input.mts";
 
 // The reminder for `pending` implementers that reported finishing: how many
-// they were and who, then the triage rules in brief. The rules live in full in
-// the lead skill's Implementer reports section, which the reminder names
-// because it fires many turns after that skill was loaded.
+// they were and who. The rules are the triage skill's, and the reminder loads
+// them at the moment they apply instead of restating them.
 function reminder(pending: readonly Flag[]): string {
 	const named = who(pending);
 
 	return [
 		`${pending.length} implementer agent(s) reported finishing${named ? ` (${named})` : ""}.`,
-		"Triage each report under the lead skill's implementer report",
-		"rules: every declared choice, question back, deviation from the brief or",
-		"instruction and left-undone item reaches the user with your accept,",
-		"answer, send back or defer call and its reason, read against the task's",
-		"goal, one paragraph an item. A fixer inside a `den:review-and-fix` run",
-		"reports into the run: its declarations reach you under `carried` in the",
-		"run's return, and a send-back goes to a standing implementer after the",
-		"run returns, since the fixer cannot be resumed. From an",
-		"implementer or fork launched through the Agent tool, what contradicts the",
-		"brief or instruction goes back at once, to the agent that made it or a",
-		"standing implementer, on the route the user chooses where the round",
-		"carries a question. Each item is classed by whether a reader could take",
-		"it either way, not by its size.",
+		"Invoke `den:triage` and triage each report. A fixer inside a",
+		"`den:review-and-fix` run is not one of these: its declarations arrive",
+		"with the run's return.",
 	].join(" ");
 }
 

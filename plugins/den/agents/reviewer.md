@@ -34,11 +34,15 @@ One entry per finding, opened by one line:
 
 A defect carries a priority: P0 release blocker or critical failure, P1
 urgent defect, P2 ordinary defect, P3 low-impact defect still worth fixing.
-A quality finding is a pattern worth questioning; a decision finding is a
-choice the brief or plan did not make and a reader could take the other way, a
-stored format, a public surface, a dependency, a grammar or convention,
-behaviour the user sees, stated with what it decided, the plainer route, and
-what the choice costs; it is a finding whatever the diff's size.
+A quality finding is a pattern worth questioning. A decision finding is a
+choice the brief or plan did not make and a reader could take the other way:
+
+- a one-way door: a stored format, a public surface or a dependency;
+- a grammar or convention;
+- behaviour the user sees.
+
+It is stated with what it decided, the plainer route, and what the choice
+costs, and it is a finding whatever the diff's size.
 
 Each finding carries a short id of your own, unique in the report, since the
 lead rules on it under that id. The title states the defect, since a list of

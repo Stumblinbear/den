@@ -14,6 +14,14 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   routing, launch authorization, review and commit gates, how to talk to you.
   Invoke it yourself; it is never loaded automatically, and it never reaches a
   subagent.
+- `briefing`: what a brief for an implementer pins and leaves open, and how a
+  plan's steps are briefed one at a time. The lead loads it before writing a
+  brief.
+- `triage`: how an implementer's report and a `review-and-fix` return are
+  ruled item by item, what each key of the return holds, and what a commit
+  proposal carries. The triage hooks tell the lead to load it.
+- `testing`: which test a change gets, what its assertions compare against,
+  and which tests stay in the tree. The implementer starts with it loaded.
 - `project-direction`: establishes or updates project goals, priorities,
   constraints and intended development with you before task scoping. Discovery
   has no default time or question budget. It records the understanding durably
@@ -90,15 +98,15 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   keeps an item unresolved when closure depends on a product decision.
 - `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
-- `implementer-opus` (opus): the default implementer. Executes a pinned brief,
+- `implementer` (opus): the default implementer. Executes a pinned brief,
   uses the direction record to make choices left open, declares those choices
   and deviations, and stops dependent work on broken assumptions.
   Implementation has no implicit deadline; necessary adjacent refactoring is
   assessed against the task's requirements, with changes to accepted designs
   or explicit scope fences brought back to you before implementation.
+  Launched with the fable model override, on your approval, for
+  derivation-dense work where a wrong result still passes the tests.
 - `implementer-haiku` (haiku): mechanical work where the compiler is the spec.
-- `implementer-fable` (fable): derivation-dense work where a wrong result
-  still passes the tests.
 - `prior-art-check` (opus): how the problem is already solved, before an
   approach is chosen. Read-only.
 - `surveyor` and `file-peek` (both haiku): read-only evidence sweeps, and
@@ -115,15 +123,15 @@ Hooks, registered while the plugin is enabled:
 
 - Review triage: a finished `den:reviewer` or `den:closure-verifier`, as a
   `review-and-fix` run launches them, is recorded, and the next prompt you
-  submit carries a reminder to triage everything the run's return holds, with
-  a call on each item.
+  submit carries a reminder to load `triage` and rule on everything the run's
+  return holds.
 - Implementer triage: a finished implementer, fork of the session or
   `review-and-fix` fixer is recorded, and the next prompt you submit carries
-  a reminder to put every choice it declared, question it asked, deviation
-  from its brief or instruction it made and item it left undone to you with a
-  call on each. A fixer inside a run declares its choices in the run's
-  return; for an implementer or fork, the route a send-back takes is yours
-  whenever the round already needs your answer.
+  a reminder to load `triage`, under which every choice it declared, question
+  it asked, deviation it made and item it left undone reaches you with a call
+  on each. A fixer inside a run declares its choices in the run's return; for
+  an implementer or fork, the route a send-back takes is yours whenever the
+  round already needs your answer.
 - Agent-text audit: an edit or write to a file under a `skills`, `agents`,
   `hooks` or `references` directory, or to a `SKILL.md` or `CLAUDE.md`, adds
   one line to the session's context before the edit, saying to write it under

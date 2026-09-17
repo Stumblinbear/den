@@ -382,7 +382,7 @@ function agents(reports: Reports = {}): Agent {
 			closes += 1;
 			return reports.close ? reports.close(prompt, closes) : closing(prompt);
 		}
-		assert.equal(options.agentType, "den:implementer-opus");
+		assert.equal(options.agentType, "den:implementer");
 		fixes += 1;
 		return reports.fix ? reports.fix(prompt, fixes) : fixed();
 	};
@@ -423,7 +423,7 @@ function launch(launches: readonly Launch[], index: number): Launch {
 }
 
 const REVIEW = "den:reviewer";
-const FIX = "den:implementer-opus";
+const FIX = "den:implementer";
 const CLOSE = "den:closure-verifier";
 const COMMENT = "den:comment-reviewer";
 

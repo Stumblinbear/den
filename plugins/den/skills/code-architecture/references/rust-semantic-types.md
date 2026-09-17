@@ -95,6 +95,12 @@ identity that `Uuid` itself lacks. Skip wrappers for short-lived locals whose
 meaning is unambiguous, or where no same-representation domains can be
 confused: proliferation adds conversion, import, and trait-forwarding noise.
 
+Where a unit has an invariant that holds for every value of it, the newtype
+enforces it at construction: an invariant that surfaces 150 lines later, after
+unwrapping and a pile of math, is worse than failing where failure was
+inevitable. An invariant that holds for one field's role and not for the unit
+stays with the owning type's setters.
+
 ## 4. Derive only the intended ergonomics
 
 The boilerplate that discourages newtypes is avoidable, but derive

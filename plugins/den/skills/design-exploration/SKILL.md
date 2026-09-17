@@ -1,7 +1,7 @@
 ---
 name: design-exploration
 description: Launches three independent design explorers against the project's direction record, then a judge assessing suitability, and brings the recommendation or unresolved decisions to the user.
-when_to_use: ALWAYS invoke this skill when a change adds a module, a persisted format, a public surface or a new mechanism and its brief is not yet written. Do not choose the decomposition or write the brief directly; use this skill first.
+when_to_use: ALWAYS invoke this skill when a change adds a module, a stored format, a public surface or a new mechanism and its brief is not yet written. Do not choose the decomposition or write the brief directly; use this skill first.
 user-invocable: false
 allowed-tools: Workflow
 ---
@@ -47,5 +47,7 @@ It returns every proposal with its angle and the judge's assessment. Give the
 user the recommendation, decisive tradeoffs and unresolved questions, and wait
 for their choice. Outcome `needs-input` calls for the missing decision;
 `no-suitable-proposal` calls for revising the proposals or their constraints.
-Neither selects a design. A failed workflow is incomplete, not a clean
-assessment. The brief pins the user's choice and its reasons.
+Neither selects a design: resolve the consequential uncertainty with the user
+before dependent implementation, since neither a question budget nor a ranking
+supplies approval. A failed workflow is incomplete, not a clean assessment.
+The brief pins the user's choice and its reasons.

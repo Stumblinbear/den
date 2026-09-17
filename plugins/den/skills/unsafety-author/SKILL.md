@@ -9,12 +9,6 @@ user-invocable: false
 
 Write and review Rust `unsafe` so the safety story is honest: every `unsafe fn` / `unsafe trait` carries a `# Safety` contract a caller can actually uphold, and the obligation sits where it can be discharged.
 
-## When to use
-
-- Writing a `# Safety` section for an `unsafe fn` or `unsafe trait`.
-- Reviewing or auditing an unsafe surface ("look over every unsafe in this crate").
-- Deciding whether a function should be `unsafe` at all, or where a soundness obligation belongs.
-
 ## The contract voice
 
 Model on std and bevy, the two best-maintained bodies of safety docs. The house style is the same everywhere: state the UB directly, as conditions the caller can check, and say nothing about how a conflicting access arises.
@@ -29,7 +23,7 @@ Core rules:
 6. **Do not enumerate contexts that share one pivot.** If the rule holds "during A, B, C...", state the one condition that unifies them. Enumerations rot when a new context appears.
 7. **Length is earned.** A trivial item gets a line; a genuinely load-bearing one (raw slice construction) earns a long list. Cut restatement and mechanism, never a real obligation.
 8. **Rationale is not contract.** Why the signature is shaped the way it is goes in an inline `// SAFETY:` or nowhere, never in the `# Safety` doc.
-9. **No em dashes, no bold-for-emphasis, no "actually/basically", no parenthetical "e.g." lists.** These read as filler and the std/bevy docs do not use them.
+9. **No bold-for-emphasis, no "actually/basically", no parenthetical "e.g." lists.** These read as filler and the std/bevy docs do not use them.
 
 ## Example gallery: match the contract to the obligation category
 
@@ -109,13 +103,8 @@ A `#[cfg(debug_assertions)]` borrow flag or invariant check (RefCell-style, but 
 1. Enumerate: `rg -n "unsafe fn|unsafe trait|unsafe impl|# Safety"` across the crate sources.
 2. Pull every `# Safety` section with a few lines of context in one pass and read them together. Consistency problems show up across items, not within one.
 3. **Coverage:** does every public `unsafe fn` / `unsafe trait` have a `# Safety`? (clippy's `missing_safety_doc` fires only on exported items.) Private glue fns used as function pointers can rely on an inline `// SAFETY:` instead. Do not over-doc private helpers.
-4. **Quality:** check each against the contract voice and the gallery. Common defects: mechanism in the contract, vague obligation, rotting enumeration, semicolon-joined obligations, em dashes, rationale in the doc.
+4. **Quality:** check each against the contract voice and the gallery. Common defects: mechanism in the contract, vague obligation, rotting enumeration, semicolon-joined obligations, rationale in the doc.
 5. `unsafe impl` blocks carry a `// SAFETY:` justification (why this impl upholds the trait's contract), not a caller contract. Keep those accurate after refactors that move code around.
-
-## Mechanical comment pass (do this first, it cannot be rubber-stamped)
-
-1. `grep -n "—"` (em dash) every file you touched and remove them. Rewrite the sentence plainly. Do not swap in a semicolon. This is mechanical and happens before any judgment review.
-2. Enforce the doc-versus-inline split: a doc comment (`///`) is the caller's contract (what it does and guarantees); an inline `// SAFETY:` or `//` is the non-obvious why for the next editor. Mechanism and rationale never go in the doc.
 
 ## Verification
 
@@ -128,10 +117,3 @@ A `#[cfg(debug_assertions)]` borrow flag or invariant check (RefCell-style, but 
 - A `# Safety` doc on a function with no `unsafe` keyword is a smell: either the function should be `unsafe`, or the precondition is actually guaranteed internally and the doc is wrong.
 - "Trust the whole call graph" is unsound as specified. If soundness depends on a global invariant maintained elsewhere with no `unsafe` marking the reliance, encode the reliance as an unsafe contract.
 - Removing an unused method from an `unsafe trait` is a real win: it shrinks the invariants every implementor must uphold.
-
-## Success criteria
-
-- Every public `unsafe` item has a `# Safety` a caller can satisfy from the doc alone.
-- Each contract states the UB directly, names the obligation by its category, and omits mechanism.
-- The obligation sits on the party that can break it, at the smallest honest boundary.
-- No em dashes, no rationale in doc comments, clippy clean, Miri considered.

@@ -23,10 +23,9 @@ Order is by risk. The assumption most likely to be wrong is tested first,
 inside the first step or as it; a risk is a reason to order, not a step of
 its own, and a change with one step has nothing to order. A walking
 skeleton, the thinnest path end to end before any breadth, is for a change
-that spans layers. A commitment
-that is expensive to undo, a persisted format, a public surface, a
-dependency, is decided early and landed in the latest step that can hold
-it. Order never makes a boundary.
+that spans layers. A one-way door, such as a stored format, a public
+surface or a dependency, is decided early and landed in the latest step that
+can hold it. Order never makes a boundary.
 
 A change is one step until a boundary earns its place, by one of two tests:
 landing the first piece changes what the second should be, or together they
@@ -81,13 +80,12 @@ A `## ` heading without a step number is prose. Plain paragraphs, `-`
 lists, `**bold**`, `` `code` `` and links otherwise; `den:plan-page`
 renders the file for the user.
 
-The plan is a hypothesis: after each step lands, what was learned rewrites
-the next entry and each tag. A falsified assumption re-cuts the smallest
-remaining part it invalidated; a change to the goal or to a commitment that
-is expensive to undo re-plans the whole and goes to the person who decides
-it. Most changes are one step, and a one-step plan is stated as one.
-An entry is read against the defect the step exists to remove, since an
-entry that keeps the defect narrower is not a cut.
+The plan is a hypothesis: after each step lands, what was learned rewrites the
+next entry and each tag. A falsified assumption re-cuts the smallest remaining
+part it invalidated; a change to the goal or to a one-way door re-plans the
+whole and goes to the person who decides it. Most changes are one step, and a
+one-step plan is stated as one. An entry is read against the defect the step
+exists to remove, since an entry that keeps the defect narrower is not a cut.
 
 ## Interrogate the first attempt
 

@@ -34,7 +34,9 @@ symptom; concept count is the cause.
   category it belongs to or what it resembles. A name that makes a claim,
   `default`, `common`, `simple`, holds only while the claim is true. A
   generic name is the reader's first guess made permanent and the next
-  writer's dumping ground; a mechanism module carries no domain knowledge.
+  writer's dumping ground; a mechanism module carries no domain knowledge,
+  and a mechanism is named for what it does, not for the feature that first
+  needed it.
 - **Don't escalate visibility to enable a split.** If a split forces you to
   widen a field's visibility so another file can reach it, the boundary is
   wrong.
@@ -104,6 +106,8 @@ have fewer methods, simpler parameters, and more hidden inside.
 - A test constructing a module's private parts, or asserting on its internal
   state, to reach behaviour the interface doesn't expose.
 - Comparing, or passing side by side, two values that came from one source.
+- Near-duplicate types for one concept, which signal a missing generic
+  primitive.
 - A method that errors or branches on what the value has been through rather
   than on what it was given: a field that is "not yet", a flag that records
   which constructor ran or which method has been called.
