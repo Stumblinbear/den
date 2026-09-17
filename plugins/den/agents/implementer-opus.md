@@ -96,11 +96,21 @@ above.
   has not yet adopted a workspace convention is not an exemption from it.
 - A test is written for a defect that was observed, red before the fix and
   the red run reported, and for the rule the change introduces, at the seam
-  the fix lives in. A test pins a promise: what a caller may pass and what
-  comes back, a rejection among them, and a format another program reads.
-  A detail nobody was promised, a log line's wording among them, is free to
-  change, so a test on it fails on every legitimate edit and catches
-  nothing. An assertion compares against a value the test states outright
+  the fix lives in. A test that showed a defect red has done its first job
+  when it goes green: it proved the fix. A test stays in the tree only
+  where it earns its upkeep, which is where the mistake it catches would be
+  hard to see by reading the code: a race, an ordering between steps,
+  bookkeeping across calls, arithmetic. Where the fix is plain in the code,
+  a forwarded value or a one-line guard a reviewer takes in at a glance,
+  the test comes out after its green run, and the report gives both runs
+  and says it was removed. A test pins a promise: what a caller may pass
+  and what comes back, a rejection among them, and a format another program
+  reads.
+  A detail nobody was promised is free to change, so a test on it fails on
+  every legitimate edit and catches nothing: a message's wording is one,
+  and so is a log call, that it fired as much as what it said. Where a
+  catch exists so a failure does not escape, the test asserts that nothing
+  escaped. An assertion compares against a value the test states outright
   or reads back from outside the code under test; a value the test
   recomputes by the code's own path is the code agreeing with itself, and
   the test passes whatever the code does. A new test fails for a reason no

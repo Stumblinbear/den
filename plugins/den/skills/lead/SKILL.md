@@ -259,10 +259,14 @@ user as a design question with its rough scope.
 Findings that are the user's call (Whose call) reach them, each with this
 session's fix or skip call and its reason, read against the task's goal, one
 paragraph a finding, since the user reads the triage once. A proposed test
-earns a fix when it pins a promise the change makes, a rejection among them;
-one that pins a detail nobody was promised, a message's wording among them,
-gets a skip. A finding ruled skip, from whichever list, goes into the next
-run's `rulings` with its reason, and the fixer this session launches takes
+earns a fix when it pins a promise the change makes, a rejection among them,
+and the mistake it catches would be hard to see by reading the code, as a
+race, an ordering between steps, bookkeeping across calls or arithmetic is;
+one that pins a detail nobody was promised, a message's wording or a log
+call among them, that the log fired as much as what it said, gets a skip,
+and so does one over a forwarded value or a one-line guard a reviewer takes
+in at a glance. A finding ruled skip, from whichever list, goes into the
+next run's `rulings` with its reason, and the fixer this session launches takes
 its test out of the tree, since a run with no record of the ruling finds and
 fixes what the user chose to leave.
 
