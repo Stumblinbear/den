@@ -43,6 +43,13 @@ if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'revie
 // the lead, who sweeps the class in one pass or leaves it.
 const FIXED = new Set(['P0', 'P1', 'P2'])
 
+// Every prose field is capped, and the host makes an agent that overruns
+// one retry, so the length holds without a reader asking for it. A sentence
+// is about 150 characters; the reader is the lead that briefed the change.
+const PHRASE = 150
+const SENTENCE = 250
+const TWO_SENTENCES = 300
+
 const FIX = {
   type: 'object',
   properties: {
@@ -52,8 +59,8 @@ const FIX = {
       items: {
         type: 'object',
         properties: {
-          what: { type: 'string', description: 'the departure, in the terms the brief used, as a phrase' },
-          forcedBy: { type: 'string', description: 'the fact in the tree that forced it, in one sentence; the reasoning that led you there is not one' },
+          what: { type: 'string', maxLength: PHRASE, description: 'the departure, in the terms the brief used, as a phrase' },
+          forcedBy: { type: 'string', maxLength: SENTENCE, description: 'the fact in the tree that forced it, in one sentence; the reasoning that led you there is not one' },
           where: { type: 'string', description: 'file:line' },
         },
         required: ['what', 'forcedBy', 'where'],
@@ -65,8 +72,8 @@ const FIX = {
       items: {
         type: 'object',
         properties: {
-          chose: { type: 'string', description: 'what you chose, as a phrase' },
-          over: { type: 'string', description: 'what it was chosen over, as a phrase' },
+          chose: { type: 'string', maxLength: PHRASE, description: 'what you chose, as a phrase' },
+          over: { type: 'string', maxLength: PHRASE, description: 'what it was chosen over, as a phrase' },
         },
         required: ['chose', 'over'],
       },
@@ -77,8 +84,8 @@ const FIX = {
       items: {
         type: 'object',
         properties: {
-          what: { type: 'string', description: 'the part of the work you cannot stand behind, as a phrase' },
-          why: { type: 'string', description: 'what leaves it unsettled, in one sentence: the check you could not run, the case no test reaches' },
+          what: { type: 'string', maxLength: PHRASE, description: 'the part of the work you cannot stand behind, as a phrase' },
+          why: { type: 'string', maxLength: SENTENCE, description: 'what leaves it unsettled, in one sentence: the check you could not run, the case no test reaches' },
         },
         required: ['what', 'why'],
       },
@@ -93,12 +100,12 @@ const FINDING = {
   properties: {
     id: { type: 'string', description: 'a short slug for this finding, used by no other item in your report' },
     kind: { type: 'string', enum: ['P0', 'P1', 'P2', 'P3', 'quality', 'decision'] },
-    title: { type: 'string', description: 'the defect, imperative: it names what is wrong rather than that something is' },
+    title: { type: 'string', maxLength: 100, description: 'the defect, imperative: it names what is wrong rather than that something is' },
     path: { type: 'string' },
     line: { type: 'integer', description: 'the first line of the smallest range that shows it' },
-    scenario: { type: 'string', description: 'the input and the outcome that is wrong, in one or two sentences. The title again, the route you took to find it and the case for caring are out: kind carries what it costs' },
-    evidence: { type: 'string', description: 'what shows the wrong outcome and where: the failing test\'s path with its red run, or the check that discriminates it, in one sentence' },
-    repair: { type: 'string', description: 'the change that fixes it, in one sentence, where you have one' },
+    scenario: { type: 'string', maxLength: TWO_SENTENCES, description: 'the input and the outcome that is wrong, in one or two sentences. The title again, the route you took to find it and the case for caring are out: kind carries what it costs' },
+    evidence: { type: 'string', maxLength: SENTENCE, description: 'what shows the wrong outcome and where: the failing test\'s path with its red run, or the check that discriminates it, in one sentence' },
+    repair: { type: 'string', maxLength: SENTENCE, description: 'the change that fixes it, in one sentence, where you have one' },
     preExisting: { type: 'boolean', description: 'true when the change did not introduce it' },
   },
   required: ['id', 'kind', 'title', 'path', 'line', 'scenario', 'evidence', 'preExisting'],
@@ -123,7 +130,7 @@ const CLOSURE = {
         properties: {
           id: { type: 'string', description: 'the id of the finding this verdict is on' },
           verdict: { type: 'string', enum: ['CLOSED', 'REOPENED', 'NEEDS-DECISION'] },
-          reason: { type: 'string', description: 'what you read in the tree that decides the verdict, in one sentence; the finding restated is not it' },
+          reason: { type: 'string', maxLength: SENTENCE, description: 'what you read in the tree that decides the verdict, in one sentence; the finding restated is not it' },
         },
         required: ['id', 'verdict', 'reason'],
       },
@@ -174,8 +181,8 @@ const COMMENTS = {
         properties: {
           path: { type: 'string' },
           line: { type: 'integer', description: 'the first line of the comment' },
-          claim: { type: 'string', description: 'what the comment asserts that no code you read shows, as a phrase' },
-          reason: { type: 'string', description: 'why it was kept rather than cut, in one sentence' },
+          claim: { type: 'string', maxLength: PHRASE, description: 'what the comment asserts that no code you read shows, as a phrase' },
+          reason: { type: 'string', maxLength: SENTENCE, description: 'why it was kept rather than cut, in one sentence' },
         },
         required: ['path', 'line', 'claim', 'reason'],
       },

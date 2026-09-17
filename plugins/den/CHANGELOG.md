@@ -9,6 +9,14 @@ minor bump may change behavior.
 
 ### Changed
 
+- Every prose field in the `review-and-fix-workflow`'s schemas carries a
+  `maxLength`: a finding's title 100 characters, its scenario 300, its
+  evidence and repair 250; a fixer's `chose`, `over` and `what` 150, its
+  `forcedBy` and `why` 250; a verdict's reason 250; a gap's claim 150 and
+  reason 250. The host makes an agent that overruns a cap retry. Naming the
+  reader and a length in each description moved only the fields short enough
+  to hold a phrase, and a finding's scenario still ran to 360 characters at
+  the median.
 - `slicing` treats a change as one step until a boundary earns its place by
   one of two tests, landing the first piece changes what the second should be
   or the pieces exceed one read, and the read bound is generous: several

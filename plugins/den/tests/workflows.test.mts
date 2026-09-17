@@ -942,6 +942,55 @@ async function commentSchema(): Promise<CommentSchema> {
 	return schema as CommentSchema;
 }
 
+test("every prose field the run's schemas carry is capped", async () => {
+	const schemas: Record<string, unknown> = {};
+	const run = agents({
+		findings: [finding()],
+		close: (prompt, pass) =>
+			closing(prompt, {
+				verdicts: [verdict("empty-path", pass === 1 ? "REOPENED" : "CLOSED")],
+			}),
+	});
+	await runWorkflow(
+		"review-and-fix-workflow",
+		ARGS,
+		async (prompt, options) => {
+			schemas[options.agentType] = options.schema;
+			return run(prompt, options);
+		},
+	);
+
+	// A finding ran to 1,100 characters written for a stranger, and a length
+	// in a description moved only the fields short enough to hold a phrase.
+	// The host makes an agent that overruns a cap retry, which a description
+	// cannot.
+	const at = (type: string, path: readonly string[]) =>
+		path.reduce<unknown>(
+			(node, key) => (node as Record<string, unknown>)[key],
+			schemas[type],
+		) as { maxLength?: number };
+	const finding_ = ["properties", "findings", "items", "properties"];
+	const caps: readonly (readonly [string, readonly string[], number])[] = [
+		[REVIEW, [...finding_, "title"], 100],
+		[REVIEW, [...finding_, "scenario"], 300],
+		[REVIEW, [...finding_, "evidence"], 250],
+		[REVIEW, [...finding_, "repair"], 250],
+		[FIX, ["properties", "choices", "items", "properties", "chose"], 150],
+		[FIX, ["properties", "choices", "items", "properties", "over"], 150],
+		[FIX, ["properties", "deviations", "items", "properties", "what"], 150],
+		[FIX, ["properties", "deviations", "items", "properties", "forcedBy"], 250],
+		[FIX, ["properties", "unsure", "items", "properties", "what"], 150],
+		[FIX, ["properties", "unsure", "items", "properties", "why"], 250],
+		[CLOSE, ["properties", "verdicts", "items", "properties", "reason"], 250],
+		[CLOSE, ["properties", "opened", "items", "properties", "scenario"], 300],
+		[COMMENT, ["properties", "gaps", "items", "properties", "claim"], 150],
+		[COMMENT, ["properties", "gaps", "items", "properties", "reason"], 250],
+	];
+	for (const [type, path, cap] of caps) {
+		assert.equal(at(type, path).maxLength, cap, `${type} ${path.join(".")}`);
+	}
+});
+
 test("a gap names the line of the comment it stands on", async () => {
 	const schema = await commentSchema();
 
