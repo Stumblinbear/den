@@ -249,10 +249,13 @@ gets a skip.
 
 Once a step's `den:review-and-fix` run has returned `clean` or `capped`, both
 of which the comment pass ran before, propose the commit and wait for its own
-approval. A `capped` tree still holds, failing, every test left for a
-finding in `open` or `removal`, so its proposal lists those findings and
-their tests, and puts to the user whether each test is committed, taken out
-by a send-back or left for the next step, since a test removed is theirs.
+approval. The proposal lists the return's `comment.gaps`, since each is a
+comment that stands on a claim the code in scope does not show, and the user
+decides whether such a claim is committed. A `capped` tree still holds,
+failing, every test left for a finding in `open` or `removal`, so its
+proposal lists those findings and their tests, and puts to the user whether
+each test is committed, taken out by a send-back or left for the next step,
+since a test removed is theirs.
 
 ## Talking to the user
 

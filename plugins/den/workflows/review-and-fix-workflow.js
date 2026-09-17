@@ -208,10 +208,55 @@ const CLOSURE = {
   required: ['verdicts', 'opened', 'restructure'],
 }
 
+// The pass rewrites every doc comment and writes one where a public item
+// lacks it; only an inline comment is dropped.
+const COMMENT_COUNTS = (...outcomes) => {
+  const population = {
+    inScope: 'the comments of this kind the change carries before the pass',
+    rewritten: 'those of them the pass left with different text',
+    cut: 'those of them the pass removed',
+    added: 'the comments of this kind the pass wrote that were not in scope',
+  }
+
+  const counted = ['inScope', 'rewritten', ...outcomes]
+  const properties = {}
+  for (const count of counted) {
+    if (!population[count]) {
+      throw new Error(`a comment count is one of ${Object.keys(population).join(', ')}, not \`${count}\``)
+    }
+    properties[count] = { type: 'integer', description: population[count] }
+  }
+
+  return { type: 'object', properties, required: counted }
+}
+
 const COMMENTS = {
   type: 'object',
-  properties: { report: { type: 'string', description: 'the counts and the gaps, as raw data' } },
-  required: ['report'],
+  properties: {
+    counts: {
+      type: 'object',
+      properties: {
+        doc: COMMENT_COUNTS('added'),
+        inline: COMMENT_COUNTS('added', 'cut'),
+      },
+      required: ['doc', 'inline'],
+    },
+    gaps: {
+      type: 'array',
+      description: 'every comment kept although the code in scope cannot show its claim; empty when none',
+      items: {
+        type: 'object',
+        properties: {
+          path: { type: 'string' },
+          line: { type: 'integer', description: 'the first line of the comment' },
+          claim: { type: 'string', description: 'what the comment asserts that the code in scope does not show, as a phrase' },
+          reason: { type: 'string', description: 'why it was kept rather than cut, in one sentence' },
+        },
+        required: ['path', 'line', 'claim', 'reason'],
+      },
+    },
+  },
+  required: ['counts', 'gaps'],
 }
 
 // The range is HEAD because the workflow reads what is in the working tree:
@@ -1021,7 +1066,7 @@ const comments = await agent(SCOPE, {
   agentType: 'den:comment-reviewer',
   schema: COMMENTS,
 })
-checkReport(comments, 'comment', [])
+checkReport(comments, 'comment', ['gaps'])
 
 checkAnswersUsed()
 
@@ -1030,10 +1075,10 @@ checkAnswersUsed()
 // findings stay whole: the user decides one by one what becomes of the test the
 // reviewer left in the tree for each.
 if (open.length || removal.length) {
-  return returned({ status: 'capped', comment: comments.report }, {
+  return returned({ status: 'capped', comment: comments }, {
     open,
     ...(removal.length ? { removal } : {}),
   })
 }
 
-return returned({ status: 'clean', comment: comments.report })
+return returned({ status: 'clean', comment: comments })

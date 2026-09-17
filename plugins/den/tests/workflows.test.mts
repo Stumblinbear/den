@@ -221,7 +221,7 @@ interface Outcome {
 	readonly at?: string;
 	readonly round?: number;
 	readonly rounds?: readonly Record<string, unknown>[];
-	readonly comment?: string;
+	readonly comment?: Record<string, unknown>;
 	readonly built?: string;
 	readonly verification?: string;
 	readonly fixes?: readonly unknown[];
@@ -348,7 +348,20 @@ const restructured = (over: Record<string, unknown> = {}) => ({
 	...over,
 });
 
-const commented = () => ({ report: "6 doc comments in scope, 4 rewritten." });
+const commented = () => ({
+	counts: {
+		doc: { inScope: 6, rewritten: 4, added: 1 },
+		inline: { inScope: 3, rewritten: 2, added: 0, cut: 1 },
+	},
+	gaps: [
+		{
+			path: "src/loader.ts",
+			line: 45,
+			claim: "the cache is warmed before the first read",
+			reason: "the warming runs in a process the change does not touch",
+		},
+	],
+});
 
 const FINDINGS = "which settles what the fix does.";
 const SKIPPED = "The lead ruled these findings skip.";
@@ -1481,7 +1494,7 @@ test("a zero answer at the round cap ends the fixing and lands the run", async (
 	assert.equal(result.status, "capped");
 	// No round ran, so the comment pass read the tree as the review left it.
 	assert.deepEqual(result.rounds, []);
-	assert.equal(result.comment, commented().report);
+	assert.deepEqual(result.comment, commented());
 	// A capped return carries each finding whole: the user decides one by one
 	// what becomes of the test the reviewer left in the tree for it.
 	assert.deepEqual(result.open, [defect]);
@@ -2515,7 +2528,7 @@ test("a clean return carries every list the rounds filled and the account of wha
 			fixes: [verifiedRecord("haiku", report)],
 		},
 	]);
-	assert.equal(result.comment, commented().report);
+	assert.deepEqual(result.comment, commented());
 	assert.deepEqual(Object.keys(result), [
 		"status",
 		"comment",
@@ -3015,4 +3028,53 @@ test("a return past what the host shows logs its size per key and still returns"
 		logged.push(message);
 	});
 	assert.equal(logged.length, 1);
+});
+
+/** The comment pass's launch schema, over the keys these tests assert on. */
+interface CommentSchema {
+	readonly properties: {
+		readonly counts: {
+			readonly properties: Record<
+				string,
+				{ readonly required: readonly string[] }
+			>;
+		};
+		readonly gaps: { readonly items: { readonly required: readonly string[] } };
+	};
+}
+
+async function commentSchema(): Promise<CommentSchema> {
+	let schema: unknown;
+	const run = agents({});
+	await runWorkflow(
+		"review-and-fix-workflow",
+		ARGS,
+		async (prompt, options) => {
+			if (options.agentType === "den:comment-reviewer") {
+				schema = options.schema;
+			}
+			return run(prompt, options);
+		},
+	);
+
+	return schema as CommentSchema;
+}
+
+test("a gap names the line of the comment it stands on", async () => {
+	const schema = await commentSchema();
+
+	// The lead's commit proposal puts each gap to the user, and a ruling against
+	// the claim sends the lead back to that comment. `claim` is a paraphrase: the
+	// path alone finds the file, not the comment.
+	assert.ok(schema.properties.gaps.items.required.includes("line"));
+});
+
+test("an inline comment the pass adds has a count to land in", async () => {
+	const schema = await commentSchema();
+
+	// A guard found in a doc comment moves to the site it guards, which writes
+	// an inline comment that was not in scope.
+	assert.ok(
+		schema.properties.counts.properties["inline"]?.required.includes("added"),
+	);
 });

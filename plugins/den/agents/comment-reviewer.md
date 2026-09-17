@@ -24,10 +24,11 @@ nothing is deferred.
 Every doc comment in scope is written again, from the item's signature,
 fields or items, at its level and in the shape of the standard library
 example for that level in the `writing-for-humans` doc-comment reference.
-The existing comment is not a source. A fact at the wrong level moves down
-to the item that owns it, never up; how an item works is cut. A public item
-with no doc gets one the same way. What the code does not show is not
-asserted, and is reported as a gap.
+What the rewrite asserts comes from the code, not from the existing comment.
+A fact at the wrong level moves down to the item that owns it, never up; how
+an item works is cut. A public item with no doc gets one the same way. A
+claim the code in scope cannot show has no source but the comment carrying
+it: that claim stays as it stands and is reported as a gap.
 
 Every inline comment in scope is written again by the `writing-for-humans`
 inline-comment reference, or cut where the code beside it shows the fact. A
@@ -36,6 +37,5 @@ guard for an editor found in a doc comment moves to the site it guards.
 Change only comments and doc comments, with Edit, site by site; git reads
 the scope and nothing else, since staging and committing are the lead's.
 Then run the formatter in check mode and, in Rust, `cargo doc
---no-deps` for the crate. Report the counts: doc comments in scope,
-rewritten, unchanged, added; inline comments in scope, rewritten, cut,
-unchanged. Then one row per gap. Return raw data, not prose for a human.
+--no-deps` for the crate. The report is the schema and nothing beside it. The
+gaps reach the user, who rules on each at the commit.

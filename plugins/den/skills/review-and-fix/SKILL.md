@@ -123,9 +123,10 @@ is committed first, so the review reads only what changed since.
 follows a `0` at the round limit: the comment pass ran on the tree as it is,
 and `open` and `removal` list what was left, each finding whole, since the
 user decides one by one what becomes of the test left in the tree for it. Both
-carry `rounds` for the run as a whole, `comment`, the comment reviewer's
-report on the tree, and `carried` since the last answered stop, triaged as an
-implementer's report is. The figures a round's `fixes` carry are from before
-the comment pass, which edits comments and runs no tests. A run that throws is
-incomplete, not clean: its message names the cause, and one that failed on an
-answer is relaunched on its run id with the answers corrected.
+carry `rounds` for the run as a whole, `comment`, the comment pass's `counts`
+and its `gaps`, each a comment kept although the code in scope cannot show its
+claim, and `carried` since the last answered stop, triaged as an implementer's
+report is. The figures a round's `fixes` carry are from before the comment
+pass, which edits comments and runs no tests. A run that throws is incomplete,
+not clean: its message names the cause, and one that failed on an answer is
+relaunched on its run id with the answers corrected.

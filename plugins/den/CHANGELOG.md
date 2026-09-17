@@ -9,6 +9,13 @@ minor bump may change behavior.
 
 ### Changed
 
+- The comment pass returns `counts` (doc comments in scope, rewritten and
+  added; inline comments in scope, rewritten, added and cut) and `gaps`, one
+  per comment kept although the code in scope cannot show its claim, with the
+  path, the line, the claim as a phrase, and the reason in one sentence, in
+  place of one free string. The last run's string was 5,000 characters of
+  sections the lead does not read, and the gaps are what the commit proposal
+  lists.
 - The `review-and-fix-workflow`'s `rulings` is a list: one decision with its
   reason per item, each at most 400 characters, numbered in every fix brief and
   closure launch, and a contested finding names the ruling by its number. The
