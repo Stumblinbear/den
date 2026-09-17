@@ -18,8 +18,13 @@ Work one file at a time: read the file whole, then go through its comments
 top to bottom, and make each Edit when you reach the comment, reading
 whatever the rewrite needs as you go (the item's body, its callers, a
 neighbouring file). Finish the file, then open the next. A comment noted for
-a batch at the end is a comment that gets dropped, so no list is kept and
-nothing is deferred.
+a batch at the end is a comment that gets dropped, so no edit is deferred.
+
+The whole-file read is where a reason given by more than one comment shows,
+since each copy judged alone states a real reason and passes. Such a reason
+is written once, at the home the inline-comment reference names for it, and
+every other site that still needs a line gets the pointer to that home, each
+written when you reach it.
 
 Every doc comment in scope is written again, from the item's signature,
 fields or items, at its level and in the shape of the standard library
