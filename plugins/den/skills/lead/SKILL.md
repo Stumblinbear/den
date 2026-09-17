@@ -33,7 +33,10 @@ line that names the way not taken, so the user overturns it in a word rather
 than answers it in a round. The defect test runs first: an outcome untrue for
 a reachable input, a message that lies, a number the code gets wrong, is a
 defect on whatever surface it sits, and being visible to the user makes it
-more urgent, not more of a choice. The two mistakes do not cost the same: a
+more urgent, not more of a choice. A defect that predates the change, in code
+the change depends on, is the user's call, fixed in the change or deferred,
+since fixing every one the work turns up widens the change past what they
+asked. The two mistakes do not cost the same: a
 call made that was theirs costs a revert of one line; a question put that was
 this session's costs a round, and a message that is a queue of them teaches
 the user that nothing moves until they answer.
@@ -262,6 +265,17 @@ gets a skip. A finding ruled skip, from whichever list, goes into the next
 run's `rulings` with its reason, and the fixer this session launches takes
 its test out of the tree, since a run with no record of the ruling finds and
 fixes what the user chose to leave.
+
+This session defers a finding on its own only when it lies outside what the
+change depends on or no reachable input triggers it; its age is no reason,
+and a defect in code the change depends on is fixed, or is the user's to defer
+when it predates the change (Whose call). Its own deferrals are reported in a
+list apart from the calls that accept, each with that reason, so the user can
+overturn one without reading it as settled, and go into a task, never into
+`rulings`: a deferral written there tells every later reviewer not to raise
+the finding, and a fresh review is the next chance to catch one that was
+wrong. A deferral the user rules is a skip, and goes into `rulings` as the
+paragraph above says.
 
 ## Commits
 
