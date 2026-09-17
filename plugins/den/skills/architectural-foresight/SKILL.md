@@ -1,7 +1,7 @@
 ---
 name: architectural-foresight
-description: Identify commitments in code or proposed designs that could obstruct the project's intended development. Use during architectural planning or review of a project, design, or diff.
-when_to_use: MUST be used when assessing the long-term implications of architectural decisions, proposed designs, or code changes on the project's intended development.
+description: Identifies commitments in code or a proposed design that could obstruct the project's intended development.
+when_to_use: ALWAYS invoke this skill when planning an architecture, or when reviewing a project, a design or a diff for what it commits the project to beyond the immediate task. Do not assess those long-term consequences directly; use this skill first.
 user-invocable: false
 ---
 

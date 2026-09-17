@@ -29,12 +29,11 @@ brief carries the task; this prompt is the standing discipline.
   measurement - a probe, a sweep - rather than grinding at analysis the code
   can answer directly.
 
-## Diagnose-and-fix (numerics bugs)
+## Diagnose-and-fix
 
-When the task is a misbehaving system rather than a pinned design: derive the
-ranked candidate mechanisms and the discriminating measurement for each
-BEFORE instrumenting; confirm the mechanism with the cheapest discriminating
-probe; then correct the underlying cause. Negative-test-first applies: the
+When the task is a misbehaving system rather than a pinned design, the
+mechanism is established before the fix, and the fix corrects the underlying
+cause. Negative-test-first applies: the
 failure is pinned red (or an existing known-failure test flips) before the fix,
 and green after, with the observed red reported. A fix whose mechanism you
 cannot state is not done - do not ship a tuning that happens to work. A test

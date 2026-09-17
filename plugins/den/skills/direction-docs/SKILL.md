@@ -1,7 +1,7 @@
 ---
 name: direction-docs
-description: Creates, organizes and updates project direction documents from established goals and agreed changes, preserving their meaning, reasons and uncertainty. Use when recording discovery, incorporating direction clarified during scoping, or reorganizing existing direction docs.
-when_to_use: ALWAYS use when creating, updating, or reorganizing project direction documents.
+description: Creates, organizes and updates project direction documents from established goals and agreed changes, preserving their meaning, reasons and uncertainty.
+when_to_use: ALWAYS invoke this skill when creating, updating or reorganizing project direction documents, whether recording discovery or incorporating direction clarified during scoping. Do not write or edit a direction document directly; use this skill first.
 user-invocable: false
 ---
 

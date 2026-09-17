@@ -128,7 +128,6 @@ A `#[cfg(debug_assertions)]` borrow flag or invariant check (RefCell-style, but 
 - A `# Safety` doc on a function with no `unsafe` keyword is a smell: either the function should be `unsafe`, or the precondition is actually guaranteed internally and the doc is wrong.
 - "Trust the whole call graph" is unsound as specified. If soundness depends on a global invariant maintained elsewhere with no `unsafe` marking the reliance, encode the reliance as an unsafe contract.
 - Removing an unused method from an `unsafe trait` is a real win: it shrinks the invariants every implementor must uphold.
-- Keep "docs: clarify safety contracts" as its own commit, separate from any code refactor in the same pass.
 
 ## Success criteria
 
