@@ -45,7 +45,11 @@ promised, a log line's wording among them, is free to change, so a test on it
 fails on every legitimate edit and catches nothing. An assertion compares
 against a value the test states outright or reads back from outside the code
 under test; a value the test recomputes by the code's own path is the code
-agreeing with itself, and the test passes whatever the code does.
+agreeing with itself, and the test passes whatever the code does. A new test
+fails for a reason no test in the file already fails for: where one already
+drives the same inputs the assertion joins it, and is seen red there, since a
+second test over one scenario proves nothing the first could not and the two
+have to be kept in step.
 
 ## Boundaries
 
