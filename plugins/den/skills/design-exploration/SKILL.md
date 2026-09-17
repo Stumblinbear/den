@@ -32,6 +32,17 @@ launch every other exploration on `opus`, since an exploration spends three
 runs of Fable's scarcer allowance. A model the user names wins. The judge runs
 on Opus either way.
 
+The `ask` states the outcome that must hold and leaves every mechanism to the
+explorers, since an ask written as a mechanism comes back as three variants of
+it and the design worth the run is the one nobody in the conversation had.
+Write what must hold once the change lands, in terms an explorer can meet
+several ways, rather than the step this session believes delivers it. A
+`decisions` entry is a
+decision the user made, with their reason; a conclusion this session reached
+goes in as the outcome it was meant to buy, so an explorer can reach it
+another way. A returned design may change what the work is, and that is the
+run paying for itself rather than a proposal out of scope.
+
 It returns every proposal with its angle and the judge's assessment. Give the
 user the recommendation, decisive tradeoffs and unresolved questions, and wait
 for their choice. Outcome `needs-input` calls for the missing decision;
