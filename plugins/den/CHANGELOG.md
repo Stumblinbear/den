@@ -9,6 +9,18 @@ minor bump may change behavior.
 
 ### Changed
 
+- The implementer comes at three effort levels: `implementer-low`,
+  `implementer` at medium, and `implementer-high`, all on Opus with one body.
+  The lead picks by how much the brief leaves open, since effort buys reading
+  and thinking past what was asked and the lead wrote the brief. `implementer`
+  set no level before and ran at whatever the session was on, so a launch from
+  a session on `high` or above now thinks less than it did.
+- Every agent on a model that takes an effort level pins one, in place of
+  inheriting the session's: `design-explorer`, `design-judge` and
+  `prior-art-check` at `xhigh` beside the `reviewer`; `closure-verifier`,
+  `surveyor`, `localizer` and `localization-reviewer` at `high`;
+  `comment-reviewer` at `medium`. The haiku agents set none, since Haiku takes
+  no effort level.
 - The `design-exploration-workflow` takes a required `explorer`, `opus` or
   `fable`, the model its three explorers run on, the way the
   `review-and-fix-workflow` takes `reviewer`. The judge stays on Opus. A

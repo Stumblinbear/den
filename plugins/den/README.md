@@ -105,11 +105,15 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   assessed against the task's requirements, with changes to accepted designs
   or explicit scope fences brought back to you before implementation.
   Launched with the fable model override, on your approval, for
-  derivation-dense work where a wrong result still passes the tests.
+  derivation-dense work where a wrong result still passes the tests. It runs
+  at medium effort.
+- `implementer-low` and `implementer-high` (opus): the same implementer at low
+  and at high effort. The lead picks among the three by how much the brief
+  leaves open.
 - `implementer-haiku` (haiku): mechanical work where the compiler is the spec.
 - `prior-art-check` (opus): how the problem is already solved, before an
   approach is chosen. Read-only.
-- `surveyor` and `file-peek` (both haiku): read-only evidence sweeps, and
+- `surveyor` (sonnet) and `file-peek` (haiku): read-only evidence sweeps, and
   targeted extraction from files too large to read whole.
 - `design-explorer` (opus): one decomposition serving the task's purpose and
   project direction, from the angle it is given, with consequential choices

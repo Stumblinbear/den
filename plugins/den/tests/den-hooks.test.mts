@@ -250,7 +250,7 @@ for (const runtime of runtimes()) {
 		// The matcher, not the hook, keeps a reviewer's completion out.
 		assert.equal(
 			matcherFor("implementer-triage-flag"),
-			"^(den:implementer|den:implementer-haiku|fork)$",
+			"^(den:implementer(-low|-high|-haiku)?|fork)$",
 		);
 	});
 

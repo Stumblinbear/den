@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Skill
 skills:
   - code-architecture
 model: opus
+effort: xhigh
 ---
 
 Propose a decomposition that serves the task's purpose within the project's

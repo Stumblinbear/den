@@ -1,9 +1,10 @@
 #!/bin/sh
 # Pre-commit check: Biome over the staged files, a type check of the whole
-# tree, and the check that every plugin's copy of the shared library still
-# matches it. It never writes -- a hook that reformats what is about to be
-# committed hides the change from the person committing it -- so a failure is
-# fixed with `npm run fix` or `npm run plugin-lib` and staged again.
+# tree, and the checks that every plugin's copy of the shared library and every
+# effort variant of den's implementer still match their sources. It never
+# writes, since a hook that reformats what is about to be committed hides the
+# change from the person committing it. A failure is fixed with `npm run fix`,
+# `npm run plugin-lib` or `npm run agent-variants` and staged again.
 #
 # `npm install` at the repository root points `core.hooksPath` here.
 set -eu
@@ -35,3 +36,7 @@ node_modules/.bin/tsc --noEmit
 # every file in a plugin's `lib/` that nothing put there, and leaves the fix to
 # `npm run plugin-lib`.
 node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/plugin-lib.mts --check
+
+# The same for the implementer's effort variants, which `npm run agent-variants`
+# writes from `plugins/den/agents/implementer.md`.
+node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/agent-variants.mts --check

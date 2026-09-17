@@ -12,7 +12,7 @@
 				]
 			},
 			{
-				"matcher": "^(den:implementer|den:implementer-haiku|fork)$",
+				"matcher": "^(den:implementer(-low|-high|-haiku)?|fork)$",
 				"hooks": [
 					{
 						"type": "command",

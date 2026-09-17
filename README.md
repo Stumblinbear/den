@@ -44,9 +44,9 @@ asks for it.
   an interpreter, the reader for what Claude Code writes on a hook's stdin,
   and the configuration loader. Each plugin carries a committed copy under its
   own `lib/shared/`.
-- `scripts/`: the copy that keeps those in step, and the root install step
-  that points git at the tracked hooks and installs each plugin's
-  dependencies.
+- `scripts/`: the copy that keeps those in step, the script that writes the
+  effort variants of den's implementer, and the root install step that points
+  git at the tracked hooks and installs each plugin's dependencies.
 - `tests/`: the shared test harness, and the tests that belong to no single
   plugin.
 - `.githooks/`: the pre-commit check.
@@ -59,10 +59,11 @@ asks for it.
 
 ```sh
 npm install        # tooling, the git hook path, and each plugin's dependencies
-npm run check      # biome ci, tsc --noEmit and the copy check, as CI runs them
+npm run check      # biome ci, tsc --noEmit and both copy checks, as CI runs it
 npm run fix        # biome check --write
 npm run plugin-lib # copy lib/ into every plugin that takes it
 npm test           # the root tests, then every plugin's
+npm run agent-variants             # write den's implementer-low and -high
 npm run plugin-refresh -- <plugin> # copy the checkout over the installed copy
 ```
 
@@ -79,10 +80,18 @@ After editing anything in `lib/`, run `npm run plugin-lib`. `npm run check`
 fails and names any copy that has drifted, and any file in a plugin's
 `lib/shared/` that nothing puts there.
 
+den's `implementer-low` and `implementer-high` agents are
+`plugins/den/agents/implementer.md` with the name and the effort level
+changed, since an agent definition sets one effort level and can include
+nothing. After editing `implementer.md`, run `npm run agent-variants`.
+`npm run check` fails and names a variant that has drifted, and an
+`implementer-*.md` the script does not write.
+
 `npm install` also points `core.hooksPath` at `.githooks`, so `git commit`
-runs `biome check --staged`, `tsc --noEmit` and the copy check before it
-lands. The hook only checks. Fix a failure with `npm run fix` or
-`npm run plugin-lib` and stage the result. Two things to know about it:
+runs `biome check --staged`, `tsc --noEmit` and the two copy checks before it
+lands. The hook only checks. Fix a failure with `npm run fix`,
+`npm run plugin-lib` or `npm run agent-variants` and stage the result. Two
+things to know about it:
 
 - `--staged` checks the on-disk content of every staged file, so a partially
   staged file is judged by what is in the working tree, not by what is about

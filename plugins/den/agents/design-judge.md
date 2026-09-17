@@ -5,6 +5,7 @@ tools: Read, Grep, Glob, Skill
 skills:
   - code-architecture
 model: opus
+effort: xhigh
 ---
 
 The launch carries the path of the project's direction record and the settled

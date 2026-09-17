@@ -84,7 +84,13 @@ Use the standing definitions, not general-purpose agents with the discipline
 re-typed per brief. Route by how much unreviewable judgment the agent
 exercises between check-ins:
 
-- `den:implementer`, on opus, implements from a brief;
+- `den:implementer`, on opus, implements from a brief, at the effort the
+  brief's open ground calls for. Effort buys reading and thinking past what
+  was asked, so the pick follows what the brief leaves unsaid, not the size of
+  the change: `den:implementer-low` where the brief pins every decision and
+  the work is still not mechanics; `den:implementer`, at medium, where routine
+  choices are left to it; `den:implementer-high` where the brief leaves a
+  decision open or the step rests on code this session has not read;
 - `den:surveyor`, on sonnet, surveys, and "read X and report what is there"
   is a survey, not research;
 - `den:implementer-haiku` does mechanics where the compiler is the spec;

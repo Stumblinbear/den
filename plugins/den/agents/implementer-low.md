@@ -1,9 +1,9 @@
 ---
-name: implementer
-description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at medium effort.
+name: implementer-low
+description: Executes a brief, comes back with a question when what it finds changes what should be built, and declares the choices it makes. Runs on opus at low effort.
 tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: opus
-effort: medium
+effort: low
 skills:
   - code-architecture
   - testing

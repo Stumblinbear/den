@@ -3,6 +3,7 @@ name: closure-verifier
 description: Closes out a pass of fixes against the review's findings and the task's goal. Takes the goal, the findings and the fixed scope.
 tools: Read, Grep, Glob, Bash
 model: opus
+effort: high
 user-invocable: false
 ---
 

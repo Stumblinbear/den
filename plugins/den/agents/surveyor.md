@@ -2,6 +2,7 @@
 name: surveyor
 description: Fast read-only codebase search and exploration. Exhaustive sweeps of code, docs, or external source code that classify what IS, with file:line citations.
 model: sonnet
+effort: high
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 user-invocable: false
 ---
