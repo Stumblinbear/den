@@ -1,6 +1,6 @@
 {
 	"name": "context-budget",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"description": "Tells the agent when the session's context crosses a per-model token threshold, so it waits for the arc it is in to end and then recommends /compact before auto-compact picks the moment itself.",
 	"license": "MIT OR Apache-2.0",
 	"author": {
