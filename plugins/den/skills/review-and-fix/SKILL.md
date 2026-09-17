@@ -76,7 +76,7 @@ a long result at its tail:
   left in the tree for each named in its evidence. One fork sweeps them, or
   the user leaves them.
 - `comment`, on a clean run: the comment pass's `counts` and its `gaps`, each
-  a comment kept although the code in scope cannot show its claim, which the
+  a comment kept although no code the pass read shows its claim, which the
   commit proposal lists.
 - `carried`: the fixers' `deviations`, `choices` (each what it `chose` and
   what it was chosen `over`) and `unsure` items, and `preExisting` findings,

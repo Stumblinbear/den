@@ -18,7 +18,7 @@ minor bump may change behavior.
   read together.
 - The comment pass returns `counts` (doc comments in scope, rewritten and
   added; inline comments in scope, rewritten, added and cut) and `gaps`, one
-  per comment kept although the code in scope cannot show its claim, with the
+  per comment kept although no code the pass read shows its claim, with the
   path, the line, the claim as a phrase, and the reason in one sentence, in
   place of one free string. The last run's string was 5,000 characters of
   sections the lead does not read, and the gaps are what the commit proposal

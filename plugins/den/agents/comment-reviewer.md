@@ -27,8 +27,8 @@ example for that level in the `writing-for-humans` doc-comment reference.
 What the rewrite asserts comes from the code, not from the existing comment.
 A fact at the wrong level moves down to the item that owns it, never up; how
 an item works is cut. A public item with no doc gets one the same way. A
-claim the code in scope cannot show has no source but the comment carrying
-it: that claim stays as it stands and is reported as a gap.
+claim no code you read shows has no source but the comment carrying it:
+that claim stays as it stands and is reported as a gap.
 
 Every inline comment in scope is written again by the `writing-for-humans`
 inline-comment reference, or cut where the code beside it shows the fact. A

@@ -168,13 +168,13 @@ const COMMENTS = {
     },
     gaps: {
       type: 'array',
-      description: 'every comment kept although the code in scope cannot show its claim; empty when none',
+      description: 'every comment kept although no code you read shows its claim; empty when none',
       items: {
         type: 'object',
         properties: {
           path: { type: 'string' },
           line: { type: 'integer', description: 'the first line of the comment' },
-          claim: { type: 'string', description: 'what the comment asserts that the code in scope does not show, as a phrase' },
+          claim: { type: 'string', description: 'what the comment asserts that no code you read shows, as a phrase' },
           reason: { type: 'string', description: 'why it was kept rather than cut, in one sentence' },
         },
         required: ['path', 'line', 'claim', 'reason'],

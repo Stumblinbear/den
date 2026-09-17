@@ -264,7 +264,7 @@ Once a step's `den:review-and-fix` run has returned `clean`, propose the
 commit and wait for its own approval. The proposal follows this session's own
 run of the project's tests and checks, since a fixer's pass count is a claim.
 The proposal lists the return's `comment.gaps`, since each is a comment that
-stands on a claim the code in scope does not show, and the user decides
+stands on a claim no code the pass read shows, and the user decides
 whether such a claim is committed. A test the reviewer left in the tree is
 still red for every finding not fixed, under `deferred` or ruled skip, so the
 proposal lists those findings and their tests, and puts to the user whether
