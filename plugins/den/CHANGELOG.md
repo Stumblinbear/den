@@ -7,6 +7,12 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+
+- The implementer's prompt no longer tells it to expect hard free choices in
+  the brief, which `implementer-low` is picked for the absence of. Its stop
+  rules carry what it does with what the brief left out.
+
 ## [0.7.0] - 2026-09-17
 
 ### Changed

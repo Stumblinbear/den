@@ -15,14 +15,14 @@ for tool in biome tsc; do
   if [ ! -f "node_modules/.bin/$tool" ]; then
     echo "pre-commit: node_modules/.bin/$tool is missing." >&2
     echo "pre-commit: run \`npm install\` at the repository root, and commit from" >&2
-    echo "pre-commit: somewhere \`node\` is on PATH -- a GUI git client often is not." >&2
+    echo "pre-commit: somewhere \`node\` is on PATH. A GUI git client often is not." >&2
     exit 1
   fi
 done
 
 if ! command -v node >/dev/null 2>&1; then
   echo "pre-commit: node is not on PATH, and the copy check runs on it." >&2
-  echo "pre-commit: commit from somewhere \`node\` is on PATH -- a GUI git client" >&2
+  echo "pre-commit: commit from somewhere \`node\` is on PATH. A GUI git client" >&2
   echo "pre-commit: often is not." >&2
   exit 1
 fi
