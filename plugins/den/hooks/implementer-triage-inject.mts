@@ -19,9 +19,7 @@ function reminder(pending: readonly Flag[]): string {
 
 	return [
 		`${pending.length} implementer agent(s) reported finishing${named ? ` (${named})` : ""}.`,
-		"Invoke `den:triage` and triage each report. A fixer inside a",
-		"`den:review-and-fix` run is not one of these: its declarations arrive",
-		"with the run's return.",
+		"Invoke `den:triage` and triage each report.",
 	].join(" ");
 }
 
