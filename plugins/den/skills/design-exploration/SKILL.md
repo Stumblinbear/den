@@ -16,7 +16,7 @@ judgment:
 ```
 Workflow({
   name: "den:design-exploration-workflow",
-  args: { ask, direction, decisions },
+  args: { ask, direction, decisions, explorer },
 })
 ```
 
@@ -24,7 +24,13 @@ Workflow({
 or the directory `den:direction-docs` keeps; the explorers and the judge read
 it themselves, so what scoping clarified reaches them only once it is in the
 record. `decisions` is an optional list, one settled decision with its reason
-per item, at most 400 characters each.
+per item, at most 400 characters each. `explorer` is required, the model the
+three explorers run on. It is `fable` only on the user's approval: propose
+Fable explorers, with the reason, when the design's correctness rests on a
+concurrency or memory invariant, a protocol or a lifetime across threads, and
+launch every other exploration on `opus`, since an exploration spends three
+runs of Fable's scarcer allowance. A model the user names wins. The judge runs
+on Opus either way.
 
 It returns every proposal with its angle and the judge's assessment. Give the
 user the recommendation, decisive tradeoffs and unresolved questions, and wait

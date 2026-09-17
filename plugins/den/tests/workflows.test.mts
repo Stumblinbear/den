@@ -14,7 +14,7 @@ const DECISIONS = [
 	"Existing configurations keep working, the user having said so.",
 ];
 
-const EXPLORE = { ask: "Add a host", direction: DIRECTION };
+const EXPLORE = { ask: "Add a host", direction: DIRECTION, explorer: "opus" };
 
 test("design context and uncertainty survive the explorer-to-judge handoff", async () => {
 	const questions = ["Must existing configurations survive a host migration?"];
@@ -68,6 +68,8 @@ test("the direction record and the decision list are checked before dispatch", a
 		[{ decisions: [" "] }, /decisions/],
 		[{ decisions: ["x".repeat(401)] }, /decisions/],
 		[{ basis: "Two hosts, independently maintained" }, /nothing else/],
+		[{ explorer: undefined }, /explorer/],
+		[{ explorer: "haiku" }, /explorer/],
 	];
 
 	for (const [override, message] of rejected) {
@@ -81,6 +83,27 @@ test("the direction record and the decision list are checked before dispatch", a
 			),
 			message,
 		);
+	}
+});
+
+test("the explorers run on the model the launch names and the judge on its own", async () => {
+	for (const explorer of ["fable", "opus"]) {
+		const models: (string | undefined)[] = [];
+		let judged: string | undefined = "unset";
+		await runWorkflow(
+			"design-exploration-workflow",
+			{ ...EXPLORE, explorer },
+			async (_prompt, options) => {
+				if (options.agentType === "den:design-explorer") {
+					models.push(options.model);
+					return proposal();
+				}
+				judged = options.model;
+				return noSuitableProposal();
+			},
+		);
+		assert.deepEqual(models, [explorer, explorer, explorer]);
+		assert.equal(judged, undefined);
 	}
 });
 

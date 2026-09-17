@@ -14,6 +14,7 @@ export const meta = {
 const ask = args && typeof args === 'object' && !Array.isArray(args) ? args.ask : undefined
 const decisions = args && typeof args === 'object' && !Array.isArray(args) ? args.decisions : undefined
 const direction = args && typeof args === 'object' && !Array.isArray(args) ? args.direction : undefined
+const explorer = args && typeof args === 'object' && !Array.isArray(args) ? args.explorer : undefined
 
 // Sized for one decision and its reason: every explorer's launch carries the
 // whole list.
@@ -31,8 +32,11 @@ if (decisions !== undefined && (!Array.isArray(decisions) || decisions.some((dec
 if (typeof direction !== 'string' || !/^([A-Za-z]:[\\/]|[\\/])/.test(direction)) {
   throw new Error('`direction` is the absolute path of the direction record, the file or the directory')
 }
-if (Object.keys(args).some((key) => !['ask', 'decisions', 'direction'].includes(key))) {
-  throw new Error('design-exploration-workflow takes `ask`, `decisions` and `direction` and nothing else')
+if (!['fable', 'opus'].includes(explorer)) {
+  throw new Error('`explorer` is the model the explorers run on, `fable` or `opus`')
+}
+if (Object.keys(args).some((key) => !['ask', 'decisions', 'direction', 'explorer'].includes(key))) {
+  throw new Error('design-exploration-workflow takes `ask`, `decisions`, `direction` and `explorer` and nothing else')
 }
 
 const DESIGN = {
@@ -139,6 +143,7 @@ const proposals = await parallel(
       label: `explore:${index}`,
       phase: 'Explore',
       agentType: 'den:design-explorer',
+      model: explorer,
       schema: DESIGN,
     }),
   ),

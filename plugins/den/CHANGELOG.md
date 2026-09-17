@@ -9,6 +9,12 @@ minor bump may change behavior.
 
 ### Changed
 
+- The `design-exploration-workflow` takes a required `explorer`, `opus` or
+  `fable`, the model its three explorers run on, the way the
+  `review-and-fix-workflow` takes `reviewer`. The judge stays on Opus. A
+  design whose correctness rests on an invariant a test cannot see had no way
+  to get Fable explorers, and a launch without the argument fails rather than
+  picking a model the lead never chose.
 - Every prose field in the `review-and-fix-workflow`'s schemas carries a
   `maxLength`: a finding's title 100 characters, its scenario 300, its
   evidence and repair 250; a fixer's `chose`, `over` and `what` 150, its
