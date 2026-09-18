@@ -50,9 +50,17 @@ symptom; concept count is the cause.
   refinement pushed to the boundary rather than repeated at every call site.
   The states a value passes through in time count as much as the combinations
   of its fields: a value exists only once what it needs has happened, so a
-  method fails on its arguments and never on the object's history. Input the
-  code does not act on is refused, since accepting it promises a meaning it
-  does not have, and a refusal of a legitimate input is a defect.
+  method fails on its arguments and never on the object's history.
+- **An operation does what its name says, or fails.** When a `create`, an
+  `add` or a `remove` cannot, because the thing already exists or is absent,
+  the caller gets an error. A success that quietly did something else, a
+  create that returns the existing one or a remove of nothing, guesses what
+  the caller meant and hides the caller's mistake, which then surfaces
+  further from its cause. Input the code does not act on is refused for the
+  same reason: accepting it promises a meaning it does not have, and a
+  refusal of a legitimate input is a defect. A caller that wants either
+  outcome picks an operation whose name says so (`get_or_insert`,
+  `ensure_dir`), and one that must tolerate retries says so in its contract.
 - **One fact, one home.** A fact is stated once, on the thing it is a
   property of, and every other site derives it or is handed it. A second
   copy is a check waiting to be written, and the check is the tell: a
@@ -111,6 +119,9 @@ have fewer methods, simpler parameters, and more hidden inside.
 - A method that errors or branches on what the value has been through rather
   than on what it was given: a field that is "not yet", a flag that records
   which constructor ran or which method has been called.
+- An operation that returns success without doing what its name says: a
+  create that finds the thing already there, an add of something already
+  held.
 
 ## Language-specific guidance
 

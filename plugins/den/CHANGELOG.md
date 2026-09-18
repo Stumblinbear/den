@@ -15,6 +15,11 @@ minor bump may change behavior.
 - Each effort level's description names the brief it is for, one that pins
   every decision, leaves routine choices open, or leaves a decision open, so a
   session without the lead skill has something to pick a level by.
+- Code architecture holds that an operation does what its name says or fails:
+  a create that finds the thing already there, or an add of something already
+  held, is an error the caller sees, not a quiet success. The rule that input
+  the code does not act on is refused moves into it, and the signals list
+  gains the success that did nothing.
 
 ## [0.7.0] - 2026-09-17
 
