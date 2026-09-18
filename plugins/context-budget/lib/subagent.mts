@@ -6,11 +6,12 @@
 // newest turn it took; the lifetime comes from the newest turn that wrote to
 // the cache, which is not always the same one: a request served entirely from
 // a warm cache writes nothing back and records no split.
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fieldsOf } from "./shared/fields.mts";
 import {
 	type CacheTtl,
+	conversationEntries,
 	DEFAULT_TTL,
 	ifPresent,
 	inputTokens,
@@ -22,6 +23,8 @@ import {
 } from "./transcript.mts";
 
 export interface Resumed {
+	/** The id its transcript and its launch records are written under. */
+	readonly id: string;
 	/** The agent type it was launched as, or "subagent" when none is recorded. */
 	readonly type: string;
 	/**
@@ -46,7 +49,13 @@ interface ResumeState {
 /** Null when this session has no such subagent, or none that has ever spoken. */
 export function resumedAgent(transcript: string, to: string): Resumed | null {
 	const dir = join(transcript.replace(/\.jsonl$/, ""), "subagents");
-	const state = resumeState(join(dir, `agent-${to}.jsonl`));
+	const id = agentId(transcript, dir, to);
+
+	if (id === null) {
+		return null;
+	}
+
+	const state = resumeState(join(dir, `agent-${id}.jsonl`));
 
 	if (state === null) {
 		return null;
@@ -61,7 +70,8 @@ export function resumedAgent(transcript: string, to: string): Resumed | null {
 	const idleMs = Date.now() - Date.parse(String(state.last["timestamp"]));
 
 	return {
-		type: agentType(dir, to),
+		id,
+		type: agentType(dir, id),
 		model: turnModel(state.last),
 		context: inputTokens(state.usage),
 		ttl,
@@ -94,18 +104,70 @@ function resumeState(file: string): ResumeState | null {
 	return null;
 }
 
-function agentType(dir: string, to: string): string {
-	let meta: Record<string, unknown>;
+/**
+ * The id of the agent a message to `to` reaches, and null where this session
+ * has none.
+ *
+ * Claude Code takes an id or a name in `to`, and where several agents carry one
+ * name the message reaches the one launched last.
+ */
+function agentId(transcript: string, dir: string, to: string): string | null {
+	if (existsSync(join(dir, `agent-${to}.jsonl`))) {
+		return to;
+	}
 
+	const named = (ifPresent(() => readdirSync(dir)) ?? [])
+		.map((file) => file.match(/^agent-(.+)\.meta\.json$/)?.[1])
+		.filter((id) => id !== undefined)
+		.filter((id) => metaOf(dir, id)["name"] === to);
+
+	return named.length <= 1
+		? (named[0] ?? null)
+		: lastStarted(transcript, named);
+}
+
+/**
+ * Which of `ids` the session launched or resumed last, by its own records, and
+ * null where no record names any of them or the session transcript is gone.
+ */
+function lastStarted(
+	transcript: string,
+	ids: readonly string[],
+): string | null {
+	return ifPresent(() => {
+		for (const entry of conversationEntries(transcript)) {
+			const record = fieldsOf(entry["toolUseResult"]);
+
+			for (const key of ["agentId", "resumedAgentId"]) {
+				const id = record[key];
+
+				if (typeof id === "string" && ids.includes(id)) {
+					return id;
+				}
+			}
+		}
+
+		return null;
+	});
+}
+
+/**
+ * The metadata Claude Code wrote beside an agent's transcript, and empty where
+ * there is no such file or it will not parse.
+ */
+function metaOf(dir: string, id: string): Record<string, unknown> {
 	try {
-		meta = fieldsOf(
-			JSON.parse(readFileSync(join(dir, `agent-${to}.meta.json`), "utf8")),
+		return fieldsOf(
+			JSON.parse(readFileSync(join(dir, `agent-${id}.meta.json`), "utf8")),
 		);
 	} catch {
-		// No meta file, or one that will not parse: the deny reason then says
-		// "subagent", which is true of everything it can be sent to.
-		return "subagent";
+		return {};
 	}
+}
+
+/** The agent type in the metadata file, and "subagent" where it names none. */
+function agentType(dir: string, id: string): string {
+	const meta = metaOf(dir, id);
 
 	for (const key of ["agentType", "agent_type", "subagentType"]) {
 		const value = meta[key];

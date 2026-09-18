@@ -65,7 +65,7 @@ async function decision(
 	// message or no message. Both limits price a restart. Asked after the
 	// limits, so every other message costs no walk of the session transcript,
 	// and before the approval, so such a message spends no answer.
-	if (running(transcript, to)) {
+	if (running(transcript, resumed.id)) {
 		return null;
 	}
 
@@ -122,16 +122,18 @@ function reasons(limits: GuardLimits, resumed: Resumed): readonly string[] {
  * as running. A session transcript gone from its path names no launch, and the
  * agent reads as stopped.
  */
-function running(transcript: string, to: string): boolean {
+function running(transcript: string, id: string): boolean {
 	return (
-		ifPresent(() => agentRunning(conversationEntries(transcript), to)) ?? false
+		ifPresent(() => agentRunning(conversationEntries(transcript), id)) ?? false
 	);
 }
 
 /**
- * The subagent the message is addressed to. Claude Code spells the target
- * `name [agent type]`; anything left that is not a bare name is not a
- * subagent of this session, and there is no transcript to read for it.
+ * The subagent the message is addressed to, by id or by name. Claude Code lets
+ * a target carry a ref, `name [ref]`, which tells two agents under one name
+ * apart. The ref keys nothing this guard reads, so it is taken off. Anything
+ * left that is not a bare name is not a subagent of this session, and there is
+ * no transcript to read for it.
  */
 function agentName(toolInput: unknown): string | null {
 	const to = String(fieldsOf(toolInput)["to"] ?? "")

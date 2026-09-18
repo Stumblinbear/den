@@ -87,15 +87,22 @@ transcript under `subagents/`: its newest assistant turn for the context size
 and when it last ran, and the newest turn that wrote to the prompt cache for
 which lifetime that cache is on. A turn served entirely from the cache writes
 nothing and records no lifetime, so reading only the newest turn would make
-every such subagent look cold five minutes after it stopped. The resume is
-refused when the context is above `large`, or above `cold` with that cache
-lifetime already elapsed, and the refusal tells the agent to put the numbers
-to the user through AskUserQuestion with an option labeled "Resume". The retry
-is allowed only when the user's newest answer in the session transcript picked
-that option: the guard reads the answer itself, so nothing the agent claims
-can stand in for it. One answer approves one resume, whose uuid is then in the
-session record above; a second retry on the same answer is refused with the
-`used` message.
+every such subagent look cold five minutes after it stopped. The subagent is
+the one `to` names, by id or by name, and of several agents under one name it
+is the one started last, where Claude Code has been seen to deliver; that is
+observed behavior and no documented rule. A message to an agent still running
+in the background is allowed at any size: it restarts nothing, and the agent's
+next turn re-reads its context with or without it. The guard reads that from
+the session transcript, through compactions, where the newest record naming the
+agent is a launch or a resume (running) or a task notification or a `TaskStop`
+(stopped). The resume is refused when the context is above `large`, or above
+`cold` with that cache lifetime already elapsed, and the refusal tells the
+agent to put the numbers to the user through AskUserQuestion with an option
+labeled "Resume". The retry is allowed only when the user's newest answer in
+the session transcript picked that option: the guard reads the answer itself,
+so nothing the agent claims can stand in for it. One answer approves one
+resume, whose uuid is then in the session record above; a second retry on the
+same answer is refused with the `used` message.
 
 Which `large` and `cold` those are is settled per resume, from rows under the
 guard's own section:

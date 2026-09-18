@@ -9,6 +9,14 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Fixed
 
+- The resume guard applies to a message that names the agent by its name.
+  Claude Code takes a name in `to` as readily as an id, and a skill forked into
+  the background is usually messaged by name, but the guard looked for a
+  transcript called after whatever `to` said, found none, and allowed the
+  resume unmeasured. It now looks the name up in the metadata files beside the
+  transcripts, and where several agents carry one name it measures the one the
+  session started last, which is where Claude Code has been seen to deliver.
+
 - The resume guard allows a message to an agent still running in the
   background, whatever its context and however long since its last turn. The
   guard prices a restart, and such a message restarts nothing: the agent takes

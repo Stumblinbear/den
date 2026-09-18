@@ -92,18 +92,21 @@ turn after the cache goes cold. Nothing else here leaves your machine.
 What is read: every hook reads your configuration file in the data directory, on
 every run. The notice hook reads the last 512 KB of the session transcript,
 after every tool call and every prompt. The guard reads, on every message to a
-subagent, that subagent's whole transcript and its metadata file. Only when
-that subagent is past one of the limits does it read the session transcript:
-backward to the newest entry that names the agent, for whether it is still
-running, and then, for one that has stopped, the whole of it, for your latest
-answer. The watcher reads the same 512 KB tail at the end of a turn and,
-past the first threshold, the transcript backward to the last compaction, for
-the turn that has just ended and a count of your prompts behind it; only when it
-is about to ask the judge does it read the last sixteen turns. The wake reads
-the transcript backward to the last compaction at the end of every turn in the
-main session, for the background work still running and the newest turn's time
-and cache lifetime, and reads it again at every check while it waits out an idle
-stretch. Nothing here reads your source.
+subagent, that subagent's whole transcript and its metadata file. For a message
+that names the agent by name it reads the metadata file of every subagent of
+the session, and where several carry that name, the session transcript backward
+to the newest record of one of them. Only when that subagent is past one of the
+limits does it read the session transcript again: backward to the newest entry
+that names the agent, for whether it is still running, and then, for one that
+has stopped, the whole of it, for your latest answer. The watcher reads the
+same 512 KB tail at the end of a turn and, past the first threshold, the
+transcript backward to the last compaction, for the turn that has just ended
+and a count of your prompts behind it; only when it is about to ask the judge
+does it read the last sixteen turns. The wake reads the transcript backward to
+the last compaction at the end of every turn in the main session, for the
+background work still running and the newest turn's time and cache lifetime,
+and reads it again at every check while it waits out an idle stretch. Nothing
+here reads your source.
 
 What is written: one JSON file per session under `claude-context-budget/` in the
 OS temp directory, holding the level this session has been told about, the
@@ -306,23 +309,27 @@ plugin. All the plugin does is try to get a recommendation made first.
 
 The resume guard only applies to a subagent of the current session that has
 already spoken, found by its transcript under the session transcript's
-`subagents/` directory. A message to an agent still running in the background
-passes whatever its size. It restarts nothing: the agent takes the message on
-its next turn, and that turn re-reads the context, cold cache included, with or
-without a message waiting. Running is what it is to the wake below, a launch or
-a resume with neither a task notification nor a stop of that task after it,
+`subagents/` directory. A message may name the agent by its id or by its name.
+A name is looked up in the metadata files there, and where several agents carry
+one name, a skill forked twice for instance, the guard measures the one the
+session transcript shows was started last, which is where Claude Code has been
+seen to deliver. A message to an agent still running in the background passes
+whatever its size. It restarts nothing: the agent takes the message on its next
+turn, and that turn re-reads the context, cold cache included, with or without
+a message waiting. Running is what it is to the wake below, a launch or a
+resume with neither a task notification nor a stop of that task after it,
 except that the guard reads past compactions, which end no agent. The limits it
 holds a resume to come from the resume itself: the first
 `[resume-guard.agents]` row matching the agent's type, then the first
 `[resume-guard.models]` row matching the model its newest turn names, then the
 `[resume-guard]` numbers. A subagent whose newest turn names no model skips the
 model rows whole rather than falling into a key like `'.*'` written there. A
-denied resume is approved by your answer and nothing else: the guard
-reads the session transcript for your newest AskUserQuestion answer and allows
-the retry only when the option you picked was labeled "Resume". One answer approves one resume; a second attempt on the same answer
-is denied with the `used` message. A `denied` message rewritten to stop asking
-for a "Resume" option breaks the retry, since that label is what the guard
-looks for.
+denied resume is approved by your answer and nothing else: the guard reads the
+session transcript for your newest AskUserQuestion answer and allows the retry
+only when the option you picked was labeled "Resume". One answer approves one
+resume; a second attempt on the same answer is denied with the `used` message.
+A `denied` message rewritten to stop asking for a "Resume" option breaks the
+retry, since that label is what the guard looks for.
 
 The wake runs in the main session only, never in a subagent, and only while
 background work is pending. Pending work is a launch the transcript carries

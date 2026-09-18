@@ -5,7 +5,8 @@
 // case asserts on is the wording that case wrote.
 //
 // Which limits a resume is measured against is `resume-guard-rows.test.mts`,
-// and the user's answer to a refusal, with how it is spent, is
+// which agent a message reaches is `resume-guard-target.test.mts`, and the
+// user's answer to a refusal, with how it is spent, is
 // `resume-approval.test.mts`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
