@@ -23,6 +23,10 @@ minor bump may change behavior.
 - The closure verifier in `review-and-fix` runs on the model the run was
   launched with, the `reviewer` argument, instead of always on Opus, so a
   Fable review's findings are judged closed by Fable.
+- `design-exploration` runs only when the user asks for it, since it is
+  expensive: it no longer triggers on a change that adds a module, a stored
+  format, a public surface or a new mechanism, and the brief puts that
+  decomposition to the user instead.
 
 ## [0.7.0] - 2026-09-17
 

@@ -24,8 +24,8 @@ agent that reads the record itself reads the direction as it stands; a
 restatement drifts from the day it is written.
 
 A change that adds a module, a stored format, a public surface or a new
-mechanism has its decomposition chosen before the brief by
-`den:design-exploration`, and the brief pins the user's choice. The rest of
+mechanism has its decomposition put to the user before the brief, since the
+surface is theirs to choose, and the brief pins their choice. The rest of
 placement, interface depth, type shape and naming belongs to the implementer,
 unless one of them is itself a requirement, and the brief says which.
 

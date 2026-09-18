@@ -37,12 +37,11 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   consequential choices: up to five questions, or as many as it takes when
   you ask for the pass. That limit applies only to task scoping; project
   discovery is unbounded. Unanswered decisions remain open.
-- `design-exploration`: runs the `design-exploration-workflow` workflow
-  before a brief is written for a change that adds a module, a persisted
-  format, a public surface or a new mechanism: three explorers propose
-  decompositions against the code and the project's direction record. A judge
-  compares suitable proposals, or reports missing input or no suitable
-  proposal, and you choose. The script ships under `workflows/`.
+- `design-exploration`: for a change whose shape you want options on before
+  choosing, such as a new module, a persisted format, a public surface or a
+  new mechanism. Three explorers each propose a decomposition against the code
+  and the project's direction record, a judge compares the suitable ones or
+  reports missing input or that none suits, and you choose.
 - `review-and-fix`: runs the `review-and-fix-workflow` workflow on the working
   tree in one pass: a review against the task's goal, one Opus fixer over every
   finding at P2 and above, a closure pass that gives a reopened finding one

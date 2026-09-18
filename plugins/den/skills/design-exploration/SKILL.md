@@ -1,8 +1,7 @@
 ---
 name: design-exploration
 description: Launches three independent design explorers against the project's direction record, then a judge assessing suitability, and brings the recommendation or unresolved decisions to the user.
-when_to_use: ALWAYS invoke this skill when a change adds a module, a stored format, a public surface or a new mechanism and its brief is not yet written. Do not choose the decomposition or write the brief directly; use this skill first.
-user-invocable: false
+disable-model-invocation: true
 allowed-tools: Workflow
 ---
 
