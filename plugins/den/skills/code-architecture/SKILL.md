@@ -144,10 +144,10 @@ directly.
   (`Duration`/`Path`/`SocketAddr` over primitives, newtyping identifiers and units
   like `UserId(Uuid)`/`Meters(f64)`, why a type alias isn't a semantic type, and
   ergonomics via `derive_more`/`nutype`/`serde(transparent)`).
-- **Error architecture:** `references/rust-errors.md` (domain errors vs
-  erased reports, `thiserror`-vs-`anyhow` as a boundary rule, composable enums
-  with `#[from]`/`#[source]`/`#[non_exhaustive]`, preserving `source()`, and
-  `Result`-vs-`panic` calibration).
+- **Error architecture:** `references/rust-errors.md` (typed errors
+  everywhere, `main` included; what earns a variant; `#[from]`/`#[source]` and
+  the `source()` chain; context as a field; and `Result`-vs-`panic`
+  calibration).
 - **API boundary & ownership design:** `references/rust-api-boundaries.md`
   (borrow at boundaries and own deliberately, `&str`/`&[T]` over `&String`/`&Vec`,
   `AsRef`/`Into`/`impl Trait`, fixing signatures instead of cloning, and reaching

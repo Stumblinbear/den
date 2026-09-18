@@ -27,6 +27,11 @@ minor bump may change behavior.
   expensive: it no longer triggers on a change that adds a module, a stored
   format, a public surface or a new mechanism, and the brief puts that
   decomposition to the user instead.
+- The Rust errors reference holds that every error is a typed enum, `main`
+  included, with no boundary where erasing to `anyhow` or `Box<dyn Error>`
+  pays. A variant earns its place by changing what the caller does, or at a
+  leaf by stating a different fact; context is a field of the variant rather
+  than a string attached as it propagates.
 
 ## [0.7.0] - 2026-09-17
 

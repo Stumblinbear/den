@@ -1,55 +1,44 @@
 # Rust: error architecture
 
-Separate **domain errors** from **error reports**:
-
-- **Domain errors** preserve machine-readable failure semantics for a caller
-  that will branch on them and recover. Typically a typed enum (often via
-  `thiserror`).
-- **Error reports** collect heterogeneous errors plus human-oriented context
-  once structured recovery is no longer needed, at the terminal/reporting
-  boundary. Typically an erased `anyhow::Error` / `eyre::Report`.
-
-"`thiserror` for libraries, `anyhow` for applications" is the canonical
-ecosystem shorthand, and it's right, but it's a **boundary rule, not a
-crate-target rule**. Don't force a typed enum on code just because it lives in
-`lib.rs`, and do use typed errors *inside* an application wherever business logic
-branches on failure. The real test: does a caller need a documented, stable set
-of recoverable cases? Then give it a typed error; a public `anyhow::Error` forces
-that caller to downcast through an open-ended erased set instead of matching a
-contract. (Real production is nuanced: `reqwest` exposes an *opaque* typed error
-with classifiers like `is_timeout`; `ripgrep` uses `anyhow` at the top yet still
-walks and downcasts the chain to catch broken pipes.)
+Every error is a typed enum, from the innermost function to `main`, typically
+derived with `thiserror`. A caller can match what failed, a test can assert the
+variant and the value it carries, and a log or a UI line shows it through
+`Display` as well as an erased report would. `anyhow::Error`,
+`Box<dyn Error>` and `String` give all of that up for a `?` that takes
+anything, and no boundary makes that trade pay: an error is always matched,
+tested or shown, and a typed one serves all three. `#[from]` keeps `?` as
+cheap as the erased version.
 
 ## Contents
 
 - Signals to watch for
-- 1. Domain errors at recovery boundaries; reports at reporting boundaries
-- 2. Semantic, composable error types
-- 3. `std::error::Error` and deliberate erasure
-- 4. Context without destroying the cause
+- 1. Typed errors at every boundary
+- 2. What earns a variant
+- 3. `std::error::Error` and the source chain
+- 4. Context is a field, not a string
 - 5. Recoverable obstruction vs violated invariant
 - Calibration
 - Sources
 
 ## Signals to watch for
 
-- **`anyhow::Error` / `anyhow::Result` in a library's public signature** that
-  callers must branch on. Erased error at a recovery boundary: give it a typed
-  enum.
-- **`Result<T, String>` / `Err("...".to_string())`.** Stringly-typed errors:
-  undistinguishable, unmatched, source lost.
+- **An erased or string error type anywhere:** `anyhow::Error`,
+  `anyhow::Result`, `Box<dyn Error>`, `Result<T, String>`,
+  `Err("...".to_string())`. The failure cannot be matched, a test can only
+  compare its text, and its source is gone.
 - **`.map_err(|e| e.to_string())` chains.** Throwing away the type and the
   `source()` cause.
 - **`.unwrap()` / `.expect()` on filesystem, network, or user input.** Those are
   expected runtime failures, not invariant violations: return a `Result`.
-- **One giant app-wide enum enumerating every dependency's error.** That's a
-  report wearing an enum; erase it instead.
+- **One giant enum enumerating every dependency's error.** Split it by
+  operation: each operation's enum wraps only what that operation can fail on.
+- **A test comparing an error's text.** It pins wording nobody promised; it
+  matches the variant and the value it carries instead.
 
-## 1. Domain errors at recovery boundaries; reports at reporting boundaries
+## 1. Typed errors at every boundary
 
-Prevents both failure modes: type-erased public APIs that hide the cases callers
-must recover from, *and* giant enums that mechanically enumerate every
-dependency failure.
+Prevents type-erased APIs that hide what failed from the caller that must act
+on it, and tests that can only compare strings.
 
 ```rust
 pub fn load(path: &Path) -> anyhow::Result<Config> {             // before
@@ -58,90 +47,73 @@ pub fn load(path: &Path) -> anyhow::Result<Config> {             // before
 pub fn load(path: &Path) -> Result<Config, LoadError> {          // after
     Ok(parse(fs::read_to_string(path)?)?)
 }
-// main / glue may convert LoadError into anyhow::Error at the top.
 ```
 
-Type erasure is reasonable *after* the last meaningful recovery boundary
-(including inside a library whose failures are only logged). It's the wrong
-default *before* one.
+This holds in an application as much as a library, and in `main`: an error
+that is only logged is still read, and a typed one reads as well as an erased
+one while keeping its structure for whoever matches it next.
 
-## 2. Semantic, composable error types
+## 2. What earns a variant
 
-Prevents collapsing distinguishable failures into strings, losing their sources,
-repetitive `map_err`, and making every new public variant a breaking change.
+A variant earns its place in one of two ways:
+
+- **It changes what the caller does.** An error that gathers several
+  operations' failures is split by consequence, not by the operation that
+  failed: a load error has an `Unusable` variant because the caller offers to
+  remake an unusable save and nothing else, not one variant per step of the
+  load. Each variant wraps its cause as the source, usually through
+  `#[from]`.
+- **At a leaf, it states a different fact.** Where an operation refuses for
+  reasons no caller tells apart, a header that ends early and one with a tag
+  nobody knows, each reason is still its own variant with the refused value as
+  a field, since the alternative is a string saying which.
 
 ```rust
-fn load() -> Result<Data, String> {                              // before
-    let s = fs::read_to_string("data").map_err(|e| e.to_string())?;
-    parse(&s).map_err(|_| "parse failed".to_string())
-}
-
-#[derive(Debug, thiserror::Error)]                               // after
-#[non_exhaustive]
-pub enum LoadError {
-    #[error("read failed")]  Read(#[from] io::Error),
-    #[error("invalid data")] Parse(#[source] ParseError),
+#[derive(Debug, thiserror::Error)]
+pub enum HeaderError {
+    #[error("the header ends after {0} bytes")]
+    Truncated(usize),
+    #[error("unknown tag {0:#04x}")]
+    UnknownTag(u8),
 }
 ```
 
-- `#[from]` generates `From` (so `?` converts automatically) and implies
-  `#[source]`; a `#[from]` variant can't carry unrelated fields.
-- `Error::source()` retains the lower-level cause across an abstraction
-  boundary, and the outer `Display` should *not* duplicate a message already in
-  the chain.
-- `#[non_exhaustive]` forces downstream wildcard arms so you can add variants
-  later without breaking callers.
+Use `#[from]` only where the conversion keeps the meaning; construct the
+variant explicitly when the operation adds a field. Leave `#[non_exhaustive]`
+off where every caller is in the same workspace, since an exhaustive match
+then costs nothing and tells the caller when a case is added.
 
-Variants should be *semantically distinguishable* failures, not one per
-dependency type. Use `#[from]` only where automatic conversion preserves the
-intended meaning; construct explicitly when operation-specific fields or context
-matter. Skip `#[non_exhaustive]` when exhaustive matching is a deliberate promise
-(closed protocols), and on private errors that don't need evolution protection.
+## 3. `std::error::Error` and the source chain
 
-## 3. `std::error::Error` and deliberate erasure
+Error types implement `Error`, normally also `Send + Sync + 'static`, so they
+compose and a caller can walk `source()` (C-GOOD-ERR). A wrapping variant
+keeps its cause as `#[source]` or `#[from]`, and its `Display` states only its
+own clause: the cause's message is already in the chain, and repeating it
+prints the fact twice.
 
-Prevents both an unstructured "anything failed" API where matching matters, and a
-large enum built solely to funnel unrelated errors into a reporter.
+## 4. Context is a field, not a string
 
-```rust
-enum ToolError { Io(io::Error), Parse(ParseError), Plugin(PluginError) } // before
-fn run_tool() -> Result<(), Box<dyn Error + Send + Sync>> {              // after
-    load_plugin()?; execute()?; Ok(())
-}
-```
-
-Public error types should implement `Error`, normally also `Send + Sync` and
-often `'static`, so trait objects and downcasting work (C-GOOD-ERR).
-`Box<dyn Error>` accepts heterogeneous concretes and forms a `source()` cause
-chain. Don't erase when callers need documented recovery or a concrete type
-suffices; prefer `anyhow`/`eyre` over raw boxing when you actually want
-contextual reports. (The project-group guidance notes boxing a concrete error is
-also the fix for a large stack-size error variant: that's a size concern, not
-erasure for reporting.)
-
-## 4. Context without destroying the cause
-
-Prevents bare "file not found" with no operation/path, and
-`map_err(|e| e.to_string())` chains that swallow type and source.
+Prevents a bare "file not found" with no path, and context strings that a test
+can only compare as text.
 
 ```rust
 let text = fs::read_to_string(path)                              // before
     .map_err(|e| anyhow!("config failed: {e}"))?;
 let text = fs::read_to_string(path)                              // after
-    .with_context(|| format!("reading config {}", path.display()))?;
+    .map_err(|source| ConfigError::Read { path: path.to_owned(), source })?;
 ```
 
-`anyhow::Context` wraps (not replaces) the original, prints outer context before
-causes, and preserves downcasting to both. Don't attach context at *every*
-propagation step or repeat what's already there. And don't use errors for
-control flow: `Option` models absence, `Result` models a problem the caller must
-address; `ControlFlow` handles neutral early exit without dressing success as
-`Err`.
+The path, key or value that gives a failure its meaning is a field of the
+variant, and its `Display` names it once. Don't add a layer at every
+propagation step: a layer exists where the caller's action or the fact
+changes. And don't use errors for control flow: `Option` models absence,
+`Result` models a problem the caller must address, and `ControlFlow` handles
+a neutral early exit.
 
 ## 5. Recoverable obstruction vs violated invariant
 
-Prevents crashing on expected environmental/input failures, and hiding
-programmer bugs behind routinely-ignored recoverable errors.
+Prevents crashing on expected environmental or input failures, and hiding
+programmer bugs behind routinely ignored errors.
 
 ```rust
 fn read(path: &Path) -> String { fs::read_to_string(path).unwrap() }  // before
@@ -159,21 +131,15 @@ context-dependent API judgment.
 
 ## Calibration
 
-- **Foundational (close to unconditional):** implement meaningful public errors
-  and preserve `source()`; the recoverable-vs-unrecoverable distinction; keep
-  `Result`'s `#[must_use]` handling; never stringly-typed errors.
-- **Situational:** where the recovery/reporting boundary sits; enum shape,
-  `#[from]`, `#[non_exhaustive]`; `Box<dyn Error>` vs a typed enum; how much
-  human context to attach and where.
+- **Foundational (close to unconditional):** typed errors everywhere, `main`
+  included; meaningful `Display` and a preserved `source()`; the
+  recoverable-vs-unrecoverable distinction; `Result`'s `#[must_use]` handling.
+- **Situational:** where a gathering error draws its variants; where `#[from]`
+  keeps the meaning; how much a variant carries.
 
 ## Sources
 
-- Rust Error Handling Project Group, errors vs reports (RFC 2965):
-  https://rust-lang.github.io/rfcs/2965-project-error-handling.html
-- `thiserror` (typed errors for library-like code):
-  https://docs.rs/crate/thiserror/latest
-- `anyhow` and `anyhow::Context` (erased reports for application-like code):
-  https://docs.rs/anyhow/latest/anyhow/
+- `thiserror`: https://docs.rs/crate/thiserror/latest
 - `std::error::Error` (`source()` chain, downcasting):
   https://doc.rust-lang.org/std/error/trait.Error.html
 - Rust API Guidelines, C-GOOD-ERR (public errors implement `Error + Send + Sync`):
@@ -184,5 +150,3 @@ context-dependent API judgment.
   https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html
 - `std::result` (`Result` is `#[must_use]`):
   https://doc.rust-lang.org/std/result/
-- reqwest error API (opaque typed error with classifiers):
-  https://docs.rs/reqwest/latest/reqwest/struct.Error.html
