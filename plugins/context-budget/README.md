@@ -23,7 +23,7 @@ auto-compact choose one for you.
 - A resume guard. Before a message is sent to a subagent, a hook denies
   resuming one whose context is large, or whose prompt cache has expired, and
   tells the agent to put the numbers to you first. A fresh launch is never
-  blocked.
+  blocked, and neither is a message to an agent still running.
 - A cache wake. A session idle on background work stops reading its prompt
   cache, and once the lifetime runs out the next turn rewrites the whole
   context at full price. Shortly before that expiry, a hook left running from
@@ -92,9 +92,11 @@ turn after the cache goes cold. Nothing else here leaves your machine.
 What is read: every hook reads your configuration file in the data directory, on
 every run. The notice hook reads the last 512 KB of the session transcript,
 after every tool call and every prompt. The guard reads, on every message to a
-subagent, that subagent's whole transcript and its metadata file, and, only when
-the resume is past one of the limits, the whole session transcript, for your
-latest answer. The watcher reads the same 512 KB tail at the end of a turn and,
+subagent, that subagent's whole transcript and its metadata file. Only when
+that subagent is past one of the limits does it read the session transcript:
+backward to the newest entry that names the agent, for whether it is still
+running, and then, for one that has stopped, the whole of it, for your latest
+answer. The watcher reads the same 512 KB tail at the end of a turn and,
 past the first threshold, the transcript backward to the last compaction, for
 the turn that has just ended and a count of your prompts behind it; only when it
 is about to ask the judge does it read the last sixteen turns. The wake reads
@@ -304,12 +306,18 @@ plugin. All the plugin does is try to get a recommendation made first.
 
 The resume guard only applies to a subagent of the current session that has
 already spoken, found by its transcript under the session transcript's
-`subagents/` directory. The limits it holds that resume to come from the resume
-itself: the first `[resume-guard.agents]` row matching the agent's type, then
-the first `[resume-guard.models]` row matching the model its newest turn names,
-then the `[resume-guard]` numbers. A subagent whose newest turn names no model
-skips the model rows whole rather than falling into a key like `'.*'` written
-there. A denied resume is approved by your answer and nothing else: the guard
+`subagents/` directory. A message to an agent still running in the background
+passes whatever its size. It restarts nothing: the agent takes the message on
+its next turn, and that turn re-reads the context, cold cache included, with or
+without a message waiting. Running is what it is to the wake below, a launch or
+a resume with neither a task notification nor a stop of that task after it,
+except that the guard reads past compactions, which end no agent. The limits it
+holds a resume to come from the resume itself: the first
+`[resume-guard.agents]` row matching the agent's type, then the first
+`[resume-guard.models]` row matching the model its newest turn names, then the
+`[resume-guard]` numbers. A subagent whose newest turn names no model skips the
+model rows whole rather than falling into a key like `'.*'` written there. A
+denied resume is approved by your answer and nothing else: the guard
 reads the session transcript for your newest AskUserQuestion answer and allows
 the retry only when the option you picked was labeled "Resume". One answer approves one resume; a second attempt on the same answer
 is denied with the `used` message. A `denied` message rewritten to stop asking

@@ -6,6 +6,7 @@
 // leaving Claude to put the choice to the user before it retries.
 import process from "node:process";
 import { consume, resumeApproval } from "../lib/approval.mts";
+import { agentRunning } from "../lib/background.mts";
 import { fill, formatTokens } from "../lib/messages.mts";
 import { GUARD_FAULTS } from "../lib/plugin.mts";
 import {
@@ -16,6 +17,7 @@ import {
 import { type Done, runEntry } from "../lib/shared/entry.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
 import { type Resumed, resumedAgent } from "../lib/subagent.mts";
+import { conversationEntries, ifPresent } from "../lib/transcript.mts";
 
 const args = process.argv.slice(2);
 
@@ -55,6 +57,15 @@ async function decision(
 	const why = reasons(limits, resumed);
 
 	if (why.length === 0) {
+		return null;
+	}
+
+	// A message to an agent still running resumes nothing: it waits for the
+	// agent's next turn, and that turn re-reads the context, cold cache and all,
+	// message or no message. Both limits price a restart. Asked after the
+	// limits, so every other message costs no walk of the session transcript,
+	// and before the approval, so such a message spends no answer.
+	if (running(transcript, to)) {
 		return null;
 	}
 
@@ -102,6 +113,19 @@ function reasons(limits: GuardLimits, resumed: Resumed): readonly string[] {
 	}
 
 	return why;
+}
+
+/**
+ * Whether the message reaches an agent still running in the background.
+ *
+ * A compaction of the session ends no agent, so a launch above one still reads
+ * as running. A session transcript gone from its path names no launch, and the
+ * agent reads as stopped.
+ */
+function running(transcript: string, to: string): boolean {
+	return (
+		ifPresent(() => agentRunning(conversationEntries(transcript), to)) ?? false
+	);
 }
 
 /**

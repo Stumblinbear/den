@@ -4,10 +4,10 @@
 //
 // `pending` answers that for a run of transcript entries, and `pendingReader`
 // is the same walk one entry at a time, for a caller already reading the
-// transcript for something else. Both ends of a piece of work are read off the
-// transcript: the record Claude Code keeps beside the tool result of whatever
-// sent it away names the task, and `taskNotification` reads the message that
-// says it is done.
+// transcript for something else. `agentRunning` answers it for one agent.
+// Both ends of a piece of work are read off the transcript: the record Claude
+// Code keeps beside the tool result of whatever sent it away names the task,
+// and `taskNotification` reads the message that says it is done.
 //
 // The records and the carriers are the ones Claude Code 2.1.269 writes and
 // not a documented interface, so a release can change them under this file.
@@ -87,6 +87,33 @@ export function pending(
 	}
 
 	return reader.read();
+}
+
+/**
+ * Whether the agent `id` names is still running in the background, read from
+ * `entries` given newest first.
+ *
+ * The newest entry naming that agent decides: a launch or a resume leaves it
+ * running, a notification or a stop has ended it. An agent no entry names
+ * never went to the background, and reads as stopped.
+ */
+export function agentRunning(
+	entries: Iterable<Record<string, unknown>>,
+	id: string,
+): boolean {
+	for (const entry of entries) {
+		if ((taskNotification(entry) ?? stoppedTask(entry)) === id) {
+			return false;
+		}
+
+		const launch = launchIn(entry);
+
+		if (launch !== null && launch.kind === "agent" && launch.id === id) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**

@@ -9,7 +9,8 @@ import assert from "node:assert/strict";
 import process from "node:process";
 import { test } from "node:test";
 import { type Runtime, runtimes } from "../../../tests/harness.mts";
-import { assistant } from "./fixtures.mts";
+import { agentLaunch, taskNotification } from "./background-fixtures.mts";
+import { assistant, at } from "./fixtures.mts";
 import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
 import {
 	configFile,
@@ -82,6 +83,29 @@ for (const runtime of runtimes()) {
 			);
 		},
 	);
+
+	// The guard asks whether the agent is running before it looks for an answer,
+	// so the answer is still there for the resume that follows the steering.
+	test(name("a message to an agent still running spends no answer"), () => {
+		const uuid = answerId(runtime);
+		const session = sessionId(runtime);
+		const launched = [PROMPT, agentLaunch("big", at(30))];
+		const sent = (lines: readonly string[]) =>
+			decided(
+				run(session, subagentSession("big", [assistant(162_300)], lines)),
+			);
+
+		assert.equal(
+			sent([...launched, answer(uuid)]),
+			null,
+			"running, so allowed whatever the answer",
+		);
+		assert.equal(
+			sent([...launched, taskNotification("big", at(5)), answer(uuid)]),
+			null,
+			"finished, so a resume, and the answer is still there to approve it",
+		);
+	});
 
 	// Both hooks keep one record per session, so what one of them writes must
 	// not undo what the other did. The fall back to nothing is the sharp case:

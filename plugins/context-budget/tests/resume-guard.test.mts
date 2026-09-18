@@ -10,7 +10,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
-import { apiError, assistant } from "./fixtures.mts";
+import { agentLaunch, taskNotification } from "./background-fixtures.mts";
+import {
+	apiError,
+	assistant,
+	at,
+	COMPACT_SUMMARY,
+	compactBoundary,
+} from "./fixtures.mts";
 import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
 import {
 	BROKEN,
@@ -189,6 +196,41 @@ for (const runtime of runtimes()) {
 			);
 		},
 	);
+
+	// `hurried` is past both limits: 162.3K against `large`, and ten minutes
+	// into a 5m cache against `cold`. The second session puts its launch above a
+	// compaction, which ends no agent, and the refusal at the end adds the
+	// notification that makes the next message a resume.
+	test(name("a message to an agent still running is left alone"), () => {
+		const turns = [assistant(162_300, { minutesAgo: 10, ttl: "5m" })];
+		const launched = [PROMPT, agentLaunch("hurried", at(30))];
+
+		for (const session of [
+			launched,
+			[...launched, compactBoundary(), COMPACT_SUMMARY, PROMPT],
+		]) {
+			assert.equal(
+				decided(
+					run(sid(), subagentSession("hurried", turns, session), "hurried"),
+				),
+				null,
+			);
+		}
+
+		assert.match(
+			reason(
+				run(
+					sid(),
+					subagentSession("hurried", turns, [
+						...launched,
+						taskNotification("hurried", at(9)),
+					]),
+					"hurried",
+				),
+			),
+			/^DENIED hurried: context 162\.3K tokens is above the 150K resume limit/,
+		);
+	});
 
 	// A subagent whose newest entry is a failed request has a usage with every
 	// field zero, which measures its context at nothing and lets any resume

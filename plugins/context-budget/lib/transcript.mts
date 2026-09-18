@@ -2,9 +2,9 @@
 // turn's context was (`inputTokens`, `turnUsage`, `turnModel`), which cache
 // lifetime it was written under (`lifetimeOf`, `lifetimeIn`), where the context
 // was replaced by a summary (`isCompaction`), and what an entry says
-// (`textIn`, `withoutReminders`, `toolUses`). `contextEntries`, `newestFirst`
-// and `entryIn` read the entries out, and `ifPresent` answers for a transcript
-// gone from its path.
+// (`textIn`, `withoutReminders`, `toolUses`). `conversationEntries`,
+// `contextEntries`, `newestFirst` and `entryIn` read the entries out, and
+// `ifPresent` answers for a transcript gone from its path.
 //
 // A line may be half-written while Claude Code appends to the file, so every
 // entry and every field is narrowed on the way out rather than trusted.
@@ -216,22 +216,35 @@ export function toolUses(entry: Record<string, unknown>): readonly ToolUse[] {
 }
 
 /**
+ * The main conversation's entries at `path`, newest first, to the top of the
+ * file: a subagent shares the transcript, so its entries are left out, and a
+ * compaction is an entry like any other. For a reader of something a
+ * compaction does not end, such as a subagent still running.
+ *
+ * Raises whatever opening the file raised, as `linesBackward` does.
+ */
+export function* conversationEntries(
+	path: string,
+): Generator<Record<string, unknown>> {
+	for (const line of linesBackward(path)) {
+		const entry = entryIn(line);
+
+		if (entry !== null && !entry["isSidechain"]) {
+			yield entry;
+		}
+	}
+}
+
+/**
  * The main conversation's entries still in the context at `path`, newest
- * first: a subagent shares the transcript, so its entries are left out, as is
- * everything above the newest compaction.
+ * first: `conversationEntries` down to the newest compaction.
  *
  * Raises whatever opening the file raised, as `linesBackward` does.
  */
 export function* contextEntries(
 	path: string,
 ): Generator<Record<string, unknown>> {
-	for (const line of linesBackward(path)) {
-		const entry = entryIn(line);
-
-		if (entry === null || entry["isSidechain"]) {
-			continue;
-		}
-
+	for (const entry of conversationEntries(path)) {
 		if (isCompaction(entry)) {
 			return;
 		}

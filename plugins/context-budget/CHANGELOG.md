@@ -7,6 +7,17 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Fixed
+
+- The resume guard allows a message to an agent still running in the
+  background, whatever its context and however long since its last turn. The
+  guard prices a restart, and such a message restarts nothing: the agent takes
+  it on its next turn, which re-reads the context with or without it. A guard
+  that refused it blocked steering a long agent and, once you answered
+  "Resume", spent that answer on a message that resumed nothing. An agent is
+  running while its launch or resume carries neither a task notification nor a
+  stop after it, read through compactions, which end no agent.
+
 ## [0.6.0] - 2026-09-17
 
 ### Added

@@ -5,7 +5,7 @@
 // `wake.test.mts`, under the reading built on it.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { pending, taskNotification } from "../lib/background.mts";
+import { agentRunning, pending, taskNotification } from "../lib/background.mts";
 import { entryIn } from "../lib/transcript.mts";
 import {
 	agentLaunch,
@@ -76,6 +76,38 @@ test("a resumed agent is pending work, ended by its next notification", () => {
 	);
 
 	assert.deepEqual(pending(finished), [], "the second notification ends it");
+});
+
+// Each line added to this history flips the answer, since the newest entry
+// naming the agent decides, and the entries of the agent beside it never do.
+test("the newest entry naming an agent says whether it is running", () => {
+	const history = [
+		agentLaunch("agent-one", at(30)),
+		notified("agent-one", at(20), "queued"),
+		agentResume("agent-one", at(10)),
+		taskStop("agent-one", at(5), "local_agent"),
+	];
+	const running = [true, false, true, false];
+
+	for (const [i, expected] of running.entries()) {
+		const entries = context(
+			agentLaunch("agent-two", at(40)),
+			...history.slice(0, i + 1),
+			notified("agent-two", at(1)),
+		);
+
+		assert.equal(agentRunning(entries, "agent-one"), expected, `line ${i}`);
+	}
+
+	assert.equal(
+		agentRunning(context(backgroundBash("agent-one", at(5))), "agent-one"),
+		false,
+		"a command under that id is no agent",
+	);
+	assert.equal(
+		agentRunning(context(prompt("Nothing", at(1))), "agent-one"),
+		false,
+	);
 });
 
 // A notification that arrives mid-turn is never written as a user entry, so
