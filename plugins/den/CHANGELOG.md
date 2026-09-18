@@ -20,6 +20,9 @@ minor bump may change behavior.
   held, is an error the caller sees, not a quiet success. The rule that input
   the code does not act on is refused moves into it, and the signals list
   gains the success that did nothing.
+- The closure verifier in `review-and-fix` runs on the model the run was
+  launched with, the `reviewer` argument, instead of always on Opus, so a
+  Fable review's findings are judged closed by Fable.
 
 ## [0.7.0] - 2026-09-17
 

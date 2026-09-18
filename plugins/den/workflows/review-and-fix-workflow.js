@@ -399,6 +399,7 @@ async function close(pass, fixed) {
     label: stage,
     phase: 'Close',
     agentType: 'den:closure-verifier',
+    model: reviewer,
     schema: CLOSURE,
   })
   checkReport(closure, stage, ['verdicts', 'opened'])

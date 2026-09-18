@@ -472,6 +472,19 @@ test("the reviewer reads the repository's working tree against HEAD, with the go
 	}
 });
 
+test("the closure verifier runs on the model the review was launched with", async () => {
+	for (const reviewer of ["fable", "opus"]) {
+		const { launches } = await record(
+			{ ...ARGS, reviewer },
+			{ findings: [finding()] },
+		);
+		const closure = launch(launches, 2);
+
+		assert.equal(closure.type, CLOSE);
+		assert.equal(closure.model, reviewer);
+	}
+});
+
 test("every agent that works the tree is told which repository to work in, and the comment reviewer gets the scope alone", async () => {
 	const { launches } = await record(ARGS, { findings: [finding()] });
 

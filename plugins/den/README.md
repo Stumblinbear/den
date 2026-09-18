@@ -87,15 +87,15 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
 
 Agents, launched as `den:<name>` through the Agent tool or by a workflow:
 
-- `reviewer` (fable): reads one change adversarially against the plan or
-  brief it was written to and returns every issue as evidence: defects with
-  a priority and a failing test left in the tree, or a discriminating check
-  where a test would need heavy scaffolding, questionable patterns, and choices
-  that do not serve the project's goals; a question it would ask arrives as
-  a decision finding. The tests it writes are the only files it touches.
-- `closure-verifier` (opus): verdicts a review's findings against the fixed
-  tree, CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION
-  keeps an item unresolved when closure depends on a product decision.
+- `reviewer`: reads one change adversarially against the plan or brief it was
+  written to and returns every issue as evidence: defects with a priority and
+  a failing test left in the tree, or a discriminating check where a test
+  would need heavy scaffolding, questionable patterns, and choices that do not
+  serve the project's goals; a question it would ask arrives as a decision
+  finding. The tests it writes are the only files it touches.
+- `closure-verifier`: verdicts a review's findings against the fixed tree,
+  CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION keeps
+  an item unresolved when closure depends on a product decision.
 - `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
 - `implementer` (opus): the default implementer. Executes a pinned brief,
