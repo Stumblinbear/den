@@ -145,8 +145,8 @@ directly.
   like `UserId(Uuid)`/`Meters(f64)`, why a type alias isn't a semantic type, and
   ergonomics via `derive_more`/`nutype`/`serde(transparent)`).
 - **Error architecture:** `references/rust-errors.md` (typed errors
-  everywhere, `main` included; what earns a variant; `#[from]`/`#[source]` and
-  the `source()` chain; context as a field; and `Result`-vs-`panic`
+  everywhere, `main` included; what earns a variant; the cause in `Display`,
+  not `source()`; context from the layer that has it; and `Result`-vs-`panic`
   calibration).
 - **API boundary & ownership design:** `references/rust-api-boundaries.md`
   (borrow at boundaries and own deliberately, `&str`/`&[T]` over `&String`/`&Vec`,

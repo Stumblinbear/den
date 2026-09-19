@@ -32,6 +32,11 @@ minor bump may change behavior.
   pays. A variant earns its place by changing what the caller does, or at a
   leaf by stating a different fact; context is a field of the variant rather
   than a string attached as it propagates.
+- The Rust errors reference puts a wrapping error's cause in its `Display`
+  rather than in `source()`, so every `{}` prints the whole line and a print
+  site that shows only `Display` loses nothing; `#[from]` goes only on
+  transparent variants. An operation's error leaves out the arguments its
+  caller passed, and the caller adds them.
 
 ## [0.7.0] - 2026-09-17
 

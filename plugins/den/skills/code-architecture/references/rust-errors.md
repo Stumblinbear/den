@@ -6,16 +6,15 @@ variant and the value it carries, and a log or a UI line shows it through
 `Display` as well as an erased report would. `anyhow::Error`,
 `Box<dyn Error>` and `String` give all of that up for a `?` that takes
 anything, and no boundary makes that trade pay: an error is always matched,
-tested or shown, and a typed one serves all three. `#[from]` keeps `?` as
-cheap as the erased version.
+tested or shown, and a typed one serves all three.
 
 ## Contents
 
 - Signals to watch for
 - 1. Typed errors at every boundary
 - 2. What earns a variant
-- 3. `std::error::Error` and the source chain
-- 4. Context is a field, not a string
+- 3. The cause is in `Display`, not `source()`
+- 4. Context comes from the layer that has it
 - 5. Recoverable obstruction vs violated invariant
 - Calibration
 - Sources
@@ -25,9 +24,12 @@ cheap as the erased version.
 - **An erased or string error type anywhere:** `anyhow::Error`,
   `anyhow::Result`, `Box<dyn Error>`, `Result<T, String>`,
   `Err("...".to_string())`. The failure cannot be matched, a test can only
-  compare its text, and its source is gone.
-- **`.map_err(|e| e.to_string())` chains.** Throwing away the type and the
-  `source()` cause.
+  compare its text, and its cause is gone.
+- **`.map_err(|e| e.to_string())` chains.** Throwing away the type and its
+  variants.
+- **A cause both in `Display` and in `source()`:** a `{source}` or `{0}` in
+  the message of a variant whose field is `#[from]`, `#[source]` or named
+  `source`. Every reporter that walks the chain prints the cause twice.
 - **`.unwrap()` / `.expect()` on filesystem, network, or user input.** Those are
   expected runtime failures, not invariant violations: return a `Result`.
 - **One giant enum enumerating every dependency's error.** Split it by
@@ -61,8 +63,7 @@ A variant earns its place in one of two ways:
   operations' failures is split by consequence, not by the operation that
   failed: a load error has an `Unusable` variant because the caller offers to
   remake an unusable save and nothing else, not one variant per step of the
-  load. Each variant wraps its cause as the source, usually through
-  `#[from]`.
+  load. Each variant carries its cause as a field.
 - **At a leaf, it states a different fact.** Where an operation refuses for
   reasons no caller tells apart, a header that ends early and one with a tag
   nobody knows, each reason is still its own variant with the refused value as
@@ -78,37 +79,60 @@ pub enum HeaderError {
 }
 ```
 
-Use `#[from]` only where the conversion keeps the meaning; construct the
-variant explicitly when the operation adds a field. Leave `#[non_exhaustive]`
-off where every caller is in the same workspace, since an exhaustive match
-then costs nothing and tells the caller when a case is added.
+`#[from]` goes on a `#[error(transparent)]` variant, which passes its
+cause's message through unchanged and keeps `?` as cheap as the erased
+version. A variant that adds its own clause or a field is built with
+`map_err`, since `#[from]` makes its field the `source()` (section 3).
 
-## 3. `std::error::Error` and the source chain
+Leave `#[non_exhaustive]` off where every caller is in the same workspace,
+since an exhaustive match then costs nothing and tells the caller when a case
+is added.
 
-Error types implement `Error`, normally also `Send + Sync + 'static`, so they
-compose and a caller can walk `source()` (C-GOOD-ERR). A wrapping variant
-keeps its cause as `#[source]` or `#[from]`, and its `Display` states only its
-own clause: the cause's message is already in the chain, and repeating it
-prints the fact twice.
+## 3. The cause is in `Display`, not `source()`
 
-## 4. Context is a field, not a string
+Prevents a line that loses its cause wherever something prints it with `{}`,
+and a cause printed twice.
 
-Prevents a bare "file not found" with no path, and context strings that a test
-can only compare as text.
+std lets a wrapped error be returned by `source()` or rendered in the outer
+error's `Display`, never both. Render it: a wrapping variant's message is its
+own clause followed by its cause's,
+`#[error("could not read the save: {cause}")]`, so every `{}` prints the
+whole line. Print sites that show only `Display`, a framework's error handler
+or a `%error` log field, then lose nothing, and no site has to remember a
+reporter that walks the chain. The cause field is not named `source` and
+carries neither `#[source]` nor `#[from]`, since thiserror makes any of those
+the `source()`, and a chain-walking reporter then prints the cause twice. A
+`#[error(transparent)]` variant forwards both and fits either way. A foreign
+error that keeps its detail in `source()`, as hyper's and reqwest's do, is
+rendered with a chain-walking printer where it is embedded.
+
+What this gives up is downcasting through a `dyn Error` chain, which a typed
+error does not need: the caller matches the variant and reads its field.
+Error types still implement `Error`, normally also `Send + Sync + 'static`,
+so they compose (C-GOOD-ERR).
+
+## 4. Context comes from the layer that has it
+
+Prevents a bare "file not found" with no path, and a value printed twice.
+
+An operation's error states what went wrong and leaves out the arguments its
+caller passed, since the caller has them. The caller adds the ones that give
+the failure its meaning, as a field of its own variant, and its `Display`
+names each once.
 
 ```rust
-let text = fs::read_to_string(path)                              // before
-    .map_err(|e| anyhow!("config failed: {e}"))?;
-let text = fs::read_to_string(path)                              // after
-    .map_err(|source| ConfigError::Read { path: path.to_owned(), source })?;
+// before: the operation repeats its argument
+fn load(path: &Path) -> Result<Config, LoadError>;  // LoadError::Read { path, cause }
+// after: the caller, which has the path, adds it
+let config = load(path)
+    .map_err(|cause| StartError::Config { path: path.to_owned(), cause })?;
 ```
 
-The path, key or value that gives a failure its meaning is a field of the
-variant, and its `Display` names it once. Don't add a layer at every
-propagation step: a layer exists where the caller's action or the fact
-changes. And don't use errors for control flow: `Option` models absence,
-`Result` models a problem the caller must address, and `ControlFlow` handles
-a neutral early exit.
+A value the caller did not pass, the one entry of a batch that failed, is
+the operation's to name. Don't add a layer at every propagation step: a layer
+exists where the caller's action or the fact changes. And don't use errors
+for control flow: `Option` models absence, `Result` models a problem the
+caller must address, and `ControlFlow` handles a neutral early exit.
 
 ## 5. Recoverable obstruction vs violated invariant
 
@@ -132,16 +156,19 @@ context-dependent API judgment.
 ## Calibration
 
 - **Foundational (close to unconditional):** typed errors everywhere, `main`
-  included; meaningful `Display` and a preserved `source()`; the
+  included; a `Display` that carries the whole line, cause included; the
   recoverable-vs-unrecoverable distinction; `Result`'s `#[must_use]` handling.
-- **Situational:** where a gathering error draws its variants; where `#[from]`
-  keeps the meaning; how much a variant carries.
+- **Situational:** where a gathering error draws its variants; which layer
+  holds a value; how much a variant carries.
 
 ## Sources
 
 - `thiserror`: https://docs.rs/crate/thiserror/latest
-- `std::error::Error` (`source()` chain, downcasting):
+- `std::error::Error` (a cause in `source()` or in `Display`, not both):
   https://doc.rust-lang.org/std/error/trait.Error.html
+- The error-handling project group on `source()` versus `Display`, and
+  maintainers' reports of causes lost at `{}` print sites:
+  https://github.com/rust-lang/project-error-handling/issues/27
 - Rust API Guidelines, C-GOOD-ERR (public errors implement `Error + Send + Sync`):
   https://rust-lang.github.io/api-guidelines/interoperability.html
 - `#[non_exhaustive]` (RFC 2008):
