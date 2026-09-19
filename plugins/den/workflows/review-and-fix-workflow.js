@@ -10,7 +10,7 @@ export const meta = {
 }
 
 const input = args && typeof args === 'object' && !Array.isArray(args) ? args : {}
-const { repo, goal, plan, rulings, reviewer } = input
+const { repo, goal, plan, rulings, reviewer, since } = input
 
 // Each agent stands in the session's working directory, so a relative path
 // would resolve against the very tree this argument is here to override.
@@ -33,9 +33,15 @@ if (rulings !== undefined && (!Array.isArray(rulings) ||
 if (!['fable', 'opus'].includes(reviewer)) {
   throw new Error('`reviewer` is the model the review runs on, `fable` or `opus`')
 }
+// A full SHA-1 or SHA-256 id, since an abbreviation can grow ambiguous. Only
+// the shape is checked: the script has no shell to ask git whether the id
+// names a tree in `repo`.
+if (since !== undefined && (typeof since !== 'string' || !/^([0-9a-f]{40}|[0-9a-f]{64})$/.test(since))) {
+  throw new Error('`since` is the full tree id `git write-tree` printed for the last clean run')
+}
 // A key from outside this list is a misspelling of one in it.
-if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'reviewer'].includes(key))) {
-  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `rulings` and `reviewer` and nothing else')
+if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'reviewer', 'since'].includes(key))) {
+  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `rulings`, `reviewer` and `since` and nothing else')
 }
 
 // The finding kinds the run fixes on its own. A P3 or a quality finding names
@@ -191,15 +197,29 @@ const COMMENTS = {
   required: ['counts', 'gaps'],
 }
 
-// The range is HEAD because the workflow reads what is in the working tree:
-// the lead commits each step before the next is briefed. The repository is
-// named because an agent inherits the session's working directory, another
-// tree whenever the lead reviews a change outside the repository it sits in.
-const SCOPE = `Repository: ${repo}
-Range: HEAD
+// The repository is named because an agent inherits the session's working
+// directory, another tree whenever the lead reviews a change outside the
+// repository it sits in.
+const scopeOf = (range) => `Repository: ${repo}
+Range: ${range}
 
 Every command runs there and every search names a path under it: the directory
 you start in may be another tree.`
+
+// Against HEAD the range is the whole step, since the lead commits each step
+// before briefing the next. Against `since`, the snapshot of the last clean
+// run, it is only what changed after that run.
+const SCOPE = scopeOf(since ?? 'HEAD')
+
+// `since` narrows only the range read first. A fix can break what it sits
+// beside, so the reviewer and the closure verifier are told the whole change
+// is open to them. Only the reviewer is told a defect it comes across there is
+// the change's, since to it pre-existing means code HEAD already held; to the
+// verifier it means code the fixes did not write.
+const CONTEXT = since ? `\n\nThe range is what changed since the last clean review of this change. The
+change as a whole, HEAD against the working tree, is there to read for context.` : ''
+const FOCUS = since ? `${CONTEXT} A defect you come
+across elsewhere in the change is a finding of the change, not pre-existing.` : ''
 
 const PLANNED = plan ? `\n\nThe plan this change belongs to is at ${plan}.` : ''
 
@@ -215,7 +235,7 @@ function reviewScope() {
   const settled = RULED ? `\n\nA finding whose repair would undo one of these is a decision finding, with
 what it decided and what the other way costs, not a defect. ${RULED}` : ''
 
-  return `${SCOPE}\n\nGoal: ${goal}${written}${settled}`
+  return `${SCOPE}${FOCUS}\n\nGoal: ${goal}${written}${settled}`
 }
 
 function fixBrief(findings) {
@@ -264,7 +284,7 @@ at it: what still stands after it goes to the lead.`)
 function closureScope(findings) {
   const parts = [
     `Goal: ${goal}`,
-    SCOPE,
+    SCOPE + CONTEXT,
     `The findings this pass's fixes were for, each under the id its verdict
 names it by:`,
     JSON.stringify(findings, null, 2),

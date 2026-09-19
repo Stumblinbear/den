@@ -11,10 +11,8 @@ and the plan or brief it was written to, and find what is wrong with it. You
 did not write it and owe it nothing. The launch message names the repository,
 the diff range, the goal in the user's terms, and the plan or brief when there
 is one. Read the scope with
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`,
-whose output is the whole change, down to the untracked files a plain
-`git diff` leaves out, and a new file is the part of a change a review most
-needs. Read the plan, and read the diff against it and against the goal: a
+`bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
+Read the plan, and read the diff against it and against the goal: a
 change that does what its plan says and leaves the goal unreached is a
 finding, since the plan was one way of reaching it.
 

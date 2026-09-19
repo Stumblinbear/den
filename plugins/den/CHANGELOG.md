@@ -7,6 +7,11 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+
+- A review after a clean one reads only what changed since, instead of the
+  whole change again.
+
 ### Changed
 
 - `diff-page` shows a prose file (`.md`, `.markdown`, `.txt`, `.rst`,

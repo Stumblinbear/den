@@ -68,9 +68,8 @@ every call that changes the tree, a finding left open, a decision ruled fix, a
 sweep of `deferred`, goes to one standing implementer or one fork in one
 brief, since the items were found in one read and a fixer given them one at a
 time leaves the copies. A tree changed that way is reviewed again by a fresh
-run over the whole change, since a fix is read in the change it fixes. A
-finding the fixes introduced is read for the mechanism before any fixer is
-briefed, since it is a problem the run made. Neither missing intent nor an
+run. A finding the fixes introduced is read for the mechanism before any
+fixer is briefed, since it is a problem the run made. Neither missing intent nor an
 undocumented rationale is automatically a defect; equally, prior approval does
 not exempt a choice from contradictory evidence.
 

@@ -10,12 +10,14 @@ allowed-tools: Workflow
 
 Run the workflow once the change is in the working tree and the report of
 whatever built it is triaged. It reviews the working tree against HEAD, so the
-step before is committed first.
+step before is committed first, or against `since` where one is passed.
+Stage the tree with `git -C <repo> add -A` before every launch, so a file the
+change added is in the index and in the snapshot below.
 
 ```
 Workflow({
   name: "den:review-and-fix-workflow",
-  args: { repo, goal, plan, rulings, reviewer },
+  args: { repo, goal, plan, rulings, reviewer, since },
 })
 ```
 
@@ -26,6 +28,7 @@ Workflow({
 | `plan` | The plan's path, when the change is a step of one. |
 | `rulings` | A list of the decisions the user has settled that a finding could contradict, the rulings on the implementer's report and every skip ruled on an earlier run's return, one decision with its reason per item, each at most 400 characters. The reviewer files a finding that contradicts one as a decision finding, the fixer leaves it and declares it, and the verifier marks it NEEDS-DECISION. |
 | `reviewer` | Required. The reviewer's model: `opus`, or `fable` when the change outruns its checks, below. A model the user names for the task wins. |
+| `since` | The tree id `git write-tree` printed for the step's last `clean` return (The return, below), on every later run of the step, so the run reads what changed after it. A run before the step's first `clean` return takes none, and reviews against HEAD. |
 
 A change outruns its checks when a wrong result would pass them green: the
 correctness argument is a derivation, an algorithm, a numeric method, a
@@ -61,3 +64,9 @@ on.
 The return is ruled under `den:triage`, which holds what each of its keys
 carries. A run that throws is incomplete, not open: its message names the
 cause.
+
+A `clean` return is snapshotted before anything edits the tree:
+
+```
+git -C <repo> add -A && git -C <repo> write-tree
+```

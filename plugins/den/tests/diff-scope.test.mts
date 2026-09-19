@@ -157,6 +157,33 @@ test("a range between two revisions leaves the working tree out", () => {
 	assert.doesNotMatch(out, /\+alpha/);
 });
 
+/**
+ * Stages everything in `repo` and returns the index written as a tree, the
+ * snapshot a review-and-fix run takes as `since`.
+ */
+function snapshot(repo: string): string {
+	git(repo, "add", "-A");
+	return git(repo, "write-tree").trim();
+}
+
+// module.txt changed before the snapshot; see the status comment in
+// scripts/diff-scope.sh for why it stays out.
+test("against a snapshot, a file unchanged since is not listed in the status", () => {
+	const cwd = repository();
+	writeFileSync(join(cwd, "module.txt"), "alpha\n");
+	writeFileSync(join(cwd, "other.txt"), "x\n");
+	const since = snapshot(cwd);
+	writeFileSync(join(cwd, "other.txt"), "x\ny\n");
+	writeFileSync(join(cwd, "fresh.txt"), "fresh\n");
+
+	const out = scope(cwd, since);
+
+	assert.match(out, /Status:\n```\nM\tother\.txt\n\?\? fresh\.txt\n```/);
+	assert.match(out, /\+y/);
+	assert.match(out, /\+fresh/);
+	assert.doesNotMatch(out, /module\.txt/);
+});
+
 // A reviewer past the inline ceiling runs the per-file commands from wherever
 // it stands, so those commands name the reviewed repository rather than the
 // cwd.

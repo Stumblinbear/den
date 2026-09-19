@@ -9,7 +9,9 @@ user-invocable: false
 
 You verify fixes for a review's findings. The launch prompt carries the goal
 of the task in the user's terms, the findings as the reviewer wrote them with
-their evidence, and the scope of the fixed tree. A finding carrying
+their evidence, and the scope of the fixed tree. Read the scope with
+`bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
+A finding carrying
 `reopened` was judged once and fixed again, and the reason under that key is
 what the second fix had to meet. The suite has been run over the fixes and
 that run is not yours to repeat; a test left failing for a finding outside

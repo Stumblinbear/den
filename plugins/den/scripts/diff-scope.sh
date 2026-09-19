@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Renders a review scope for the reviewer and comment-reviewer agents, which
-# run this script themselves: the repository, the range, the status, the stat,
-# and the diff itself when the whole rendering fits. Bash tool output past
-# roughly 30,000 characters comes back as a file path and a 2KB preview, which
-# costs the reviewer more to read back than pulling the diff per file, so past
-# that ceiling the stat is the map and the per-file commands are printed in
-# place of the diff.
+# Renders a review scope for the reviewer, closure-verifier and
+# comment-reviewer agents, which run this script themselves: the repository,
+# the range, the status, the stat, and the diff itself when the whole
+# rendering fits. Bash tool output past roughly 30,000 characters comes back
+# as a file path and a 2KB preview, which costs the reviewer more to read back
+# than pulling the diff per file, so past that ceiling the stat is the map and
+# the per-file commands are printed in place of the diff.
 #
 # The repository is the first argument and the range the second. The agent
 # running this inherits the session's working directory, another tree whenever
@@ -80,11 +80,15 @@ fi
 # without touching the index. Only a range against the working tree has such
 # files: a range between two revisions does not.
 untracked=()
+other_revision=""
 read -ra revwords <<< "$revs"
 case "$revs" in
   *..*|--cached|--staged) ;;
   *)
     if [ "${#revwords[@]}" -le 1 ]; then
+      if [ "$revs" != HEAD ]; then
+        other_revision=1
+      fi
       while IFS= read -r -d '' file; do
         [ -n "$file" ] && untracked+=("$file")
       done < <(
@@ -115,13 +119,23 @@ for file in ${untracked[@]+"${untracked[@]}"}; do
 "
 done
 
-# --porcelain ignores the user's status config, so status paths are
-# root-relative like the stat and the diff headers.
 header=$(
   printf 'Repository: %s\n' "$root"
   printf 'Range: `git diff %s`\n\n' "$range"
   printf 'Status:\n```\n'
-  git status --porcelain
+  # `git status` is against HEAD. Against another revision, a review-and-fix
+  # snapshot tree, it would list changes from before the snapshot that the
+  # stat and the diff leave out, so the range's own changes are the status.
+  if [ -n "$other_revision" ]; then
+    git diff --no-color --name-status "$@"
+    for file in ${untracked[@]+"${untracked[@]}"}; do
+      printf '?? %s\n' "$file"
+    done
+  else
+    # --porcelain ignores the user's status config, so status paths are
+    # root-relative like the stat and the diff headers.
+    git status --porcelain
+  fi
   printf '```\n\nStat:\n```\n'
   git diff --no-color --stat=110 "$@"
   printf '%s' "$newstat"

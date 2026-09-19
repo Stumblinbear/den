@@ -436,6 +436,12 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 		[{ ...ARGS, reviewer: "haiku" }, /`reviewer`/],
 		[{ ...ARGS, rulings: "one decision" }, /`rulings`/],
 		[{ ...ARGS, rulings: ["x".repeat(401)] }, /`rulings`/],
+		// Anything but a full lowercase id; see the `since` check in the
+		// workflow.
+		[{ ...ARGS, since: "HEAD" }, /`since`/],
+		[{ ...ARGS, since: "3f08ff8" }, /`since`/],
+		[{ ...ARGS, since: "3F08FF8".padEnd(40, "0") }, /`since`/],
+		[{ ...ARGS, since: 7 }, /`since`/],
 		// A key the workflow does not take is rejected, however plausible.
 		[{ ...ARGS, fixRounds: 3 }, /nothing else/],
 		[{ ...ARGS, answers: {} }, /nothing else/],
@@ -470,6 +476,37 @@ test("the reviewer reads the repository's working tree against HEAD, with the go
 	for (const made of bare.launches) {
 		assert.ok(!made.prompt.includes("The plan this change"), made.type);
 	}
+});
+
+test("with a snapshot, the agents that read the scope get the edit since it, the reviewer and the verifier are told the whole change is HEAD, and the reviewer that a defect it comes across there is the change's", async () => {
+	const since = "0482f7aad6c5e4f154f711f86138b7bbf7a6ac5e";
+	const narrowed = SCOPE.replace("Range: HEAD", `Range: ${since}`);
+	const whole = `The range is what changed since the last clean review of this change. The
+change as a whole, HEAD against the working tree, is there to read for context.`;
+	// The reviewer's clause alone; see the comment on `CONTEXT` in the workflow.
+	const owned = ` A defect you come
+across elsewhere in the change is a finding of the change, not pre-existing.`;
+	const { launches } = await record(
+		{ ...ARGS, since },
+		{ findings: [finding()] },
+	);
+
+	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
+	assert.equal(
+		launch(launches, 0).prompt,
+		`${narrowed}\n\n${whole}${owned}\n\nGoal: ${GOAL}\n\nPlan: ${ARGS.plan}`,
+	);
+	assert.ok(
+		launch(launches, 1).prompt.startsWith(`Goal: ${GOAL}\n\n${narrowed}\n\n`),
+	);
+	assert.ok(!launch(launches, 1).prompt.includes(whole));
+	assert.ok(
+		launch(launches, 2).prompt.startsWith(
+			`Goal: ${GOAL}\n\n${narrowed}\n\n${whole}\n\n`,
+		),
+	);
+	assert.ok(!launch(launches, 2).prompt.includes(owned));
+	assert.equal(launch(launches, 3).prompt, narrowed);
 });
 
 test("the closure verifier runs on the model the review was launched with", async () => {

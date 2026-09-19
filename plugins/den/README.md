@@ -173,10 +173,16 @@ file, and the hook run does nothing. The data directory survives plugin updates.
 
 The plugin declares no dependencies, so Claude Code installs nothing for it.
 
-The `reviewer` and `comment-reviewer` agents render the review scope with
-`git` through `bash`, so both have to be available where the session runs.
-A working-tree scope includes untracked files that are not ignored, rendered
-as the new files they would become; a range between two revisions does not.
+The `reviewer`, `closure-verifier` and `comment-reviewer` agents render the
+review scope with `git` through `bash`, so both have to be available where the
+session runs. A working-tree scope includes untracked files that are not
+ignored, rendered as the new files they would become; a range between two
+revisions does not.
+
+The lead stages the working tree with `git add -A` before each
+`review-and-fix` run, and after a clean run writes the index as a tree with
+`git write-tree`: the snapshot the next run reviews against. Nothing
+references that tree, and `git gc` prunes it once it is two weeks old.
 
 What the hooks read: the path of the file an edit is about to change. Nothing
 in your project is opened.

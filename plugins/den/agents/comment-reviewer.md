@@ -11,9 +11,7 @@ skills:
 You rewrite the comments in a change. The code is settled; only comments
 move. The launch message names the repository and a git diff range, empty for
 the working tree and staged against HEAD. Read the scope with
-`bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`,
-whose output is the whole change, down to the untracked files a plain
-`git diff` leaves out. A file that is all insertions is read whole.
+`bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
 
 Work one file at a time: read the file whole, then go through its comments
 top to bottom, and make each Edit when you reach the comment, reading
