@@ -56,11 +56,7 @@ impl Service { fn new(addr: Addr) -> Self; }                     // after
 let service = Service::builder().tls(true).build()?;
 ```
 
-`new` may return `Self`, `Result<Self, E>`, or `Option<Self>`: return the
-wrapper the fallibility demands (`Regex::new` is fallible; reqwest's
-`ClientBuilder::build` is fallible). Don't force `try_new` when `new` is already
-the unsurprising primary API, and don't introduce a builder for a small, stable
-set of required arguments.
+Don't introduce a builder for a small, stable set of required arguments.
 
 ## 2. A `Default` that's actually useful
 
@@ -156,20 +152,10 @@ cloning materially simplifies the ownership boundary.
 
 ## 7. Contract-breaking anti-patterns
 
-Preserve the contracts the traits promise. Clippy flags several directly:
-
-- Hand-written `Into` → implement `From` (`from_over_into`).
-- Inherent methods shaped like a standard trait → implement the trait
-  (`should_implement_trait`).
-- Zero-arg `new` with no `Default` → add `Default` (`new_without_default`).
-- A panicking `TryFrom` defeats "fail in a controlled way."
-- A panicking `new() -> Self` is wrong when invalid caller *input* is expected and
-  recoverable: return `Result`/`Option`.
-- An invalid `Default` contradicts "useful default value."
-
-A panicking constructor is still defensible when misuse is a *programmer-contract*
-violation, not ordinary invalid data. And never invent a trait impl just to
-silence a lint when the trait's semantics don't actually fit.
+Preserve the contracts the traits promise. A panicking constructor is still
+defensible when misuse is a *programmer-contract* violation, not ordinary
+invalid data. And never invent a trait impl just to silence a lint when the
+trait's semantics don't actually fit.
 
 ## Calibration
 

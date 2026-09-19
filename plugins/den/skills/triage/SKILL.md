@@ -25,18 +25,15 @@ says so. Where the brief pinned a decomposition, the tree is checked against
 it at triage, because the deviation that matters is the one the report did
 not declare.
 
-A fixer inside a `den:review-and-fix` run reports into the run: its
-declarations arrive under `carried` in the run's return, and a send-back goes
-to a standing implementer after the run returns, since the fixer cannot be
-resumed.
+A fixer inside a `den:review-and-fix` run cannot be resumed: a send-back on
+its declarations goes to a standing implementer after the run returns.
 
 ## The return of a run
 
 `status` is `clean` when every finding the run fixed closed and nothing was
 introduced, so the comment pass ran; `open` otherwise. `carried` and
 `passes` always come back; every other key is present only when it holds
-something, and the ones this session acts on come first, since the host cuts
-a long result at its tail:
+something:
 
 - `open`: findings the run could not close, each whole with its `verdict`
   and the verifier's `reason`: REOPENED after the second pass, or
@@ -56,7 +53,7 @@ a long result at its tail:
   triaged as an implementer's report is.
 - `passes`: the run's account of itself, one record per fix pass, each
   finding with its verdict and, where the verdict is not CLOSED, the
-  verifier's reason. What a fixer verified stays in the journal.
+  verifier's reason.
 
 What the run did is read from `passes`, and the transcripts and the journal
 stay closed: what the return holds arrives word for word, since a ruling and
@@ -69,11 +66,11 @@ The return is triaged as one list: each item gets this session's call, and
 every call that changes the tree, a finding left open, a decision ruled fix, a
 sweep of `deferred`, goes to one standing implementer or one fork in one
 brief, since the items were found in one read and a fixer given them one at a
-time leaves the copies. A tree changed that way is reviewed again by a fresh
-run. A finding the fixes introduced is read for the mechanism before any
-fixer is briefed, since it is a problem the run made. Neither missing intent nor an
-undocumented rationale is automatically a defect; equally, prior approval does
-not exempt a choice from contradictory evidence.
+time leaves the copies. A finding the fixes introduced is read for the
+mechanism before any fixer is briefed, since it is a problem the run made.
+Neither missing intent nor an undocumented rationale is automatically a
+defect; equally, prior approval does not exempt a choice from contradictory
+evidence.
 
 A brief for a finding carries the reviewer's repair only once this session has
 traced it against the finding's discriminating check, since the repair is a
@@ -96,14 +93,13 @@ session launches takes its test out of the tree, since a run with no record
 of the ruling finds and fixes what was chosen to leave.
 
 This session defers a finding on its own only when it lies outside what the
-change depends on or no reachable input triggers it; its age is no reason,
-and a defect in code the change depends on is fixed, or is the user's to defer
-when it predates the change. Its own deferrals are reported in a list apart
-from the calls that accept, each with that reason, so the user can overturn
-one without reading it as settled, and go into a task, never into `rulings` or
-`leadCalls`: a deferral written there tells every later reviewer not to raise
-the finding, and a fresh review is the next chance to catch one that was
-wrong. A deferral the user rules is a skip.
+change depends on or no reachable input triggers it; its age is no reason. Its
+own deferrals are reported in a list apart from the calls that accept, each
+with that reason, so the user can overturn one without reading it as settled,
+and go into a task, never into `rulings` or `leadCalls`: a deferral written
+there tells every later reviewer not to raise the finding, and a fresh review
+is the next chance to catch one that was wrong. A deferral the user rules is a
+skip.
 
 ## The commit proposal
 

@@ -8,9 +8,7 @@ user-invocable: false
 # Writing a skill
 
 The body of a skill is instructions an agent will follow, and
-`den:writing-for-agents` governs it. This skill is what a SKILL.md adds: a
-listing line the model routes on, frontmatter that sets how the skill loads,
-and a trigger that can be measured.
+`den:writing-for-agents` governs it.
 
 ## The listing line
 

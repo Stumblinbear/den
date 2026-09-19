@@ -10,9 +10,6 @@ user-invocable: false
 A file owns one concept. A concept is a thing you'd name if someone asked what
 the file is about. If the answer is "X and Y," that's two files.
 
-This is the core splitting rule, and it is language-agnostic. Line count is the
-symptom; concept count is the cause.
-
 ## The core, in any language
 
 - **One concept per file.** The smallest unit that would lose coherence if you
@@ -125,10 +122,8 @@ have fewer methods, simpler parameters, and more hidden inside.
 
 ## Language-specific guidance
 
-The core above applies everywhere. For the concrete thresholds, idioms, and
-mechanisms of a specific language, read the matching references. When working
-in a language without a reference here, apply the core rule and its signals
-directly.
+For the concrete thresholds, idioms, and mechanisms of a specific language,
+read the matching references.
 
 
 ### Rust

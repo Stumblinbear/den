@@ -6,9 +6,6 @@ rather than reading. Only after they decide does the README become reference.
 Write for the decision first, and let everything after it be reachable by
 scanning headings.
 
-Length is not free. Words added past the first screen buy a shrinking share of
-the reader's attention, and a section list does not price them.
-
 ## Pick the shape first: router or manual
 
 One question decides the whole document: **does a documentation site already
@@ -107,9 +104,8 @@ F-shaped scanning and miss information without knowing they missed it. So a
 heading names the question it answers, in the reader's words: "Why shouldn't I
 use it?" scans; "Operation and limitations" does not.
 
-GitHub generates the page outline from headings, which makes the outline the
-table of contents. A hand-written one earns its lines only where the render
-target has none: see `render-targets.md`, which also covers what breaks when
+A hand-written table of contents earns its lines only where the render target
+builds no outline: see `render-targets.md`, which also covers what breaks when
 the README is republished off GitHub.
 
 ## What links out instead of living here
@@ -132,8 +128,7 @@ the README is republished off GitHub.
   encodings. That is rare; otherwise point at issues or support.
 
 Link aggressively, and inline anything essential to understanding the work:
-links rot, and only GitHub rewrites a relative path. Every link and image that
-must survive on a registry page needs an absolute URL.
+links rot.
 
 ## Calibration
 

@@ -41,5 +41,4 @@ guard for an editor found in a doc comment moves to the site it guards.
 Change only comments and doc comments, with Edit, site by site; git reads
 the scope and nothing else, since staging and committing are the lead's.
 Then run the formatter in check mode and, in Rust, `cargo doc
---no-deps` for the crate. The report is the schema and nothing beside it. The
-gaps reach the user, who rules on each at the commit.
+--no-deps` for the crate. The report is the schema and nothing beside it.

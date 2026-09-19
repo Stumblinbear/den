@@ -6,11 +6,8 @@ when_to_use: ALWAYS invoke this skill when the user asks to establish or revisit
 
 # Project direction
 
-Establish the project direction that future tasks should serve. Work with the
-user to understand its purpose, priorities, constraints and intended development,
-then record that understanding where later sessions can find it. The user owns
-project direction; your role is to uncover missing decisions and explain their
-consequences. Run this conversation in the lead session.
+The user owns project direction; your role is to uncover missing decisions
+and explain their consequences. Run this conversation in the lead session.
 
 Discovery has no default time or question budget. Continue investigating and
 questioning until the project's goals and intended development are understood,
@@ -63,8 +60,7 @@ not itself completion. Scoping's bound on task questions does not apply here.
 
    Read and use `den:direction-docs` before the first document update. Record
    answers, reasons and remaining questions throughout discovery so another
-   session can continue without repeating it. That skill owns the document
-   structure and editing conventions; this conversation establishes the meaning.
+   session can continue without repeating it.
 
    Explicit user answers can be recorded as confirmed without asking again.
    Keep inferred commitments visibly unconfirmed. Show the resulting synthesis
@@ -86,7 +82,5 @@ not itself completion. Scoping's bound on task questions does not apply here.
    remaining questions.
 
    Return the document location, established direction, discovery status and
-   remaining questions. Scoping reads that record and carries its path into
-   exploration and the brief. Unresolved direction holds up only the
-   decisions that depend on it; future plans inform choices without
-   authorizing their implementation.
+   remaining questions. Unresolved direction holds up only the decisions that
+   depend on it.

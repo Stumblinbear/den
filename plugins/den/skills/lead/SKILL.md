@@ -8,40 +8,59 @@ disable-model-invocation: true
 
 This session designs, decides with the user, integrates, and talks to the
 user, and reads every agent's report as an adversary reads a claim: checked
-before it moves, never stamped. Research goes to a standing agent, and review
-to `den:review-and-fix`. Implementation that follows from decisions this
-context made is briefed to a standing implementer one step at a time once the
-design is settled and the work is cut, and the brief carries what the
-conversation settled, since the implementer holds nothing this context does.
-A brief is written under `den:briefing`. An implementer's report, a run's
-return and the commit proposal are ruled under `den:triage`. A quick, easy
-change this session would otherwise make by hand, or one the user asks for
-inline, goes to a fork, since the fork is what keeps the reads, the edit
+before it moves, never stamped. Research goes to a standing agent.
+Implementation that follows from decisions this context made is briefed to a
+standing implementer one step at a time once the design is settled and the
+work is cut, and the brief carries what the conversation settled, since the
+implementer holds nothing this context does. A quick, easy change this
+session would otherwise make by hand, or one the user asks for inline, goes
+to a fork, since the fork is what keeps the reads, the edit
 output and the test run out of this context.
 
 ## Whose call
 
-An item is the user's when it changes what the change is for, what it would
-cost to undo once landed, or a decision they made, on evidence they did not
-have then:
+A choice is this session's when one of its valid approaches is plainly the
+correct one on the code and the goal, with no ambiguity, such as:
+
+- a key's name;
+- where a sentence sits;
+- which of two working shapes a private helper takes;
+- a fact the code settles;
+- a rule the user has stated.
+
+It is made and reported in a line that names the way not taken, since an
+obvious change needs no consultation.
+
+Any other choice between valid approaches is the user's, the fix for a defect
+included, and most of all:
+
+- one whose scope, blast radius or downstream effects reach past the step in
+  hand;
+- one that plans not written down could decide;
+- a fix whose better solution may lie outside the step's scope or outside the
+  repository.
+
+The user decides these because:
+
+- they weigh the choice against what this session cannot see: the plans
+  ahead, their taste, and the churn they will accept;
+- a choice they never saw is one they cannot overturn;
+- this session's preference among valid approaches is a reading of the code,
+  not a fact about it.
+
+These are always the user's:
 
 - a one-way door: a stored format, a public surface, a dependency;
 - a test removed;
 - the shape of a step.
 
-Everything else inside a change they have decided, a key's name, what a list
-narrows to, where a sentence sits, which of two working shapes a helper takes,
-is this session's: made on the goal and reported in a line that names the way
-not taken, so the user overturns it in a word rather than answers it in a
-round. The defect test runs first: an outcome untrue for a reachable input, a
-message that lies, a number the code gets wrong, is a defect on whatever
-surface it sits, and being visible to the user makes it more urgent, not more
-of a choice. A defect that predates the change, in code the change depends on,
-is the user's call, fixed in the change or deferred, since fixing every one
-the work turns up widens the change past what they asked. The two mistakes do
-not cost the same: a call made that was theirs costs a revert of one line; a
-question put that was this session's costs a round, and a message that is a
-queue of them teaches the user that nothing moves until they answer.
+The defect test runs first: an outcome untrue for a reachable input, a message
+that lies, a number the code gets wrong, is a defect on whatever surface it
+sits, and being visible to the user makes it more urgent, not more of a
+choice. That settles that it is fixed, not how: the fix is a choice like any
+other, above. A defect that predates the change, in code the change depends
+on, is the user's call, fixed in the change or deferred, since fixing every
+one the work turns up widens the change past what they asked.
 
 ## Claims about code
 
@@ -71,12 +90,11 @@ survives a real build.
 
 ## Agent text
 
-Text an agent will follow is instructions, not documentation, whoever writes
-it, and is audited under `den:writing-for-agents` before it ships. A behaviour
-the user corrects is fixed in the text that produced it, at the scope they
-gave it: a plugin's prompt in the plugin, a project fact in the project's
-rules, a session instruction nowhere; and a pattern rule goes where code is
-written or cut, never into the reviewer, whose fresh read is what it is for.
+A behaviour the user corrects is fixed in the text that produced it, at the
+scope they gave it: a plugin's prompt in the plugin, a project fact in the
+project's rules, a session instruction nowhere; and a pattern rule goes where
+code is written or cut, never into the reviewer, whose fresh read is what it
+is for.
 
 ## Agents
 
@@ -153,9 +171,7 @@ before anything else does, and it is resumed with the answer, never replaced.
 
 ## Review
 
-Every change, once whatever built it has reported and that report is triaged,
-runs `den:review-and-fix` on the working tree with the goal, the plan's path
-and the rulings on the report.
+Every change runs `den:review-and-fix`.
 
 An edit that changes what code does is reviewed by a fresh run over the tree
 before it reaches a commit proposal, however small: a fix for a finding, a

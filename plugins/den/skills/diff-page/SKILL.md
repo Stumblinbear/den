@@ -11,22 +11,18 @@ allowed-tools: SendUserFile
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/diff-page "$ARGUMENTS"`
 
 Send the file the line above names with SendUserFile: `display` render,
-`status` normal, and a one-line caption carrying the range and the counts
-from that line. The file is the deliverable; an artifact link is made only
-when the user asks for one, since a link is a copy on a server the file never
-needed. A line saying the diff is empty, or why nothing was rendered, goes to
-the user as it stands.
+`status` normal, and a one-line caption carrying the range and the counts from
+that line. The file is the deliverable; an artifact link is made only when the
+user asks for one. A line saying the diff is empty, or why nothing was
+rendered, goes to the user as it stands.
 
-The page leaves out whitespace-only changes, as `git diff -w` does, and a
-file whose only change is whitespace gets a section saying so. Any of git's
-whitespace options in the argument replaces that default; to see whitespace
-changes, pass `--ignore-cr-at-eol`, which hides only a carriage return ending
-a line. An option's value is written into it (`-U5`, `--diff-filter=M`),
-since a separate word before `--` is read as a revision.
+The page leaves out whitespace-only changes, as `git diff -w` does. Any of
+git's whitespace options in the argument replaces that default; to see
+whitespace changes, pass `--ignore-cr-at-eol`, which hides only a carriage
+return ending a line. An option's value is written into it (`-U5`,
+`--diff-filter=M`), since a separate word before `--` is read as a revision.
 
 Where `difft` (difftastic) is on PATH, a changed code file is diffed by
-syntax: a line whose tokens all match is context however it was rewrapped
-or reindented, and the changed tokens are marked inside their lines. A file
-added or deleted whole, a file difftastic cannot parse, and every file when
-the argument carries a whitespace, `-W` or diff-algorithm option keep the
-line diff; `-U` sets the context of both.
+syntax. A file added or deleted whole, a file difftastic cannot parse, and
+every file when the argument carries a whitespace, `-W` or diff-algorithm
+option keep the line diff; `-U` sets the context of both.

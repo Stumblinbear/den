@@ -51,9 +51,8 @@ One markdown file, read by the person who decides it before any code
 exists and by each step's implementer after, so it shows the code a step
 rests on rather than describing it. `# Title`, a date line, then one
 screen: a paragraph of the problem, a `Goal:` line with what the change is
-for in the user's terms, which each step's brief and review launch quote
-rather than paraphrase, a `Not doing:` line, a `Constraints:` line, and
-one sentence on why the steps are in this order. Under `## How the pieces
+for in the user's terms, a `Not doing:` line, a `Constraints:` line, and one
+sentence on why the steps are in this order. Under `## How the pieces
 call each other`, a text fence naming each piece with its file and step.
 
 Then one `## Step N: title [pending]` per step, the tag one of `committed`,
@@ -78,8 +77,7 @@ carrying:
   is done.
 
 A `## ` heading without a step number is prose. Plain paragraphs, `-`
-lists, `**bold**`, `` `code` `` and links otherwise; `den:plan-page`
-renders the file for the user.
+lists, `**bold**`, `` `code` `` and links otherwise.
 
 The plan is a hypothesis: after each step lands, what was learned rewrites the
 next entry and each tag. A falsified assumption re-cuts the smallest remaining

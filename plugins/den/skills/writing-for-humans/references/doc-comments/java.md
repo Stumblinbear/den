@@ -34,8 +34,6 @@ signature does not, and let inheritance cover an override.
 ## Coverage
 
 A doc comment is required on every visible class, member, and record component.
-The two exceptions in `doc-comments.md` (a member with nothing else worthwhile
-to say, and an override that inherits) hold here unchanged.
 
 Paragraphs after the first are separated by a blank line and opened with `<p>`
 immediately before the first word.

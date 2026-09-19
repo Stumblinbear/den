@@ -11,8 +11,7 @@ allowed-tools: SendUserFile
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/plan-page "$ARGUMENTS"`
 
 Send the file the line above names with SendUserFile: `display` render,
-`status` normal, and a one-line caption carrying the title and the step
-counts from that line. The file is the deliverable; an artifact link is made
-only when the user asks for one, since a link is a copy on a server the file
-never needed. A line saying why nothing was rendered goes to the user as it
-stands.
+`status` normal, and a one-line caption carrying the title and the step counts
+from that line. The file is the deliverable; an artifact link is made only
+when the user asks for one. A line saying why nothing was rendered goes to the
+user as it stands.

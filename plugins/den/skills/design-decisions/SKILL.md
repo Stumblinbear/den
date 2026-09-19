@@ -79,9 +79,7 @@ stated, is not speculation. A piece with no caller yet and no stated reason
 is a question for the user before it is a deletion. Error handling,
 validation, the fault policy and the boundary check are part of doing the
 current job, not a later one; a simplification that would drop one of those
-has crossed from cutting indirection to cutting the job. A library's callers
-are outside the tree, which `den:code-architecture` covers under the deletion
-test.
+has crossed from cutting indirection to cutting the job.
 
 The life of the thing bounds the effort spent on it: a scaffold, a dev-only
 surface, a placeholder a later step replaces, or a mechanism serving a sliver

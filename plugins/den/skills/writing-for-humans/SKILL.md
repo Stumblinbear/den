@@ -47,10 +47,8 @@ alone, so read the one for the text in hand.
 ## The register
 
 A reader who recognizes the machine register stops reading, and every sentence
-after that one is wasted. The register is a small set of habits, and each rule
-below replaces one of them with what a person would have written. They belong
-in the first draft: a cleanup pass over machine prose adds machine traits of
-its own.
+after that one is wasted. The rules below belong in the first draft: a cleanup
+pass over machine prose adds machine traits of its own.
 
 - **Put a character in the subject and the action in the verb.** `The parser
   rejects a trailing comma`: the actor and the action reach the reader in the
@@ -73,13 +71,12 @@ Before you read a draft, run one line over it:
 grep -nEi '—| -- |emphasiz|enhanc|highlight|showcas|in (summary|conclusion)|overall,|important to note|worth noting|in this (section|guide|article)|let'?s dive|as of my last update|not just .+ but|serves as|stands as|no longer|not to this |belongs to (its|a) |handled elsewhere' FILE
 ```
 
-The line carries the current vocabulary band and the phrasings that belong to
-the register itself. A hit marks a sentence to look at and settles nothing by
-itself: `highlight` is a real word, and a finding needs several signs sitting
-together in one passage. An em dash, or ` -- `, is the exception, and every one
-is a sentence to rewrite. A tell people were already writing before the
-register, `utilize`, `Note that`, `acts as`, hits too many real sentences to
-grep for and stays in `references/tells.md`, which is read with a hit in hand.
+A hit marks a sentence to look at and settles nothing by itself: `highlight`
+is a real word, and a finding needs several signs sitting together in one
+passage. An em dash, or ` -- `, is the exception, and every one is a sentence
+to rewrite. A tell people were already writing before the register, `utilize`,
+`Note that`, `acts as`, hits too many real sentences to grep for and stays in
+`references/tells.md`, which is read with a hit in hand.
 
 When the text already exists, check the sentences the grep and the catalog
 name, rewrite those, and leave the rest alone: a polish pass over prose that is
@@ -91,8 +88,7 @@ the word `pivotal` is gone.
 ## References
 
 Each entry file is complete for the common case; its siblings are read when
-the condition they name fires, and they are listed here so none is more than
-one hop away.
+the condition they name fires.
 
 - **The register's tells:** `references/tells.md` (every tell with the fix
   that cures it, grouped by structure, phrasing, vocabulary and framing, the

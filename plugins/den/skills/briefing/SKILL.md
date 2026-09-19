@@ -9,25 +9,14 @@ user-invocable: false
 
 ## Before the brief
 
-Before task scoping, locate the relevant project goals, roadmap or direction
-record and reuse answers already given. When direction needs establishing or
-updating because it is missing, conflicting or superseded, invoke
-`den:project-direction` in this session. Continue to scoping with its durable
-record and any unresolved questions; a user-ended discovery pass is not a set
-of answered questions.
-
-Where the ask leaves a decision open, `den:scoping` settles it with the user
-before the brief is written. What it clarifies about the project's direction
-goes into the direction record, and exploration and the brief carry that
-record's path and the decisions scoping settled, each with its reason. An
-agent that reads the record itself reads the direction as it stands; a
-restatement drifts from the day it is written.
+The brief carries the direction record's path, the decisions `den:scoping`
+settled, each with its reason, and the questions it left open. An agent that
+reads the record itself reads the direction as it stands; a restatement
+drifts from the day it is written.
 
 A change that adds a module, a stored format, a public surface or a new
 mechanism has its decomposition put to the user before the brief, since the
-surface is theirs to choose, and the brief pins their choice. The rest of
-placement, interface depth, type shape and naming belongs to the implementer,
-unless one of them is itself a requirement, and the brief says which.
+surface is theirs to choose, and the brief pins their choice.
 
 ## What a brief pins
 
@@ -37,10 +26,10 @@ and the implementer, in the code, decides the rest better than a brief written
 from above it. The pins stand in a list of their own, each naming the user as
 its source and when, with their words or the option they chose, and their
 reason where they gave one, so an item that cannot be written that way reads
-as intent. This session's own calls (the lead skill's Whose call), a behavior
-it chose included, go into the intent with their reason. An external
-constraint the brief rests on is stated as a fact with its source. A brief is
-the intended shape, and the goal governs it:
+as intent. This session's own calls (the lead skill's Whose call) go into the
+intent with their reason. An external constraint the brief rests on is stated
+as a fact with its source. A brief is the intended shape, and the goal
+governs it:
 its fence names what the change is not for, never a count of items or a list
 of files, since an implementer that meets the goal past the items has done
 the work and one that stops at the items beside a defect has not.
@@ -52,15 +41,8 @@ outcome is not a specification of it, and a go on a plan decides none of its
 never into the part the implementer reads as permission.
 
 A question back from an implementer is the brief working, and the brief
-changes when the implementer is right. The brief's text is written under
-`den:writing-for-agents`.
-
-Implementation has no implicit deadline. Carry time constraints into briefs
-only when the user sets them. Weigh correctness, coherence and maintenance
-cost when assessing the work; extra implementation effort is not an unstated
-reason to accept a weaker solution. Distinguish the task's goal from
-explicit scope fences so the brief leaves room for engineering judgment.
-Future plans constrain choices without expanding authorized scope.
+changes when the implementer is right. Carry time constraints into briefs
+only when the user sets them.
 
 ## Steps
 

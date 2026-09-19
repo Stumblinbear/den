@@ -7,11 +7,9 @@ user-invocable: false
 
 # Unsafety Author
 
-Write and review Rust `unsafe` so the safety story is honest: every `unsafe fn` / `unsafe trait` carries a `# Safety` contract a caller can actually uphold, and the obligation sits where it can be discharged.
-
 ## The contract voice
 
-Model on std and bevy, the two best-maintained bodies of safety docs. The house style is the same everywhere: state the UB directly, as conditions the caller can check, and say nothing about how a conflicting access arises.
+Model on std and bevy, the two best-maintained bodies of safety docs.
 
 Core rules:
 
@@ -57,7 +55,7 @@ A single encoding precondition the type does not enforce. One line, done.
 > - The memory referenced must not be mutated for the duration of lifetime `'a`, except inside an `UnsafeCell`.
 > - `len * size_of::<T>()` must be no larger than `isize::MAX`.
 
-The honest long list. Length is justified because every bullet is a distinct, real obligation: validity, initialization, aliasing-over-a-lifetime, and the allocation size cap. Do not pad it, do not trim a real bullet to look short.
+The honest long list. Length is justified because every bullet is a distinct, real obligation: validity, initialization, aliasing-over-a-lifetime, and the allocation size cap.
 
 **Single-ownership transfer** in `Box::from_raw`:
 > After calling this function, the raw pointer is owned by the resulting `Box`. Constructing more than one `Box` from the same raw pointer leads to undefined behavior.
@@ -96,7 +94,7 @@ Find the single party that can actually cause the UB, and put the obligation the
 
 ## Debug assertions are not safety mechanisms
 
-A `#[cfg(debug_assertions)]` borrow flag or invariant check (RefCell-style, but debug-only) is a debugging aid, not a guarantee. It cannot justify a safe signature unless it is always-on *and* complete, with every access path participating. If it is debug-only or blind to one path, soundness still rests on the written contract. The real backstop is Miri (Stacked plus Tree Borrows) and the test suite. Name a Miri pass for any soundness-relevant change even if you do not run it.
+A `#[cfg(debug_assertions)]` borrow flag or invariant check (RefCell-style, but debug-only) is a debugging aid, not a guarantee. It cannot justify a safe signature unless it is always-on *and* complete, with every access path participating. If it is debug-only or blind to one path, soundness still rests on the written contract. Name a Miri pass for any soundness-relevant change even if you do not run it.
 
 ## Audit workflow
 

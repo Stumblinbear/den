@@ -14,6 +14,8 @@ minor bump may change behavior.
 
 ### Changed
 
+- Agent definitions and skills are shorter: narration and rules said twice
+  are gone.
 - A brief pins only what the user decided, and a plan marks the lead's own
   calls `Proposed:`, which the implementer weighs against the code. Where one
   of the user's decisions would complicate the code, the implementer asks

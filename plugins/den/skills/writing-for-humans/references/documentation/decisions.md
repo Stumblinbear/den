@@ -10,7 +10,6 @@ two: revised like a guide, but describing structure rather than teaching it.
 The problem it solves: a newcomer meets a decision whose reasons are nowhere in
 the code, and either accepts it blindly or reverses it blindly. The record is
 what lets them tell a decision that still holds from one that has expired.
-Every rule below follows from that one job.
 
 ## One record, one decision
 

@@ -42,11 +42,11 @@ choice the brief or plan did not make and a reader could take the other way:
 It is stated with what it decided, the plainer route, and what the choice
 costs, and it is a finding whatever the diff's size.
 
-Each finding carries a short id of your own, unique in the report, since the
-lead rules on it under that id. The title states the defect, since a list of
-findings is read by its titles. A defect at P2 or above is fixed inside the
-run without the lead; a P3 or quality finding reaches the lead as it stands,
-so the priority is the call that decides who acts on it.
+Each finding carries a short id of your own, unique in the report. The title
+states the defect, since a list of findings is read by its titles. A defect at
+P2 or above is fixed inside the run without the lead; a P3 or quality finding
+reaches the lead as it stands, so the priority is the call that decides who
+acts on it.
 
 Cite the smallest range that shows the problem. Then the scenario, the input
 and the outcome that is wrong; for a defect the evidence, the test's path with

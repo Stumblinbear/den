@@ -19,11 +19,9 @@ Two constraints apply to every target:
   `docs`, in that order.
 - Content past 500 KiB is truncated: an installation matrix or option catalogue
   can reach it.
-- The outline is generated from headings, so skip the hand-written contents
-  list.
 - Relative links (`docs/CONTRIBUTING.md`) are rewritten against the current
-  branch, which is why they work here and only here. Prefer them for in-repo
-  files that never leave GitHub, such as the community health files.
+  branch. Prefer them for in-repo files that never leave GitHub, such as the
+  community health files.
 
 ## crates.io and docs.rs
 

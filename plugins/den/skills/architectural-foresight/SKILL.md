@@ -7,9 +7,6 @@ user-invocable: false
 
 # Architectural foresight
 
-Assess how the architecture's implicit commitments serve the project beyond the
-immediate task.
-
 ## Direction and commitments
 
 Locate relevant project direction, roadmap, and decisions, following links and

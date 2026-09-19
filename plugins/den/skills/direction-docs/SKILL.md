@@ -7,10 +7,8 @@ user-invocable: false
 
 # Direction documents
 
-Maintain the durable record that future project decisions will use. This skill
-owns its organization and editing conventions. The user owns its meaning;
-document structure must not supply commitments that discovery has not established.
-Reading direction for a task does not require this skill.
+The user owns the record's meaning; document structure must not supply
+commitments that discovery has not established.
 
 ## Establish what the edit means
 

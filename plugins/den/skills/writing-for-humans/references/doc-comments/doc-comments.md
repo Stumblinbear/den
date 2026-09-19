@@ -12,10 +12,7 @@ file listed at the end; read that one too before writing.
 
 The first unit (the first sentence in Go and Java, the `<summary>` tag in C#,
 the first paragraph elsewhere) is the only text that exists in an index, a
-search result, or an editor tooltip. rustdoc reuses everything before the first
-blank line in searches and module overviews; C# feeds `<summary>` to
-IntelliSense; javadoc puts the first sentence in class and method indexes;
-Python's indexing tools take the first line of the docstring.
+search result, or an editor tooltip.
 
 That render fact gives the test: **if this were the only text that rendered,
 could the caller tell whether this is the item they want?**
@@ -254,9 +251,6 @@ nothing else worthwhile to say. An override inherits its supertype's
 documentation; restating it there is a second copy to keep in sync.
 
 ## Other languages
-
-Read the file for the language in hand; each is short and states only its delta
-from the above.
 
 - `go.md`: first-sentence summary beginning with the item's name; the package
   comment as the package's own orientation; contract in prose, no headings;

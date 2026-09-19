@@ -109,7 +109,7 @@ the number of edited files.
 Future plans constrain relevant decisions; they do not expand the
 implementation scope.
 
-Where the task is a misbehaving system rather than a pinned design, the
+Where the task is a misbehaving system rather than a design to build, the
 mechanism is established before the fix, and the fix corrects the underlying
 cause. A fix whose mechanism you cannot state is not done, and a tuning that
 happens to work is not shipped.

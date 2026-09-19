@@ -14,8 +14,6 @@ and still true, so it holds what the code cannot tell a reader quickly and
 what will not change with the next ordinary commit. Everything else lives in
 the code, its doc comments, or a separate document. The shape follows
 matklad's ARCHITECTURE.md essay (matklad.github.io/2021/02/06/ARCHITECTURE.md.html).
-Its sentences are written under `den:writing-for-humans`; this skill decides
-what they are about.
 
 ## What it holds, in order
 

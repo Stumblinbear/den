@@ -1,10 +1,5 @@
 # Configuration skills
 
-What a plugin's configure skill covers, and in what order, drawn from Claude
-Code's skill and plugin references and the setup skills that ship in public
-marketplaces. The core principles apply first; this is the shape they take
-for one kind of skill.
-
 ## Prerequisites first
 
 The reader who cannot run the plugin finds out in the first screen: the
@@ -26,9 +21,7 @@ Pick one; a second, task-shaped skill is how the other is added.
 ## Arrive knowing the state
 
 The preamble reports whether the configuration file exists and what the
-settings hold. Paths in a plugin skill are written as `${CLAUDE_PLUGIN_DATA}` and `${CLAUDE_PLUGIN_ROOT}`,
-which Claude Code substitutes in plugin skills; a literal directory is right
-for one marketplace name only.
+settings hold.
 
 ## What earns its lines
 

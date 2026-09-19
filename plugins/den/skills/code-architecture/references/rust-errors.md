@@ -51,10 +51,6 @@ pub fn load(path: &Path) -> Result<Config, LoadError> {          // after
 }
 ```
 
-This holds in an application as much as a library, and in `main`: an error
-that is only logged is still read, and a typed one reads as well as an erased
-one while keeping its structure for whoever matches it next.
-
 ## 2. What earns a variant
 
 A variant earns its place in one of two ways:

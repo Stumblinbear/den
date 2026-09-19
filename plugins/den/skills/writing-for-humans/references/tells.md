@@ -1,9 +1,7 @@
 # Tells and their fixes
 
-Read this with a sentence in hand: a grep hit, or a line a review named. The
-drafting rules are in the skill body, and so is the rule that turns a tell into
-a finding, that signs count in combination. A catalog read before writing only
-puts the phrasings it lists within reach.
+Read this with a sentence in hand: a grep hit, or a line a review named. A
+catalog read before writing only puts the phrasings it lists within reach.
 
 ## Structure
 
@@ -47,10 +45,9 @@ puts the phrasings it lists within reach.
 
 ## Vocabulary
 
-A word enters the register, gets named, and fades. The bands are dated so a
-stale one moves down instead of being rewritten, and a word here is a prompt to
-look at its sentence: often it is the right word. The grep in the skill body
-carries the current band, so a band that moves is edited into that line too.
+The bands are dated so a stale one moves down instead of being rewritten. The
+grep in the skill body carries the current band, so a band that moves is
+edited into that line too.
 
 **Current, mid-2025 onward:** `emphasizing`, `highlighting`, `showcasing`,
 `enhance`. The first three usually arrive as a participial tail; fix them by

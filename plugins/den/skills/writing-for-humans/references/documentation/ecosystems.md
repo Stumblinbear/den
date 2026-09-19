@@ -1,9 +1,5 @@
 # Where an ecosystem differs
 
-`documentation.md` is calibrated to Rust: books grouped by artifact, each
-opening with what it is and how to read it. Two ecosystems differ in a way that
-changes where a document goes or how its site is laid out.
-
 ## Python: kinds at the top level
 
 Python's own documentation splits at the top by kind (Tutorial, Library

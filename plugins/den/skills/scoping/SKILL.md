@@ -7,9 +7,7 @@ when_to_use: ALWAYS invoke this skill before writing a brief with an unresolved 
 # Scoping
 
 An ask that reads two ways gets built one way, and the wrong reading costs a
-round to build and a round to undo. This pass connects the task to the project's
-direction and puts readings that would produce materially different work to
-the user as decisions, before the brief is written.
+round to build and a round to undo.
 
 ## The direction record
 
@@ -25,12 +23,10 @@ the record's path and the explorers and the implementer read it there.
 Task-specific decisions stay with the task unless they also change the broader
 direction.
 
-Invoke `den:project-direction` when establishing or reconsidering the
-broader direction is necessary; that discovery has no time or question budget
-and is not part of this pass. Preserve questions deliberately left open or
-recorded when the user ended discovery, and revisit them when new evidence
-arrives or a task decision depends on an answer. A confirmed future capability
-can constrain a boundary without authorizing its implementation.
+Preserve questions deliberately left open or recorded when the user ended
+discovery, and revisit them when new evidence arrives or a task decision
+depends on an answer. A confirmed future capability can constrain a boundary
+without authorizing its implementation.
 
 ## When the pass runs
 
@@ -89,14 +85,11 @@ the tool hides the prose written before it.
 The pass ends at the user saying done, or when every consequential decision is
 settled. Record what remains open and what depends on it. An assumption may carry
 reversible work forward; an unresolved choice on a one-way door waits for
-the user's answer. Ending the pass answers nothing that is
-still open. Independent work can continue.
+the user's answer. Ending the pass answers nothing that is still open.
 
 ## Where the answers go
 
-Carry into exploration and the implementation brief the record's path, the
-settled decisions as a list, one decision with its reason each, and the
-unresolved questions. The path rather than a restatement, so that what the
-explorers and the implementer read is the record as it stands. When no brief
-follows, report those three as the outcome. Reading the record does not
+Carry into exploration the record's path, the settled decisions as a list,
+one decision with its reason each, and the unresolved questions. When no
+brief follows, report those three as the outcome. Reading the record does not
 require `den:direction-docs`.

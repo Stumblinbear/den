@@ -1,10 +1,5 @@
 # Rust: make invalid states unrepresentable
 
-Design types so the set of constructible values approximates the set of valid
-domain states. If a value can be built, it should be legal. This is established
-Rust practice: the Rust Book teaches state-encoding through types, and the API
-Guidelines prefer types that statically rule out invalid inputs.
-
 The mechanism is type-driven domain modeling: product types, sum types, refined
 wrappers, and typestate. "Parse, don't validate" pushes the refinement to the
 system boundary so the proof of validity travels inside the type instead of
@@ -32,8 +27,6 @@ being re-checked; typestate extends the same idea from values to the permitted
   → §1, parse-don't-validate.
 - **`assert!(n != 0)`, `.is_empty()` guards, or `.first().unwrap()` repeated
   across a value's call sites.** The precondition wants to live in the type. → §2.
-- **`type UserId = u64; type OrderId = u64;`.** Aliases don't stop interchange.
-  → §1, newtype.
 - **A public field or public tuple-struct constructor on a type with an
   invariant.** Any caller can bypass it. → §1, smart constructor.
 - **Runtime "wrong state" errors or panics on a state machine / driver.** The
@@ -74,21 +67,6 @@ when every underlying value is already valid, or callers legitimately need
 unrestricted mutation. `std::num::NonZero` is the canonical shape: private field,
 checked `new`, explicitly `unsafe` `new_unchecked`. `serde_json::Number` hides
 its representation and rejects NaN/infinity in `from_f64`.
-
-**Newtype wrapper.** Distinct types for values with identical machine reps but
-different meaning; kills primitive obsession.
-
-```rust
-type UserId = u64; type OrderId = u64;      // before: freely interchangeable
-struct UserId(u64); struct OrderId(u64);    // after
-load(OrderId(7));                           // compile error where UserId expected
-```
-
-The API Guidelines call this the no-cost mechanism for static distinctions and
-representation hiding (C-NEWTYPE, C-NEWTYPE-HIDE). Note a *public*-field newtype
-distinguishes meaning but does not enforce a value invariant. Skip when the
-distinction is purely local or the conversion/trait-forwarding noise would
-outweigh the safety.
 
 ## 2. Type shape: illegal combinations can't be built
 

@@ -11,9 +11,9 @@ The highest-frequency mistake this prevents: over-owning parameters and cloning
 to appease the borrow checker. The fix for a borrow-check fight is almost always
 to fix the *signature*, not to `.clone()` at the call site.
 
-This is a calibration, not an "always borrow" rule. Owning is correct when the
-callee consumes or stores the value; returning a borrow is correct when the
-result is genuinely a view into caller-visible state.
+Owning is correct when the callee consumes or stores the value; returning a
+borrow is correct when the result is genuinely a view into caller-visible
+state.
 
 ## Contents
 

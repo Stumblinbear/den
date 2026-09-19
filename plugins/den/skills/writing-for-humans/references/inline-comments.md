@@ -10,8 +10,7 @@ qualifies as readily as a *why*.
 - **The reconstruction test.** Could someone who has never seen this code write
   your comment from the lines next to it? If yes, delete it: the reader
   already has it. Judge by whether the adjacent code yields the comment, not by
-  whether the comment's words resemble the operation; the worked judgments
-  below turn on that distinction.
+  whether the comment's words resemble the operation.
 - **One level up.** The comment and the code sit at different altitudes, and
   the comment is usually the higher one: the block's overall intent rather than
   its steps. The payoff is that the reader can judge whether the code does what

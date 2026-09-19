@@ -101,7 +101,7 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   an item unresolved when closure depends on a product decision.
 - `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
-- `implementer` (opus): the default implementer. Executes a pinned brief,
+- `implementer` (opus): the default implementer. Executes a brief,
   uses the direction record to make choices left open, declares those choices
   and deviations, and stops dependent work on broken assumptions.
   Implementation has no implicit deadline; necessary adjacent refactoring is

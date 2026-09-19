@@ -101,6 +101,12 @@ unwrapping and a pile of math, is worse than failing where failure was
 inevitable. An invariant that holds for one field's role and not for the unit
 stays with the owning type's setters.
 
+A newtype also hides its representation: callers see `UserId`, not `Uuid`, so
+the inner type can change without breaking them (C-NEWTYPE-HIDE). That holds
+only while the field is private; a public-field newtype such as
+`pub struct Port(pub u16)` distinguishes meaning but exposes the representation
+and enforces no invariant.
+
 ## 4. Derive only the intended ergonomics
 
 The boilerplate that discourages newtypes is avoidable, but derive
@@ -150,8 +156,7 @@ derives suffice.
 ## 7. Newtype to cross the orphan rule
 
 You can't `impl` a foreign trait on a foreign type; a local newtype makes it
-legal. (This is also why the orphan rule pushes organizational decisions: see
-`rust-organization.md`.)
+legal.
 
 ```rust
 // impl Display for Vec<String> {}   // forbidden: both foreign
