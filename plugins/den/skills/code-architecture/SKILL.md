@@ -146,7 +146,7 @@ directly.
   ergonomics via `derive_more`/`nutype`/`serde(transparent)`).
 - **Error architecture:** `references/rust-errors.md` (typed errors
   everywhere, `main` included; what earns a variant; the cause in `Display`,
-  not `source()`; context from the layer that has it; and `Result`-vs-`panic`
+  not `source()`; each clause names what it is about; and `Result`-vs-`panic`
   calibration).
 - **API boundary & ownership design:** `references/rust-api-boundaries.md`
   (borrow at boundaries and own deliberately, `&str`/`&[T]` over `&String`/`&Vec`,

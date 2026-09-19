@@ -35,8 +35,9 @@ minor bump may change behavior.
 - The Rust errors reference puts a wrapping error's cause in its `Display`
   rather than in `source()`, so every `{}` prints the whole line and a print
   site that shows only `Display` loses nothing; `#[from]` goes only on
-  transparent variants. An operation's error leaves out the arguments its
-  caller passed, and the caller adds them.
+  transparent variants. Each clause names what it is about, a wrapper the
+  operation and what it acted on, the innermost what was wrong, and a value
+  two clauses share is named once.
 
 ## [0.7.0] - 2026-09-17
 

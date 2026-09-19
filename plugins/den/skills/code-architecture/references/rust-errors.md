@@ -14,7 +14,7 @@ tested or shown, and a typed one serves all three.
 - 1. Typed errors at every boundary
 - 2. What earns a variant
 - 3. The cause is in `Display`, not `source()`
-- 4. Context comes from the layer that has it
+- 4. Each clause names what it is about
 - 5. Recoverable obstruction vs violated invariant
 - Calibration
 - Sources
@@ -111,28 +111,28 @@ error does not need: the caller matches the variant and reads its field.
 Error types still implement `Error`, normally also `Send + Sync + 'static`,
 so they compose (C-GOOD-ERR).
 
-## 4. Context comes from the layer that has it
+## 4. Each clause names what it is about
 
 Prevents a bare "file not found" with no path, and a value printed twice.
 
-An operation's error states what went wrong and leaves out the arguments its
-caller passed, since the caller has them. The caller adds the ones that give
-the failure its meaning, as a field of its own variant, and its `Display`
-names each once.
+A wrapping clause names the operation it attempted and what it attempted it
+on; the innermost names what was wrong and the value that was wrong. Each
+level's value then sits in its own clause, carried as a field of its variant:
+`could not load plugin 'audio': could not read 'audio/config.toml': no key
+'rate'`. Where two clauses are about the same value, it is named once, in
+whichever reads better.
 
 ```rust
-// before: the operation repeats its argument
-fn load(path: &Path) -> Result<Config, LoadError>;  // LoadError::Read { path, cause }
-// after: the caller, which has the path, adds it
-let config = load(path)
-    .map_err(|cause| StartError::Config { path: path.to_owned(), cause })?;
+let text = fs::read_to_string(path)                              // before
+    .map_err(|e| anyhow!("config failed: {e}"))?;
+let text = fs::read_to_string(path)                              // after
+    .map_err(|cause| ConfigError::Read { path: path.to_owned(), cause })?;
 ```
 
-A value the caller did not pass, the one entry of a batch that failed, is
-the operation's to name. Don't add a layer at every propagation step: a layer
-exists where the caller's action or the fact changes. And don't use errors
-for control flow: `Option` models absence, `Result` models a problem the
-caller must address, and `ControlFlow` handles a neutral early exit.
+Don't add a layer at every propagation step: a layer exists where the
+caller's action or the fact changes. And don't use errors for control flow:
+`Option` models absence, `Result` models a problem the caller must address,
+and `ControlFlow` handles a neutral early exit.
 
 ## 5. Recoverable obstruction vs violated invariant
 
