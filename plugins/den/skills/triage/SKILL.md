@@ -26,7 +26,7 @@ it at triage, because the deviation that matters is the one the report did
 not declare.
 
 A fixer inside a `den:review-and-fix` run cannot be resumed: a send-back on
-its declarations goes to a standing implementer after the run returns.
+its declarations is briefed fresh after the run returns.
 
 ## The return of a run
 
@@ -44,8 +44,7 @@ something:
 - `decisions`: the reviewer's decision findings, whole, for the user under
   the lead skill's Whose call.
 - `deferred`: the P3 and quality findings, whole, with the test the reviewer
-  left in the tree for each named in its evidence. One fork sweeps them, or
-  the user leaves them.
+  left in the tree for each named in its evidence.
 - `comment`, on a clean run: the comment pass's `counts` and its `gaps`, each
   a comment kept although no code the pass read shows its claim.
 - `carried`: the fixers' `deviations`, `choices` (each what it `chose` and
@@ -64,10 +63,10 @@ closed take no call.
 
 The return is triaged as one list: each item gets this session's call, and
 every call that changes the tree, a finding left open, a decision ruled fix, a
-sweep of `deferred`, goes to one standing implementer or one fork in one
-brief, since the items were found in one read and a fixer given them one at a
-time leaves the copies. A finding the fixes introduced is read for the
-mechanism before any fixer is briefed, since it is a problem the run made.
+sweep of `deferred`, goes to one fixer in one brief, since the items were
+found in one read and a fixer given them one at a time leaves the copies. A
+finding the fixes introduced is read for the mechanism before any fixer is
+briefed, since it is a problem the run made.
 Neither missing intent nor an undocumented rationale is automatically a
 defect; equally, prior approval does not exempt a choice from contradictory
 evidence.

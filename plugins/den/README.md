@@ -221,7 +221,9 @@ The session then cites code by path and line, sends research to the standing
 agents, and, once a design is pinned, proposes the implementer and the step's
 scope and waits for your go. A quick change the session would otherwise make
 by hand goes to a fork of itself instead, which keeps the file reads, the edit
-output and the test run out of your main context. Once the change is in the
+output and the test run out of your main context. Work past a few turns goes
+to an implementer with a brief, since each turn a fork takes after its spawn
+reads the whole session context again. Once the change is in the
 working tree and the session has put the implementer's report to you, it runs
 `review-and-fix` on the tree with the task's goal. The run fixes the defects
 it finds and returns once; the session brings you the decisions that are

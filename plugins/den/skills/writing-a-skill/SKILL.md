@@ -55,10 +55,7 @@ its body.
 - A launcher sets `context: fork` with an `agent`, and `background: false`
   when the invoking turn should wait for the result; its description says
   what it launches and what its argument is. That subagent starts from the
-  skill's text alone. Work that needs the conversation it was decided in is
-  launched from the body instead, with the Agent tool's
-  `subagent_type: "fork"`, which inherits the whole conversation and its
-  prompt cache and runs on the session's model.
+  skill's text alone.
 - `argument-hint` shows the argument's shape in the menu; the body reads it
   as `$ARGUMENTS`, or by name through `arguments`.
 - `model` and `effort` apply to the subagent a `context: fork` skill runs in;

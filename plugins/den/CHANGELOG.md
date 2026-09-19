@@ -14,6 +14,12 @@ minor bump may change behavior.
 
 ### Changed
 
+- The lead sends only a quick change to a fork and longer work to an
+  implementer with a brief, since a fork reads the whole session context
+  again on every turn after its spawn. Triage no longer says which agent a
+  fix goes to.
+- A change you tell the lead to make launches without the lead asking you
+  first, whether it goes to a fork or to an implementer.
 - Agent definitions and skills are shorter: narration and rules said twice
   are gone.
 - A brief pins only what the user decided, and a plan marks the lead's own

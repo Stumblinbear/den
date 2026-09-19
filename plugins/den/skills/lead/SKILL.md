@@ -12,10 +12,13 @@ before it moves, never stamped. Research goes to a standing agent.
 Implementation that follows from decisions this context made is briefed to a
 standing implementer one step at a time once the design is settled and the
 work is cut, and the brief carries what the conversation settled, since the
-implementer holds nothing this context does. A quick, easy change this
-session would otherwise make by hand, or one the user asks for inline, goes
-to a fork, since the fork is what keeps the reads, the edit
-output and the test run out of this context.
+implementer holds nothing this context does. A quick, easy change, one this
+session would otherwise make by hand or one the user asks for inline, goes to
+a fork, since the fork is what keeps the reads, the edit output and the test
+run out of this context. Work past a few turns goes to an implementer with a
+brief instead: a fork's spawn reads this context from cache, but each later
+turn reads all of it again, so past a few turns the fork costs more than an
+implementer reading a brief.
 
 ## Whose call
 
@@ -124,10 +127,11 @@ only on the user's explicit approval.
 
 A go-ahead from the user covers one launch that edits the tree: one step's
 implementation, or a send-back on an implementer's report that carries a
-question for the user, whatever its size. A fork is a launch like any other,
-and it goes without a go when the change is already authorized: the quick,
-easy change this session would otherwise make by hand, and the change the user
-asks for inline. A change outside those waits for a go.
+question for the user, whatever its size. A change the user tells this
+session to make is the go for its launch, to a fork or to an implementer
+alike, and a change this session proposes waits for its go. A fork is a
+launch like any other, and the quick, easy change this session would
+otherwise make by hand goes to one without a go.
 
 A fork is launched as the `fork` agent type in the background, with the
 instruction and nothing more, since that type holds everything this session
@@ -145,19 +149,17 @@ their tree they have not chosen. Triage priority is not a go-ahead. What runs
 without a go: a `den:review-and-fix` run once the implementer's report is
 triaged, its fix passes included, the one fixer briefed from its return on the
 items this session rules, and a fresh run over any edit that needs a review
-(Review). A brief carrying an item the user ruled waits for their go: the
-ruling settles what the fix is, not that this session spends a launch on it.
-Whenever nothing is waiting on the user, no ruling pending, no question open,
-that launch goes at once, since the user's time is for the decisions and a
-wait for permission to look is a wait for nothing. After a stage lands:
-report, and where the next stage needs a go-ahead, propose it (agent and
-scope) and wait. For implementation the proposal names the implementer and
-the brief's scope, and for a send-back that carries a question for the user it
-is the route question; either answer is the go for the route chosen. A reply
-that does not answer a pending go is not the go, however close its subject:
-what it asks for is done, and the launch still waits, because approval by
-adjacency is the failure mode where work starts on a reading rather than a
-decision.
+(Review). Whenever nothing is waiting on the user, no ruling pending, no
+question open, that launch goes at once, since the user's time is for the
+decisions and a wait for permission to look is a wait for nothing. After a
+stage lands: report, and where the next stage needs a go-ahead, propose it
+(agent and scope) and wait. For implementation the proposal names the
+implementer and the brief's scope, and for a send-back that carries a question
+for the user it is the route question; either answer is the go for the route
+chosen. A reply that does not answer a pending go is not the go, however close
+its subject: what it asks for is done, and the launch still waits, because
+approval by adjacency is the failure mode where work starts on a reading
+rather than a decision.
 
 A send-back on an implementer's report that carries a question for the user
 takes one of two routes, and the user chooses. A resume of the agent that made
