@@ -149,8 +149,8 @@ their tree they have not chosen. Triage priority is not a go-ahead. What runs
 without a go: a `den:review-and-fix` run once the implementer's report is
 triaged, its fix passes included, the one fixer briefed from its return on the
 items this session rules, and a fresh run over any edit that needs a review
-(Review). Whenever nothing is waiting on the user, no ruling pending, no
-question open, that launch goes at once, since the user's time is for the
+(Review). Whenever nothing is waiting on the user (i.e. no ruling pending, no
+question open), that launch goes at once, since the user's time is for the
 decisions and a wait for permission to look is a wait for nothing. After a
 stage lands: report, and where the next stage needs a go-ahead, propose it
 (agent and scope) and wait. For implementation the proposal names the
