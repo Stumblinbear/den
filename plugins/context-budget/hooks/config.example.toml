@@ -47,13 +47,14 @@ urgent = 500_000
 [messages]
 
 # Injected on crossing `notice`. It says once that a compaction has become
-# worth raising, then stays out of the way until the arc the agent is in ends:
-# an agent that takes a step inside an arc for that point recommends a
-# compaction at every brief and every launch. Its arc test is the one the
-# watcher's judge applies, written out in full in `lib/judge.mts`; edit the two
-# together.
+# worth raising, then stays out of the way until the arc the agent is in ends
+# and `/compact` is the next command you should run: an agent that takes a step
+# inside an arc for that point recommends a compaction at every brief and every
+# launch, and one that mentions the budget sooner narrates it through work
+# still in flight. Its arc test is the one the watcher's judge applies, written
+# out in full in `lib/judge.mts`; edit the two together.
 notice = """
-Context budget: this session has crossed the point where a summarize starts to pay. A summarize is worth it at the end of an arc, where the work ahead would not need the detail behind it; a step inside one, a brief written or an agent launched, is not that point, since a summary keeps what came before only in outline, and the next step still needs it exact. Until then, work as if this message had not arrived, since raising the budget early pulls the work toward stopping. When the arc ends, recommend `/compact` to the user in a sentence."""
+Context budget: this session has crossed the point where a summarize starts to pay. A summarize is worth it at the end of an arc, where the work ahead would not need the detail behind it; a step inside one, a brief written or an agent launched, is not that point, since a summary keeps what came before only in outline, and the next step still needs it exact. Once the arc has ended and `/compact` is the next command the user should run, recommend it in one sentence; until then, work as if this message had not arrived, since raising the budget early pulls the work toward stopping."""
 
 # Injected on crossing `urgent`. It gets a compaction raised at the end of the
 # step in hand, since past this level the end of the arc is too far off to wait

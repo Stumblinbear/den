@@ -176,22 +176,22 @@ function prompted(transcript: string, watcher: Watcher): string | null {
 }
 
 /**
- * The instruction that follows the judge's verdict in the advice: judge whether
- * to compact here and tell the user, with `/compact` in a fenced block of its
- * own where the answer is yes, since a command inside a paragraph goes unread.
+ * The instruction that follows the judge's verdict in the advice: where
+ * `/compact` is the next command the user should run, recommend it in one
+ * sentence with the command in a fenced block of its own, since a command
+ * inside a paragraph goes unread, and otherwise carry on as before.
  *
  * @remarks
- * It carries the whole instruction, raising the question again at later pauses
- * included, because it reaches the session long after the notice did, and a
- * verdict stands until the context leaves the rung it was judged on, so the
- * judge is not consulted again while the user's answer is outstanding.
+ * A verdict the session declines gets no reply. An agent told to answer every
+ * verdict narrates compaction through work still in flight, and one told to
+ * raise it again later writes `/compact` before it is wanted. Nothing is lost
+ * by the silence: a verdict stands until a landing or a climb to the midpoint
+ * rung drops it, and the judge is consulted again from there.
  */
 const RELAY = [
-	"Judge whether this is a good point to compact, and give the user your answer",
-	"in your next reply: where it is, one sentence of why with `/compact` in a",
-	"fenced block on its own line at the end; where it is not, say that and give",
-	"no command. If the work in hand should finish first, say so and raise it",
-	"again at each later pause, until the user compacts or says they want none.",
+	"Where `/compact` is now the next command the user should run, recommend it",
+	"in one sentence, with the command in a fenced block on its own line at the",
+	"end. Otherwise work as if this message had not arrived.",
 ].join(" ");
 
 /**

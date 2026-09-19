@@ -77,8 +77,8 @@ Consequences that answer most "why did it" questions:
   fault of the same kind in different words arrives in the new words.
 
 Each message says how large the session is and when to recommend `/compact`:
-at the end of the arc for `notice`, at the end of the step in hand for
-`urgent`. The hook reads only the fixed 512 KB tail it measures, on every run,
+once the arc has ended and `/compact` is the next command the user should run
+for `notice`, at the end of the step in hand for `urgent`. The hook reads only the fixed 512 KB tail it measures, on every run,
 and walks nothing.
 
 The resume guard runs on every `SendMessage` the main session sends a subagent
@@ -144,10 +144,12 @@ The watcher runs on `Stop`, in the background, and only while the context sits
 past `notice` and under `urgent`. It asks a small model, on the last sixteen
 turns of conversation alone, one thing: whether the session's arc of work has
 just ended. Claude Code hands the answer to the agent on its next turn, and
-the agent then judges whether this is a good point to compact and puts it to
-the user every time, saying so where it would rather finish the work in hand
-first and raising it again at each pause after, until the user compacts or
-says they want none. The judge never names a command; that is the session's.
+the agent recommends `/compact` in one sentence where that is the next command
+the user should run, and otherwise says nothing about compaction. A verdict it
+passes over stands until a commit, a push, a task marked completed or the
+context passing the midpoint between the two thresholds drops it, and the judge
+is asked again from there. The judge
+never names a command; that is the session's.
 It paces itself: an answer of "not yet" names a wait of one, three or eight
 turns, halved past the midpoint between the two thresholds, and a commit, a
 push or a task marked completed cuts a wait short. Turns there are the user's

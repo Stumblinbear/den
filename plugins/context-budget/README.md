@@ -14,10 +14,11 @@ auto-compact choose one for you.
 - A watcher. Past the first threshold, at the end of every turn, a background
   hook asks a small model one thing: whether the session's arc of work has just
   ended. Its answer reaches the agent on the next turn as advice: where the
-  boundary was and why the arc looks over. The agent judges whether to compact
-  there and tells you every time, with `/compact` on a line of its own where it
-  recommends one; where it would rather finish the work first it says so and
-  raises it again at each pause after, until you compact or say you want none.
+  boundary was and why the arc looks over. Where `/compact` is the next command
+  you should run, the agent tells you so in one sentence, with the command on a
+  line of its own; otherwise it says nothing about compaction and carries on,
+  and the watcher asks again after the next commit, push or completed task, or
+  once the context passes halfway to the second threshold.
   It runs on your own Claude subscription's allowance, a few calls in a session;
   `[watcher] enabled = false` switches it off.
 - A resume guard. Before a message is sent to a subagent, a hook denies

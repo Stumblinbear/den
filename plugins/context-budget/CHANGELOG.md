@@ -7,6 +7,14 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+
+- The agent mentions compaction only when `/compact` is the next command you
+  should run, and then in one sentence. The watcher's advice had it answer
+  every verdict and raise a delayed cut again at each later pause, and the
+  default `notice` asked for `/compact` at every arc's end, which left it
+  narrating the budget and writing `/compact` while work was still in flight.
+
 ### Fixed
 
 - The resume guard applies to a message that names the agent by its name.
