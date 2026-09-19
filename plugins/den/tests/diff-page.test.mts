@@ -47,12 +47,13 @@ function repository(): string {
  * Runs the script the way the skill does, through the launcher. The page
  * goes under the OS temp directory, which the child reads from TMPDIR, TEMP
  * and TMP, so those point at a fixture directory and no test page reaches
- * the real one.
+ * the real one. `path`, where given, is the child's PATH.
  */
 function page(
 	cwd: string,
 	data: string,
 	range: string,
+	path?: string,
 ): { out: string; temp: string } {
 	const temp = fixtureDir("diff-page-temp");
 	const run = spawnSync(
@@ -61,8 +62,14 @@ function page(
 		{
 			cwd,
 			encoding: "utf8",
-			// biome-ignore lint/style/noProcessEnv: the child needs PATH to find its interpreter.
-			env: { ...process.env, TMPDIR: temp, TEMP: temp, TMP: temp },
+			env: {
+				// biome-ignore lint/style/noProcessEnv: the child needs PATH to find its interpreter.
+				...process.env,
+				...(path === undefined ? {} : { PATH: path }),
+				TMPDIR: temp,
+				TEMP: temp,
+				TMP: temp,
+			},
 		},
 	);
 
@@ -153,6 +160,43 @@ test("a prose word diff parses into lines of kept, removed and added words", () 
 		[ctx("last line")],
 		[{ kind: "add", text: "new line added" }],
 	]);
+});
+
+/** The page of a one-line change to a Rust file, run on the node leg. */
+function codePage(path?: string): string {
+	const cwd = repository();
+	writeFileSync(join(cwd, "a.rs"), "fn f() {\n    g(1);\n}\n");
+	git(cwd, "add", "a.rs");
+	git(cwd, "commit", "-q", "-m", "code");
+	writeFileSync(join(cwd, "a.rs"), "fn f() {\n    g(2);\n}\n");
+
+	const { out } = page(cwd, dataDir("node"), "", path);
+	const named = /^Diff page: (.+\.html) /m.exec(out);
+
+	assert.ok(named !== null, out);
+
+	return readFileSync(named[1] ?? "", "utf8");
+}
+
+test("with no difft on PATH, a code file keeps its line diff", () => {
+	// git's own program directory holds git and never difft.
+	const html = codePage(git(".", "--exec-path").trim());
+
+	assert.doesNotMatch(html, /class="syntax"/);
+	assert.match(html, /<tr class="add">.*g\(2\);/);
+});
+
+const DIFFT =
+	spawnSync("difft", ["--version"], { stdio: "ignore" }).status === 0;
+
+test("with difft on PATH, a code file is diffed by syntax", {
+	skip: !DIFFT && "difft did not answer a version probe",
+}, () => {
+	const html = codePage();
+
+	assert.match(html, /<table class="syntax">/);
+	assert.match(html, /g\(<del>1<\/del>\);/);
+	assert.match(html, /g\(<ins>2<\/ins>\);/);
 });
 
 for (const runtime of runtimes()) {

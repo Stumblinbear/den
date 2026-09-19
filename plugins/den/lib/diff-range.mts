@@ -1,25 +1,13 @@
 // The files a `git diff` range changed, read from git: the tracked files'
 // diff, the untracked files as the new-file diffs they become, a section for
-// each file whose only change is whitespace, and each prose file's word diff.
-import { type SpawnSyncReturns, spawnSync } from "node:child_process";
-import process from "node:process";
+// each file whose only change is whitespace, each prose file's word diff and
+// each code file's structural diff.
+import { spawnSync } from "node:child_process";
 import { type DiffArgs, diffArgs } from "./diff-args.mts";
+import { readSides } from "./diff-sides.mts";
+import { difftasticBody } from "./difftastic.mts";
+import { git, type Output, RUN, reason } from "./git-command.mts";
 import { type DiffFile, parseDiff, parseWordDiff } from "./git-diff.mts";
-
-// git prints a non-ASCII path quoted and escaped under the default
-// core.quotePath, which names no file and drops the untracked hunk for it.
-const GIT_ENV = {
-	// biome-ignore lint/style/noProcessEnv: git needs the session's PATH and HOME; the three below are what this run adds.
-	...process.env,
-	GIT_CONFIG_COUNT: "1",
-	GIT_CONFIG_KEY_0: "core.quotePath",
-	GIT_CONFIG_VALUE_0: "false",
-};
-
-// A diff of any size is the point, so no call here keeps Node's 1 MiB
-// default: past it the child is killed and `error` is set with no stderr,
-// which reads as git failing for no reason.
-const RUN = { encoding: "utf8", env: GIT_ENV, maxBuffer: Infinity } as const;
 
 // The parser reads the `a/`-and-`b/` header git writes by default, which
 // `diff.noprefix` and `diff.mnemonicPrefix` in the user's config replace, so
@@ -32,20 +20,6 @@ const DIFF = [
 	"--dst-prefix=b/",
 ];
 
-// git's own options for the whitespace a diff ignores. With none of them in
-// the argument the diff ignores all whitespace, as `-w` does, so a line
-// reindented or rewrapped is not read as changed; with one, the caller's
-// option is the only one.
-const WHITESPACE = new Set([
-	"-w",
-	"--ignore-all-space",
-	"-b",
-	"--ignore-space-change",
-	"--ignore-space-at-eol",
-	"--ignore-cr-at-eol",
-	"--ignore-blank-lines",
-]);
-
 // What turns a diff into the word diff a prose file is shown with.
 const WORDS = ["--word-diff=porcelain"];
 
@@ -54,9 +28,6 @@ const WORDS = ["--word-diff=porcelain"];
 const PROSE = /\.(md|markdown|txt|rst|adoc)$/i;
 
 const isProse = (path: string): boolean => PROSE.test(path);
-
-/** What a git run printed, or the line saying why it failed. */
-type Output = { readonly out: string } | { readonly failure: string };
 
 /** A listing of paths, or the line saying why it failed. */
 type Names =
@@ -75,23 +46,6 @@ export type Range =
 	  }
 	| { readonly failure: string };
 
-/**
- * Why a run gave no diff. A run that did not start, or was killed (past
- * `maxBuffer`, say), carries the cause in `error` and has no stderr; a run
- * that failed carries it in stderr.
- */
-const reason = (run: SpawnSyncReturns<string>): string =>
-	run.error?.message ?? run.stderr.trim();
-
-/** Runs git where this process runs, `command` naming it in a failure. */
-function git(args: readonly string[], command: string): Output {
-	const run = spawnSync("git", args, RUN);
-
-	return run.status === 0
-		? { out: run.stdout }
-		: { failure: `\`${command}\` failed: ${reason(run)}` };
-}
-
 /** The paths a `-z` listing printed, one per NUL-ended entry. */
 function names(output: Output): Names {
 	return "failure" in output
@@ -101,9 +55,7 @@ function names(output: Output): Names {
 
 /** The tracked files' diff, `extra` choosing its format. */
 function trackedDiff(args: DiffArgs, extra: readonly string[]): Output {
-	const whitespace = args.options.some((option) => WHITESPACE.has(option))
-		? []
-		: ["-w"];
+	const whitespace = args.whitespace ? [] : ["-w"];
 
 	return git(
 		[
@@ -253,6 +205,45 @@ function withProse(
 	};
 }
 
+/**
+ * `files` with each code file's lines replaced by difftastic's diff of its
+ * two versions, where `difft` is installed and its output reads. A file
+ * added or deleted whole has one version, nothing to match, and keeps its
+ * lines, as does any file when the argument shapes the line diff.
+ */
+function withSyntax(
+	root: string,
+	args: DiffArgs,
+	files: readonly DiffFile[],
+): DiffFile[] {
+	const code = files.filter(
+		(file) =>
+			file.change === "modified" &&
+			file.body.kind === "lines" &&
+			file.body.hunks.length > 0 &&
+			!isProse(file.path),
+	);
+
+	if (code.length === 0 || args.shapesLines) {
+		return [...files];
+	}
+
+	const sides = readSides(
+		root,
+		args,
+		code.map((file) => file.path),
+	);
+	return files.map((file) => {
+		const pair = code.includes(file) ? sides.get(file.path) : undefined;
+		const body =
+			pair === undefined
+				? null
+				: difftasticBody(file.path, pair.old, pair.now, args.context);
+
+		return body === null ? file : { ...file, body };
+	});
+}
+
 function rangeFiles(root: string, args: DiffArgs): Files {
 	const tracked = trackedDiff(args, []);
 	const changed = changedNames(args);
@@ -270,9 +261,13 @@ function rangeFiles(root: string, args: DiffArgs): Files {
 		return untracked;
 	}
 
-	const files = withWhitespaceOnly(
-		parseDiff(tracked.out + newFileDiffs(root, untracked.names, [])),
-		changed.names,
+	const files = withSyntax(
+		root,
+		args,
+		withWhitespaceOnly(
+			parseDiff(tracked.out + newFileDiffs(root, untracked.names, [])),
+			changed.names,
+		),
 	);
 
 	return files.some((file) => file.body.kind === "lines" && isProse(file.path))

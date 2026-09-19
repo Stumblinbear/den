@@ -1,7 +1,14 @@
 // A parsed diff as a page: one collapsible section per file, for reading a
 // change on a phone. The page carries its own styles and loads two faces
 // from Google Fonts with system fallbacks; nothing else reaches out.
-import type { Body, DiffFile, Hunk, ProseLine, Span } from "./git-diff.mts";
+import type {
+	Body,
+	DiffFile,
+	Hunk,
+	ProseLine,
+	Span,
+	SyntaxLine,
+} from "./git-diff.mts";
 
 /** What the header line above the sections says. */
 export interface PageHeading {
@@ -26,12 +33,12 @@ export const CSS = `
 :root {
   --bg:#F5F6F8; --panel:#FFFFFF; --ink:#1E2328; --mute:#5C6670; --rule:#D9DEE4;
   --accent:#1B6F6A; --add-bg:#E3F3E8; --add-ink:#1A6B3A; --del-bg:#FBE7E7; --del-ink:#9E2A2A;
-  --hunk-bg:#EEF2F6; --hunk-ink:#4C6A8A; --ln:#9AA3AC;
+  --hunk-bg:#EEF2F6; --hunk-ink:#4C6A8A; --ln:#9AA3AC; --add-mark:#B5E3C4; --del-mark:#F4BDBD;
 }
 @media (prefers-color-scheme: dark) { :root {
   --bg:#141719; --panel:#1B1F23; --ink:#E4E8EC; --mute:#98A2AD; --rule:#2C333A;
   --accent:#5FC3BC; --add-bg:#1B3323; --add-ink:#8FD9A6; --del-bg:#3D2023; --del-ink:#F19A9A;
-  --hunk-bg:#20272F; --hunk-ink:#8FB3D9; --ln:#5E6973;
+  --hunk-bg:#20272F; --hunk-ink:#8FB3D9; --ln:#5E6973; --add-mark:#2C5A3B; --del-mark:#6B2E33;
 } }
 body { background:var(--bg); color:var(--ink); font:15px/1.5 "IBM Plex Sans", system-ui, sans-serif; margin:0; }
 header { padding:20px 16px 12px; border-bottom:1px solid var(--rule); background:var(--panel); }
@@ -63,6 +70,8 @@ table.prose tr.h td.c { font-family:${MONO}; font-size:12.5px; }
 table.prose td.c:empty::before { content:"\\00a0"; }
 ins { background:var(--add-bg); color:var(--add-ink); text-decoration:none; }
 del { background:var(--del-bg); color:var(--del-ink); }
+table.syntax ins { background:var(--add-mark); }
+table.syntax del { background:var(--del-mark); text-decoration:none; }
 .note { margin:0; padding:10px 16px; color:var(--mute); font-size:14px; }
 `;
 
@@ -136,10 +145,45 @@ function proseRows(hunks: readonly Hunk<ProseLine>[]): string {
 	return out.join("");
 }
 
+/**
+ * A structural diff's rows, laid out as `lineRows` lays out a line diff's,
+ * each line carrying its own numbers.
+ */
+function syntaxRows(hunks: readonly Hunk<SyntaxLine>[]): string {
+	const out: string[] = [];
+
+	for (const hunk of hunks) {
+		out.push(
+			`<tr class="h"><td class="ln"></td><td class="ln"></td><td class="c">${hunkLabel(hunk)}</td></tr>`,
+		);
+
+		for (const line of hunk.lines) {
+			if (line.kind === "add") {
+				out.push(
+					`<tr class="add"><td class="ln"></td><td class="ln">${line.new}</td><td class="c">${line.spans.map(spanHtml).join("")}</td></tr>`,
+				);
+			} else if (line.kind === "del") {
+				out.push(
+					`<tr class="del"><td class="ln">${line.old}</td><td class="ln"></td><td class="c">${line.spans.map(spanHtml).join("")}</td></tr>`,
+				);
+			} else {
+				out.push(
+					`<tr><td class="ln">${line.old}</td><td class="ln">${line.new}</td><td class="c">${escapeHtml(line.text)}</td></tr>`,
+				);
+			}
+		}
+	}
+
+	return out.join("");
+}
+
 function bodyHtml(body: Body): string {
 	switch (body.kind) {
 		case "lines":
 			return `<div class="scroll"><table><tbody>${lineRows(body.hunks)}</tbody></table></div>`;
+
+		case "syntax":
+			return `<div class="scroll"><table class="syntax"><tbody>${syntaxRows(body.hunks)}</tbody></table></div>`;
 
 		case "words":
 			return `<table class="prose"><tbody>${proseRows(body.hunks)}</tbody></table>`;

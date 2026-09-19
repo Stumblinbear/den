@@ -1,6 +1,6 @@
 ---
 name: diff-page
-description: Renders a git diff range as one page file, a collapsible section per file with old and new line numbers and coloured lines, prose files word by word, and sends the file to the user for reading away from the terminal. The argument is a git diff range with optional `git diff` options and nothing else (revisions, options such as `-W`, optionally `-- paths`); omit the range for the working tree against HEAD.
+description: Renders a git diff range as one page file, a collapsible section per file with old and new line numbers and coloured lines, prose files word by word and code by syntax where difftastic is installed, and sends the file to the user for reading away from the terminal. The argument is a git diff range with optional `git diff` options and nothing else (revisions, options such as `-W`, optionally `-- paths`); omit the range for the working tree against HEAD.
 when_to_use: ALWAYS invoke this skill when the user asks to see, read or review a diff from a phone or another device, or asks for a change as a page. Do not paste the diff or publish it as an artifact directly; use this skill first.
 argument-hint: "[git diff range and options, e.g. HEAD~1, main..HEAD or -W HEAD; omit the range for the working tree]"
 allowed-tools: SendUserFile
@@ -23,3 +23,10 @@ whitespace options in the argument replaces that default; to see whitespace
 changes, pass `--ignore-cr-at-eol`, which hides only a carriage return ending
 a line. An option's value is written into it (`-U5`, `--diff-filter=M`),
 since a separate word before `--` is read as a revision.
+
+Where `difft` (difftastic) is on PATH, a changed code file is diffed by
+syntax: a line whose tokens all match is context however it was rewrapped
+or reindented, and the changed tokens are marked inside their lines. A file
+added or deleted whole, a file difftastic cannot parse, and every file when
+the argument carries a whitespace, `-W` or diff-algorithm option keep the
+line diff; `-U` sets the context of both.

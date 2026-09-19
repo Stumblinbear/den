@@ -29,10 +29,26 @@ export interface Hunk<L> {
  */
 export type ProseLine = readonly Span[];
 
+/**
+ * A line of a structural diff, numbered on the sides it is on. A kept line
+ * is shown as the new side has it; a removed or added line's spans are the
+ * syntax the diff marked changed, `del` or `add`, and the rest `ctx`.
+ */
+export type SyntaxLine =
+	| {
+			readonly kind: "ctx";
+			readonly old: number;
+			readonly new: number;
+			readonly text: string;
+	  }
+	| { readonly kind: "del"; readonly old: number; readonly spans: Span[] }
+	| { readonly kind: "add"; readonly new: number; readonly spans: Span[] };
+
 /** What a file's section shows. */
 export type Body =
 	| { readonly kind: "lines"; readonly hunks: readonly Hunk<Span>[] }
 	| { readonly kind: "words"; readonly hunks: readonly Hunk<ProseLine>[] }
+	| { readonly kind: "syntax"; readonly hunks: readonly Hunk<SyntaxLine>[] }
 	/** The file changed, but only in whitespace, which the diff ignored. */
 	| { readonly kind: "whitespace" };
 
