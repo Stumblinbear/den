@@ -1,104 +1,12 @@
-// A unified diff as a page: the parser that turns `git diff` output into
-// files and hunks, and the renderer that lays them out one collapsible
-// section per file, with old and new line numbers, for reading a change on a
-// phone. The page carries its own styles and loads two faces from Google
-// Fonts with system fallbacks; nothing else reaches out.
-
-export interface Line {
-	readonly kind: "add" | "del" | "ctx";
-	readonly text: string;
-}
-
-export interface Hunk {
-	readonly oldStart: number;
-	readonly newStart: number;
-	readonly context: string;
-	readonly lines: Line[];
-}
-
-export interface DiffFile {
-	readonly path: string;
-	readonly hunks: Hunk[];
-	added: number;
-	removed: number;
-}
+// A parsed diff as a page: one collapsible section per file, for reading a
+// change on a phone. The page carries its own styles and loads two faces
+// from Google Fonts with system fallbacks; nothing else reaches out.
+import type { Body, DiffFile, Hunk, ProseLine, Span } from "./git-diff.mts";
 
 /** What the header line above the sections says. */
 export interface PageHeading {
 	readonly title: string;
 	readonly range: string;
-}
-
-const HUNK = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@(.*)$/;
-const FILE = /^diff --git a\/(.*) b\/(.*)$/;
-const PREAMBLE =
-	/^(index |--- |\+\+\+ |new file|deleted file|similarity|rename |old mode|new mode|Binary files)/;
-
-/**
- * Files and hunks out of `git diff` text. Lines before the first hunk of a
- * file (the index line, the mode lines, the `---`/`+++` pair) are the
- * header and carry no content; `\ No newline at end of file` is dropped.
- *
- * A header is only read before a file's first `@@`: git writes none after
- * one, and a line the file deleted is not distinguishable from one, since
- * a removed `-- ` comment arrives as `--- `.
- */
-export function parseDiff(text: string): DiffFile[] {
-	const files: DiffFile[] = [];
-	let file: DiffFile | null = null;
-
-	for (const raw of text.replace(/\r\n/g, "\n").split("\n")) {
-		const named = FILE.exec(raw);
-
-		if (named !== null) {
-			file = { path: named[2] ?? "", hunks: [], added: 0, removed: 0 };
-			files.push(file);
-			continue;
-		}
-
-		if (file === null || (file.hunks.length === 0 && PREAMBLE.test(raw))) {
-			continue;
-		}
-
-		const hunk = HUNK.exec(raw);
-
-		if (hunk !== null) {
-			file.hunks.push({
-				oldStart: Number(hunk[1]),
-				newStart: Number(hunk[2]),
-				context: (hunk[3] ?? "").trim(),
-				lines: [],
-			});
-			continue;
-		}
-
-		const current = file.hunks.at(-1);
-
-		// The newline ending the diff splits into a last empty string, which is
-		// no line at all: git writes a space for a context line that is empty.
-		if (
-			current === undefined ||
-			raw === "" ||
-			raw.startsWith("\\ No newline")
-		) {
-			continue;
-		}
-
-		const mark = raw[0];
-		const text = raw.slice(1);
-
-		if (mark === "+") {
-			current.lines.push({ kind: "add", text });
-			file.added += 1;
-		} else if (mark === "-") {
-			current.lines.push({ kind: "del", text });
-			file.removed += 1;
-		} else {
-			current.lines.push({ kind: "ctx", text });
-		}
-	}
-
-	return files;
 }
 
 export function escapeHtml(text: string): string {
@@ -150,6 +58,12 @@ td.c { width:100%; padding-right:16px; }
 tr.add td { background:var(--add-bg); } tr.add td.c { color:var(--add-ink); }
 tr.del td { background:var(--del-bg); } tr.del td.c { color:var(--del-ink); }
 tr.h td { background:var(--hunk-bg); color:var(--hunk-ink); padding-top:4px; padding-bottom:4px; }
+table.prose td.c { white-space:pre-wrap; overflow-wrap:anywhere; padding-left:16px; font:14px/1.55 "IBM Plex Sans", system-ui, sans-serif; }
+table.prose tr.h td.c { font-family:${MONO}; font-size:12.5px; }
+table.prose td.c:empty::before { content:"\\00a0"; }
+ins { background:var(--add-bg); color:var(--add-ink); text-decoration:none; }
+del { background:var(--del-bg); color:var(--del-ink); }
+.note { margin:0; padding:10px 16px; color:var(--mute); font-size:14px; }
 `;
 
 const FONTS =
@@ -158,12 +72,15 @@ const FONTS =
 const counts = (file: DiffFile): string =>
 	`<b class="a">+${file.added}</b> <b class="d">−${file.removed}</b>`;
 
-function rows(file: DiffFile): string {
+const hunkLabel = (hunk: Hunk<unknown>): string =>
+	`@@ −${hunk.oldStart} +${hunk.newStart} @@ ${escapeHtml(hunk.context)}`;
+
+function lineRows(hunks: readonly Hunk<Span>[]): string {
 	const out: string[] = [];
 
-	for (const hunk of file.hunks) {
+	for (const hunk of hunks) {
 		out.push(
-			`<tr class="h"><td class="ln"></td><td class="ln"></td><td class="c">@@ −${hunk.oldStart} +${hunk.newStart} @@ ${escapeHtml(hunk.context)}</td></tr>`,
+			`<tr class="h"><td class="ln"></td><td class="ln"></td><td class="c">${hunkLabel(hunk)}</td></tr>`,
 		);
 
 		let old = hunk.oldStart;
@@ -195,7 +112,47 @@ function rows(file: DiffFile): string {
 	return out.join("");
 }
 
-/** The whole page, sections open, for `files` under `heading`. */
+const TAGS = { add: "ins", del: "del" } as const;
+
+function spanHtml(span: Span): string {
+	const text = escapeHtml(span.text);
+
+	return span.kind === "ctx"
+		? text
+		: `<${TAGS[span.kind]}>${text}</${TAGS[span.kind]}>`;
+}
+
+function proseRows(hunks: readonly Hunk<ProseLine>[]): string {
+	const out: string[] = [];
+
+	for (const hunk of hunks) {
+		out.push(`<tr class="h"><td class="c">${hunkLabel(hunk)}</td></tr>`);
+
+		for (const line of hunk.lines) {
+			out.push(`<tr><td class="c">${line.map(spanHtml).join("")}</td></tr>`);
+		}
+	}
+
+	return out.join("");
+}
+
+function bodyHtml(body: Body): string {
+	switch (body.kind) {
+		case "lines":
+			return `<div class="scroll"><table><tbody>${lineRows(body.hunks)}</tbody></table></div>`;
+
+		case "words":
+			return `<table class="prose"><tbody>${proseRows(body.hunks)}</tbody></table>`;
+
+		case "whitespace":
+			return `<p class="note">Only whitespace changed.</p>`;
+	}
+}
+
+/**
+ * The whole page for `files` under `heading`, each section open but those
+ * of a file added or deleted whole, whose lines are all one colour.
+ */
 export function renderPage(
 	files: readonly DiffFile[],
 	heading: PageHeading,
@@ -211,7 +168,7 @@ export function renderPage(
 	const sections = files
 		.map(
 			(file, i) =>
-				`<details class="file" id="f${i}" open><summary><span class="path">${escapeHtml(file.path)}</span><span class="counts">${counts(file)}</span></summary><div class="scroll"><table><tbody>${rows(file)}</tbody></table></div></details>`,
+				`<details class="file" id="f${i}"${file.change === "modified" ? " open" : ""}><summary><span class="path">${escapeHtml(file.path)}</span><span class="counts">${counts(file)}</span></summary>${bodyHtml(file.body)}</details>`,
 		)
 		.join("\n");
 

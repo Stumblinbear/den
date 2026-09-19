@@ -9,6 +9,16 @@ minor bump may change behavior.
 
 ### Changed
 
+- `diff-page` shows a prose file (`.md`, `.markdown`, `.txt`, `.rst`,
+  `.adoc`) word by word, with removed and added words marked inside wrapped
+  lines, so a rewrapped paragraph no longer reads as one block removed and
+  one added. It leaves out whitespace-only changes as `git diff -w` does,
+  unless the argument carries one of git's whitespace options, and a file
+  whose only change is whitespace gets a section saying so. A file added or
+  deleted whole starts folded. The argument takes `git diff` options such as
+  `-W` beside the range: an option no longer leaves untracked files out, and
+  an argument naming no revision compares against HEAD.
+
 - The implementer's prompt no longer tells it to expect hard free choices in
   the brief, which `implementer-low` is picked for the absence of. Its stop
   rules carry what it does with what the brief left out.

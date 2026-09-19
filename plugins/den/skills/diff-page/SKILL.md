@@ -1,8 +1,8 @@
 ---
 name: diff-page
-description: Renders a git diff range as one page file, a collapsible section per file with old and new line numbers and coloured lines, and sends the file to the user for reading away from the terminal. The argument is a git diff range and nothing else (revisions, optionally `-- paths`); omit it for the working tree against HEAD.
+description: Renders a git diff range as one page file, a collapsible section per file with old and new line numbers and coloured lines, prose files word by word, and sends the file to the user for reading away from the terminal. The argument is a git diff range with optional `git diff` options and nothing else (revisions, options such as `-W`, optionally `-- paths`); omit the range for the working tree against HEAD.
 when_to_use: ALWAYS invoke this skill when the user asks to see, read or review a diff from a phone or another device, or asks for a change as a page. Do not paste the diff or publish it as an artifact directly; use this skill first.
-argument-hint: "[git diff range, e.g. HEAD~1 or main..HEAD; omit for the working tree]"
+argument-hint: "[git diff range and options, e.g. HEAD~1, main..HEAD or -W HEAD; omit the range for the working tree]"
 allowed-tools: SendUserFile
 ---
 
@@ -16,3 +16,10 @@ from that line. The file is the deliverable; an artifact link is made only
 when the user asks for one, since a link is a copy on a server the file never
 needed. A line saying the diff is empty, or why nothing was rendered, goes to
 the user as it stands.
+
+The page leaves out whitespace-only changes, as `git diff -w` does, and a
+file whose only change is whitespace gets a section saying so. Any of git's
+whitespace options in the argument replaces that default; to see whitespace
+changes, pass `--ignore-cr-at-eol`, which hides only a carriage return ending
+a line. An option's value is written into it (`-U5`, `--diff-filter=M`),
+since a separate word before `--` is read as a revision.

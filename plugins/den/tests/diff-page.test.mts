@@ -1,7 +1,9 @@
 // The diff-page script renders a change as a page file. What it asserts: the
 // line it prints names a file that exists, the page holds one section per
-// changed file, an untracked file among them, content is HTML-escaped, and an
-// empty diff is reported rather than rendered. Each case builds its own
+// changed file, an untracked file among them, a file whose only change is
+// whitespace included, content is HTML-escaped, and an empty diff is reported
+// rather than rendered; and the word diff of a prose file parses into its
+// lines. Each case builds its own
 // repository under a temp directory and runs the script through the launcher,
 // the exact command the skill's preamble runs.
 import assert from "node:assert/strict";
@@ -20,7 +22,7 @@ import process from "node:process";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { dataDir, fixtureDir, runtimes } from "../../../tests/harness.mts";
-import { parseDiff } from "../lib/diff-page.mts";
+import { parseDiff, parseWordDiff } from "../lib/git-diff.mts";
 
 const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
@@ -69,27 +71,88 @@ function page(
 	return { out: run.stdout, temp };
 }
 
-test("a deleted line beginning with `-- ` is content, not a file header", () => {
-	const [file] = parseDiff(
-		"diff --git a/q.sql b/q.sql\n--- a/q.sql\n+++ b/q.sql\n@@ -1,2 +1 @@\n one\n--- note\n",
-	);
+/** The lines of the first hunk of the first file a line diff holds. */
+function firstHunk(diff: string) {
+	const [file] = parseDiff(diff);
 
-	assert.equal(file?.removed, 1);
+	return file?.body.kind === "lines" ? file.body.hunks[0]?.lines : undefined;
+}
+
+test("a deleted line beginning with `-- ` is content, not a file header", () => {
+	const diff =
+		"diff --git a/q.sql b/q.sql\n--- a/q.sql\n+++ b/q.sql\n@@ -1,2 +1 @@\n one\n--- note\n";
+
+	assert.equal(parseDiff(diff)[0]?.removed, 1);
 	assert.deepEqual(
-		file?.hunks[0]?.lines.filter((line) => line.kind === "del"),
+		firstHunk(diff)?.filter((line) => line.kind === "del"),
 		[{ kind: "del", text: "-- note" }],
 	);
 });
 
 test("the newline ending the diff is not a context line", () => {
-	const [file] = parseDiff(
-		"diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1,2 @@\n one\n+two\n",
-	);
-
 	assert.deepEqual(
-		file?.hunks[0]?.lines.map((line) => line.kind),
+		firstHunk(
+			"diff --git a/x b/x\n--- a/x\n+++ b/x\n@@ -1 +1,2 @@\n one\n+two\n",
+		)?.map((line) => line.kind),
 		["ctx", "add"],
 	);
+});
+
+// A paragraph rewrapped, a paragraph removed, a word swapped and a line
+// added, in that order.
+const PROSE_BEFORE = [
+	"Alpha beta gamma delta epsilon zeta eta theta",
+	"iota kappa lambda.",
+	"",
+	"Second paragraph stays here.",
+	"",
+	"Third paragraph to remove",
+	"across two lines.",
+	"",
+	"Fourth para has a swap word.",
+	"last line",
+];
+const PROSE_AFTER = [
+	"Alpha beta gamma delta",
+	"epsilon zeta eta theta iota kappa lambda.",
+	"",
+	"Second paragraph stays here.",
+	"",
+	"Fourth para has a changed word.",
+	"last line",
+	"new line added",
+];
+
+test("a prose word diff parses into lines of kept, removed and added words", () => {
+	const cwd = repository();
+
+	writeFileSync(join(cwd, "a.md"), `${PROSE_BEFORE.join("\n")}\n`);
+	git(cwd, "add", "a.md");
+	git(cwd, "commit", "-q", "-m", "prose");
+	writeFileSync(join(cwd, "a.md"), `${PROSE_AFTER.join("\n")}\n`);
+
+	const hunks = parseWordDiff(
+		git(cwd, "diff", "--word-diff=porcelain", "--", "a.md"),
+	).get("a.md");
+	const ctx = (text: string) => ({ kind: "ctx", text });
+
+	assert.deepEqual(hunks?.[0]?.lines, [
+		[ctx("Alpha beta gamma delta")],
+		[ctx("epsilon zeta eta theta iota kappa lambda.")],
+		[],
+		[ctx("Second paragraph stays here.")],
+		[],
+		[{ kind: "del", text: "Third paragraph to remove" }],
+		[
+			{ kind: "del", text: "across two lines." },
+			ctx("Fourth para has a "),
+			{ kind: "del", text: "swap" },
+			{ kind: "add", text: "changed" },
+			ctx(" word."),
+		],
+		[ctx("last line")],
+		[{ kind: "add", text: "new line added" }],
+	]);
 });
 
 for (const runtime of runtimes()) {
@@ -187,5 +250,31 @@ for (const runtime of runtimes()) {
 		const { out } = page(cwd, dataDir(runtime), "");
 
 		assert.match(out, /^Diff page: .* 1 file, \+1 −0\)$/m);
+	});
+
+	test(`[${runtime}] a file whose only change is whitespace has a section and no lines`, () => {
+		const cwd = repository();
+		writeFileSync(join(cwd, "tracked.txt"), "  one\n");
+
+		const { out } = page(cwd, dataDir(runtime), "");
+		const named = /^Diff page: (.+\.html) \(.* 1 file, \+0 −0\)$/m.exec(out);
+
+		assert.ok(named !== null, out);
+
+		const html = readFileSync(named[1] ?? "", "utf8");
+
+		assert.match(html, /<span class="path">tracked\.txt<\/span>/);
+		assert.doesNotMatch(html, /<tr class="(add|del)">/);
+	});
+
+	test(`[${runtime}] an option beside a revision leaves the untracked files in`, () => {
+		const cwd = repository();
+		writeFileSync(join(cwd, "module.txt"), "alpha\n");
+
+		const { out } = page(cwd, dataDir(runtime), "-W HEAD");
+		const named = /^Diff page: (.+\.html) /m.exec(out);
+
+		assert.ok(named !== null, out);
+		assert.match(readFileSync(named[1] ?? "", "utf8"), /module\.txt/);
 	});
 }

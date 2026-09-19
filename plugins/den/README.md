@@ -53,8 +53,12 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   section per file with old and new line numbers and coloured lines, and
   sends you the file, for reading a change from a phone or away from the
   terminal. Untracked files appear as the new-file hunks they become once
-  added. The argument is a git diff range; omit it for the working tree
-  against HEAD. Nothing is published unless you ask for a link.
+  added. Prose files (`.md`, `.txt` and the like) show word by word,
+  whitespace-only changes are left out as `git diff -w` leaves them, and a
+  file added or deleted whole starts folded. The argument is a git diff
+  range with optional `git diff` options such as `-W`; omit the range for
+  the working tree against HEAD. Nothing is published unless you ask for a
+  link.
 - `plan-page`: renders a plan written in the `slicing` shape as one page file,
   the first screen, a step table and a section per step with its state, the
   code it rests on under its caption, coloured diff sketches and the decisions
