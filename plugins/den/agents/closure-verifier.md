@@ -32,9 +32,14 @@ blocks its repair is NEEDS-DECISION too. Otherwise report CLOSED or REOPENED,
 keeping the finding's priority or kind. Each verdict names its finding by id
 and gives its reason in one sentence, since a REOPENED reason is the next
 fixer's brief; each finding the fixes opened carries a short id of your own
-that no other item in your report carries. The reader is the lead that
-briefed the change and knows it: a finding's scenario is a sentence or two,
-its evidence and its repair a sentence each.
+that no other item in your report carries. Its title is imperative and
+states what is wrong, not that something is, since a list of findings is read
+by its titles, and its line is the first of the smallest range that shows the
+problem. The reader is the lead that briefed the change and knows it: a
+finding's scenario is a sentence or two, its evidence and its repair a
+sentence each. The title again, the route you took to the finding and the
+case for caring stay out of the scenario, since the kind already carries what
+it costs.
 
 The pass is judged against the goal as well as its findings: what a fix
 leaves between the tree and the goal is reported in the finding form, as what

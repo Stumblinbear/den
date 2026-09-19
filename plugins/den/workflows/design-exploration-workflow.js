@@ -42,7 +42,7 @@ if (Object.keys(args).some((key) => !['ask', 'decisions', 'direction', 'explorer
 const DESIGN = {
   type: 'object',
   properties: {
-    status: { type: 'string', enum: ['proposed', 'needs-input'], description: 'needs-input when an unresolved decision prevents proposing a selectable design' },
+    status: { type: 'string', enum: ['proposed', 'needs-input'] },
     summary: { type: 'string', description: 'the shape, briefly' },
     modules: {
       type: 'array',
@@ -83,7 +83,7 @@ const DESIGN = {
     assumptions: { type: 'array', items: { type: 'string' }, description: 'unconfirmed premises, and what would change if each proved false' },
     contested: {
       type: 'array',
-      description: 'every settled decision the evidence in the code challenges; empty when none. The decision stands until the user reopens it, so the proposal keeps to it and the challenge travels here',
+      description: 'every settled decision the evidence in the code challenges; empty when none',
       items: {
         type: 'object',
         properties: {
@@ -102,7 +102,7 @@ const RANKING = {
   type: 'object',
   properties: {
     outcome: { type: 'string', enum: ['recommendation', 'needs-input', 'no-suitable-proposal'] },
-    recommendation: { type: ['integer', 'null'], description: 'index of a proposed design, or null when none can be recommended' },
+    recommendation: { type: ['integer', 'null'], description: 'the recommended design\'s index, or null' },
     ranking: {
       type: 'array',
       description: 'viable proposals only; may be empty',
@@ -134,8 +134,7 @@ const settled = decisions && decisions.length
   : ''
 const context = `Ask: ${ask}
 
-Direction record: ${direction}
-Read the record itself; this launch carries no restatement of it.${settled}`
+Direction record: ${direction}${settled}`
 
 const proposals = await parallel(
   ANGLES.map((angle, index) => () =>

@@ -570,11 +570,6 @@ ${LEAD_CALLS}
 			launch(launches, index).type,
 		);
 	}
-	assert.ok(launch(launches, 0).prompt.includes("is a decision finding"));
-	assert.ok(launch(launches, 1).prompt.includes("the tree stays as it is"));
-	assert.ok(
-		launch(launches, 2).prompt.includes("NEEDS-DECISION, not REOPENED"),
-	);
 
 	const alone = await record({ ...ARGS, leadCalls }, { findings: [finding()] });
 	const review = launch(alone.launches, 0).prompt;

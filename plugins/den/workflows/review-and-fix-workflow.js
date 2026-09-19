@@ -100,7 +100,7 @@ const FIX = {
         required: ['what', 'why'],
       },
     },
-    verification: { type: 'string', description: 'the build, test and lint results in the figures the tools printed, since a run reported as passing is one nobody can check' },
+    verification: { type: 'string', description: 'the build, test and lint results' },
   },
   required: ['deviations', 'choices', 'unsure', 'verification'],
 }
@@ -108,17 +108,17 @@ const FIX = {
 const FINDING = {
   type: 'object',
   properties: {
-    id: { type: 'string', description: 'a short slug for this finding, used by no other item in your report' },
+    id: { type: 'string', description: 'a short slug for this finding' },
     kind: { type: 'string', enum: ['P0', 'P1', 'P2', 'P3', 'quality', 'decision'] },
-    title: { type: 'string', maxLength: 100, description: 'the defect, imperative: it names what is wrong rather than that something is' },
+    title: { type: 'string', maxLength: 100, description: 'what is wrong' },
     path: { type: 'string' },
-    line: { type: 'integer', description: 'the first line of the smallest range that shows it' },
-    scenario: { type: 'string', maxLength: TWO_SENTENCES, description: 'the input and the outcome that is wrong, in one or two sentences. The title again, the route you took to find it and the case for caring are out: kind carries what it costs' },
-    evidence: { type: 'string', maxLength: SENTENCE, description: 'what shows the wrong outcome and where: the failing test\'s path with its red run, or the check that discriminates it, in one sentence' },
-    repair: { type: 'string', maxLength: SENTENCE, description: 'the change that fixes it, in one sentence, where you have one' },
+    line: { type: 'integer', description: 'the first line of the range that shows it' },
+    scenario: { type: 'string', maxLength: TWO_SENTENCES, description: 'the input and the outcome that is wrong' },
+    evidence: { type: 'string', maxLength: SENTENCE, description: 'for a defect, the failing test\'s path with its red run, or the check in words that discriminates it' },
+    repair: { type: 'string', maxLength: SENTENCE, description: 'the change that fixes it' },
     preExisting: { type: 'boolean', description: 'true when the change did not introduce it' },
   },
-  required: ['id', 'kind', 'title', 'path', 'line', 'scenario', 'evidence', 'preExisting'],
+  required: ['id', 'kind', 'title', 'path', 'line', 'scenario', 'preExisting'],
 }
 
 const REVIEW = {
@@ -140,7 +140,7 @@ const CLOSURE = {
         properties: {
           id: { type: 'string', description: 'the id of the finding this verdict is on' },
           verdict: { type: 'string', enum: ['CLOSED', 'REOPENED', 'NEEDS-DECISION'] },
-          reason: { type: 'string', maxLength: SENTENCE, description: 'what you read in the tree that decides the verdict, in one sentence; the finding restated is not it' },
+          reason: { type: 'string', maxLength: SENTENCE, description: 'what you read in the tree that decides the verdict; the finding restated is not it' },
         },
         required: ['id', 'verdict', 'reason'],
       },
@@ -191,7 +191,7 @@ const COMMENTS = {
         properties: {
           path: { type: 'string' },
           line: { type: 'integer', description: 'the first line of the comment' },
-          claim: { type: 'string', maxLength: PHRASE, description: 'what the comment asserts that no code you read shows, as a phrase' },
+          claim: { type: 'string', maxLength: PHRASE, description: 'what the comment asserts, as a phrase' },
           reason: { type: 'string', maxLength: SENTENCE, description: 'why it was kept rather than cut, in one sentence' },
         },
         required: ['path', 'line', 'claim', 'reason'],
@@ -227,9 +227,10 @@ across elsewhere in the change is a finding of the change, not pre-existing.` : 
 
 const PLANNED = plan ? `\n\nThe plan this change belongs to is at ${plan}.` : ''
 
-// Every agent reads the same lists, after a sentence of its own saying what it
-// does with a finding that contradicts one. The lead's calls number on from
-// the user's decisions, so a number names one entry across both lists.
+// Every agent reads these same lists. What it does with a finding that
+// contradicts an entry is in its definition, or else in a sentence placed
+// before the lists. The lead's calls number on from the user's decisions, so a
+// number names one entry across both lists.
 const RULINGS = 'The decisions the user has settled, each under its number:'
 const LEAD_CALLS = 'The calls the lead has made, each under its number:'
 const numbered = (heading, list, from) =>
@@ -243,8 +244,7 @@ const RULED = [
 // change, so the scope, the goal and the plan are the whole message.
 function reviewScope() {
   const written = plan ? `\n\nPlan: ${plan}` : ''
-  const settled = RULED ? `\n\nA finding whose repair would undo one of these is a decision finding, with
-what it decided and what the other way costs, not a defect. ${RULED}` : ''
+  const settled = RULED ? `\n\n${RULED}` : ''
 
   return `${SCOPE}${FOCUS}\n\nGoal: ${goal}${written}${settled}`
 }
@@ -256,7 +256,7 @@ function fixBrief(findings) {
     `Fix the findings below as one change: they were found in one read of the
 tree, and a shape one of them names may be written in more places than the
 line it cites, so read around each before the edit. Each finding carries the
-reviewer's evidence and, where it has one, the repair. Your definition ends
+reviewer's evidence and repair where it has them. Your definition ends
 your turn on a decision the brief leaves open; this run has no route back to
 the session, so that stop does not apply here: the choice is made, declared
 under \`choices\`, and the lead rules on it from the return. A test you
@@ -266,11 +266,9 @@ briefed the change and knows it, so each item of your report is the phrase
 or the sentence the schema asks for.`,
     JSON.stringify(findings, null, 2),
     `A finding whose evidence is a failing test is fixed when that test
-passes. A finding the reviewer verified by reading gets its test first, red
-before the fix with the red run in your report, where the testing rules you
-hold give it one; where they give it none, the check in words the reviewer
-gave is its verification. A test that comes out after its green run, the
-reviewer's or yours, reaches the lead under \`deviations\` with both runs. A
+passes. A finding the reviewer verified by reading gets the test the testing
+rules you hold give it; where they give it none, the check in words the
+reviewer gave is its verification. A
 failing test no finding here names belongs to a finding the lead rules on; it
 stays red and untouched, since a red run is no reason to fix past a decision
 that is the lead's.`,
@@ -302,9 +300,8 @@ names it by:`,
   ]
 
   if (RULED) {
-    parts.push(`A finding left unfixed because one of these blocks its repair is
-NEEDS-DECISION, not REOPENED, and a finding you open whose repair would undo
-one is a decision finding, not a defect. ${RULED}`)
+    parts.push(`A finding you open whose repair would undo one of these is a decision
+finding, not a defect. ${RULED}`)
   }
 
   return parts.join('\n\n') + PLANNED
