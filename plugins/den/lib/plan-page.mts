@@ -60,7 +60,7 @@ const BLOCK_START = /^(#|```|[-*] )/;
 
 // The line labels the den:slicing plan shape defines.
 const LABEL =
-	/^(Gate|Decided \(you\)|Decided|Open|Goal|Not doing|Constraints|Tests):\s*/;
+	/^(Gate|Decided|Proposed|Open|Goal|Not doing|Constraints|Tests):\s*/;
 
 /** One block read out of the lines, with the index the plan resumes at. */
 interface Read {
@@ -320,16 +320,17 @@ function paragraph(text: string): string {
 		return `<div class="open"><b>Open decision</b> ${body}</div>`;
 	}
 
-	if (label.startsWith("Decided")) {
-		// A decision the user made wears their pill: the page is asking them
-		// to stand behind that one.
-		const you = label.includes("you") ? '<span class="you">you</span>' : "";
+	if (label === "Decided" || label === "Proposed") {
 		const decision = body.replace(
 			/Rejected:/g,
 			'<span class="alt">Rejected:</span>',
 		);
 
-		return `<div class="decided"><p>${you}${decision}</p></div>`;
+		// The user's own decision wears their pill, since the page asks them to
+		// stand behind it; a proposal is labelled for them to overturn or keep.
+		return label === "Decided"
+			? `<div class="decided"><p><span class="you">you</span>${decision}</p></div>`
+			: `<div class="proposed"><p><b>Proposed</b> ${decision}</p></div>`;
 	}
 
 	return `<p><b>${label}.</b> ${body}</p>`;
@@ -401,7 +402,8 @@ main { padding:0 0 40px; }
 .state.done { background:var(--add-bg); color:var(--add-ink); } .state.now { background:var(--warn-bg); color:var(--warn-ink); } .state.next { background:var(--hunk-bg); color:var(--hunk-ink); }
 .you { display:inline-block; background:var(--you-bg); color:var(--you-ink); font-size:12px; font-weight:500; padding:0 6px; border-radius:10px; margin-right:6px; vertical-align:1px; }
 .decided { border-left:3px solid var(--you-ink); padding:2px 0 2px 12px; margin:10px 0; max-width:74ch; }
-.decided p { margin:4px 0; }
+.proposed { border-left:3px solid var(--rule); padding:2px 0 2px 12px; margin:10px 0; max-width:74ch; }
+.decided p, .proposed p { margin:4px 0; }
 .alt { color:var(--mute); }
 .open { border:2px solid var(--warn-ink); border-radius:6px; padding:8px 12px; margin:10px 0; max-width:74ch; }
 .gate { color:var(--mute); font-size:14px; } .gate b { color:var(--add-ink); font-weight:500; margin-right:6px; }

@@ -58,6 +58,6 @@ the route you took to the finding and the case for caring stay out, since the
 kind already carries what it costs. Mark `pre-existing` what the change did
 not introduce. A question you would ask is either a decision finding, a
 choice the change made that a reader could take the other way, or nothing:
-the findings are the whole report. The launch may list decisions the user has
-settled: a finding whose repair would undo one is a decision finding, with
-what it decided and what the other way costs, not a defect.
+the findings are the whole report. The launch may list the user's decisions
+and the lead's calls: a finding whose repair would undo one is a decision
+finding, with what it decided and what the other way costs, not a defect.

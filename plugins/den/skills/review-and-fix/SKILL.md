@@ -17,7 +17,7 @@ change added is in the index and in the snapshot below.
 ```
 Workflow({
   name: "den:review-and-fix-workflow",
-  args: { repo, goal, plan, rulings, reviewer, since },
+  args: { repo, goal, plan, rulings, leadCalls, reviewer, since },
 })
 ```
 
@@ -26,7 +26,8 @@ Workflow({
 | `repo` | Required. The absolute path of the repository whose working tree is reviewed. Every agent the run launches works there, whatever directory the session stands in. |
 | `goal` | Required. What the change is for, in the user's terms: the plan's `Goal:` line, quoted. It opens the review, the fix brief and the closure launch. |
 | `plan` | The plan's path, when the change is a step of one. |
-| `rulings` | A list of the decisions the user has settled that a finding could contradict, the rulings on the implementer's report and every skip ruled on an earlier run's return, one decision with its reason per item, each at most 400 characters. The reviewer files a finding that contradicts one as a decision finding, the fixer leaves it and declares it, and the verifier marks it NEEDS-DECISION. |
+| `rulings` | A list of the decisions the user has settled that a finding could contradict, their rulings on the implementer's report and every skip they ruled on an earlier run's return, one decision with its reason per item, each at most 400 characters. The reviewer files a finding that contradicts one as a decision finding, the fixer leaves it and declares it, and the verifier marks it NEEDS-DECISION. |
+| `leadCalls` | The same, for this session's own calls: its rulings on the implementer's report and every skip it ruled on an earlier run's return. The run reads them under their own heading and treats a finding against one as it treats one against `rulings`. |
 | `reviewer` | Required. The reviewer's model: `opus`, or `fable` when the change outruns its checks, below. A model the user names for the task wins. |
 | `since` | The tree id `git write-tree` printed for the step's last `clean` return (The return, below), on every later run of the step, so the run reads what changed after it. A run before the step's first `clean` return takes none, and reviews against HEAD. |
 

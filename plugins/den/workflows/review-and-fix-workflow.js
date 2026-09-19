@@ -10,7 +10,7 @@ export const meta = {
 }
 
 const input = args && typeof args === 'object' && !Array.isArray(args) ? args : {}
-const { repo, goal, plan, rulings, reviewer, since } = input
+const { repo, goal, plan, rulings, leadCalls, reviewer, since } = input
 
 // Each agent stands in the session's working directory, so a relative path
 // would resolve against the very tree this argument is here to override.
@@ -26,9 +26,13 @@ if (plan !== undefined && (typeof plan !== 'string' || plan.trim() === '')) {
 // Sized for one decision and its reason: the reviewer, the fixer and the
 // verifier each read the whole list.
 const RULING_LIMIT = 400
-if (rulings !== undefined && (!Array.isArray(rulings) ||
-  rulings.some((ruling) => typeof ruling !== 'string' || ruling.trim() === '' || ruling.length > RULING_LIMIT))) {
+const isRulingList = (list) => list === undefined || (Array.isArray(list) &&
+  list.every((ruling) => typeof ruling === 'string' && ruling.trim() !== '' && ruling.length <= RULING_LIMIT))
+if (!isRulingList(rulings)) {
   throw new Error(`\`rulings\` lists the decisions the user has settled that a finding could contradict, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
+}
+if (!isRulingList(leadCalls)) {
+  throw new Error(`\`leadCalls\` lists the lead's calls that a finding could contradict, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
 }
 if (!['fable', 'opus'].includes(reviewer)) {
   throw new Error('`reviewer` is the model the review runs on, `fable` or `opus`')
@@ -40,8 +44,8 @@ if (since !== undefined && (typeof since !== 'string' || !/^([0-9a-f]{40}|[0-9a-
   throw new Error('`since` is the full tree id `git write-tree` printed for the last clean run')
 }
 // A key from outside this list is a misspelling of one in it.
-if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'reviewer', 'since'].includes(key))) {
-  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `rulings`, `reviewer` and `since` and nothing else')
+if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'leadCalls', 'reviewer', 'since'].includes(key))) {
+  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `rulings`, `leadCalls`, `reviewer` and `since` and nothing else')
 }
 
 // The finding kinds the run fixes on its own. A P3 or a quality finding names
@@ -223,10 +227,17 @@ across elsewhere in the change is a finding of the change, not pre-existing.` : 
 
 const PLANNED = plan ? `\n\nThe plan this change belongs to is at ${plan}.` : ''
 
-// The list reads the same to every agent; the sentence before it says what
-// that agent does with a finding that contradicts one.
+// Every agent reads the same lists, after a sentence of its own saying what it
+// does with a finding that contradicts one. The lead's calls number on from
+// the user's decisions, so a number names one entry across both lists.
 const RULINGS = 'The decisions the user has settled, each under its number:'
-const RULED = rulings?.length ? `${RULINGS}\n${rulings.map((ruling, index) => `${index + 1}. ${ruling}`).join('\n')}` : ''
+const LEAD_CALLS = 'The calls the lead has made, each under its number:'
+const numbered = (heading, list, from) =>
+  list?.length ? `${heading}\n${list.map((ruling, index) => `${from + index + 1}. ${ruling}`).join('\n')}` : ''
+const RULED = [
+  numbered(RULINGS, rulings, 0),
+  numbered(LEAD_CALLS, leadCalls, rulings?.length ?? 0),
+].filter((list) => list !== '').join('\n\n')
 
 // A reviewer handed an account of the change reviews the account instead of the
 // change, so the scope, the goal and the plan are the whole message.

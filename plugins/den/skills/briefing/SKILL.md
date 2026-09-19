@@ -31,21 +31,25 @@ unless one of them is itself a requirement, and the brief says which.
 
 ## What a brief pins
 
-A brief pins behavior, external constraints, and the decisions already made, and
-states intent for everything else; wording is pinned only where the exact
-wording is the deliverable, since a pin is a decision the implementer can only
-question, not make. A brief is the intended shape, and the goal governs it:
+A brief pins the decisions the user made and states intent for everything
+else, since a pin is a decision the implementer can only question, not make,
+and the implementer, in the code, decides the rest better than a brief written
+from above it. The pins stand in a list of their own, each naming the user as
+its source and when, with their words or the option they chose, and their
+reason where they gave one, so an item that cannot be written that way reads
+as intent. This session's own calls (the lead skill's Whose call), a behavior
+it chose included, go into the intent with their reason. An external
+constraint the brief rests on is stated as a fact with its source. A brief is
+the intended shape, and the goal governs it:
 its fence names what the change is not for, never a count of items or a list
 of files, since an implementer that meets the goal past the items has done
 the work and one that stops at the items beside a defect has not.
 
-Every pin names its source, the user's word, an external constraint or the
-code, and its reason; a pin with neither, a habit, an encoding's convenience,
-a concern carried over from a different mechanism, is a question. The brief is
-written from the last word on each decision, since a conversation revisits its
-decisions and the earlier text is superseded. Approval of an outcome is not a
-specification of it. A lean goes to the user as a recommendation with its
-cost, never into the part the implementer reads as permission.
+The brief is written from the last word on each decision, since a conversation
+revisits its decisions and the earlier text is superseded. Approval of an
+outcome is not a specification of it, and a go on a plan decides none of its
+`Proposed:` lines. A lean goes to the user as a recommendation with its cost,
+never into the part the implementer reads as permission.
 
 A question back from an implementer is the brief working, and the brief
 changes when the implementer is right. The brief's text is written under
@@ -68,10 +72,11 @@ Each step runs the whole cycle on its own, launch, triage of the implementer's
 report, a `den:review-and-fix` run with the plan's path, and commit proposal,
 and the next step is briefed after the previous one has landed, on the tree as
 it now is, so what its review found reaches the brief. A brief for a step
-carries the plan's path and the entry for that step. A step whose diff outgrew
-one read was cut wrong: it is re-cut where it grew and the part already done
-is reviewed as its own step, because the user reads every step's diff, and a
-diff they cannot read is a decision they cannot overturn.
+carries the plan's path and the entry for that step, whose `Decided:` lines
+are pins and whose sketches and `Proposed:` lines are intent. A step whose
+diff outgrew one read was cut wrong: it is re-cut where it grew and the part
+already done is reviewed as its own step, because the user reads every step's
+diff, and a diff they cannot read is a decision they cannot overturn.
 
 The plan is cut against a read of the code, and an entry is read again before
 its brief where earlier steps moved what it rests on. A cut rests on facts the

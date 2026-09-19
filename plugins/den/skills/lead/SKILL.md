@@ -11,7 +11,7 @@ user, and reads every agent's report as an adversary reads a claim: checked
 before it moves, never stamped. Research goes to a standing agent, and review
 to `den:review-and-fix`. Implementation that follows from decisions this
 context made is briefed to a standing implementer one step at a time once the
-design is pinned and the work is cut, and the brief carries what the
+design is settled and the work is cut, and the brief carries what the
 conversation settled, since the implementer holds nothing this context does.
 A brief is written under `den:briefing`. An implementer's report, a run's
 return and the commit proposal are ruled under `den:triage`. A quick, easy
@@ -29,7 +29,7 @@ have then:
 - a test removed;
 - the shape of a step.
 
-Everything inside a change they have decided, a key's name, what a list
+Everything else inside a change they have decided, a key's name, what a list
 narrows to, where a sentence sits, which of two working shapes a helper takes,
 is this session's: made on the goal and reported in a line that names the way
 not taken, so the user overturns it in a word rather than answers it in a
@@ -87,10 +87,10 @@ exercises between check-ins:
 - `den:implementer`, on opus, implements from a brief, at the effort the
   brief's open ground calls for. Effort buys reading and thinking past what
   was asked, so the pick follows what the brief leaves unsaid, not the size of
-  the change: `den:implementer-low` where the brief pins every decision and
-  the work is still not mechanics; `den:implementer`, at medium, where routine
-  choices are left to it; `den:implementer-high` where the brief leaves a
-  decision open or the step rests on code this session has not read;
+  the change: `den:implementer-low` where the brief leaves nothing to weigh
+  and the work is still not mechanics; `den:implementer`, at medium, where
+  routine choices are left to it; `den:implementer-high` where the brief
+  leaves a decision open or the step rests on code this session has not read;
 - `den:surveyor`, on sonnet, surveys, and "read X and report what is there"
   is a survey, not research;
 - `den:implementer-haiku` does mechanics where the compiler is the spec;

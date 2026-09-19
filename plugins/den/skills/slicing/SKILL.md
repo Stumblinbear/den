@@ -69,10 +69,11 @@ carrying:
 - the existing code the step rests on, pasted in a fence whose info string
   is `lang path:from-to`, and the change sketched in a `diff` fence, since
   the reader judges a cut by the code it cuts, not by prose about it;
-- one `Decided:` line per decision, inside the step it affects, `Decided
-  (you):` where the user made it, each ending `Rejected:` and the
-  alternative; a decision still theirs is an `Open:` line with the code it
-  lands in and the candidate patches;
+- one `Decided:` line per decision the user made, inside the step it
+  affects, with their words or the option they chose and when, and one
+  `Proposed:` line per call this session made there, each ending
+  `Rejected:` and the alternative; a decision still theirs is an `Open:` line
+  with the code it lands in and the candidate patches;
 - a `Tests:` line naming what proves it and a `Gate:` line saying when it
   is done.
 

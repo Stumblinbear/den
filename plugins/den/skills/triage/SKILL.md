@@ -17,11 +17,13 @@ declared choice, question back, deviation from the brief and left-undone item
 reaches the user with your accept, answer, send back or defer call and its
 reason, read against the task's goal, one paragraph an item, since a choice
 absorbed silently is one the user never gets to overturn. Assess a challenge
-to the brief against the evidence and project goals. An unapproved departure
+to the brief against the evidence and project goals. A departure from intent
+is ruled like a declared choice. A changed pin stands only on a ground the
+implementer's definition allows for departing from a pin, and any other
 already implemented goes back at once, on a send-back's route, and the report
 says so. Where the brief pinned a decomposition, the tree is checked against
-it at triage, because the deviation that matters is the one the report did not
-declare.
+it at triage, because the deviation that matters is the one the report did
+not declare.
 
 A fixer inside a `den:review-and-fix` run reports into the run: its
 declarations arrive under `carried` in the run's return, and a send-back goes
@@ -88,19 +90,20 @@ user as a design question with its rough scope.
 Findings that are the user's call reach them, each with this session's fix or
 skip call and its reason, read against the task's goal, one paragraph a
 finding, since the user reads the triage once. A finding ruled skip, from
-whichever list, goes into the next run's `rulings` with its reason, and the
-fixer this session launches takes its test out of the tree, since a run with
-no record of the ruling finds and fixes what the user chose to leave.
+whichever list, goes into the next run's `rulings` with its reason where the
+user ruled it, or `leadCalls` where this session did, and the fixer this
+session launches takes its test out of the tree, since a run with no record
+of the ruling finds and fixes what was chosen to leave.
 
 This session defers a finding on its own only when it lies outside what the
 change depends on or no reachable input triggers it; its age is no reason,
 and a defect in code the change depends on is fixed, or is the user's to defer
 when it predates the change. Its own deferrals are reported in a list apart
 from the calls that accept, each with that reason, so the user can overturn
-one without reading it as settled, and go into a task, never into `rulings`: a
-deferral written there tells every later reviewer not to raise the finding,
-and a fresh review is the next chance to catch one that was wrong. A deferral
-the user rules is a skip, and goes into `rulings` as the paragraph above says.
+one without reading it as settled, and go into a task, never into `rulings` or
+`leadCalls`: a deferral written there tells every later reviewer not to raise
+the finding, and a fresh review is the next chance to catch one that was
+wrong. A deferral the user rules is a skip.
 
 ## The commit proposal
 

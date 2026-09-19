@@ -313,8 +313,10 @@ const FINDINGS = "or the sentence the schema asks for.";
 const JUDGED = "names it by:";
 /** The line the fix brief carries when a finding comes back reopened. */
 const REOPENED = "A finding carrying `reopened` was fixed once in this run";
-/** The heading the numbered rulings follow, in every launch that carries them. */
+/** The heading the user's numbered decisions follow, in every launch that carries them. */
 const RULINGS = "The decisions the user has settled, each under its number:";
+/** The heading the lead's numbered calls follow, in every launch that carries them. */
+const LEAD_CALLS = "The calls the lead has made, each under its number:";
 
 /**
  * The JSON a prompt carries under `heading`, which runs to the blank line that
@@ -436,6 +438,8 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 		[{ ...ARGS, reviewer: "haiku" }, /`reviewer`/],
 		[{ ...ARGS, rulings: "one decision" }, /`rulings`/],
 		[{ ...ARGS, rulings: ["x".repeat(401)] }, /`rulings`/],
+		[{ ...ARGS, leadCalls: "one call" }, /`leadCalls`/],
+		[{ ...ARGS, leadCalls: [" "] }, /`leadCalls`/],
 		// Anything but a full lowercase id; see the `since` check in the
 		// workflow.
 		[{ ...ARGS, since: "HEAD" }, /`since`/],
@@ -543,16 +547,20 @@ test("the goal opens the fix brief and the closure launch, and the plan closes t
 	}
 });
 
-test("the decisions the user has settled reach the reviewer, the fixer and the verifier, numbered, and a run without them carries none", async () => {
+test("the user's decisions and the lead's calls reach the reviewer, the fixer and the verifier, numbered as one list, and a run without them carries none", async () => {
 	const rulings = [
 		"The loader keeps the flag, since the caller has no cache path.",
 		"The error is the loader's own, the user having said so.",
 	];
+	const leadCalls = ["The retry stays at one, since the cache is local."];
 	const listed = `${RULINGS}
 1. ${rulings[0]}
-2. ${rulings[1]}`;
+2. ${rulings[1]}
+
+${LEAD_CALLS}
+3. ${leadCalls[0]}`;
 	const { launches } = await record(
-		{ ...ARGS, rulings },
+		{ ...ARGS, rulings, leadCalls },
 		{ findings: [finding()] },
 	);
 
@@ -568,12 +576,18 @@ test("the decisions the user has settled reach the reviewer, the fixer and the v
 		launch(launches, 2).prompt.includes("NEEDS-DECISION, not REOPENED"),
 	);
 
+	const alone = await record({ ...ARGS, leadCalls }, { findings: [finding()] });
+	const review = launch(alone.launches, 0).prompt;
+	assert.ok(review.includes(`${LEAD_CALLS}\n1. ${leadCalls[0]}`));
+	assert.ok(!review.includes(RULINGS));
+
 	const bare = await record(
-		{ ...ARGS, rulings: [] },
+		{ ...ARGS, rulings: [], leadCalls: [] },
 		{ findings: [finding()] },
 	);
 	for (const made of bare.launches) {
 		assert.ok(!made.prompt.includes(RULINGS), made.type);
+		assert.ok(!made.prompt.includes(LEAD_CALLS), made.type);
 	}
 });
 

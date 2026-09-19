@@ -31,7 +31,7 @@ interface Tier {
 }
 
 const VARIANTS: readonly Tier[] = [
-	{ effort: "low", brief: "pins every decision" },
+	{ effort: "low", brief: "leaves nothing to weigh" },
 	{ effort: "high", brief: "leaves a decision open" },
 ];
 

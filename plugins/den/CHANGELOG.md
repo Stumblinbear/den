@@ -14,6 +14,11 @@ minor bump may change behavior.
 
 ### Changed
 
+- A brief pins only what the user decided, and a plan marks the lead's own
+  calls `Proposed:`, which the implementer weighs against the code. Where one
+  of the user's decisions would complicate the code, the implementer asks
+  rather than works around it. A review keeps the lead's calls apart from the
+  user's decisions.
 - `diff-page` shows a prose file (`.md`, `.markdown`, `.txt`, `.rst`,
   `.adoc`) word by word, with removed and added words marked inside wrapped
   lines, so a rewrapped paragraph no longer reads as one block removed and
@@ -27,8 +32,8 @@ minor bump may change behavior.
 - The implementer's prompt no longer tells it to expect hard free choices in
   the brief, which `implementer-low` is picked for the absence of. Its stop
   rules carry what it does with what the brief left out.
-- Each effort level's description names the brief it is for, one that pins
-  every decision, leaves routine choices open, or leaves a decision open, so a
+- Each effort level's description names the brief it is for, one that leaves
+  nothing to weigh, leaves routine choices open, or leaves a decision open, so a
   session without the lead skill has something to pick a level by.
 - Code architecture holds that an operation does what its name says or fails:
   a create that finds the thing already there, or an add of something already

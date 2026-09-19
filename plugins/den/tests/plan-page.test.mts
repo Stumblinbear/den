@@ -64,9 +64,9 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 			"",
 			"## Step 1: the library [pending]",
 			"",
-			"Decided (you): the renderer lives in den. Rejected: the job's directory.",
+			"Decided: the renderer lives in den. Rejected: the job's directory.",
 			"",
-			"Decided: pages go under their own directory. Rejected: one shared one.",
+			"Proposed: pages go under their own directory. Rejected: one shared one.",
 			"",
 			"Open: whether a plan carries its date.",
 			"",
@@ -83,7 +83,10 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 		html,
 		/<div class="decided"><p><span class="you">you<\/span>the renderer lives in den\./,
 	);
-	assert.match(html, /<div class="decided"><p>pages go under/);
+	assert.match(
+		html,
+		/<div class="proposed"><p><b>Proposed<\/b> pages go under/,
+	);
 	assert.equal(html.match(/<span class="alt">Rejected:<\/span>/g)?.length, 2);
 	assert.match(html, /<div class="open"><b>Open decision<\/b> whether a plan/);
 	assert.match(html, /<p><b>Tests\.<\/b> the units below\.<\/p>/);
