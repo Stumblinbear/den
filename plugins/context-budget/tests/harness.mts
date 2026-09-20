@@ -1,13 +1,14 @@
 // What is particular to this plugin's tests: where its files are, the exact
-// commands `hooks.json` runs, and the transcripts and configuration files a
-// case points them at. The root harness holds what every plugin's tests share:
-// the runtimes, the throwaway directories, the session ids and the spawn
-// itself. A test file imports both. Importing this registers no test of its
-// own.
+// commands `hooks.json` runs, the transcripts and configuration files a case
+// points them at, and what a measuring run left behind. The root harness holds
+// what every plugin's tests share: the runtimes, the throwaway directories, the
+// session ids and the spawn itself. A test file imports both. Importing this
+// registers no test of its own.
 //
 // Nothing is merged under the configuration a hook is handed, so a case that
 // is about one section still has to write a whole file. The sections below are
 // what a case that has no opinion about the rest composes one from.
+import assert from "node:assert/strict";
 import {
 	appendFileSync,
 	mkdirSync,
@@ -49,16 +50,14 @@ export const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 export const HOOKS = join(PLUGIN, "hooks");
 export const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
-/** The failure policy every entry reports through, in this plugin's name. */
-export const { withoutParser, reported, quiet, addressedTo } = faultChecks(
-	"context-budget",
-	PLUGIN,
-);
+/** The failure policy every entry reports through. */
+export const { withoutParser, reported, quiet, addressedTo } =
+	faultChecks(PLUGIN);
 
 /** The thresholds a case that is not about thresholds runs on. */
 export const DEFAULTS = "[default]\nnotice = 150_000\nurgent = 250_000\n";
 
-/** The injected text is the user's, so the tests write what they assert on. */
+/** The `[messages]` every file has to carry. */
 export const MESSAGES =
 	'[messages]\nnotice = "NOTICE {tokens} over {threshold}"\nurgent = "URGENT {tokens} over {threshold}"\n';
 
@@ -269,6 +268,30 @@ const hookRun = (
 	stdin: options.stdin,
 	env: hookEnv(options.env),
 });
+
+interface Injection {
+	readonly hookSpecificOutput?: { readonly additionalContext?: string };
+}
+
+/**
+ * The level a run of the measurement hook announced to `session`, and null for
+ * a run that announced nothing. The level is read off the record the run left,
+ * so no case has to match the wording `[messages]` gave the text.
+ */
+export function announced(session: string, result: Result): string | null {
+	assert.equal(result.status, 0, result.stderr);
+	assert.equal(result.stderr, "");
+
+	if (result.stdout === "") {
+		return null;
+	}
+
+	const output = JSON.parse(result.stdout) as Injection;
+
+	return output.hookSpecificOutput?.additionalContext
+		? String(record(session)["level"])
+		: null;
+}
 
 /** The session's record, as the file on disk spells it. */
 export function record(session: string): Record<string, unknown> {

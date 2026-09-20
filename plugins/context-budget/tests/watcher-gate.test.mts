@@ -3,19 +3,19 @@
 // carries between two runs of the real entry, so each case runs the entry
 // through the launcher and counts what the judge was handed.
 //
-// Nothing here reads the prompt: what is in it is `watcher-verdict.test.mts`,
-// and how it is worded is nobody's assertion. What a compaction or a rewind
-// ends is `watcher-context.test.mts`.
+// The cases count the prompts the judge was handed and read none of them; how
+// much one holds is `watcher-verdict.test.mts`, and what a compaction or a
+// rewind ends is `watcher-context.test.mts`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
 import { assistant, at, crossSessionMessage } from "./fixtures.mts";
 import { quiet } from "./harness.mts";
 import {
+	advised,
 	COMMITTED,
 	conversation,
 	GOOD,
-	injected,
 	LATER,
 	MIDPOINT,
 	NOTICE,
@@ -221,17 +221,13 @@ for (const runtime of runtimes()) {
 			const id = session();
 
 			judge.answers(GOOD);
-			assert.match(
-				String(injected(stop(id, conversation(NOTICE)))),
-				/Context watcher/,
-			);
+			assert.ok(advised(id, stop(id, conversation(NOTICE))));
 
 			quiet(stop(id, conversation(NOTICE, {}, 3)));
 			assert.equal(judge.prompts().length, 1, "the verdict is standing");
 
-			assert.match(
-				String(injected(stop(id, conversation(MIDPOINT, {}, 4)))),
-				/Context watcher/,
+			assert.ok(
+				advised(id, stop(id, conversation(MIDPOINT, {}, 4))),
 				"the midpoint is a new signal",
 			);
 		},
@@ -250,14 +246,12 @@ for (const runtime of runtimes()) {
 
 		// The commit cuts that wait short, and this time the answer is a verdict.
 		judge.answers(GOOD);
-		assert.match(
-			String(injected(stop(id, conversation(NOTICE, { calls: COMMITTED }, 3)))),
-			/Context watcher/,
+		assert.ok(
+			advised(id, stop(id, conversation(NOTICE, { calls: COMMITTED }, 3))),
 		);
 
-		assert.match(
-			String(injected(stop(id, conversation(MIDPOINT, {}, 4)))),
-			/Context watcher/,
+		assert.ok(
+			advised(id, stop(id, conversation(MIDPOINT, {}, 4))),
 			"the midpoint is a new signal",
 		);
 	});

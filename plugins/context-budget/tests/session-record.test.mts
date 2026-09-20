@@ -7,9 +7,10 @@
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { test } from "node:test";
-import { type Result, runtimes } from "../../../tests/harness.mts";
+import { runtimes } from "../../../tests/harness.mts";
 import { assistant } from "./fixtures.mts";
 import {
+	announced,
 	configFile,
 	hookRunner,
 	record,
@@ -20,24 +21,8 @@ import {
 	USABLE,
 } from "./harness.mts";
 
-interface Injection {
-	readonly hookSpecificOutput?: { readonly additionalContext?: string };
-}
-
 /** A file that parses and is missing everything but `[default]`. */
 const NO_MESSAGES = "[default]\nnotice = 1\nurgent = 2\n";
-
-function injected(result: Result): string | null {
-	assert.equal(result.status, 0, result.stderr);
-
-	if (result.stdout === "") {
-		return null;
-	}
-
-	const output = JSON.parse(result.stdout) as Injection;
-
-	return output.hookSpecificOutput?.additionalContext ?? null;
-}
 
 for (const runtime of runtimes()) {
 	const hook = hookRunner(runtime);
@@ -61,13 +46,10 @@ for (const runtime of runtimes()) {
 		const path = configFile(USABLE);
 		const measured = transcript(assistant(200_000));
 
-		assert.equal(
-			injected(inject(session, measured, path)),
-			"NOTICE 200K over 150K",
-		);
+		assert.equal(announced(session, inject(session, measured, path)), "notice");
 
 		writeFileSync(path, NO_MESSAGES);
-		reported(inject(session, measured, path), "config");
+		reported(inject(session, measured, path));
 
 		assert.deepEqual(stateFiles(session), [`${session}.json`]);
 		assert.equal(
@@ -84,7 +66,7 @@ for (const runtime of runtimes()) {
 		const path = transcript(assistant(50_000));
 
 		assert.equal(
-			injected(inject(session, path, configFile(USABLE))),
+			announced(session, inject(session, path, configFile(USABLE))),
 			null,
 			"50K is under 150K",
 		);

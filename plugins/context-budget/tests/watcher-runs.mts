@@ -8,10 +8,12 @@
 // watcher halves its longest wait past is 200K.
 import assert from "node:assert/strict";
 import type { Result, Runtime } from "../../../tests/harness.mts";
+import { fieldsOf, isTable } from "../lib/shared/fields.mts";
 import { assistant, at, prompt, type TurnOptions } from "./fixtures.mts";
 import {
 	configFile,
 	hookRunner,
+	record,
 	sessionId,
 	transcript,
 	USABLE,
@@ -156,8 +158,16 @@ interface Injection {
 	readonly hookSpecificOutput?: { readonly additionalContext?: string };
 }
 
-/** What a run handed the session, and null for a run with nothing to say. */
-export function injected(result: Result): string | null {
+/**
+ * The advice `id`'s run handed the session, and null for a run that advised
+ * nothing. A fault report travels in the same field advice does, so the verdict
+ * in the record the run left is what tells a run that advised from one that
+ * broke.
+ *
+ * The text is here for a case that compares one run's advice against another's.
+ * No case matches the wording itself, which is the hook's.
+ */
+export function advice(id: string, result: Result): string | null {
 	assert.equal(result.status, 0, result.stderr);
 	assert.equal(result.stderr, "");
 
@@ -166,6 +176,12 @@ export function injected(result: Result): string | null {
 	}
 
 	const output = JSON.parse(result.stdout) as Injection;
+	const said = output.hookSpecificOutput?.additionalContext;
+	const watcher = fieldsOf(record(id)["watcher"]);
 
-	return output.hookSpecificOutput?.additionalContext ?? null;
+	return said && isTable(watcher["verdict"]) ? said : null;
 }
+
+/** Whether `id`'s run advised the session at all. */
+export const advised = (id: string, result: Result): boolean =>
+	advice(id, result) !== null;

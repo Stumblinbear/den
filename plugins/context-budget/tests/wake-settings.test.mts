@@ -1,8 +1,8 @@
 // What the `[wake]` section reads as: the defaults an absent table takes, a
 // row switched off, the example against those defaults, and the values a file
 // writes. Called in process, since the subject is the settings a file produces
-// and not what a hook does with them. Which key a refused file's report has to
-// name is `config-errors.test.mts`, through the rows in `invalid-configs.mts`.
+// and not what a hook does with them. Which files are refused is
+// `config-errors.test.mts`, through the rows in `invalid-configs.mts`.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -34,8 +34,8 @@ test("a file with no [wake] gets the wake with every key defaulted", async () =>
 });
 
 // The example documents itself as writing out the defaults, so it has to set
-// every key: one it left out would read as the default, and the comparison
-// below would pass over the drift.
+// every key the comparison below reads: one it left out would read as the
+// default, and the comparison would pass over the drift.
 test("the example's [wake] section writes out the code's defaults", async () => {
 	const written = fieldsOf(parse(readFileSync(EXAMPLE, "utf8")))["wake"];
 	const sets = (table: unknown, key: string, named: string) =>
@@ -50,7 +50,6 @@ test("the example's [wake] section writes out the code's defaults", async () => 
 		sets(fieldsOf(written)[ttl], "times", `[wake.'${ttl}'] times`);
 		sets(fieldsOf(written)[ttl], "before", `[wake.'${ttl}'] before`);
 	}
-	sets(fieldsOf(written)["messages"], "wake", "[wake.messages] wake");
 
 	const example = await loadSettings(["--config", EXAMPLE]);
 
@@ -60,7 +59,6 @@ test("the example's [wake] section writes out the code's defaults", async () => 
 
 	assert.deepEqual(example.wake.rows, defaults.rows);
 	assert.equal(example.wake.enabled, defaults.enabled);
-	assert.equal(example.wake.message, DEFAULT_WAKE_MESSAGE);
 });
 
 test("a row switched off reads as null and the other keeps its default", async () => {

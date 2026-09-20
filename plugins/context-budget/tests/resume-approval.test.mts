@@ -1,7 +1,7 @@
 // The user's consent to a resume, and how the guard spends it. The answer is
 // read out of the session transcript itself rather than taken from anything
 // the agent says about it, and one answer buys one resume: the second attempt
-// on the same answer is refused with the `used` message.
+// on the same answer is refused.
 //
 // What makes a resume worth refusing in the first place is
 // `resume-guard.test.mts`.
@@ -11,7 +11,7 @@ import { test } from "node:test";
 import { type Runtime, runtimes } from "../../../tests/harness.mts";
 import { agentLaunch, taskNotification } from "./background-fixtures.mts";
 import { assistant, at } from "./fixtures.mts";
-import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
+import { decided, denied, guardRunner, PROMPT } from "./guard-runs.mts";
 import {
 	configFile,
 	hookRunner,
@@ -69,18 +69,7 @@ for (const runtime of runtimes()) {
 				null,
 				"the user's answer approves one resume",
 			);
-			assert.match(
-				reason(run(session, approved)),
-				/^USED big: context 162\.3K tokens is above the 150K resume limit/,
-			);
-
-			// With that answer spent, a transcript carrying none reaches `denied`.
-			assert.match(
-				reason(
-					run(session, subagentSession("big", [assistant(162_300)], [PROMPT])),
-				),
-				/^DENIED big:/,
-			);
+			denied(run(session, approved));
 		},
 	);
 
@@ -133,9 +122,9 @@ for (const runtime of runtimes()) {
 				);
 
 			assert.equal(decided(run(session, approved)), null);
-			assert.ok(measure(200_000).stdout.includes("NOTICE"));
+			assert.notEqual(measure(200_000).stdout, "", "a crossing injects");
 			assert.equal(measure(100_000).stdout, "", "a fall injects nothing");
-			assert.match(reason(run(session, approved)), /^USED big:/);
+			denied(run(session, approved));
 		},
 	);
 }

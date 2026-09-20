@@ -13,9 +13,9 @@ import { ANSWER_SCHEMA } from "../lib/answer.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
 import { quiet } from "./harness.mts";
 import {
+	advised,
 	conversation,
 	GOOD,
-	injected,
 	LATER,
 	NOTICE,
 	watcherRuns,
@@ -107,6 +107,7 @@ for (const runtime of runtimes()) {
 	// one that was, which here is the difference between advice and a wait.
 	test(name("a validated answer is read before the text beside it"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
+		const id = session();
 
 		seen.answers({
 			type: "result",
@@ -116,9 +117,7 @@ for (const runtime of runtimes()) {
 			result: JSON.stringify({ good: false, wait: "later" }),
 		});
 
-		const said = String(injected(stop(session(), conversation(NOTICE))));
-
-		assert.ok(said.includes("the record change is landed"), said);
+		assert.ok(advised(id, stop(id, conversation(NOTICE))));
 	});
 
 	// The schema's root is one object carrying the answer under `answer`, so
@@ -128,6 +127,7 @@ for (const runtime of runtimes()) {
 	// nothing back.
 	test(name("the validated answer is read from under `answer`"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
+		const id = session();
 
 		seen.answers({
 			type: "result",
@@ -136,9 +136,7 @@ for (const runtime of runtimes()) {
 			structured_output: { answer: GOOD },
 		});
 
-		const said = String(injected(stop(session(), conversation(NOTICE))));
-
-		assert.ok(said.includes("the record change is landed"), said);
+		assert.ok(advised(id, stop(id, conversation(NOTICE))));
 	});
 
 	// A judge of the user's own is handed no schema, so it writes no validated
@@ -146,6 +144,7 @@ for (const runtime of runtimes()) {
 	// the `command` seam rests on, and it outlives the flag above.
 	test(name("an envelope with no validated object is read as text"), () => {
 		const { judge: seen, session, stop } = watcherRuns(runtime);
+		const id = session();
 
 		seen.answers({
 			type: "result",
@@ -154,8 +153,6 @@ for (const runtime of runtimes()) {
 			result: `Here is my answer:\n\`\`\`json\n${JSON.stringify(GOOD)}\n\`\`\``,
 		});
 
-		const said = String(injected(stop(session(), conversation(NOTICE))));
-
-		assert.ok(said.includes("the record change is landed"), said);
+		assert.ok(advised(id, stop(id, conversation(NOTICE))));
 	});
 }

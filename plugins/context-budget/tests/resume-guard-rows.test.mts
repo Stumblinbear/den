@@ -6,16 +6,17 @@
 // the number in it is real.
 //
 // The rows below sit on either side of the section's numbers, so which one
-// governed a resume is legible in the limits its deny names. What makes a
-// resume worth refusing at all is `resume-guard.test.mts`.
+// governed a resume is legible in whether it was denied. What makes a resume
+// worth refusing at all is `resume-guard.test.mts`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
 import { assistant } from "./fixtures.mts";
-import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
+import { decided, denied, guardRunner, PROMPT } from "./guard-runs.mts";
 import {
 	configFile,
 	DEFAULTS,
+	GUARD_MESSAGES,
 	MESSAGES,
 	sessionId,
 	subagentSession,
@@ -25,13 +26,6 @@ import {
 const OPUS = "claude-opus-5";
 const FABLE = "claude-fable-5-1";
 const HAIKU = "claude-haiku-4-5-20251001";
-
-/**
- * These cases read which limits governed off the deny itself, so the messages
- * they run on write the model and both limits into it.
- */
-const ROW_MESSAGES =
-	'[resume-guard.messages]\ndenied = "DENIED {agent} {type} on {model}, large {large} cold {cold}: {reasons}"\nused = "USED {agent}: {reasons}"\n';
 
 const SECTION = "[resume-guard]\nlarge = 300_000\ncold = 200_000\n";
 
@@ -47,7 +41,7 @@ const ROWS = configFile(
 	"[resume-guard.agents.'hushed']\nenabled = false\n",
 	"[resume-guard.models.'fable']\nlarge = 600_000\ncold = 400_000\n",
 	"[resume-guard.models.'haiku']\nenabled = false\n",
-	ROW_MESSAGES,
+	GUARD_MESSAGES,
 );
 
 /**
@@ -60,7 +54,7 @@ const CATCH_ALL = configFile(
 	MESSAGES,
 	SECTION,
 	"[resume-guard.models.'.*']\nenabled = false\n",
-	ROW_MESSAGES,
+	GUARD_MESSAGES,
 );
 
 for (const runtime of runtimes()) {
@@ -70,41 +64,34 @@ for (const runtime of runtimes()) {
 	const run = (transcript: string, to: string, config = ROWS) =>
 		guard(sid(), transcript, to, config);
 
-	// Nothing in either table matches an implementer on Opus, so the deny is
-	// measured against the section's own numbers and fills them in beside the
-	// model the subagent's newest turn names.
+	// Nothing in either table matches an implementer on Opus, so the resume
+	// is measured against the section's own numbers.
 	test(name("the section's numbers govern a resume no row matches"), () => {
-		assert.equal(
-			reason(
-				run(
-					subagentSession(
-						"planner",
-						[assistant(350_000, { model: OPUS })],
-						[PROMPT],
-						"den:implementer",
-					),
+		denied(
+			run(
+				subagentSession(
 					"planner",
+					[assistant(350_000, { model: OPUS })],
+					[PROMPT],
+					"den:implementer",
 				),
+				"planner",
 			),
-			"DENIED planner den:implementer on claude-opus-5, large 300K cold 200K: context 350K tokens is above the 300K resume limit: every turn re-reads it",
 		);
 	});
 
 	// 250K is under every `large` in the file, so the expired cache is the only
 	// thing that puts this resume past a limit, and the limit is the section's.
 	test(name("a cold resume is measured against the section's cold"), () => {
-		assert.match(
-			reason(
-				run(
-					subagentSession(
-						"chilly",
-						[assistant(250_000, { model: OPUS, minutesAgo: 10, ttl: "5m" })],
-						[PROMPT],
-					),
+		denied(
+			run(
+				subagentSession(
 					"chilly",
+					[assistant(250_000, { model: OPUS, minutesAgo: 10, ttl: "5m" })],
+					[PROMPT],
 				),
+				"chilly",
 			),
-			/large 300K cold 200K: last active 10 min ago, 5m cache expired: cold full-price replay of 250K tokens/,
 		);
 	});
 
@@ -154,19 +141,16 @@ for (const runtime of runtimes()) {
 	// read first. This one matches the fable row as well, and that row would
 	// allow it. The key is matched with the plugin prefix in place.
 	test(name("an agent row wins over the model row that also matches"), () => {
-		assert.match(
-			reason(
-				run(
-					subagentSession(
-						"fixer",
-						[assistant(150_000, { model: FABLE })],
-						[PROMPT],
-						"den:red-green-fixer",
-					),
+		denied(
+			run(
+				subagentSession(
 					"fixer",
+					[assistant(150_000, { model: FABLE })],
+					[PROMPT],
+					"den:red-green-fixer",
 				),
+				"fixer",
 			),
-			/^DENIED fixer den:red-green-fixer on claude-fable-5-1, large 100K cold 60K: context 150K tokens is above the 100K resume limit/,
 		);
 	});
 
@@ -230,19 +214,16 @@ for (const runtime of runtimes()) {
 			null,
 			"the catch-all row switches the guard off for every id it does see",
 		);
-		assert.match(
-			reason(
-				run(
-					subagentSession(
-						"nameless",
-						[assistant(350_000, { model: "" })],
-						[PROMPT],
-					),
+		denied(
+			run(
+				subagentSession(
 					"nameless",
-					CATCH_ALL,
+					[assistant(350_000, { model: "" })],
+					[PROMPT],
 				),
+				"nameless",
+				CATCH_ALL,
 			),
-			/^DENIED nameless subagent on no recorded model, large 300K cold 200K: context 350K tokens is above the 300K resume limit/,
 		);
 	});
 
@@ -257,7 +238,7 @@ for (const runtime of runtimes()) {
 			MESSAGES,
 			"[resume-guard]\nenabled = false\n",
 			FIXER_ROW,
-			ROW_MESSAGES,
+			GUARD_MESSAGES,
 		);
 
 		assert.equal(

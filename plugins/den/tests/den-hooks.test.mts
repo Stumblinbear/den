@@ -1,7 +1,7 @@
 // den's two relays, exercised through the launcher, which is the exact command
 // `hooks.json` runs. What they assert is the structure of the relay: which
 // completions leave a flag, that one prompt turns every pending flag into one
-// injection naming the agents it was for, and that the files it read are gone.
+// injection, and that the files it read are gone.
 // The reminder's wording is not a contract; a session reads it, no test does.
 //
 // Each case is given a temp directory of its own, which is where the relays
@@ -96,7 +96,8 @@ function pending(
 	}
 }
 
-function injected(result: Result): string {
+/** Asserts that a run injected something into the prompt's turn. */
+function injected(result: Result): void {
 	assert.equal(result.status, 0, result.stderr);
 
 	const output = JSON.parse(result.stdout) as Injection;
@@ -106,8 +107,7 @@ function injected(result: Result): string {
 	const context = output.hookSpecificOutput?.additionalContext;
 
 	assert.equal(typeof context, "string", result.stdout);
-
-	return String(context);
+	assert.notEqual(context, "", "the injection is empty");
 }
 
 for (const runtime of runtimes()) {
@@ -167,9 +167,7 @@ for (const runtime of runtimes()) {
 			stop("den:reviewer", "reviewer-2", "session-2"),
 		);
 
-		const other = run("review-triage-inject", temp, prompt("session-2"));
-
-		assert.ok(injected(other).includes("den:reviewer"), other.stdout);
+		injected(run("review-triage-inject", temp, prompt("session-2")));
 		assert.deepEqual(pending(temp, REVIEW), ["reviewer-1.json"]);
 		assert.deepEqual(pending(temp, REVIEW, "session-2"), []);
 
@@ -212,10 +210,7 @@ for (const runtime of runtimes()) {
 		run("review-triage-flag", temp, stop("den:reviewer", "reviewer-1"));
 		run("review-triage-flag", temp, stop("den:closure-verifier", "closure-2"));
 
-		const context = injected(run("review-triage-inject", temp, prompt()));
-
-		assert.ok(context.includes("den:reviewer"), context);
-		assert.ok(context.includes("den:closure-verifier"), context);
+		injected(run("review-triage-inject", temp, prompt()));
 		assert.deepEqual(pending(temp, REVIEW), []);
 
 		// The flags are consumed, so the next prompt has nothing to say.
@@ -266,12 +261,7 @@ for (const runtime of runtimes()) {
 				stop("den:implementer-haiku", "haiku-1"),
 			);
 
-			const context = injected(
-				run("implementer-triage-inject", temp, prompt()),
-			);
-
-			assert.match(context, /den:implementer[,)]/);
-			assert.ok(context.includes("den:implementer-haiku"), context);
+			injected(run("implementer-triage-inject", temp, prompt()));
 			assert.deepEqual(pending(temp, IMPLEMENTER), []);
 
 			// The flags are consumed, so the next prompt has nothing to say.

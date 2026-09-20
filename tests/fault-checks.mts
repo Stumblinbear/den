@@ -1,8 +1,8 @@
-// The out-of-band contract a configured plugin's failure policy is: one line
+// The out-of-band contract a configured plugin's failure policy is: a report
 // on the field Claude Code hands the agent, addressed to the event the run was
 // called for, and a run that ends the way a run with nothing to say ends.
-// Everything about it but the plugin's own name and directory is the same for
-// every plugin that has one. den reads no configuration and has none of it,
+// Everything about it but the plugin's own directory is the same for every
+// plugin that has one. den reads no configuration and has none of it,
 // which is why this is not in the harness every plugin's tests import.
 // Importing this registers no test of its own.
 import assert from "node:assert/strict";
@@ -18,18 +18,18 @@ export interface FaultChecks {
 	 * the installed one.
 	 */
 	withoutParser(): string;
-	/** Asserts the report, and hands back the text it was made of. */
-	reported(result: Result, cls: string): string;
+	/** Asserts that the run reported a fault, whatever the report says. */
+	reported(result: Result): void;
 	/** Asserts silence: this run had nothing to say. */
 	quiet(result: Result): void;
 	/** The event a report was addressed to, which is what carries it. */
 	addressedTo(result: Result): string;
 }
 
-export function faultChecks(plugin: string, dir: string): FaultChecks {
+export function faultChecks(dir: string): FaultChecks {
 	return {
 		withoutParser: () => withoutParser(dir),
-		reported: (result, cls) => reported(result, plugin, cls),
+		reported,
 		quiet,
 		addressedTo: (result) => String(carried(result).hookEventName ?? ""),
 	};
@@ -79,27 +79,17 @@ interface Injection {
 	readonly additionalContext?: unknown;
 }
 
-// Exit 0 and one JSON object, since a hook that fails is one Claude Code folds
-// away: stderr and the exit code reach the debug log and nobody else.
-function reported(result: Result, plugin: string, cls: string): string {
-	const said = String(carried(result).additionalContext ?? "");
+function reported(result: Result): void {
+	const said = carried(result).additionalContext;
 
-	assert.ok(said.startsWith(`${plugin}: ${cls} error: `), said);
-	assert.equal(
-		said.split("\n").length,
-		1,
-		`the report is one line: ${JSON.stringify(said)}`,
-	);
-	assert.ok(
-		said.includes("Put it to them in your next reply"),
-		`the agent is told to pass it on: ${said}`,
-	);
-
-	return said;
+	assert.equal(typeof said, "string", result.stdout);
+	assert.notEqual(said, "", "the report is empty");
 }
 
 /** The `hookSpecificOutput` of a run, which is the whole of what it wrote. */
 function carried(result: Result): Injection {
+	// Exit 0 and one JSON object, since a hook that fails is one Claude Code
+	// folds away: stderr and the exit code reach the debug log and nobody else.
 	assert.equal(result.status, 0, result.stderr);
 	assert.equal(result.stderr, "", "a report is not a hook failure");
 

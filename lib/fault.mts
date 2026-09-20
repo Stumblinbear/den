@@ -15,9 +15,9 @@ export type FaultClass = "parser" | "config" | "internal";
 const REPORT_AT = "https://github.com/stumblinbear/den/issues";
 
 /**
- * What a report is owed, carried by the line itself. Claude Code hands the
- * text to the agent and shows the user nothing of it, so a report nobody is
- * asked to pass on is a report nobody reads.
+ * The words every report ends on, asking the agent to pass it to the user.
+ * Claude Code hands the text to the agent and shows the user nothing of it, so
+ * a report nobody is asked to pass on is a report nobody reads.
  */
 const RELAY = [
 	"The user sees none of this. Put it to them in your next reply, with the fix",
@@ -29,10 +29,12 @@ const RELAY = [
 export class Fault extends Error {}
 
 /**
- * How one plugin words a fault. A report names who is speaking, what is
- * wrong, what does not happen while it stands, and what to do about it.
+ * The faults one plugin raises. Every report it words names the plugin, what
+ * was wrong, what the plugin leaves undone while the fault stands, and what to
+ * do about it.
  */
 export interface Faults {
+	/** A fault of `cls` over `detail`, with `fix` for the user to make. */
 	fault(cls: FaultClass, detail: string, fix: string, cause?: unknown): Fault;
 	/** The same for a configuration file that cannot be read or used. */
 	configFault(path: string, detail: string, cause?: unknown): Fault;
@@ -47,6 +49,8 @@ export interface Faults {
 export const report = (fault: Fault): string => `${fault.message} ${RELAY}`;
 
 /**
+ * The faults of one plugin, worded from its name and what it stops doing.
+ *
  * @param plugin - the name every one of its reports opens with
  * @param consequence - what this plugin does not do while a fault stands
  */

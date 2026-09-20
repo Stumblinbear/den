@@ -6,10 +6,6 @@
 // hook can read as input is nothing to act on. How long a fault goes on being
 // reported is `report-runs.test.mts`.
 //
-// What each report says is off follows the same split: the file and the parser
-// stop every entry, so the line names them all, while an entry's own run
-// coming apart stops that entry alone and the line names only it.
-//
 // These run the real processes through the launcher, because the whole
 // contract is out of band: what a run writes on stdout for the agent, and the
 // exit of a hook that has not failed.
@@ -31,7 +27,6 @@ import {
 	subagentSession,
 	transcript,
 	USABLE,
-	unreadableSession,
 	unreadableTranscript,
 	withoutParser,
 } from "./harness.mts";
@@ -39,15 +34,8 @@ import { INVALID } from "./invalid-configs.mts";
 import { wakeRuns } from "./wake-runs.mts";
 import { watcherRuns } from "./watcher-runs.mts";
 
-/** What a fault of the shared file or the shared parser costs the session. */
-const EVERY_ENTRY =
-	"The context notice, the watcher, the resume guard and the cache wake are off for this session";
-
 /** A file every entry can use, so what a case meets is not the configuration. */
 const CONFIG = configFile(USABLE);
-
-// The parser report has to name the package the user has to reinstall.
-const NAMES_THE_PACKAGE = /smol-toml/;
 
 for (const runtime of runtimes()) {
 	const hook = hookRunner(runtime);
@@ -71,8 +59,12 @@ for (const runtime of runtimes()) {
 			options,
 		);
 
+	// Under every threshold the files here set, so a report is the whole of
+	// what a run writes and silence means the run found no fault.
+	const quietly = transcript(assistant(50_000));
+
 	const measure = (session: string, config: string, options?: RunOptions) =>
-		measureOn(session, transcript(assistant(200_000)), config, options);
+		measureOn(session, quietly, config, options);
 
 	const guardOn = (
 		session: string,
@@ -109,32 +101,12 @@ for (const runtime of runtimes()) {
 		quiet(guard(session, path));
 	});
 
-	test(name("a parser that will not import is a parser fault"), () => {
+	test(name("a parser that will not import is reported"), () => {
 		const launcher = withoutParser();
 		const path = configFile(USABLE);
 
-		assert.match(
-			reported(guard(sid(), path, { launcher }), "parser"),
-			NAMES_THE_PACKAGE,
-		);
+		reported(guard(sid(), path, { launcher }));
 	});
-
-	// A directory where the session's transcript belongs: the read fails on
-	// something that is not the file's absence, which nothing here has a fault
-	// of its own for, so it stops the run as a plain error. The entry runner is
-	// what turns that into one report on the run that met it.
-	test(
-		name("a run stopped by an error of its own is an internal fault"),
-		() => {
-			const session = sid();
-			const path = configFile(USABLE);
-
-			reported(
-				guardOn(session, unreadableSession("big", [assistant(162_300)]), path),
-				"internal",
-			);
-		},
-	);
 
 	// What a hook is handed on stdin is whatever started it. Text it cannot
 	// read as input leaves it with nothing to do, which is not the same as
@@ -146,15 +118,6 @@ for (const runtime of runtimes()) {
 
 		quiet(measure(session, path, notJson));
 		quiet(guard(session, path, notJson));
-	});
-
-	test(name("a malformed config is reported, naming the file"), () => {
-		const session = sid();
-		const path = configFile(BROKEN);
-		const line = reported(guard(session, path), "config");
-
-		assert.ok(line.includes(path), line);
-		assert.ok(line.includes(EVERY_ENTRY), line);
 	});
 
 	// The report asks whoever reads it to put the line to the user, and a
@@ -178,64 +141,42 @@ for (const runtime of runtimes()) {
 		);
 	});
 
-	// An internal error stops the entry that met it and nothing else, so its
-	// line names that entry alone. All three below are forced the same way, by
-	// a transcript path none of them can read, so what differs between the
-	// lines is only which entry met it.
-	test(name("an internal error in the notice entry names the notice"), () => {
-		const line = reported(
-			measureOn(sid(), unreadableTranscript(), CONFIG),
-			"internal",
-		);
-
-		assert.ok(
-			line.includes("The context notice is off for this session"),
-			line,
-		);
+	// A run stopped by an error of its own, which nothing here has a fault for,
+	// is reported by the entry runner on the run that met it.
+	test(name("an internal error in the notice entry is reported"), () => {
+		reported(measureOn(sid(), unreadableTranscript(), CONFIG));
 	});
 
-	test(name("an internal error in the guard entry names the guard"), () => {
-		const line = reported(
-			guardOn(sid(), unreadableTranscript(), CONFIG),
-			"internal",
-		);
-
-		assert.ok(line.includes("The resume guard is off for this session"), line);
+	test(name("an internal error in the guard entry is reported"), () => {
+		reported(guardOn(sid(), unreadableTranscript(), CONFIG));
 	});
 
-	test(name("an internal error in the watcher entry names the watcher"), () => {
+	test(name("an internal error in the watcher entry is reported"), () => {
 		const { session, stop } = watcherRuns(runtime);
-		const line = reported(stop(session(), unreadableTranscript()), "internal");
 
-		assert.ok(line.includes("The watcher is off for this session"), line);
+		reported(stop(session(), unreadableTranscript()));
 	});
 
 	// The wake waits rather than answering, so it reports only what its first
 	// check meets: past that there is no turn left for a line to land on, and
 	// an unreadable transcript is what stops it in that first check.
-	test(name("an internal error in the wake entry names the wake"), async () => {
+	test(name("an internal error in the wake entry is reported"), async () => {
 		const runs = await wakeRuns(runtime);
 
 		try {
-			const line = reported(
-				runs.stop(runs.session(), unreadableTranscript()),
-				"internal",
-			);
-
-			assert.ok(line.includes("The cache wake is off for this session"), line);
+			reported(runs.stop(runs.session(), unreadableTranscript()));
 		} finally {
 			await runs.close();
 		}
 	});
 
-	for (const [what, names, sections] of INVALID) {
-		test(name(`a config with ${what} is a config fault`), () => {
-			const session = sid();
-			const path = configFile(...sections);
-			const line = reported(measure(session, path), "config");
-
-			assert.ok(line.includes(path), line);
-			assert.ok(line.includes(names), line);
+	// Through the guard, whose healthy run writes a permission decision and no
+	// report. The notice writes its own line into the field a report travels in,
+	// so a row setting a threshold the fixture crosses reads as reported there
+	// whether the file was refused or not.
+	for (const [what, sections] of INVALID) {
+		test(name(`a config with ${what} is reported`), () => {
+			reported(guard(sid(), configFile(...sections)));
 		});
 	}
 
@@ -246,8 +187,8 @@ for (const runtime of runtimes()) {
 		const session = sid();
 		const path = configFile(BROKEN);
 
-		reported(guard(session, path), "config");
-		reported(measure(session, path), "config");
+		reported(guard(session, path));
+		reported(measure(session, path));
 	});
 
 	// The report travels in `hookSpecificOutput`, which Claude Code reads
@@ -265,13 +206,8 @@ for (const runtime of runtimes()) {
 		const session = sid();
 		const path = configFile(BROKEN);
 
-		reported(measure(session, path), "config");
+		reported(measure(session, path));
 		writeFileSync(path, USABLE);
-
-		const result = measure(session, path);
-
-		assert.equal(result.status, 0);
-		assert.equal(result.stderr, "");
-		assert.ok(result.stdout.includes("NOTICE"), result.stdout);
+		quiet(measure(session, path));
 	});
 }

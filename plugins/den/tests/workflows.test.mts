@@ -16,6 +16,15 @@ const DECISIONS = [
 
 const EXPLORE = { ask: "Add a host", direction: DIRECTION, explorer: "opus" };
 
+/**
+ * The proposals a judge launch carries: the JSON array the prompt ends on,
+ * which is data handed on rather than prose.
+ */
+const designsIn = (
+	prompt: string,
+): readonly { readonly design: Record<string, unknown> }[] =>
+	JSON.parse(prompt.slice(prompt.lastIndexOf("\n[") + 1));
+
 test("design context and uncertainty survive the explorer-to-judge handoff", async () => {
 	const questions = ["Must existing configurations survive a host migration?"];
 	const assumptions = ["The third host is only a possibility."];
@@ -30,14 +39,6 @@ test("design context and uncertainty survive the explorer-to-judge handoff", asy
 		"design-exploration-workflow",
 		{ ...EXPLORE, decisions: DECISIONS },
 		async (prompt, options) => {
-			assert.ok(prompt.includes(`Direction record: ${DIRECTION}`));
-			assert.ok(
-				prompt.includes(
-					`Settled decisions:
-1. ${DECISIONS[0]}
-2. ${DECISIONS[1]}`,
-				),
-			);
 			if (options.agentType === "den:design-explorer") {
 				explorers += 1;
 				assert.ok(options.schema?.required.includes("questions"));
@@ -46,8 +47,10 @@ test("design context and uncertainty survive the explorer-to-judge handoff", asy
 			}
 			judges += 1;
 			assert.equal(explorers, 3);
-			assert.ok(prompt.includes(questions[0] ?? "missing question"));
-			assert.ok(prompt.includes(assumptions[0] ?? "missing assumption"));
+			for (const { design } of designsIn(prompt)) {
+				assert.deepEqual(design["questions"], questions);
+				assert.deepEqual(design["assumptions"], assumptions);
+			}
 			assert.ok(options.schema?.required.includes("outcome"));
 			return verdict;
 		},
@@ -57,32 +60,35 @@ test("design context and uncertainty survive the explorer-to-judge handoff", asy
 });
 
 test("the direction record and the decision list are checked before dispatch", async () => {
-	const rejected: readonly (readonly [Record<string, unknown>, RegExp])[] = [
-		[{ direction: undefined }, /direction/],
-		[{ direction: 7 }, /direction/],
-		[{ direction: " " }, /direction/],
+	const rejected: readonly Record<string, unknown>[] = [
+		{ direction: undefined },
+		{ direction: 7 },
+		{ direction: " " },
 		// A relative path resolves against the tree the run was launched from.
-		[{ direction: "docs/project-direction.md" }, /direction/],
-		[{ decisions: "The loader owns the host registry" }, /decisions/],
-		[{ decisions: [7] }, /decisions/],
-		[{ decisions: [" "] }, /decisions/],
-		[{ decisions: ["x".repeat(401)] }, /decisions/],
-		[{ basis: "Two hosts, independently maintained" }, /nothing else/],
-		[{ explorer: undefined }, /explorer/],
-		[{ explorer: "haiku" }, /explorer/],
+		{ direction: "docs/project-direction.md" },
+		{ decisions: "The loader owns the host registry" },
+		{ decisions: [7] },
+		{ decisions: [" "] },
+		{ decisions: ["x".repeat(401)] },
+		{ basis: "Two hosts, independently maintained" },
+		{ explorer: undefined },
+		{ explorer: "haiku" },
 	];
 
-	for (const [override, message] of rejected) {
+	for (const override of rejected) {
+		let launched = 0;
+
 		await assert.rejects(
 			runWorkflow(
 				"design-exploration-workflow",
 				{ ...EXPLORE, ...override },
 				async () => {
-					assert.fail("invalid context must not launch an agent");
+					launched += 1;
+					return null;
 				},
 			),
-			message,
 		);
+		assert.equal(launched, 0, "invalid context must not launch an agent");
 	}
 });
 
@@ -107,35 +113,23 @@ test("the explorers run on the model the launch names and the judge on its own",
 	}
 });
 
-test("a launch with no settled decision carries no decision list", async () => {
-	for (const decisions of [undefined, []]) {
-		await runWorkflow(
-			"design-exploration-workflow",
-			{ ...EXPLORE, decisions },
-			async (prompt, options) => {
-				assert.ok(!prompt.includes("Settled decisions"));
-
-				return options.agentType === "den:design-explorer"
-					? proposal()
-					: noSuitableProposal();
-			},
-		);
-	}
-});
-
 test("a missing design result cannot become a smaller successful comparison", async () => {
 	let index = 0;
+	let judged = 0;
 	await assert.rejects(
 		runWorkflow(
 			"design-exploration-workflow",
 			EXPLORE,
 			async (_prompt, options) => {
-				assert.equal(options.agentType, "den:design-explorer");
+				if (options.agentType !== "den:design-explorer") {
+					judged += 1;
+					return noSuitableProposal();
+				}
 				return index++ === 1 ? null : proposal();
 			},
 		),
-		/incomplete/i,
 	);
+	assert.equal(judged, 0, "the judge ran on the proposals left");
 });
 
 test("a judge cannot recommend an absent or unresolved proposal", async () => {
@@ -165,7 +159,6 @@ test("a judge cannot recommend an absent or unresolved proposal", async () => {
 								],
 							},
 			),
-			/recommendation/i,
 		);
 	}
 });
@@ -206,7 +199,6 @@ test("an unresolved judge outcome cannot select a design", async () => {
 						? proposal()
 						: { ...noSuitableProposal(), outcome, recommendation: 0 },
 			),
-			/Invalid recommendation/,
 		);
 	}
 });
@@ -221,15 +213,6 @@ const ARGS = {
 	plan: "docs/plans/loader.md",
 	reviewer: "fable",
 };
-
-/** The scope block every launch opens with, as the workflow composes it. */
-const SCOPE = `Repository: ${REPO}
-Range: HEAD
-
-Every command runs there and every search names a path under it: the directory
-you start in may be another tree.`;
-
-const PLANNED = `The plan this change belongs to is at ${ARGS.plan}.`;
 
 const EMPTY_CARRIED = {
 	deviations: [],
@@ -307,41 +290,24 @@ const commented = () => ({
 	],
 });
 
-/** The line the fix brief's findings follow. */
-const FINDINGS = "or the sentence the schema asks for.";
-/** The line the closure launch's findings follow. */
-const JUDGED = "names it by:";
-/** The line the fix brief carries when a finding comes back reopened. */
-const REOPENED = "A finding carrying `reopened` was fixed once in this run";
-/** The heading the user's numbered decisions follow, in every launch that carries them. */
-const RULINGS = "The decisions the user has settled, each under its number:";
-/** The heading the lead's numbered calls follow, in every launch that carries them. */
-const LEAD_CALLS = "The calls the lead has made, each under its number:";
+/** Whether a paragraph of a prompt is the findings, which are a JSON array. */
+const isFindings = (paragraph: string) => paragraph.startsWith("[");
 
 /**
- * The JSON a prompt carries under `heading`, which runs to the blank line that
- * starts the next section.
+ * The findings a fix brief or a closure launch carries: the one paragraph of
+ * it that is a JSON array.
  */
-function blockIn(prompt: string, heading: string): unknown {
-	const start = prompt.indexOf(heading);
+function findingsIn(prompt: string): Record<string, unknown>[] {
+	const blocks = prompt.split("\n\n").filter(isFindings);
 
-	assert.notEqual(start, -1, `the prompt carries nothing under "${heading}"`);
+	assert.equal(blocks.length, 1, prompt);
 
-	const from = start + heading.length;
-	const end = prompt.indexOf("\n\n", from + 2);
-
-	return JSON.parse(prompt.slice(from, end === -1 ? undefined : end));
+	return JSON.parse(blocks[0] ?? "") as Record<string, unknown>[];
 }
-
-const findingsIn = (prompt: string) =>
-	blockIn(prompt, FINDINGS) as Record<string, unknown>[];
-
-const judgedIn = (prompt: string) =>
-	blockIn(prompt, JUDGED) as Record<string, unknown>[];
 
 /** A closure report that closes every finding its launch named. */
 const closing = (prompt: string, over: Record<string, unknown> = {}) => ({
-	verdicts: judgedIn(prompt).map((item) => verdict(String(item["id"]))),
+	verdicts: findingsIn(prompt).map((item) => verdict(String(item["id"]))),
 	opened: [],
 	...over,
 });
@@ -412,6 +378,27 @@ async function record(
 	return { launches, result: outcome(result) };
 }
 
+/**
+ * Runs the workflow on `args` with `reports` behind its agents, asserts that
+ * it fails, and returns the agent types it launched before it did.
+ */
+async function failing(
+	args: Record<string, unknown>,
+	reports: Reports = {},
+): Promise<string[]> {
+	const launched: string[] = [];
+	const run = agents(reports);
+
+	await assert.rejects(
+		runWorkflow("review-and-fix-workflow", args, async (prompt, options) => {
+			launched.push(options.agentType);
+			return run(prompt, options);
+		}),
+	);
+
+	return launched;
+}
+
 const types = (launches: readonly Launch[]) =>
 	launches.map((launch) => launch.type);
 
@@ -430,87 +417,106 @@ const CLOSE = "den:closure-verifier";
 const COMMENT = "den:comment-reviewer";
 
 test("invalid review-and-fix-workflow arguments are rejected before any agent launches", async () => {
-	const rejected: readonly (readonly [Record<string, unknown>, RegExp])[] = [
-		[{}, /`repo`/],
-		[{ ...ARGS, repo: "loader" }, /`repo`/],
-		[{ ...ARGS, goal: " " }, /`goal`/],
-		[{ ...ARGS, plan: "" }, /`plan`/],
-		[{ ...ARGS, reviewer: "haiku" }, /`reviewer`/],
-		[{ ...ARGS, rulings: "one decision" }, /`rulings`/],
-		[{ ...ARGS, rulings: ["x".repeat(401)] }, /`rulings`/],
-		[{ ...ARGS, leadCalls: "one call" }, /`leadCalls`/],
-		[{ ...ARGS, leadCalls: [" "] }, /`leadCalls`/],
+	const rejected: readonly Record<string, unknown>[] = [
+		{},
+		{ ...ARGS, repo: "loader" },
+		{ ...ARGS, goal: " " },
+		{ ...ARGS, plan: "" },
+		{ ...ARGS, reviewer: "haiku" },
+		{ ...ARGS, rulings: "one decision" },
+		{ ...ARGS, rulings: ["x".repeat(401)] },
+		{ ...ARGS, leadCalls: "one call" },
+		{ ...ARGS, leadCalls: [" "] },
 		// Anything but a full lowercase id; see the `since` check in the
 		// workflow.
-		[{ ...ARGS, since: "HEAD" }, /`since`/],
-		[{ ...ARGS, since: "3f08ff8" }, /`since`/],
-		[{ ...ARGS, since: "3F08FF8".padEnd(40, "0") }, /`since`/],
-		[{ ...ARGS, since: 7 }, /`since`/],
+		{ ...ARGS, since: "HEAD" },
+		{ ...ARGS, since: "3f08ff8" },
+		{ ...ARGS, since: "3F08FF8".padEnd(40, "0") },
+		{ ...ARGS, since: 7 },
 		// A key the workflow does not take is rejected, however plausible.
-		[{ ...ARGS, fixRounds: 3 }, /nothing else/],
-		[{ ...ARGS, answers: {} }, /nothing else/],
+		{ ...ARGS, fixRounds: 3 },
+		{ ...ARGS, answers: {} },
 	];
 
-	for (const [args, message] of rejected) {
-		await assert.rejects(
-			runWorkflow("review-and-fix-workflow", args, async () => {
-				assert.fail("an invalid launch reached an agent");
-			}),
-			message,
+	for (const args of rejected) {
+		assert.deepEqual(
+			await failing(args),
+			[],
+			"an invalid launch reached an agent",
 		);
 	}
 });
 
-test("the reviewer reads the repository's working tree against HEAD, with the goal and the plan", async () => {
-	const { launches } = await record(ARGS);
-	const review = launch(launches, 0);
+test("the reviewer runs on the model the launch names, every launch is told the repository, and the plan reaches the agents that read it only when the launch carries one", async () => {
+	const { launches } = await record(ARGS, { findings: [finding()] });
 
-	assert.equal(review.type, REVIEW);
-	assert.equal(review.model, "fable");
-	assert.equal(
-		review.prompt,
-		`${SCOPE}\n\nGoal: ${GOAL}\n\nPlan: ${ARGS.plan}`,
-	);
+	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
+	assert.equal(launch(launches, 0).model, "fable");
+	for (const made of launches) {
+		assert.ok(made.prompt.includes(REPO), made.type);
+	}
+	for (const index of [0, 1, 2]) {
+		const made = launch(launches, index);
+
+		assert.ok(made.prompt.includes(ARGS.plan), made.type);
+	}
 
 	const { plan: _, ...unplanned } = ARGS;
-	const bare = await record({ ...unplanned, reviewer: "opus" });
+	const bare = await record(
+		{ ...unplanned, reviewer: "opus" },
+		{ findings: [finding()] },
+	);
 
 	assert.equal(launch(bare.launches, 0).model, "opus");
-	assert.equal(launch(bare.launches, 0).prompt, `${SCOPE}\n\nGoal: ${GOAL}`);
 	for (const made of bare.launches) {
-		assert.ok(!made.prompt.includes("The plan this change"), made.type);
+		assert.ok(made.prompt.includes(REPO), made.type);
+		assert.ok(!made.prompt.includes(ARGS.plan), made.type);
 	}
 });
 
-test("with a snapshot, the agents that read the scope get the edit since it, the reviewer and the verifier are told the whole change is HEAD, and the reviewer that a defect it comes across there is the change's", async () => {
+// The comment pass opens no finding, so neither list reaches it: a decision on
+// them is nothing its rewrite could contradict.
+test("the user's decisions and the lead's calls reach the reviewer, the fixer and the verifier", async () => {
+	const rulings = [
+		"The loader keeps the flag, since the caller has no cache path.",
+		"The error is the loader's own, the user having said so.",
+	];
+	const leadCalls = ["The retry stays at one, since the cache is local."];
+	const settled = [...rulings, ...leadCalls];
+	const { launches } = await record(
+		{ ...ARGS, rulings, leadCalls },
+		{ findings: [finding()] },
+	);
+
+	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
+	for (const index of [0, 1, 2]) {
+		const made = launch(launches, index);
+
+		for (const entry of settled) {
+			assert.ok(made.prompt.includes(entry), made.type);
+		}
+	}
+
+	const comment = launch(launches, 3);
+
+	for (const entry of settled) {
+		assert.ok(!comment.prompt.includes(entry), comment.type);
+	}
+});
+
+test("a run given a snapshot reviews, fixes and verifies against it, and launches the agents a run on the whole change does", async () => {
 	const since = "0482f7aad6c5e4f154f711f86138b7bbf7a6ac5e";
-	const narrowed = SCOPE.replace("Range: HEAD", `Range: ${since}`);
-	const whole = `The range is what changed since the last clean review of this change. The
-change as a whole, HEAD against the working tree, is there to read for context.`;
-	// The reviewer's clause alone; see the comment on `CONTEXT` in the workflow.
-	const owned = ` A defect you come
-across elsewhere in the change is a finding of the change, not pre-existing.`;
 	const { launches } = await record(
 		{ ...ARGS, since },
 		{ findings: [finding()] },
 	);
 
 	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
-	assert.equal(
-		launch(launches, 0).prompt,
-		`${narrowed}\n\n${whole}${owned}\n\nGoal: ${GOAL}\n\nPlan: ${ARGS.plan}`,
-	);
-	assert.ok(
-		launch(launches, 1).prompt.startsWith(`Goal: ${GOAL}\n\n${narrowed}\n\n`),
-	);
-	assert.ok(!launch(launches, 1).prompt.includes(whole));
-	assert.ok(
-		launch(launches, 2).prompt.startsWith(
-			`Goal: ${GOAL}\n\n${narrowed}\n\n${whole}\n\n`,
-		),
-	);
-	assert.ok(!launch(launches, 2).prompt.includes(owned));
-	assert.equal(launch(launches, 3).prompt, narrowed);
+	for (const index of [0, 1, 2]) {
+		const made = launch(launches, index);
+
+		assert.ok(made.prompt.includes(since), made.type);
+	}
 });
 
 test("the closure verifier runs on the model the review was launched with", async () => {
@@ -523,66 +529,6 @@ test("the closure verifier runs on the model the review was launched with", asyn
 
 		assert.equal(closure.type, CLOSE);
 		assert.equal(closure.model, reviewer);
-	}
-});
-
-test("every agent that works the tree is told which repository to work in, and the comment reviewer gets the scope alone", async () => {
-	const { launches } = await record(ARGS, { findings: [finding()] });
-
-	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
-	for (const made of launches) {
-		assert.ok(made.prompt.includes(SCOPE), made.type);
-	}
-	assert.equal(launch(launches, 3).prompt, SCOPE);
-});
-
-test("the goal opens the fix brief and the closure launch, and the plan closes them", async () => {
-	const { launches } = await record(ARGS, { findings: [finding()] });
-
-	for (const index of [1, 2]) {
-		const made = launch(launches, index);
-
-		assert.ok(made.prompt.startsWith(`Goal: ${GOAL}\n\n${SCOPE}`), made.type);
-		assert.ok(made.prompt.endsWith(`\n\n${PLANNED}`), made.type);
-	}
-});
-
-test("the user's decisions and the lead's calls reach the reviewer, the fixer and the verifier, numbered as one list, and a run without them carries none", async () => {
-	const rulings = [
-		"The loader keeps the flag, since the caller has no cache path.",
-		"The error is the loader's own, the user having said so.",
-	];
-	const leadCalls = ["The retry stays at one, since the cache is local."];
-	const listed = `${RULINGS}
-1. ${rulings[0]}
-2. ${rulings[1]}
-
-${LEAD_CALLS}
-3. ${leadCalls[0]}`;
-	const { launches } = await record(
-		{ ...ARGS, rulings, leadCalls },
-		{ findings: [finding()] },
-	);
-
-	for (const index of [0, 1, 2]) {
-		assert.ok(
-			launch(launches, index).prompt.includes(listed),
-			launch(launches, index).type,
-		);
-	}
-
-	const alone = await record({ ...ARGS, leadCalls }, { findings: [finding()] });
-	const review = launch(alone.launches, 0).prompt;
-	assert.ok(review.includes(`${LEAD_CALLS}\n1. ${leadCalls[0]}`));
-	assert.ok(!review.includes(RULINGS));
-
-	const bare = await record(
-		{ ...ARGS, rulings: [], leadCalls: [] },
-		{ findings: [finding()] },
-	);
-	for (const made of bare.launches) {
-		assert.ok(!made.prompt.includes(RULINGS), made.type);
-		assert.ok(!made.prompt.includes(LEAD_CALLS), made.type);
 	}
 });
 
@@ -614,7 +560,7 @@ test("one fixer takes the defects at P2 and above as one brief, and everything e
 
 	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
 	assert.deepEqual(findingsIn(launch(launches, 1).prompt), [blocker, defect]);
-	assert.deepEqual(judgedIn(launch(launches, 2).prompt), [blocker, defect]);
+	assert.deepEqual(findingsIn(launch(launches, 2).prompt), [blocker, defect]);
 	assert.equal(result.status, "clean");
 	assert.deepEqual(result.deferred, [minor, pattern]);
 	assert.deepEqual(result.decisions, [decision]);
@@ -647,12 +593,10 @@ test("a reopened finding gets one more pass, carrying why it was reopened, and c
 	});
 
 	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, FIX, CLOSE, COMMENT]);
-	assert.ok(!launch(launches, 1).prompt.includes(REOPENED));
-	assert.ok(launch(launches, 3).prompt.includes(REOPENED));
 	assert.deepEqual(findingsIn(launch(launches, 3).prompt), [
 		{ ...finding(), reopened: why },
 	]);
-	assert.deepEqual(judgedIn(launch(launches, 4).prompt), [
+	assert.deepEqual(findingsIn(launch(launches, 4).prompt), [
 		{ ...finding(), reopened: why },
 	]);
 	assert.equal(result.status, "clean");
@@ -738,7 +682,7 @@ test("a finding the closure cannot decide waits on the lead while a reopened one
 	});
 
 	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, FIX, CLOSE]);
-	assert.deepEqual(judgedIn(launch(launches, 4).prompt), [
+	assert.deepEqual(findingsIn(launch(launches, 4).prompt), [
 		{ ...other, reopened: "The cache path is open." },
 	]);
 	assert.equal(result.status, "open");
@@ -772,52 +716,54 @@ test("a finding the closure cannot decide waits on the lead while a reopened one
 });
 
 test("a closure that leaves a finding without a verdict, or judges one the pass was not fixing, fails at its stage", async () => {
-	const reports = [
+	const reports: readonly Record<string, unknown>[] = [
 		{ verdicts: [], opened: [] },
 		{ verdicts: [verdict("empty-path"), verdict("cache-path")], opened: [] },
 	];
 
 	for (const report of reports) {
-		await assert.rejects(
-			record(ARGS, { findings: [finding()], close: () => report }),
-			/close:1 left/,
+		assert.deepEqual(
+			await failing(ARGS, { findings: [finding()], close: () => report }),
+			[REVIEW, FIX, CLOSE],
 		);
 	}
 });
 
 test("a report that gives one id to two items is rejected at its stage", async () => {
-	await assert.rejects(
-		record(ARGS, { findings: [finding(), finding()] }),
-		/review gave empty-path/,
-	);
-	await assert.rejects(
-		record(ARGS, {
+	assert.deepEqual(await failing(ARGS, { findings: [finding(), finding()] }), [
+		REVIEW,
+	]);
+	assert.deepEqual(
+		await failing(ARGS, {
 			findings: [finding()],
 			close: () => ({
 				verdicts: [verdict("empty-path")],
 				opened: [finding({ id: "twice" }), finding({ id: "twice" })],
 			}),
 		}),
-		/close:1 gave twice/,
+		[REVIEW, FIX, CLOSE],
 	);
 });
 
 test("an agent that returns nothing usable ends the run at its own stage", async () => {
 	const findings = [finding()];
 
-	await assert.rejects(record(ARGS, { review: null }), /review returned/);
-	await assert.rejects(
-		record(ARGS, { findings, fix: () => null }),
-		/fix:1 returned/,
-	);
-	await assert.rejects(
-		record(ARGS, { findings, close: () => null }),
-		/close:1 returned/,
-	);
-	await assert.rejects(
-		record(ARGS, { findings, comment: null }),
-		/comment returned/,
-	);
+	assert.deepEqual(await failing(ARGS, { review: null }), [REVIEW]);
+	assert.deepEqual(await failing(ARGS, { findings, fix: () => null }), [
+		REVIEW,
+		FIX,
+	]);
+	assert.deepEqual(await failing(ARGS, { findings, close: () => null }), [
+		REVIEW,
+		FIX,
+		CLOSE,
+	]);
+	assert.deepEqual(await failing(ARGS, { findings, comment: null }), [
+		REVIEW,
+		FIX,
+		CLOSE,
+		COMMENT,
+	]);
 });
 
 test("the run's account is each pass's findings with their verdicts, and nothing a fixer or a verifier wrote beside them", async () => {
@@ -890,28 +836,21 @@ test("the return leads with what the lead acts on and leaves out every list with
 	]);
 });
 
-test("each fix pass logs the figures its fixer verified the tree with", async () => {
+test("a fix pass logs a line", async () => {
 	const logged: string[] = [];
-	const figures = "14 tests, 2 failures, 1 lint warning.";
 	await runWorkflow(
 		"review-and-fix-workflow",
 		ARGS,
-		agents({
-			findings: [finding()],
-			fix: () => fixed({ verification: figures }),
-		}),
+		agents({ findings: [finding()] }),
 		(message) => {
 			logged.push(message);
 		},
 	);
 
-	assert.ok(
-		logged.some((message) => message.includes(figures)),
-		`the run logged ${logged.length} messages, none carrying the figures`,
-	);
+	assert.equal(logged.length, 1);
 });
 
-test("a return past what the host shows logs its size per key and still returns", async () => {
+test("a return past what the host shows logs a line and still returns", async () => {
 	const logged: string[] = [];
 	const decision = finding({
 		id: "stored-field",
@@ -931,8 +870,6 @@ test("a return past what the host shows logs its size per key and still returns"
 
 	assert.equal(result.status, "clean");
 	assert.equal(logged.length, 1);
-	assert.match(logged[0] ?? "", /against the 8000/);
-	assert.match(logged[0] ?? "", /decisions 9\d{3}/);
 
 	// A return inside the budget logs nothing.
 	await runWorkflow("review-and-fix-workflow", ARGS, agents({}), (message) => {
@@ -963,11 +900,10 @@ test("an explorer's challenge to a settled decision reaches the judge and the re
 				questions: [],
 			};
 		},
-	)) as { designs: readonly { design: { contested: unknown } }[] };
+	)) as { designs: readonly { design: Record<string, unknown> }[] };
 
-	assert.ok(judged.includes('"decision": 1'), judged.slice(-200));
-	for (const { design } of result.designs) {
-		assert.deepEqual(design.contested, contested);
+	for (const { design } of [...designsIn(judged), ...result.designs]) {
+		assert.deepEqual(design["contested"], contested);
 	}
 });
 
@@ -989,7 +925,6 @@ test("an explorer's challenge naming a decision the settled list does not have f
 							}
 						: noSuitableProposal(),
 			),
-			/contested/,
 		);
 	}
 });

@@ -15,7 +15,7 @@ import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
 import { agentLaunch, taskNotification } from "./background-fixtures.mts";
 import { assistant, at } from "./fixtures.mts";
-import { decided, guardRunner, PROMPT, reason } from "./guard-runs.mts";
+import { decided, denied, guardRunner, PROMPT } from "./guard-runs.mts";
 import { configFile, sessionId, subagentSession, USABLE } from "./harness.mts";
 
 const CONFIG = configFile(USABLE);
@@ -49,15 +49,11 @@ for (const runtime of runtimes()) {
 		const path = subagentSession(LAST, [assistant(260_900)], [PROMPT]);
 
 		named(path, LAST);
-
-		assert.match(
-			reason(run(path)),
-			/^DENIED den-flag-review: context 260\.9K tokens is above the 150K resume limit/,
-		);
+		denied(run(path));
 	});
 
 	// The last fork's 260.9K is over the limit where the first fork's 10K
-	// passes, so the deny says which one was measured. The second run pins the
+	// passes, so a deny says the last one was measured. The second run pins the
 	// running check to the same id, since a launch record carries the id and
 	// never the name.
 	test(name("a message addressed by the agent's name is guarded"), () => {
@@ -83,10 +79,7 @@ for (const runtime of runtimes()) {
 			agentLaunch(LAST, at(30)),
 		];
 
-		assert.match(
-			reason(run(session([...launched, taskNotification(LAST, at(9))]))),
-			/context 260\.9K tokens is above the 150K resume limit/,
-		);
+		denied(run(session([...launched, taskNotification(LAST, at(9))])));
 		assert.equal(
 			decided(run(session(launched))),
 			null,

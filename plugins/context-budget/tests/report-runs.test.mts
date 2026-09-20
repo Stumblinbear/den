@@ -9,8 +9,8 @@
 // twenty of the same line inside one turn is a line nobody reads, so it
 // reports on the prompt alone. An entry Claude Code calls once at the end of a
 // turn, or once for a tool call it guards, reports on every run it makes.
-// `config-errors.test.mts` holds what counts as a fault at all, what each
-// report says, and the run a fixed config takes effect on.
+// `config-errors.test.mts` holds what counts as a fault at all, and the run a
+// fixed config takes effect on.
 //
 // These run the real processes through the launcher, because the whole
 // contract is out of band: what a run writes on stdout for the agent.
@@ -70,7 +70,7 @@ for (const runtime of runtimes()) {
 		const path = configFile(BROKEN);
 
 		for (let turn = 1; turn <= 3; turn += 1) {
-			reported(prompt(session, path), "config");
+			reported(prompt(session, path));
 		}
 	});
 
@@ -78,13 +78,13 @@ for (const runtime of runtimes()) {
 		const session = sid();
 		const path = configFile(BROKEN);
 
-		reported(prompt(session, path), "config");
+		reported(prompt(session, path));
 
 		for (let call = 1; call <= 5; call += 1) {
 			quiet(toolCall(session, path));
 		}
 
-		reported(prompt(session, path), "config");
+		reported(prompt(session, path));
 	});
 
 	// The guard is on a tool call rather than on the turn, so it names no
@@ -94,7 +94,7 @@ for (const runtime of runtimes()) {
 		const session = sid();
 		const path = configFile(USABLE);
 
-		reported(guardCrash(session, path), "internal");
-		reported(guardCrash(session, path), "internal");
+		reported(guardCrash(session, path));
+		reported(guardCrash(session, path));
 	});
 }

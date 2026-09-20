@@ -26,8 +26,8 @@ import { type Inbox, inbox } from "./inbox-fixture.mts";
 
 /**
  * A wake section of `times` wakes over the five-minute lifetime, each due a
- * second after the turn it is measured from, with a body carrying all three
- * placeholders, so a case sees which numbers were substituted into it.
+ * second after the turn it is measured from, under a message of its own rather
+ * than the default.
  */
 const wakeSection = (times: number): string =>
 	[

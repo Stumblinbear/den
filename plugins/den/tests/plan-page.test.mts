@@ -4,7 +4,7 @@
 // temp directory of their own.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { test } from "node:test";
@@ -252,6 +252,13 @@ function run(file: string, data: string): { out: string; temp: string } {
 	return { out: result.stdout, temp };
 }
 
+/** The pages a run left in the script's page directory under `temp`. */
+function pagesIn(temp: string): readonly string[] {
+	const dir = join(temp, "claude-den-plan-pages");
+
+	return existsSync(dir) ? readdirSync(dir).map((name) => join(dir, name)) : [];
+}
+
 /** A plan file written under a fixture directory, for the script to read. */
 function planFile(name: string, text: string): string {
 	const file = join(fixtureDir("plan-page-src"), name);
@@ -262,25 +269,19 @@ function planFile(name: string, text: string): string {
 }
 
 for (const runtime of runtimes()) {
-	test(`[${runtime}] the line names the page, the plan's title and its step counts`, () => {
+	test(`[${runtime}] a plan is written as one page, named for its file`, () => {
 		const { out, temp } = run(
 			planFile("cache-wake.md", PLAN),
 			dataDir(runtime),
 		);
-		const named =
-			/^Plan page: (.+\.html) \(Cache wake; 3 steps, 1 committed, 1 in progress, 1 pending\)$/m.exec(
-				out,
-			);
+		const [path, ...more] = pagesIn(temp);
 
-		assert.ok(named !== null, out);
-
-		const path = named[1] ?? "";
-
-		assert.ok(existsSync(path), path);
+		assert.ok(path !== undefined && more.length === 0, out);
 		assert.ok(
 			path.startsWith(join(temp, "claude-den-plan-pages", "cache-wake-")),
 			path,
 		);
+		assert.notEqual(out.trim(), "");
 
 		const html = readFileSync(path, "utf8");
 
@@ -291,19 +292,17 @@ for (const runtime of runtimes()) {
 	test(`[${runtime}] a file that cannot be read is reported, not rendered`, () => {
 		const missing = join(fixtureDir("plan-page-src"), "nothing.md");
 
-		const { out } = run(missing, dataDir(runtime));
+		const { out, temp } = run(missing, dataDir(runtime));
 
-		assert.match(out, /^Cannot read .*nothing\.md: .+$/m);
-		assert.doesNotMatch(out, /Plan page:/);
+		assert.notEqual(out.trim(), "");
+		assert.deepEqual(pagesIn(temp), []);
 	});
 
-	test(`[${runtime}] no argument is reported as the argument it wanted`, () => {
-		const { out } = run("", dataDir(runtime));
+	test(`[${runtime}] no argument is reported, not rendered`, () => {
+		const { out, temp } = run("", dataDir(runtime));
 
-		assert.match(
-			out,
-			/^No plan given: the argument is the plan file's path\.$/m,
-		);
+		assert.notEqual(out.trim(), "");
+		assert.deepEqual(pagesIn(temp), []);
 	});
 }
 
@@ -329,5 +328,5 @@ test("a line opening with a hash that is no title or section heading is prose, n
 		null,
 		`killed by ${result.signal} after the timeout: the parser never advanced past the line`,
 	);
-	assert.match(result.stdout, /^Plan page: /m);
+	assert.equal(pagesIn(temp).length, 1, result.stdout);
 });

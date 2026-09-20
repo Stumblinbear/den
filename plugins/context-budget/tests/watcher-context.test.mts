@@ -16,9 +16,9 @@ import {
 } from "./fixtures.mts";
 import { quiet, record } from "./harness.mts";
 import {
+	advised,
 	conversation,
 	GOOD,
-	injected,
 	NOTICE,
 	watcherRuns,
 } from "./watcher-runs.mts";
@@ -35,10 +35,7 @@ for (const runtime of runtimes()) {
 		const id = session();
 
 		judge.answers(GOOD);
-		assert.match(
-			String(injected(stop(id, conversation(NOTICE, {}, 6)))),
-			/Context watcher/,
-		);
+		assert.ok(advised(id, stop(id, conversation(NOTICE, {}, 6))));
 
 		quiet(stop(id, conversation(NOTICE, {}, 7)));
 		assert.equal(judge.prompts().length, 1, "the verdict is standing");
@@ -57,11 +54,8 @@ for (const runtime of runtimes()) {
 			assistant(NOTICE, { minutesAgo: 1, uuid: "newest-after-compaction" }),
 		);
 
-		// The advice names the one turn the context has left, which is the walk
-		// having stopped at the boundary.
-		assert.match(
-			String(injected(stop(id, compacted))),
-			/began "Carry on from the summary"/,
+		assert.ok(
+			advised(id, stop(id, compacted)),
 			"a context nothing was judged on",
 		);
 	});
@@ -77,7 +71,7 @@ for (const runtime of runtimes()) {
 		judge.answers(GOOD);
 		judge.rewrites(path, COMPACTED);
 
-		assert.equal(injected(stop(id, path)), null, "the answer is dropped");
+		quiet(stop(id, path));
 
 		const watcher = fieldsOf(record(id)["watcher"]);
 
@@ -93,14 +87,10 @@ for (const runtime of runtimes()) {
 		const id = session();
 
 		judge.answers(GOOD);
-		assert.match(
-			String(injected(stop(id, conversation(NOTICE, {}, 3)))),
-			/Context watcher/,
-		);
+		assert.ok(advised(id, stop(id, conversation(NOTICE, {}, 3))));
 
-		assert.match(
-			String(injected(stop(id, rebuilt()))),
-			/Context watcher/,
+		assert.ok(
+			advised(id, stop(id, rebuilt())),
 			"none of the prompts it was judged against are left",
 		);
 	});

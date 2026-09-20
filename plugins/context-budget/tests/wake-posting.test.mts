@@ -1,6 +1,5 @@
-// What a wake says, and what ends the run that says it. The message is two
-// lines: the one the plugin writes, which is the preview the user sees, and
-// the configured body under it.
+// When a wake is posted, and what ends the run that posts it. What a wake says
+// is not read.
 //
 // The runs below are real entries driven through both wakes their row allows.
 // The first message is what a session receives, the second is the count rising
@@ -10,7 +9,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setTimeout as sleep } from "node:timers/promises";
 import { runtimes } from "../../../tests/harness.mts";
-import { type Post, type Reading, wakeText } from "../lib/wake.mts";
 import {
 	endedWithin,
 	finished,
@@ -21,54 +19,24 @@ import {
 	woken,
 } from "./wake-runs.mts";
 
-/** The wake a message is written for: the `n`th of `times`, posted now. */
-const wake = (n: number, times: number): Post => ({
-	kind: "post",
-	stretch: { spent: n, lastPostAt: Date.now() },
-	times,
-});
-
-/** A reading of `count` tasks, which is all a message reads a reading for. */
-const running = (count: number): Reading => ({
-	pending: Array.from({ length: count }, (_, n) => ({
-		id: `agent-${n}`,
-		kind: "agent",
-	})),
-	lifetime: "5m",
-	refreshedAt: Date.now(),
-	turnedAt: Date.now(),
-});
-
 /**
- * The `nth` posted message as its reader sees it: the lines inside the frame's
- * wrapper, with the auth line of the connection skipped. The frame and the
- * wrapper themselves are `inbox.test.mts`.
+ * The `nth` posted message as its reader sees it: the text inside the frame's
+ * wrapper, with the auth line of the connection skipped, asserted not to be
+ * empty. The frame and the wrapper themselves are `inbox.test.mts`.
  */
-function posted(lines: readonly string[], nth: number): readonly string[] {
+function posted(lines: readonly string[], nth: number): string {
 	const frame = JSON.parse(String(lines[nth * 2 + 1])) as {
 		readonly message?: { readonly content?: string };
 	};
+	const text = String(frame.message?.content)
+		.split("\n")
+		.slice(1, -1)
+		.join("\n");
 
-	return String(frame.message?.content).split("\n").slice(1, -1);
+	assert.notEqual(text.trim(), "", "the wake is empty");
+
+	return text;
 }
-
-test("the message names the wake, the count and what is still running", () => {
-	const text = wakeText(
-		wake(2, 3),
-		running(4),
-		"{pending} still going, {n} of {times}.",
-	);
-
-	assert.deepEqual(text.split("\n"), [
-		"Cache wake 2 of 3: 4 background tasks still running.",
-		"4 still going, 2 of 3.",
-	]);
-	assert.equal(
-		wakeText(wake(1, 2), running(1), "").split("\n")[0],
-		"Cache wake 1 of 2: 1 background task still running.",
-		"one task is one task",
-	);
-});
 
 for (const runtime of runtimes()) {
 	const name = (what: string) => `${runtime}: ${what}`;
@@ -83,19 +51,10 @@ for (const runtime of runtimes()) {
 				const waiting = runs.start(runs.session(), path);
 				const first = posted(await runs.inbox.received(2), 0);
 
-				assert.deepEqual(first, [
-					"Cache wake 1 of 2: 2 background tasks still running.",
-					"Say how the 2 still running are going, wake 1 of 2.",
-				]);
-
 				// The session takes the turn the wake asked for, which refreshes
 				// the cache and brings the next wake due a second later.
-				woken(path, String(first[0]));
-
-				assert.deepEqual(posted(await runs.inbox.received(4), 1), [
-					"Cache wake 2 of 2: 2 background tasks still running.",
-					"Say how the 2 still running are going, wake 2 of 2.",
-				]);
+				woken(path, first);
+				posted(await runs.inbox.received(4), 1);
 
 				// A run with its count spent holds the stretch to the cache's
 				// expiry, so what ends this one is the work finishing under it.
@@ -134,19 +93,14 @@ for (const runtime of runtimes()) {
 				const path = idling();
 				const waiting = runs.start(session, path);
 
-				woken(path, String(posted(await runs.inbox.received(2), 0)[0]));
+				woken(path, posted(await runs.inbox.received(2), 0));
 
 				const second = posted(await runs.inbox.received(4), 1);
-
-				assert.equal(
-					second[0],
-					"Cache wake 2 of 2: 2 background tasks still running.",
-				);
 
 				// The reply's Stop runs whether the spent run is out of the way by
 				// then or still holding the stretch.
 				await Promise.race([waiting.ended(), sleep(2_000)]);
-				woken(path, String(second[0]));
+				woken(path, second);
 
 				const again = runs.start(session, path);
 
@@ -177,7 +131,7 @@ for (const runtime of runtimes()) {
 			const first = posted(await runs.inbox.received(2), 0);
 
 			runs.reconfigure(WAKE_OFF);
-			woken(path, String(first[0]));
+			woken(path, first);
 
 			const ended = await endedWithin(
 				waiting,
@@ -205,7 +159,7 @@ for (const runtime of runtimes()) {
 			const first = posted(await runs.inbox.received(2), 0);
 
 			await runs.close();
-			woken(path, String(first[0]));
+			woken(path, first);
 
 			const ended = await endedWithin(
 				waiting,

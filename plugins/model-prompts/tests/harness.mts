@@ -3,6 +3,7 @@
 // The root harness holds everything the plugins' tests share: the runtimes, the
 // throwaway directories, the session ids and the spawn itself. A test file
 // imports it alongside this one. Importing this registers no test of its own.
+import assert from "node:assert/strict";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,11 +30,9 @@ const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 export const HOOKS = join(PLUGIN, "hooks");
 export const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
-/** The failure policy the hook reports through, in this plugin's name. */
-export const { withoutParser, reported, quiet, addressedTo } = faultChecks(
-	"model-prompts",
-	PLUGIN,
-);
+/** The failure policy the hook reports through. */
+export const { withoutParser, reported, quiet, addressedTo } =
+	faultChecks(PLUGIN);
 
 /** The entry `hooks.json` names, relative to the plugin directory. */
 const ENTRY = "hooks/model-prompts";
@@ -42,7 +41,7 @@ const ENTRY = "hooks/model-prompts";
 export const BROKEN = "[models.'opus'\nprompt = \"x\"\n";
 
 /**
- * That file put right, which the hook can use. Its one row injects "FINE" on a
+ * That file put right, which the hook can use. Its one row injects on a
  * session running Opus, so a run that read it says so on stdout.
  */
 export const USABLE = "[models.'opus-5\\b']\nprompt = \"FINE\"\n";
@@ -98,6 +97,22 @@ export function hookRunner(
 			env: { HOME: home, USERPROFILE: home },
 		});
 	};
+}
+
+/**
+ * Asserts that a run injected rows. The hook writes rows as plain text on
+ * stdout and a fault report as one JSON object, so stdout that parses as JSON
+ * is a report and not an injection.
+ */
+export function injected(result: Result): void {
+	assert.equal(result.status, 0, result.stderr);
+	assert.equal(result.stderr, "");
+	assert.notEqual(result.stdout, "", "nothing was injected");
+	assert.throws(
+		() => JSON.parse(result.stdout),
+		SyntaxError,
+		`a fault report rather than rows: ${result.stdout}`,
+	);
 }
 
 /** A session id nothing else in this run has used. */

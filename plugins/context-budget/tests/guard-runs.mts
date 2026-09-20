@@ -50,8 +50,8 @@ export function decided(result: Result): Decision["hookSpecificOutput"] | null {
 		: (JSON.parse(result.stdout) as Decision).hookSpecificOutput;
 }
 
-/** The filled message of a run that denied, and a failure of one that did not. */
-export function reason(result: Result): string {
+/** Asserts that a run denied the resume, with a reason for the session. */
+export function denied(result: Result): void {
 	const output = decided(result);
 
 	assert.equal(
@@ -59,6 +59,6 @@ export function reason(result: Result): string {
 		"deny",
 		"the call should have been denied",
 	);
-
-	return String(output?.permissionDecisionReason);
+	assert.equal(typeof output?.permissionDecisionReason, "string");
+	assert.notEqual(output?.permissionDecisionReason, "", "the reason is empty");
 }

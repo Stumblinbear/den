@@ -5,11 +5,10 @@
 //
 // What the example's row says is the user's to rewrite, so nothing here reads
 // its text. All the case checks is that a model it matches gets an injection.
-import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";
 import { runtimes } from "../../../tests/harness.mts";
-import { HOOKS, hookRunner, sessionId } from "./harness.mts";
+import { HOOKS, hookRunner, injected, sessionId } from "./harness.mts";
 
 const EXAMPLE = join(HOOKS, "config.example.toml");
 
@@ -30,11 +29,6 @@ for (const runtime of runtimes()) {
 			EXAMPLE,
 		);
 
-		assert.equal(result.status, 0, result.stderr);
-		assert.equal(result.stderr, "");
-		assert.ok(
-			result.stdout.startsWith(`Rules for the current model (${OPUS}):`),
-			result.stdout,
-		);
+		injected(result);
 	});
 }

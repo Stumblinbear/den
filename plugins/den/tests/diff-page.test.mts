@@ -1,17 +1,18 @@
-// The diff-page script renders a change as a page file. What it asserts: the
-// line it prints names a file that exists, the page holds one section per
-// changed file, an untracked file among them, a file whose only change is
-// whitespace included, content is HTML-escaped, and an empty diff is reported
-// rather than rendered; and the word diff of a prose file parses into its
-// lines. Each case builds its own
-// repository under a temp directory and runs the script through the launcher,
-// the exact command the skill's preamble runs.
+// The diff-page script renders a change as a page file. What it asserts: a
+// run that renders writes one page and prints a line, the page holds one
+// section per changed file, an untracked file among them, a file whose only
+// change is whitespace included, content is HTML-escaped, and an empty diff
+// is reported rather than rendered; and the word diff of a prose file parses
+// into its lines. What the printed line says is not read. Each case builds
+// its own repository under a temp directory and runs the script through the
+// launcher, the exact command the skill's preamble runs.
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import {
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
+	readdirSync,
 	readFileSync,
 	rmSync,
 	writeFileSync,
@@ -76,6 +77,26 @@ function page(
 	assert.equal(run.status, 0, run.stderr);
 
 	return { out: run.stdout, temp };
+}
+
+/** The pages a run left in the script's page directory under `temp`. */
+function pagesIn(temp: string): readonly string[] {
+	const dir = join(temp, "claude-den-diff-pages");
+
+	return existsSync(dir) ? readdirSync(dir).map((name) => join(dir, name)) : [];
+}
+
+/**
+ * The one page a run wrote, asserted to be the only page there and to have a
+ * line printed about it.
+ */
+function written(run: { out: string; temp: string }): string {
+	const [path, ...more] = pagesIn(run.temp);
+
+	assert.ok(path !== undefined && more.length === 0, run.out);
+	assert.notEqual(run.out.trim(), "");
+
+	return path;
 }
 
 /** The lines of the first hunk of the first file a line diff holds. */
@@ -170,12 +191,7 @@ function codePage(path?: string): string {
 	git(cwd, "commit", "-q", "-m", "code");
 	writeFileSync(join(cwd, "a.rs"), "fn f() {\n    g(2);\n}\n");
 
-	const { out } = page(cwd, dataDir("node"), "", path);
-	const named = /^Diff page: (.+\.html) /m.exec(out);
-
-	assert.ok(named !== null, out);
-
-	return readFileSync(named[1] ?? "", "utf8");
+	return readFileSync(written(page(cwd, dataDir("node"), "", path)), "utf8");
 }
 
 test("with no difft on PATH, a code file keeps its line diff", () => {
@@ -205,18 +221,7 @@ for (const runtime of runtimes()) {
 		writeFileSync(join(cwd, "tracked.txt"), "one\nif a < b && c { two }\n");
 		writeFileSync(join(cwd, "module.txt"), "alpha\nbeta\n");
 
-		const { out, temp } = page(cwd, dataDir(runtime), "");
-		const named =
-			/^Diff page: (.+\.html) \(git diff HEAD; 2 files, \+3 −0\)$/m.exec(out);
-
-		assert.ok(named !== null, out);
-
-		const path = named[1] ?? "";
-
-		assert.ok(existsSync(path), path);
-		assert.ok(path.startsWith(join(temp, "claude-den-diff-pages")), path);
-
-		const html = readFileSync(path, "utf8");
+		const html = readFileSync(written(page(cwd, dataDir(runtime), "")), "utf8");
 
 		assert.equal(html.match(/<details class="file"/g)?.length, 2);
 		assert.match(html, /<span class="path">tracked\.txt<\/span>/);
@@ -229,10 +234,10 @@ for (const runtime of runtimes()) {
 	test(`[${runtime}] an empty diff is reported, not rendered`, () => {
 		const cwd = repository();
 
-		const { out } = page(cwd, dataDir(runtime), "");
+		const run = page(cwd, dataDir(runtime), "");
 
-		assert.match(out, /The diff is empty\./);
-		assert.doesNotMatch(out, /Diff page:/);
+		assert.notEqual(run.out.trim(), "");
+		assert.deepEqual(pagesIn(run.temp), []);
 	});
 
 	test(`[${runtime}] a range between two revisions leaves the working tree out`, () => {
@@ -241,12 +246,10 @@ for (const runtime of runtimes()) {
 		git(cwd, "commit", "-q", "-am", "second");
 		writeFileSync(join(cwd, "module.txt"), "alpha\n");
 
-		const { out } = page(cwd, dataDir(runtime), "HEAD~1..HEAD");
-		const named = /^Diff page: (.+\.html) /m.exec(out);
-
-		assert.ok(named !== null, out);
-
-		const html = readFileSync(named[1] ?? "", "utf8");
+		const html = readFileSync(
+			written(page(cwd, dataDir(runtime), "HEAD~1..HEAD")),
+			"utf8",
+		);
 
 		assert.equal(html.match(/<details class="file"/g)?.length, 1);
 		assert.doesNotMatch(html, /module\.txt/);
@@ -263,9 +266,7 @@ for (const runtime of runtimes()) {
 		git(cwd, "commit", "-q", "-m", "big");
 		rmSync(join(cwd, "big.txt"));
 
-		const { out } = page(cwd, dataDir(runtime), "");
-
-		assert.match(out, /^Diff page: .* 1 file, \+0 −40000\)$/m);
+		written(page(cwd, dataDir(runtime), ""));
 	});
 
 	test(`[${runtime}] a pathspec names untracked files from the working directory, as it names tracked ones`, () => {
@@ -275,12 +276,10 @@ for (const runtime of runtimes()) {
 		writeFileSync(join(cwd, "sub", "src", "inside.txt"), "alpha\n");
 		writeFileSync(join(cwd, "src", "outside.txt"), "beta\n");
 
-		const { out } = page(join(cwd, "sub"), dataDir(runtime), "-- src");
-		const named = /^Diff page: (.+\.html) /m.exec(out);
-
-		assert.ok(named !== null, out);
-
-		const html = readFileSync(named[1] ?? "", "utf8");
+		const html = readFileSync(
+			written(page(join(cwd, "sub"), dataDir(runtime), "-- src")),
+			"utf8",
+		);
 
 		assert.match(html, /sub\/src\/inside\.txt/);
 		assert.doesNotMatch(html, /src\/outside\.txt/);
@@ -291,21 +290,14 @@ for (const runtime of runtimes()) {
 		git(cwd, "config", "diff.noprefix", "true");
 		writeFileSync(join(cwd, "tracked.txt"), "one\ntwo\n");
 
-		const { out } = page(cwd, dataDir(runtime), "");
-
-		assert.match(out, /^Diff page: .* 1 file, \+1 −0\)$/m);
+		written(page(cwd, dataDir(runtime), ""));
 	});
 
 	test(`[${runtime}] a file whose only change is whitespace has a section and no lines`, () => {
 		const cwd = repository();
 		writeFileSync(join(cwd, "tracked.txt"), "  one\n");
 
-		const { out } = page(cwd, dataDir(runtime), "");
-		const named = /^Diff page: (.+\.html) \(.* 1 file, \+0 −0\)$/m.exec(out);
-
-		assert.ok(named !== null, out);
-
-		const html = readFileSync(named[1] ?? "", "utf8");
+		const html = readFileSync(written(page(cwd, dataDir(runtime), "")), "utf8");
 
 		assert.match(html, /<span class="path">tracked\.txt<\/span>/);
 		assert.doesNotMatch(html, /<tr class="(add|del)">/);
@@ -315,10 +307,9 @@ for (const runtime of runtimes()) {
 		const cwd = repository();
 		writeFileSync(join(cwd, "module.txt"), "alpha\n");
 
-		const { out } = page(cwd, dataDir(runtime), "-W HEAD");
-		const named = /^Diff page: (.+\.html) /m.exec(out);
-
-		assert.ok(named !== null, out);
-		assert.match(readFileSync(named[1] ?? "", "utf8"), /module\.txt/);
+		assert.match(
+			readFileSync(written(page(cwd, dataDir(runtime), "-W HEAD")), "utf8"),
+			/module\.txt/,
+		);
 	});
 }
