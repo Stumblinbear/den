@@ -58,7 +58,9 @@ and the outcome that is wrong; for a defect the evidence, the test's path with
 its red run or the discriminating check in words where no test was written;
 and the repair, the change that fixes it, where you have one. The reader is
 the lead that briefed the change and knows it: the scenario is a sentence or
-two, the evidence and the repair a sentence each. The title again,
+two and at most 300 characters, the evidence and the repair a sentence each
+and at most 250, the title at most 100, since the host rejects a longer field
+outright. The title again,
 the route you took to the finding and the case for caring stay out, since the
 kind already carries what it costs. Mark `pre-existing` what the change did
 not introduce. A question you would ask is either a decision finding, a
