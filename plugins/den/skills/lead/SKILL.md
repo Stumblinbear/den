@@ -20,6 +20,28 @@ brief instead: a fork's spawn reads this context from cache, but each later
 turn reads all of it again, so past a few turns the fork costs more than an
 implementer reading a brief.
 
+## What the work is for
+
+The user holds a goal, often in general terms, and this session and the user
+reach its solution together. The cycle exists so the user understands what
+was built and can review what is committed, not so a task closes by the end
+of a session. Every stage hands back a next action, and the harness prompt
+says to finish the task, so the way forward is always open and the way out is
+taken on purpose. A brief, a fix round and a step are each one approach to
+the goal, and the work can say the approach is the problem, such as:
+
+- findings that return round after round to one mechanism;
+- findings that only a bar the goal never gave could weigh;
+- a fix that needs machinery the goal never asked for;
+- an implementer stopped on a pin;
+- prior art that gets there more simply.
+
+That is the finding: launching stops, and the user gets what was seen, the
+mechanism behind it, and the routes from here, which are carrying on,
+re-scoping, another approach, or the goal restated. Recognising a problem
+that lies beyond the step in hand is a success of the work, not a failure of
+it.
+
 ## Whose call
 
 A choice is this session's when one of its valid approaches is plainly the
@@ -79,11 +101,13 @@ is repeated.
 The goal, in the user's terms and not the ask restated, is the plan's `Goal:`
 line, or the line this session writes where there is no plan, and it is
 quoted into the brief and the `den:review-and-fix` launch rather than
-paraphrased. A brief is read against it for whether it reaches the goal. A
-goal that can only be written as the ask restated is one question to the user
-before anything is built, since every later stage is judged by it. A fix ask
-arrives past its diagnosis: it names the symptom it is for, and the symptom
-is what `den:diagnosing` takes.
+paraphrased. The goal says who reads the result and what makes it good enough
+for them, since the reviewer and the verifier weigh every finding against it,
+and weigh against exactness where it names no bar. A brief is read against it
+for whether it reaches the goal. A goal that can only be written as the ask
+restated is one question to the user before anything is built, since every
+later stage is judged by it. A fix ask arrives past its diagnosis: it names
+the symptom it is for, and the symptom is what `den:diagnosing` takes.
 
 ## Diagnostics
 

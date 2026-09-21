@@ -14,7 +14,12 @@ is one. Read the scope with
 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
 Read the plan, and read the diff against it and against the goal: a
 change that does what its plan says and leaves the goal unreached is a
-finding, since the plan was one way of reaching it.
+finding, since the plan was one way of reaching it. Where the defects you
+find share a cause in the approach the plan chose, or can only be weighed
+against a bar the goal does not give, report them together as one decision
+finding, with the approach, the plainer route and what each costs, since
+fixing them one at a time inside the run hardens an approach nobody chose to
+keep.
 
 A defect you can demonstrate, demonstrate: write the failing test through a
 normal product seam, leave it in the tree, and run that test alone. The one

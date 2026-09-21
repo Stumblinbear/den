@@ -14,6 +14,10 @@ minor bump may change behavior.
 
 ### Changed
 
+- When the work says the approach is the problem, the lead stops and puts
+  that to you as one question, instead of fixing the same mechanism round
+  after round. A goal now says who reads the result and what makes it good
+  enough for them.
 - The lead sends only a quick change to a fork and longer work to an
   implementer with a brief, since a fork reads the whole session context
   again on every turn after its spawn. Triage no longer says which agent a

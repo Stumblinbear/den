@@ -61,6 +61,10 @@ closed take no call.
 
 ## Ruling on the return
 
+The return is first read for what its findings share: several that return to
+one mechanism, or that only a bar the goal lacks could weigh, are one
+question about the approach, put to the user before any fixer is briefed.
+
 The return is triaged as one list: each item gets this session's call, and
 every call that changes the tree, a finding left open, a decision ruled fix, a
 sweep of `deferred`, goes to one fixer in one brief, since the items were
