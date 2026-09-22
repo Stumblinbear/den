@@ -53,12 +53,13 @@ if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'leadC
 // the lead, who sweeps the class in one pass or leaves it.
 const FIXED = new Set(['P0', 'P1', 'P2'])
 
-// Every prose field is capped, and the host makes an agent that overruns
-// one retry, so the length holds without a reader asking for it. A sentence
-// is about 150 characters; the reader is the lead that briefed the change.
-const PHRASE = 150
-const SENTENCE = 250
-const TWO_SENTENCES = 300
+// A field's description sets its length, and the cap sits well above it: an
+// agent cannot count characters to within a few, so a cap at the length asked
+// for fails at the boundary and burns the retries. The cap stops a runaway,
+// nothing finer. The reader is the lead that briefed the change.
+const PHRASE = 200
+const SENTENCE = 350
+const TWO_SENTENCES = 400
 
 const FIX = {
   type: 'object',
