@@ -16,8 +16,11 @@ minor bump may change behavior.
 
 - When the work says the approach is the problem, the lead stops and puts
   that to you as one question, instead of fixing the same mechanism round
-  after round. A goal now says who reads the result and what makes it good
-  enough for them.
+  after round. One finding can be enough: a fix that would work around the
+  design's shape or the problem's framing makes the lead weigh another
+  approach from the first review round, and ask you when one would serve the
+  goal better. Only the fixes it would replace wait for your answer. A goal
+  now says who reads the result and what makes it good enough for them.
 - The lead sends only a quick change to a fork and longer work to an
   implementer with a brief, since a fork reads the whole session context
   again on every turn after its spawn. Triage no longer says which agent a

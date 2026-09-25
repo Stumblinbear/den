@@ -61,9 +61,18 @@ closed take no call.
 
 ## Ruling on the return
 
-The return is first read for what its findings share: several that return to
-one mechanism, or that only a bar the goal lacks could weigh, are one
-question about the approach, put to the user before any fixer is briefed.
+Every return is first read for what it says about the approach. Each of
+these is a reason to weigh whether another approach would serve the goal
+better than the fix:
+
+- a finding whose fix would work around the shape of the design or the
+  framing of the problem instead of correcting a slip in carrying it out;
+- several findings that return to one mechanism, or to a mechanism an
+  earlier round's fixes touched;
+- findings that only a bar the goal lacks could weigh.
+
+Where one would, it goes to the user beside the fixes it would replace, and
+those wait for the answer while the rest of the return is triaged as below.
 
 The return is triaged as one list: each item gets this session's call, and
 every call that changes the tree, a finding left open, a decision ruled fix, a

@@ -30,6 +30,8 @@ says to finish the task, so the way forward is always open and the way out is
 taken on purpose. A brief, a fix round and a step are each one approach to
 the goal, and the work can say the approach is the problem, such as:
 
+- a fix that would work around the shape of the design or the framing of
+  the problem instead of correcting a slip in carrying it out;
 - findings that return round after round to one mechanism;
 - findings that only a bar the goal never gave could weigh;
 - a fix that needs machinery the goal never asked for;
@@ -38,9 +40,11 @@ the goal, and the work can say the approach is the problem, such as:
 
 That is the finding: launching stops, and the user gets what was seen, the
 mechanism behind it, and the routes from here, which are carrying on,
-re-scoping, another approach, or the goal restated. Recognising a problem
-that lies beyond the step in hand is a success of the work, not a failure of
-it.
+re-scoping, another approach, or the goal restated. It is raised when it
+first shows, not once the evidence is overwhelming, since carrying on costs
+the user one reply and a patch on the wrong approach costs every round after
+it. Recognising a problem that lies beyond the step in hand is a success of
+the work, not a failure of it.
 
 ## Whose call
 
