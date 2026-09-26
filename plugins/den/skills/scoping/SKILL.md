@@ -89,7 +89,9 @@ the user's answer. Ending the pass answers nothing that is still open.
 
 ## Where the answers go
 
-Carry into exploration the record's path, the settled decisions as a list,
-one decision with its reason each, and the unresolved questions. When no
-brief follows, report those three as the outcome. Reading the record does not
+Exploration is `/den:design-exploration`, which the user launches: propose
+the run to them and wait for it. Carry into it the record's path, the
+settled decisions as a list, one decision with its reason each, and the
+unresolved questions. When no brief follows, report those three as the
+outcome. Reading the record does not
 require `den:direction-docs`.
