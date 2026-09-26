@@ -9,8 +9,8 @@ user-invocable: false
 
 ## Before the brief
 
-The brief carries the direction record's path, the decisions `den:scoping`
-settled, each with its reason, and the questions it left open. An agent that
+The brief carries the direction record's path, the decisions the user
+settled, each with its reason, and the questions still open. An agent that
 reads the record itself reads the direction as it stands; a restatement
 drifts from the day it is written.
 
@@ -26,8 +26,8 @@ and the implementer, in the code, decides the rest better than a brief written
 from above it. The pins stand in a list of their own, each naming the user as
 its source and when, with their words or the option they chose, and their
 reason where they gave one, so an item that cannot be written that way reads
-as intent. This session's own calls (the lead skill's Whose call) go into the
-intent with their reason. An external constraint the brief rests on is stated
+as intent. This session's own calls go into the intent
+with their reason. An external constraint the brief rests on is stated
 as a fact with its source. A brief is the intended shape, and the goal
 governs it:
 its fence names what the change is not for, never a count of items or a list
@@ -46,12 +46,11 @@ only when the user sets them.
 
 ## Steps
 
-A change lands as a sequence of steps cut under `den:slicing`. The plan is
+A change lands as a sequence of steps. The plan is
 written to a temporary directory and its steps are tracked in the task list;
-the sequence is put to the user as a page through `den:plan-page` before the
-first step's launch proposal, since where the cuts fall is their decision.
+the sequence is put to the user before the first step's launch proposal, since where the cuts fall is their decision.
 Each step runs the whole cycle on its own, launch, triage of the implementer's
-report, a `den:review-and-fix` run with the plan's path, and commit proposal,
+report, a review with the plan's path, and commit proposal,
 and the next step is briefed after the previous one has landed, on the tree as
 it now is, so what its review found reaches the brief. A brief for a step
 carries the plan's path and the entry for that step, whose `Decided:` lines

@@ -7,8 +7,7 @@ user-invocable: false
 
 # Writing a skill
 
-The body of a skill is instructions an agent will follow, and
-`den:writing-for-agents` governs it.
+The body of a skill is instructions an agent will follow.
 
 ## The listing line
 

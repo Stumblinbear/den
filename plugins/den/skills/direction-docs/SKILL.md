@@ -19,7 +19,7 @@ reorganization. Current explicit user direction supersedes earlier statements;
 a model inference does not.
 
 Resolve consequential ambiguity with the user. If the change requires broader
-investigation of goals or priorities, use `den:project-direction` for discovery;
+investigation of goals or priorities, settle those with the user first, and
 resume documenting as answers become available. Do not restart discovery for
 an already agreed change or a purely organizational edit. Preserve unanswered
 questions instead of filling gaps to make the documentation appear complete.
@@ -48,10 +48,7 @@ reader acts on every sentence as current.
 
 It holds the ideas and general shapes that guide implementation: what the
 project does, why, and the shape a system takes where the user has settled
-one. How it is built, such as a value, a stopgap until a later stage, a
-library, or which part draws or computes what, stays in the code and the
-plan, since the record guides the decisions the code makes and a copy of them
-goes stale.
+one.
 
 Keep confirmed user direction distinct from interpretations and open questions.
 Preserve the reason and revisit condition for deliberate deferrals. For

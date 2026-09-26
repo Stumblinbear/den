@@ -95,6 +95,5 @@ Fix: `look at`, and the fact behind the praise.
   hedge moves the text toward the machine register rather than away from it.
 - **Transition words and a formal register.** No signal in either direction.
 
-A Rust `# Safety` section follows `den:unsafety-author` instead: it keeps bold
-emphasis and parenthetical example lists out of a contract, and where the two
-skills differ inside one, that one wins.
+A Rust `# Safety` section is a contract, written plain: no bold emphasis and no
+parenthetical example lists.

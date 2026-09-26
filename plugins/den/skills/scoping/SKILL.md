@@ -18,8 +18,7 @@ establishes current behavior; the record establishes what the project is
 working toward.
 
 What this pass establishes or corrects about that direction goes back into
-the record through `den:direction-docs`, since exploration and the brief carry
-the record's path and the explorers and the implementer read it there.
+the record.
 Task-specific decisions stay with the task unless they also change the broader
 direction.
 
@@ -70,8 +69,8 @@ done) rather than drilling one chain to the bottom. Keep the queue to
 yourself: each answer rewrites it, and a preview commits you to questions the
 next answer may retire.
 
-Every question carries your recommended answer with what it buys and what it
-costs, in the form `den:design-decisions` sets. When the work is a one-way
+Every question carries your recommended answer with what it buys, what it
+costs, and the alternative rejected and why. When the work is a one-way
 door, spend one question on a premortem, assuming it shipped and failed and
 asking which failure the user fears, because the walk forward through the
 decision tree cannot reach that answer.
@@ -89,9 +88,6 @@ the user's answer. Ending the pass answers nothing that is still open.
 
 ## Where the answers go
 
-Exploration is `/den:design-exploration`, which the user launches: propose
-the run to them and wait for it. Carry into it the record's path, the
-settled decisions as a list, one decision with its reason each, and the
-unresolved questions. When no brief follows, report those three as the
-outcome. Reading the record does not
-require `den:direction-docs`.
+Carry the record's path, the settled decisions as a list, one decision with
+its reason each, and the unresolved questions into what follows; when nothing
+follows, report those three as the outcome.

@@ -8,7 +8,7 @@ user-invocable: false
 # Triage
 
 Each item is classed by whether a reader could take it either way, not by its
-size, under the lead skill's Whose call.
+size.
 
 ## An implementer's report
 
@@ -41,8 +41,8 @@ something:
   becomes of it.
 - `introduced`: findings at P2 or above the fixes introduced, whole. The
   run stopped on them.
-- `decisions`: the reviewer's decision findings, whole, for the user under
-  the lead skill's Whose call.
+- `decisions`: the reviewer's decision findings, whole, for the user to
+  decide.
 - `deferred`: the P3 and quality findings, whole, with the test the reviewer
   left in the tree for each named in its evidence.
 - `comment`, on a clean run: the comment pass's `counts` and its `gaps`, each

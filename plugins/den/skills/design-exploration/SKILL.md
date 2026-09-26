@@ -8,7 +8,7 @@ allowed-tools: Workflow
 # Design exploration
 
 Run the workflow with the ask, the direction record's path and the decisions
-`den:scoping` settled:
+the user settled:
 
 ```
 Workflow({
@@ -17,10 +17,9 @@ Workflow({
 })
 ```
 
-`direction` is the absolute path of the project's direction record, the file
-or the directory `den:direction-docs` keeps; the explorers and the judge read
-it themselves, so what scoping clarified reaches them only once it is in the
-record. `decisions` is an optional list, one settled decision with its reason
+`direction` is the absolute path of the project's direction record, a file or
+a directory, which the explorers and the judge read themselves. `decisions` is
+an optional list of the decisions settled for this task, one with its reason
 per item, at most 400 characters each. `explorer` is required, the model the
 three explorers run on. It is `fable` only on the user's approval: propose
 Fable explorers, with the reason, when the design's correctness rests on a

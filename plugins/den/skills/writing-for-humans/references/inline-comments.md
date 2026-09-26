@@ -101,8 +101,8 @@ pointer rather than a second copy of the reasoning.
 
 Rust `// SAFETY:` is the exception. It is a per-block obligation that clippy's
 `undocumented_unsafe_blocks` expects at every `unsafe` block, so near-identical
-texts at neighbouring sites are correct. Write them per `den:unsafety-author`;
-never consolidate them into one master comment.
+texts at neighbouring sites are correct. Write one for each `unsafe` block,
+each stating that block's own obligation.
 
 ## Shape: aim at the one-liner
 
