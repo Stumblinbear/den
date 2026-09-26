@@ -46,6 +46,13 @@ statement, rewrite the passage to its result and take out what it replaces,
 the way the choice was reached and the options it beat included, since a
 reader acts on every sentence as current.
 
+It holds the ideas and general shapes that guide implementation: what the
+project does, why, and the shape a system takes where the user has settled
+one. How it is built, such as a value, a stopgap until a later stage, a
+library, or which part draws or computes what, stays in the code and the
+plan, since the record guides the decisions the code makes and a copy of them
+goes stale.
+
 Keep confirmed user direction distinct from interpretations and open questions.
 Preserve the reason and revisit condition for deliberate deferrals. For
 unfinished discovery, retain its interrupted status and each unresolved
