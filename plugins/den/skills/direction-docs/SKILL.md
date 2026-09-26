@@ -40,6 +40,12 @@ alone does not establish what should be built next. Distinguish long-term direct
 current milestone requirements and deliberately deferred work. A detailed
 decision has one authoritative home; summaries link there.
 
+The record reads as a design document: each passage states the design as it
+now stands and why. When a decision settles a condition or supersedes a
+statement, rewrite the passage to its result and take out what it replaces,
+the way the choice was reached and the options it beat included, since a
+reader acts on every sentence as current.
+
 Keep confirmed user direction distinct from interpretations and open questions.
 Preserve the reason and revisit condition for deliberate deferrals. For
 unfinished discovery, retain its interrupted status and each unresolved
