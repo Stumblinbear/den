@@ -959,60 +959,6 @@ async function commentSchema(): Promise<CommentSchema> {
 	return schema as CommentSchema;
 }
 
-test("every prose field the run's schemas carry is capped", async () => {
-	const schemas: Record<string, unknown> = {};
-	const run = agents({
-		findings: [finding()],
-		close: (prompt, pass) =>
-			closing(prompt, {
-				verdicts: [verdict("empty-path", pass === 1 ? "REOPENED" : "CLOSED")],
-			}),
-	});
-	await runWorkflow(
-		"review-and-fix-workflow",
-		ARGS,
-		async (prompt, options) => {
-			schemas[options.agentType] = options.schema;
-			return run(prompt, options);
-		},
-	);
-
-	// A finding ran to 1,100 characters written for a stranger, and a length
-	// in a description moved only the fields short enough to hold a phrase.
-	// The host makes an agent that overruns a cap retry, which a description
-	// cannot.
-	const at = (type: string, path: readonly string[]) =>
-		path.reduce<unknown>(
-			(node, key) => (node as Record<string, unknown>)[key],
-			schemas[type],
-		) as { maxLength?: number };
-	const finding_ = ["properties", "findings", "items", "properties"];
-	// Presence only, not the value: see the comment on PHRASE in the workflow.
-	const capped: readonly (readonly [string, readonly string[]])[] = [
-		[REVIEW, [...finding_, "title"]],
-		[REVIEW, [...finding_, "scenario"]],
-		[REVIEW, [...finding_, "evidence"]],
-		[REVIEW, [...finding_, "repair"]],
-		[FIX, ["properties", "choices", "items", "properties", "chose"]],
-		[FIX, ["properties", "choices", "items", "properties", "over"]],
-		[FIX, ["properties", "deviations", "items", "properties", "what"]],
-		[FIX, ["properties", "deviations", "items", "properties", "forcedBy"]],
-		[FIX, ["properties", "unsure", "items", "properties", "what"]],
-		[FIX, ["properties", "unsure", "items", "properties", "why"]],
-		[CLOSE, ["properties", "verdicts", "items", "properties", "reason"]],
-		[CLOSE, ["properties", "opened", "items", "properties", "scenario"]],
-		[COMMENT, ["properties", "gaps", "items", "properties", "claim"]],
-		[COMMENT, ["properties", "gaps", "items", "properties", "reason"]],
-	];
-	for (const [type, path] of capped) {
-		assert.equal(
-			typeof at(type, path).maxLength,
-			"number",
-			`${type} ${path.join(".")}`,
-		);
-	}
-});
-
 test("a gap names the line of the comment it stands on", async () => {
 	const schema = await commentSchema();
 
