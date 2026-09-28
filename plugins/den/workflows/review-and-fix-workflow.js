@@ -32,7 +32,7 @@ if (!isRulingList(rulings)) {
   throw new Error(`\`rulings\` lists the decisions the user has settled that a finding could contradict, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
 }
 if (!isRulingList(leadCalls)) {
-  throw new Error(`\`leadCalls\` lists the lead's calls that a finding could contradict, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
+  throw new Error(`\`leadCalls\` lists the decisions the lead has made that a finding could contradict, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
 }
 if (!['fable', 'opus'].includes(reviewer)) {
   throw new Error('`reviewer` is the model the review runs on, `fable` or `opus`')

@@ -95,10 +95,13 @@ one the work turns up widens the change past what they asked.
 
 Every statement about what the code does, an answer to a why included, is
 traced to the source and cited as `path/file:line` before it is used in an
-answer, a ruling or a brief. Memory, design docs, comments, agent reports and
-this session's own model of the code are hearsay: they go stale or lie, and a
-reason found in a comment is checked against the design as it stands before it
-is repeated.
+answer, a ruling or a brief. It is stated at the scope it was traced, the
+paths and call sites read, and never wider: a claim traced on one path and
+stated for all of them reads as checked where no one looked, and every ruling
+and brief that repeats it passes the gap on. Memory, design docs, comments,
+agent reports and this session's own model of the code are hearsay: they go
+stale or lie, and a reason found in a comment is checked against the design as
+it stands before it is repeated.
 
 ## The goal travels with the ask
 

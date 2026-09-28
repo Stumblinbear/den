@@ -73,6 +73,12 @@ minor bump may change behavior.
   transparent variants. Each clause names what it is about, a wrapper the
   operation and what it acted on, the innermost what was wrong, and a value
   two clauses share is named once.
+- A review's `rulings` and `leadCalls` hold decisions only, each what was
+  chosen, over what and why. An item that only says how the code behaves is
+  no longer one, since the reviewer takes every item as settled and would
+  never check the claim. The lead states a claim about code only as widely
+  as it traced it, the paths and call sites it read, so a claim checked on
+  one path is no longer passed on in a ruling or a brief as true of all.
 
 ## [0.7.0] - 2026-09-17
 

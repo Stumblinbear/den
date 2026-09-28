@@ -25,7 +25,7 @@ Workflow({
 | `repo` | Required. The absolute path of the repository whose working tree is reviewed. |
 | `goal` | Required. What the change is for, in the user's terms: the plan's `Goal:` line, quoted. |
 | `plan` | The plan's path, when the change is a step of one. |
-| `rulings` | A list of the decisions the user has settled that a finding could contradict, their rulings on the implementer's report and every skip they ruled on an earlier run's return, one decision with its reason per item, each at most 400 characters. |
+| `rulings` | A list of the decisions the user has settled that a finding could contradict, their rulings on the implementer's report and every skip they ruled on an earlier run's return, each at most 400 characters. An item is one decision: what was chosen, over what, and why. Its reason may rest on a fact about the code, but an item that only says how the code behaves is no decision: the reviewer, the fixer and the verifier take every item as settled, so a description there ends the checking its claim needed. |
 | `leadCalls` | The same, for this session's own calls: its rulings on the implementer's report and every skip it ruled on an earlier run's return. |
 | `reviewer` | Required. The reviewer's model: `opus`, or `fable` when the change outruns its checks, below. A model the user names for the task wins. |
 | `since` | The tree id `git write-tree` printed for the step's last `clean` return (The return, below), on every later run of the step. A run before the step's first `clean` return takes none. |
