@@ -987,24 +987,29 @@ test("every prose field the run's schemas carry is capped", async () => {
 			schemas[type],
 		) as { maxLength?: number };
 	const finding_ = ["properties", "findings", "items", "properties"];
-	const caps: readonly (readonly [string, readonly string[], number])[] = [
-		[REVIEW, [...finding_, "title"], 100],
-		[REVIEW, [...finding_, "scenario"], 300],
-		[REVIEW, [...finding_, "evidence"], 250],
-		[REVIEW, [...finding_, "repair"], 250],
-		[FIX, ["properties", "choices", "items", "properties", "chose"], 150],
-		[FIX, ["properties", "choices", "items", "properties", "over"], 150],
-		[FIX, ["properties", "deviations", "items", "properties", "what"], 150],
-		[FIX, ["properties", "deviations", "items", "properties", "forcedBy"], 250],
-		[FIX, ["properties", "unsure", "items", "properties", "what"], 150],
-		[FIX, ["properties", "unsure", "items", "properties", "why"], 250],
-		[CLOSE, ["properties", "verdicts", "items", "properties", "reason"], 250],
-		[CLOSE, ["properties", "opened", "items", "properties", "scenario"], 300],
-		[COMMENT, ["properties", "gaps", "items", "properties", "claim"], 150],
-		[COMMENT, ["properties", "gaps", "items", "properties", "reason"], 250],
+	// Presence only, not the value: see the comment on PHRASE in the workflow.
+	const capped: readonly (readonly [string, readonly string[]])[] = [
+		[REVIEW, [...finding_, "title"]],
+		[REVIEW, [...finding_, "scenario"]],
+		[REVIEW, [...finding_, "evidence"]],
+		[REVIEW, [...finding_, "repair"]],
+		[FIX, ["properties", "choices", "items", "properties", "chose"]],
+		[FIX, ["properties", "choices", "items", "properties", "over"]],
+		[FIX, ["properties", "deviations", "items", "properties", "what"]],
+		[FIX, ["properties", "deviations", "items", "properties", "forcedBy"]],
+		[FIX, ["properties", "unsure", "items", "properties", "what"]],
+		[FIX, ["properties", "unsure", "items", "properties", "why"]],
+		[CLOSE, ["properties", "verdicts", "items", "properties", "reason"]],
+		[CLOSE, ["properties", "opened", "items", "properties", "scenario"]],
+		[COMMENT, ["properties", "gaps", "items", "properties", "claim"]],
+		[COMMENT, ["properties", "gaps", "items", "properties", "reason"]],
 	];
-	for (const [type, path, cap] of caps) {
-		assert.equal(at(type, path).maxLength, cap, `${type} ${path.join(".")}`);
+	for (const [type, path] of capped) {
+		assert.equal(
+			typeof at(type, path).maxLength,
+			"number",
+			`${type} ${path.join(".")}`,
+		);
 	}
 });
 

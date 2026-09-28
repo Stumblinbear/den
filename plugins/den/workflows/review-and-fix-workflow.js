@@ -111,7 +111,7 @@ const FINDING = {
   properties: {
     id: { type: 'string', description: 'a short slug for this finding' },
     kind: { type: 'string', enum: ['P0', 'P1', 'P2', 'P3', 'quality', 'decision'] },
-    title: { type: 'string', maxLength: 100, description: 'what is wrong' },
+    title: { type: 'string', maxLength: 150, description: 'what is wrong' },
     path: { type: 'string' },
     line: { type: 'integer', description: 'the first line of the range that shows it' },
     scenario: { type: 'string', maxLength: TWO_SENTENCES, description: 'the input and the outcome that is wrong' },
