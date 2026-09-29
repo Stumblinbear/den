@@ -9,6 +9,8 @@ minor bump may change behavior.
 
 ### Added
 
+- The Rust API guidance flags a `RefCell` or `Cell` added so a read-only
+  method can write, and points to changing the signature instead.
 - A review after a clean one reads only what changed since, instead of the
   whole change again.
 

@@ -42,6 +42,11 @@ state.
 - **`Arc<Mutex<_>>` in a struct that never actually crosses threads or has
   multiple owners.** Restructure ownership first; reach for shared/interior
   mutability only when the sharing is real.
+- **A `RefCell` or `Cell` added so a `&self` method can write.** The
+  method's contract changed from observing to mutating, and the cell hides
+  that from every caller. Take `&mut self`, or move the write out so the
+  read stays a read; where callers hold the value shared, that restructure
+  is the change, not the cell.
 
 ## 1. Borrow or generalize inputs
 
