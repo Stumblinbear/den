@@ -1,7 +1,7 @@
 ---
 name: code-architecture
 description: Where a new type, function, or module belongs, whether a file is still one concept, whether a module's interface is deep enough to earn its place, and whether a type can represent states that should not exist.
-when_to_use: ALWAYS invoke this skill before editing code, an existing type or function included, so a type's shape is checked when it grows and not only when it is placed.
+when_to_use: ALWAYS invoke this skill before editing code or sketching it in a plan, a brief or a message, an existing type or function included, so a type's shape is checked when it grows and not only when it is placed. Do not name or place a type, function or module directly; use this skill first.
 user-invocable: false
 ---
 
@@ -33,7 +33,10 @@ the file is about. If the answer is "X and Y," that's two files.
   generic name is the reader's first guess made permanent and the next
   writer's dumping ground; a mechanism module carries no domain knowledge,
   and a mechanism is named for what it does, not for the feature that first
-  needed it.
+  needed it. A qualifier names what sets the thing apart from its
+  siblings: where every config is read from a file, `FileConfig` tells
+  none of them apart. A name is checked where it is read, at a call site
+  with its body unseen, since that is where most readers meet it.
 - **Don't escalate visibility to enable a split.** If a split forces you to
   widen a field's visibility so another file can reach it, the boundary is
   wrong.
