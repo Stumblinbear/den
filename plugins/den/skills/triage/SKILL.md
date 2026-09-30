@@ -1,7 +1,7 @@
 ---
 name: triage
-description: How an implementer's report and a review-and-fix run's return are ruled item by item, and what a commit proposal carries.
-when_to_use: ALWAYS invoke this skill when an implementer or a fork reports, when a review-and-fix-workflow run returns, and before proposing a commit. Do not rule on a report's or a return's items, or propose the commit, directly; use this skill first.
+description: How an implementer's report and a review-and-fix run's return are ruled item by item.
+when_to_use: ALWAYS invoke this skill when an implementer or a fork reports, and when a review-and-fix-workflow run returns. Do not rule on a report's or a return's items directly; use this skill first.
 user-invocable: false
 ---
 
