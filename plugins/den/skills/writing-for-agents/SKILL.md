@@ -22,7 +22,10 @@ tutorials, and behavior the model already gets right unprompted.
 - **Say what to do, not what to avoid.** Naming a behavior to prohibit it makes
   it more available, not less: *don't think of an elephant*. A positive
   example of the wanted behavior outperforms a prohibition, and one short
-  instruction outperforms an enumerated list of bad patterns.
+  instruction outperforms an enumerated list of bad patterns. The exception
+  is a default the model keeps returning to: when a general instruction only
+  trades one default for the next, a list naming the specific patterns seen
+  in its output steers where the general line did not.
 - **Give the reason, not only the rule.** The model generalizes from the why;
   a bare NEVER doesn't transfer to adjacent cases it wasn't written for. A
   rule carries its reason once: a reason hung on every sentence turns each
@@ -86,7 +89,14 @@ instructions when the model changes rather than accreting.
   steers as well as enumerating each behavior by name; instructions tuned for
   prior generations are often too prescriptive and degrade output. Never
   instruct the model to echo or explain its internal reasoning as response
-  text. On reasoning models this can trigger refusals.
+  text: reasoning models can refuse it, and Fable 5.1, Opus 5.5 and Sonnet
+  5.5 decline it as reasoning extraction.
+- **Always-thinking models (Fable 5.1, Opus 5.5)**: how much the model thinks
+  is set by effort, an agent definition's `effort` field, and not by prose.
+  A "think carefully" or "don't overthink" line is deleted, and a lower
+  effort cuts thinking more reliably than an instruction asking for less.
+  Effort names do not carry across models: Opus 5.5 at `medium` matches
+  Opus 5 at `high`.
 - **Self-verifying models (Opus 5)**: drop "verify your work" / "double-check"
   scaffolding. It causes over-verification with no quality gain. This is
   Opus-specific: on Fable 5.1 an instruction to test or check the work before
@@ -94,12 +104,24 @@ instructions when the model changes rather than accreting.
   high-severity") are followed literally and cause under-reporting; ask for
   everything and filter in a separate pass. Conciseness must be asked for
   explicitly, and in a long prompt the reminder bears repeating near the end.
-- **Under-narrating, under-formatting models (Fable 5.1)**: anti-narration
-  ("hold findings for the final response") and anti-formatting ("no bullets")
-  rules are deleted, not tuned; this generation already does both. What it
-  needs instead: progress claims audited against tool results, the request's
-  scope held rather than widened or narrowed, and targeted edits over
-  whole-file rewrites.
+  Opus 5.5 runs text written for Opus 5 well, and its guidance names the
+  verification and conciseness rules, with scope rules, as possibly no
+  longer needed there: they are the first put to the removal test.
+- **Under-narrating models (Fable 5.1, Opus 5.5)**: anti-narration rules
+  ("hold findings for the final response") are deleted, not tuned; these
+  models already under-narrate, and where updates are wanted the text says
+  when: a line of intent before the first tool call, a recap at the end.
+  Fable 5.1 also under-formats, so anti-formatting rules ("no bullets") are
+  deleted too. What Fable 5.1 needs in their place: progress claims audited
+  against tool results, the request's scope held rather than widened or
+  narrowed, and targeted edits over whole-file rewrites.
+- **Early stops in unattended runs (Opus 5.5)**: with no one to answer, the
+  model can end its turn on a report that announces the next step instead of
+  taking it, offers to carry on, or lists decisions none of which block the
+  work; a subagent's turn ending is its return. Naming those stops as
+  unwanted steers it, alongside the stops that are wanted: where nothing can
+  move without the caller. The caller reads a return as a report, not as
+  proof the task is done.
 
 ## Audit pass
 
