@@ -46,9 +46,9 @@ statement, rewrite the passage to its result and take out what it replaces,
 the way the choice was reached and the options it beat included, since a
 reader acts on every sentence as current.
 
-It holds the ideas and general shapes that guide implementation: what the
-project does, why, and the shape a system takes where the user has settled
-one.
+It holds the direction a PRD would: what the project does, for whom and why,
+and the ideas that guide building it. How a system is built stays out however
+settled; that lives in the code and in the task that built it.
 
 Keep confirmed user direction distinct from interpretations and open questions.
 Preserve the reason and revisit condition for deliberate deferrals. For
