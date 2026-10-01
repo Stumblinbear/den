@@ -37,6 +37,11 @@ the file is about. If the answer is "X and Y," that's two files.
   siblings: where every config is read from a file, `FileConfig` tells
   none of them apart. A name is checked where it is read, at a call site
   with its body unseen, since that is where most readers meet it.
+  A word is distinct within its context, not across the codebase: where
+  the call site tells two meanings apart, one word serves both, and a
+  synonym only gives the reader a second word to learn. A rename keeps the
+  pattern its siblings share; renaming one member of a family to dodge a
+  clash breaks the family.
 - **Don't escalate visibility to enable a split.** If a split forces you to
   widen a field's visibility so another file can reach it, the boundary is
   wrong.

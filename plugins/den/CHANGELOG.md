@@ -16,6 +16,9 @@ minor bump may change behavior.
 
 ### Changed
 
+- Naming judges a word within its context: where a call site tells two
+  meanings apart, one word serves both, and a rename keeps the pattern its
+  siblings share instead of setting one member of a family apart.
 - When the work says the approach is the problem, the lead stops and puts
   that to you as one question, instead of fixing the same mechanism round
   after round. One finding can be enough: a fix that would work around the
