@@ -44,7 +44,7 @@ const PLAN = md(
 	"",
 	"## Step 2: the wake [in progress]",
 	"",
-	"Tests: the launcher cases.",
+	"Gate: the launcher cases green.",
 	"",
 	"## Step 3: the notice [pending]",
 	"",
@@ -70,8 +70,6 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 			"",
 			"Open: whether a plan carries its date.",
 			"",
-			"Tests: the units below.",
-			"",
 			"Gate: the tests green on node and bun.",
 		),
 	);
@@ -89,7 +87,6 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 	);
 	assert.equal(html.match(/<span class="alt">Rejected:<\/span>/g)?.length, 2);
 	assert.match(html, /<div class="open"><b>Open decision<\/b> whether a plan/);
-	assert.match(html, /<p><b>Tests\.<\/b> the units below\.<\/p>/);
 	assert.match(html, /<p class="gate"><b>Gate<\/b> the tests green on node/);
 	assert.match(html, /<span class="state next">pending<\/span>/);
 });
@@ -101,14 +98,14 @@ test("the alternative is greyed inside a decision and nowhere else", () => {
 			"",
 			"Decided: pages go under their own directory. Rejected: one shared one.",
 			"",
-			"Tests: the grey span, and that a Rejected: clause elsewhere is plain.",
+			"Constraints: the grey span, and that a Rejected: clause elsewhere is plain.",
 		),
 	);
 
 	assert.equal(html.match(/<span class="alt">Rejected:<\/span>/g)?.length, 1);
 	assert.match(
 		html,
-		/<p><b>Tests\.<\/b> the grey span, and that a Rejected: clause elsewhere is plain\.<\/p>/,
+		/<p><b>Constraints\.<\/b> the grey span, and that a Rejected: clause elsewhere is plain\.<\/p>/,
 	);
 });
 
@@ -119,12 +116,15 @@ test("two labelled lines one under the other are two lines", () => {
 			"",
 			"## Step 1: the library [pending]",
 			"",
-			"Tests: the units below.",
+			"Open: whether a plan carries its date.",
 			"Gate: the tests green on node and bun.",
 		),
 	);
 
-	assert.match(html, /<p><b>Tests\.<\/b> the units below\.<\/p>/);
+	assert.match(
+		html,
+		/<div class="open"><b>Open decision<\/b> whether a plan carries its date\.<\/div>/,
+	);
 	assert.match(
 		html,
 		/<p class="gate"><b>Gate<\/b> the tests green on node and bun\.<\/p>/,

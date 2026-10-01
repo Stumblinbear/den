@@ -73,8 +73,7 @@ carrying:
   `Proposed:` line per call this session made there, each ending
   `Rejected:` and the alternative; a decision still theirs is an `Open:` line
   with the code it lands in and the candidate patches;
-- a `Tests:` line naming what proves it and a `Gate:` line saying when it
-  is done.
+- a `Gate:` line saying when it is done.
 
 A `## ` heading without a step number is prose. Plain paragraphs, `-`
 lists, `**bold**`, `` `code` `` and links otherwise.

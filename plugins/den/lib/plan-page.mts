@@ -59,8 +59,7 @@ const FENCE = /^(`{3,})(.*)$/;
 const BLOCK_START = /^(#|```|[-*] )/;
 
 // The line labels the den:slicing plan shape defines.
-const LABEL =
-	/^(Gate|Decided|Proposed|Open|Goal|Not doing|Constraints|Tests):\s*/;
+const LABEL = /^(Gate|Decided|Proposed|Open|Goal|Not doing|Constraints):\s*/;
 
 /** One block read out of the lines, with the index the plan resumes at. */
 interface Read {

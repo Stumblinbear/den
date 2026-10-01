@@ -47,6 +47,13 @@ Where the fix is plain in the code, a forwarded value or a one-line guard a
 reviewer takes in at a glance, the test comes out after its green run, and the
 report gives both runs and says it was removed.
 
+A later change that touches a test's code rules on it again. One that
+removes the mechanism the test guards, as making an optional field required
+does, leaves it checking what a reader sees at a glance, so it comes out in
+that change. One that splits or copies code rules each test before carrying
+it, since a copy in every piece multiplies the upkeep and catches nothing
+more.
+
 ## Ruling on a proposed test
 
 A test someone else proposes or leaves in the tree is ruled by the same two
