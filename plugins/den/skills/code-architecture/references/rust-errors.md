@@ -127,8 +127,11 @@ let text = fs::read_to_string(path)                              // after
 
 Don't add a layer at every propagation step: a layer exists where the
 caller's action or the fact changes. And don't use errors for control flow:
-`Option` models absence, `Result` models a problem the caller must address,
-and `ControlFlow` handles a neutral early exit.
+`Option` models absence the caller asked about, `Result` models a problem
+the caller must address, and `ControlFlow` handles a neutral early exit. A
+miss is either, by what the caller expected: `env::var_os` answers "is it
+set?" with `None`, while `env::var`, which fetches a value expecting one,
+fails with `VarError::NotPresent`.
 
 ## 5. Recoverable obstruction vs violated invariant
 
