@@ -16,6 +16,9 @@ minor bump may change behavior.
 
 ### Changed
 
+- Naming asks for the verb a language or framework already gives an
+  operation, so a system that inserts a resource is `insert_..`, not
+  `put_up_..`.
 - A decision waiting on you is labeled with a short name it keeps across
   the lead's messages, like `retry_limit`, so a reply written against the
   last list still lines up.

@@ -27,9 +27,11 @@ the file is about. If the answer is "X and Y," that's two files.
 - **Name a thing for what it is.** A module, type, field or function is
   named for the specific thing it is, in the domain's terms and in the
   vocabulary its siblings already use, with its role in the name (an
-  identifier is an `Id`): `tree`, not `data_structures`; the thing, not the
-  category it belongs to or what it resembles. A name that makes a claim,
-  `default`, `common`, `simple`, holds only while the claim is true. A
+  identifier is an `Id`), and an operation by the verb its language or
+  framework already gives it (`spawn`, `insert`, `remove`): `tree`, not
+  `data_structures`; the thing, not the category it belongs to or what it
+  resembles. A name that makes a claim, `default`, `common`, `simple`,
+  holds only while the claim is true. A
   generic name is the reader's first guess made permanent and the next
   writer's dumping ground; a mechanism module carries no domain knowledge,
   and a mechanism is named for what it does, not for the feature that first
