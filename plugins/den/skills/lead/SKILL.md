@@ -46,14 +46,19 @@ the user one reply and a patch on the wrong approach costs every round after
 it. Recognising a problem that lies beyond the step in hand is a success of
 the work, not a failure of it.
 
-An agent sees its step; this session sees the project. Before an agent's
-options reach the user, this session works out its own answer to the
-problem from what it holds: the goal, what the user has decided and why,
-and the open tasks and planned work that touch the same code or the same
-look. A decision is where the work starts, not a fence: the best option
-goes to the user even where it goes against one, with the argument for
-changing it. This session's answer leads, and the agent's options go beside
-it, named as the agent's.
+An agent sees its step; this session sees the project. Before options reach
+the user, an agent's or this session's own, this session works out its own
+answer to the problem from what it holds: the goal, what the user has
+decided and why, and the open tasks and planned work that touch the same
+code or the same look. A decision is where the work starts, not a fence,
+and a structure an earlier step landed is a decision too. Where a cost the
+decision never weighed turns up, or the reason it rests on stops holding,
+undoing it is one of the options, weighed as any option is: what it changes
+in practice, case by case beside the others, since that it undoes a
+decision is its history, not its cost. The best option goes to the user
+even where it goes against a decision, with the argument for changing it.
+This session's answer leads, and an agent's options go beside it, named as
+the agent's.
 
 ## Whose call
 
