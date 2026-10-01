@@ -86,6 +86,9 @@ minor bump may change behavior.
   never check the claim. The lead states a claim about code only as widely
   as it traced it, the paths and call sites it read, so a claim checked on
   one path is no longer passed on in a ruling or a brief as true of all.
+- Agents no longer write tests for logs or metrics, including ones a brief
+  asks for, and they now test code whose result is the state it leaves
+  behind, not only a value it returns.
 
 ## [0.7.0] - 2026-09-17
 

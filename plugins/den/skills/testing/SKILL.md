@@ -13,12 +13,20 @@ A test is written for a defect that was observed, red before the fix with the
 red run reported, and for the rule a change introduces, at the seam the change
 lives in.
 
-A test pins a promise: what a caller may pass and what comes back, a rejection
-among them, and a format another program reads. A detail nobody was promised
-is free to change, so a test on it fails on every legitimate edit and catches
-nothing. A message's wording is such a detail. So is a log call, that it fired
-as much as what it said. Where a catch exists so a failure does not escape,
-the test asserts that nothing escaped.
+A test pins a promise: what the code guarantees to whatever uses it, which is
+other code that calls it, another program, or a person using the program. A
+promise covers what comes back for what goes in, a rejection among them, the
+state the code leaves for its users to read, and a format another program
+reads. A detail nobody was promised is free to change, so a test on it fails
+on every legitimate edit and catches nothing. A message's wording is such a
+detail.
+
+A brief says what to build, and what gets a test is what the code promises.
+Logs, metrics and traces are details whoever reads them, a brief that asks for
+one included: a test on one restates the line that emits it, so it fails on
+every edit to that line and catches only what reading the line shows. One is
+tested only when the user asks for that test. Where a catch exists so a
+failure does not escape, the test asserts that nothing escaped.
 
 ## What an assertion compares against
 
