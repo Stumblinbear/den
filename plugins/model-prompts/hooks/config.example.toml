@@ -25,7 +25,7 @@
 
 # Opus 5's writing habits, injected on every switch into it because the habits
 # come back with the model.
-[models.'opus-5\b']
+[models.'^claude-opus-5$']
 on_switch = "every"
 prompt = """
 Every sentence carries content. A sentence whose only job is to introduce,

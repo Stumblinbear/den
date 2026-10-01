@@ -7,6 +7,12 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Fixed
+
+- The example config's Opus 5 row matches only `claude-opus-5`. Its key,
+  `opus-5\b`, also matched `claude-opus-5-5` and every later Opus 5.x, so
+  those models were handed Opus 5's rules.
+
 ## [0.4.0] - 2026-09-12
 
 ### Changed
