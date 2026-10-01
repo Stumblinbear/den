@@ -242,7 +242,10 @@ have not weighed, a new observation or a better option, and never by
 repeating one they have heard; a finding about code the round removes is
 not relayed. A decision waiting on them is restated
 in full, with what is needed to answer it, in every message until it is
-answered. A durable record, a task or a note, holds the decision and the ask;
+answered, and it keeps its number from message to message: an answered
+item drops out without the rest moving up, and a new one takes the next
+free number, since the user may be writing a reply against the numbers
+they last read. A durable record, a task or a note, holds the decision and the ask;
 the facts the code will state when the task is done are read then, since a
 fact written down today is wrong by the time it is used.
 

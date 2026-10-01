@@ -16,6 +16,8 @@ minor bump may change behavior.
 
 ### Changed
 
+- A decision waiting on you keeps its number across the lead's messages,
+  so a reply written against the last list still lines up.
 - Naming judges a word within its context: where a call site tells two
   meanings apart, one word serves both, and a rename keeps the pattern its
   siblings share instead of setting one member of a family apart.
