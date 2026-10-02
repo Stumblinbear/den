@@ -77,6 +77,12 @@ changes, and still reads as true. What a caller relies on of those members is
 a guarantee and is written as one: the resources that exist once the plugin is
 added, the side effect they would not guess.
 
+A doc promises what its item upholds, and nothing the rest of the program
+happens to do with it: the order an app moves through a state's values, the
+value it starts in, the screen that shows in one. Those are promises of the
+code that does them, and written on the item they bind it to a use it cannot
+enforce.
+
 Keep out, too, the implementation that does not exist: "a naive version would
 deadlock here". `references/inline-comments.md` carries that rule for both
 comment kinds, and two exceptions to it; the one that reaches a doc comment is
@@ -291,8 +297,37 @@ tree, or a language's equivalent, and every item inside one, a helper as much
 as a test. None of it appears in an index, and its callers are the tests beside
 it, so it answers to the skill body's common rules alone.
 
-A simple, obvious member may go undocumented when there really and truly is
-nothing else worthwhile to say. An override inherits its supertype's
+A member whose name says all it is may go undocumented, so long as it carries
+no requirement: a variant that holds an invariant while it is current, or a
+field with a unit or a range, owes the doc that states it.
+
+```rust
+// Before: an order of statuses the enum cannot enforce, and a doc on each
+// variant that repeats its name.
+/// An order's status. Every order starts `Placed`, is `Paid` next and ends
+/// `Shipped`.
+pub enum OrderStatus {
+    /// The order is placed.
+    Placed,
+    /// The order is paid.
+    Paid,
+    /// The order is shipped.
+    Shipped,
+}
+
+// After: what the type is, and a doc only where a variant carries a rule.
+/// Where an order is in fulfillment.
+pub enum OrderStatus {
+    Placed,
+
+    /// A payment is recorded against the order.
+    ///
+    /// Its lines are fixed: `Order::add_line` refuses a paid order.
+    Paid,
+
+    Shipped,
+}
+``` An override inherits its supertype's
 documentation; restating it there is a second copy to keep in sync.
 
 ## Other languages

@@ -16,6 +16,11 @@ minor bump may change behavior.
 
 ### Changed
 
+- A doc comment promises only what its item upholds, not how the rest of the
+  program happens to use it, such as the value a state starts in, and a
+  member whose name says all it is can go without a doc unless it carries a
+  requirement.
+- The comment reviewer runs at high effort.
 - A doc comment no longer lists what its item holds or does step by step,
   such as an enum's variants or what a plugin registers, and a doc being
   rewritten is drafted from the code rather than reworded from the old one,
