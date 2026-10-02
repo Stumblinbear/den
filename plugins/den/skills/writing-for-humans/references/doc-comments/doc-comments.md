@@ -46,6 +46,8 @@ the ones that are:
   *"It is your responsibility to make sure that `buf` is initialized before
   calling `read`."*
 - **Guarantee.** What holds on return, that other code may rely on.
+  It holds on every path the item takes, so each is read before it is
+  written; one a later step undoes is not a guarantee.
   *"implementations must guarantee that `0 <= n <= buf.len()`"*
 - **Failure.** Which condition yields which error, panic, or abort, and what
   is true of the state afterwards. *"If an error is returned then it must be
@@ -65,6 +67,15 @@ needs the bound.
 Keep the body's mechanism out: a doc that names the sorting algorithm makes the
 algorithm harder to change, because callers now depend on what you wrote. The
 same holds for constants, encodings, and buffer layouts.
+
+The commonest form of it is a list of the item's own members: an enum's
+summary naming its variants, a plugin's doc naming what it registers, a
+teardown's naming what it removes, a system's naming every change it reacts
+to. rustdoc already lists the variants and the body lists the rest, so the
+doc's list is a second copy that goes false the day a member is added or
+changes, and still reads as true. What a caller relies on of those members is
+a guarantee and is written as one: the resources that exist once the plugin is
+added, the side effect they would not guess.
 
 Keep out, too, the implementation that does not exist: "a naive version would
 deadlock here". `references/inline-comments.md` carries that rule for both
@@ -93,7 +104,7 @@ own text is the standard for each:
   //!   [`Ipv6Addr`] are respectively IPv4 and IPv6 addresses
   ```
 
-- **A type doc says what one of these is, and what holds for every one.**
+- **A type doc says what one of these is, and what holds for every value of it.**
   `std::fs::File`:
 
   ```rust
@@ -235,6 +246,40 @@ the abstraction, not about the comment. Ask which produced the length:
 
 Truncating a complete contract does not fix the abstraction; it hides the
 measurement.
+
+## Rewriting a doc
+
+An existing doc is the weakest source for its own rewrite: a rewrite that
+starts from its sentences keeps their claims in new words, true or not. Draft
+the new doc from the item first, by the sections above: what it is, what a
+caller must know, the reason the code cannot show. Then read the old doc for
+claims the draft lacks and check each against every site it covers. One the
+code contradicts anywhere is cut; one the code already shows is cut as
+restatement; one no code shows has no source but the old doc, so it stays as
+written and is flagged.
+
+```rust
+// Before: the summary copies the variants rustdoc lists under it.
+/// A connection's state: idle, connecting, connected or closed.
+// After:
+/// Where a connection is in its lifetime.
+
+// Before: the build body, retold.
+/// Sets up audio: inserts `Volume`, adds the mixer and fade systems, loads
+/// the sound banks at startup and pauses all sound when the window loses
+/// focus.
+// After: what a caller relies on once it is added, and the side effect they
+// would not guess.
+/// Plays the app's sound.
+///
+/// It inserts [`Volume`], and pauses all sound while the window is out of
+/// focus.
+
+// Before: the body's removals, and nothing on why they are these.
+/// Removes the session's name, runtime, assets, mod list and size.
+// After: the counterpart the list has to match, which the body cannot show.
+/// Removes everything [`enter`] inserted.
+```
 
 ## What gets a doc comment
 

@@ -110,7 +110,7 @@ the condition they name fires.
   `references/doc-comments/doc-comments.md` (the summary as the only text an
   index renders, the four-slot contract check, layering instead of a length
   cap, the section vocabulary and its order, deprecation markers as the home
-  for history). Siblings, one per language whose form differs from Rust:
+  for history, rewriting a doc from its item). Siblings, one per language whose form differs from Rust:
   `go.md`, `python.md`, `java.md`, `csharp.md`, `swift.md`, `typescript.md`
   in the same directory.
 - **A comment inside a function body:** `references/inline-comments.md`

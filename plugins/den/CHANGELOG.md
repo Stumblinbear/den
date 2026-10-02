@@ -16,6 +16,10 @@ minor bump may change behavior.
 
 ### Changed
 
+- A doc comment no longer lists what its item holds or does step by step,
+  such as an enum's variants or what a plugin registers, and a doc being
+  rewritten is drafted from the code rather than reworded from the old one,
+  so a claim the code contradicts is cut instead of kept in new words.
 - Naming asks for the verb a language or framework already gives an
   operation, so a system that inserts a resource is `insert_..`, not
   `put_up_..`.
