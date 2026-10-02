@@ -25,6 +25,13 @@ says so. Where the brief pinned a decomposition, the tree is checked against
 it at triage, because the deviation that matters is the one the report did
 not declare.
 
+A choice is ruled on whether it is the right fix, never on whether the reason
+it gives is true. A reason tells what the implementer took as given, a limit,
+a rule, a shape already in the tree, and a workaround's reason is as true as a
+fix's. So the call first works out the right fix from the code and the goal,
+as if the choice had not been made, and accepts the choice only where it is
+that fix; anywhere else the call is a send-back to it.
+
 A fixer inside a `den:review-and-fix` run cannot be resumed: a send-back on
 its declarations is briefed fresh after the run returns.
 
