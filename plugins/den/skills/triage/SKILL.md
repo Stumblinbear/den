@@ -30,7 +30,9 @@ it gives is true. A reason tells what the implementer took as given, a limit,
 a rule, a shape already in the tree, and a workaround's reason is as true as a
 fix's. So the call first works out the right fix from the code and the goal,
 as if the choice had not been made, and accepts the choice only where it is
-that fix; anywhere else the call is a send-back to it.
+that fix; anywhere else the call is a send-back to it. A choice that keeps
+or makes an item public is ruled on its name as well, checked where an
+importer reads it, as `den:code-architecture` checks a name.
 
 A fixer inside a `den:review-and-fix` run cannot be resumed: a send-back on
 its declarations is briefed fresh after the run returns.

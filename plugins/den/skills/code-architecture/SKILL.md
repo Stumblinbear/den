@@ -38,7 +38,10 @@ the file is about. If the answer is "X and Y," that's two files.
   needed it. A qualifier names what sets the thing apart from its
   siblings: where every config is read from a file, `FileConfig` tells
   none of them apart. A name is checked where it is read, at a call site
-  with its body unseen, since that is where most readers meet it.
+  with its body unseen, since that is where most readers meet it. A
+  public item is read where it is imported, away from its siblings, so a
+  name that reads plainly beside them, `ParseError` in a config module,
+  names nothing among an importer's imports.
   A word is distinct within its context, not across the codebase: where
   the call site tells two meanings apart, one word serves both, and a
   synonym only gives the reader a second word to learn. A rename keeps the
