@@ -25,15 +25,21 @@ its own, and a change with one step has nothing to order. A walking
 skeleton, the thinnest path end to end before any breadth, is for a change
 that spans layers. A one-way door, such as a stored format, a public
 surface or a dependency, is decided early and landed in the latest step that
-can hold it. Order never makes a boundary.
+can hold it. Order never makes a boundary, whether it comes from risk or
+from one piece needing another.
 
 A change is one step until a boundary earns its place, by one of two tests:
-landing the first piece changes what the second should be, or together they
-exceed one read. Attributing a failure to one piece is what a test does, not
-a boundary. Pieces that one trial tests land together, whatever assumptions
-they carry. Each boundary costs a review, a commit, whatever the project
-pays to make a change live, and the earlier piece tested on input the later
-one would have changed; most changes pay for none.
+what landing the first piece teaches changes what the second should be, or
+together they exceed one read. The first test runs one way. Where the second
+piece decides the shape of the first, as the callers a mechanism exists for
+decide the mechanism, or a decision decides the machinery that carries it
+out, the two are one step: cut apart, the first is built against a stand-in
+for the second, and the second rebuilds it. Attributing a failure to one
+piece is what a test does, not a boundary. Pieces that one trial tests land
+together, whatever assumptions they carry. Each boundary costs a review, a
+commit, whatever the project pays to make a change live, and the earlier
+piece tested on input the later one would have changed; most changes pay for
+none.
 
 ## Cutting what looks atomic
 
@@ -89,11 +95,12 @@ exists to remove, since an entry that keeps the defect narrower is not a cut.
 
 The first ordered set of cuts is written as if it were right, and it is
 presumed wrong. Before it is put to the person who decides it, interrogate
-each cut as they would: why is this boundary here, and what does landing
-the earlier piece alone show that landing both together would not; why is
-this step before that one, and what changes if the order is reversed; what
-does this step cost the reviewer that merging it would save. A cut
-survives when its answer names one of the two tests; a cut that survives
-on "it is smaller" is merged. Run the same interrogation once more over
-what changed. The pass is an argument against the plan, since a re-read
-agrees with itself.
+each cut as they would: why is this boundary here, and what does landing the
+earlier piece alone show that landing both together would not; why is this
+step before that one, and what changes if the order is reversed; what does
+this step cost the reviewer that merging it would save. A cut survives when
+its answer names one of the two tests. A cut that survives on "it is
+smaller", or on the later step needing the earlier one, is merged, and so is
+a step whose entry builds something for a later step to move or rebuild. Run
+the same interrogation once more over what changed. The pass is an argument
+against the plan, since a re-read agrees with itself.
