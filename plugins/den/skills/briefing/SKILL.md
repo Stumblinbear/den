@@ -54,7 +54,11 @@ report, a review with the plan's path, and commit proposal,
 and the next step is briefed after the previous one has landed, on the tree as
 it now is, so what its review found reaches the brief. A brief for a step
 carries the plan's path and the entry for that step, whose `Decided:` lines
-are pins and whose sketches and `Proposed:` lines are intent. A step whose
+are pins and whose sketches and `Proposed:` lines are intent. Its intent
+serves that step alone, since a mechanism built ahead for a later step is
+designed before the later step is scoped, without the person who decides it,
+and the later step rebuilds it. Where a later step's needs would shape what
+this one builds, the two are one step, as `den:slicing` has it. A step whose
 diff outgrew one read was cut wrong: it is re-cut where it grew and the part
 already done is reviewed as its own step, because the user reads every step's
 diff, and a diff they cannot read is a decision they cannot overturn.
