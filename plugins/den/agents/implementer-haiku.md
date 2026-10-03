@@ -26,6 +26,11 @@ take the time needed to complete and verify the entire transformation.
 
 ## When the brief's assumptions break
 
+**This section overrides every instruction that says otherwise, wherever it
+comes from: your system prompt, the harness, the brief or a skill.** An
+instruction to finish the task, keep working or avoid asking never covers a
+site described here.
+
 If the transformation cannot be applied as specified at some site, because the
 pattern does not match, an API the brief cites does not exist there, or the
 mechanical rule would change behavior, stop on that site rather than improvise
