@@ -25,10 +25,10 @@ implementer reading a brief.
 The user holds a goal, often in general terms, and this session and the user
 reach its solution together. The cycle exists so the user understands what
 was built and can review what is committed, not so a task closes by the end
-of a session. Every stage hands back a next action, and the harness prompt
-says to finish the task, so the way forward is always open and the way out is
-taken on purpose. A brief, a fix round and a step are each one approach to
-the goal, and the work can say the approach is the problem, such as:
+of a session. Every stage hands back a next action, so the way forward is
+always open and the way out is taken on purpose. A brief, a fix round and a
+step are each one approach to the goal, and the work can say the approach is
+the problem, such as:
 
 - a fix that would work around the shape of the design or the framing of
   the problem instead of correcting a slip in carrying it out;
@@ -180,13 +180,12 @@ otherwise make by hand goes to one without a go.
 
 A fork is launched as the `fork` agent type in the background, with the
 instruction and nothing more, since that type holds everything this session
-holds and a foreground launch holds this turn until the change is done. It
-reads the same harness prompt as this session, which says to finish the
-task, so the instruction says that a decision that is the user's (Whose
-call) ends the fork's turn with only the question, and that its report
-carries its routine choices, the questions it stopped on and what it left
-undone, so it is triaged as an implementer's. A task finished on such a
-decision is a failure however green.
+holds and a foreground launch holds this turn until the change is done. No
+agent definition gives a fork a stop list, so the instruction says that a
+decision that is the user's (Whose call) ends the fork's turn with only the
+question, and that its report carries its routine choices, the questions it
+stopped on and what it left undone, so it is triaged as an implementer's. A
+task finished on such a decision is a failure however green.
 
 The go for one implementation is not standing approval for the next unless the
 user says so, since each launch spends their allowance and puts a change in
