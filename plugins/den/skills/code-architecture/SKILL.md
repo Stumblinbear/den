@@ -1,7 +1,7 @@
 ---
 name: code-architecture
 description: Where a new type, function, or module belongs, whether a file is still one concept, whether a module's interface is deep enough to earn its place, and whether a type can represent states that should not exist.
-when_to_use: ALWAYS invoke this skill before editing code or sketching it in a plan, a brief or a message, an existing type or function included, so a type's shape is checked when it grows and not only when it is placed. Do not name or place a type, function or module directly; use this skill first.
+when_to_use: ALWAYS invoke this skill before designing, sketching, reviewing, judging the quality of, deciding anything about or writing out any code, for any reason, an existing type or function included, so a type's shape is checked when it grows and not only when it is placed. Do not think through or show code directly; use this skill first.
 user-invocable: false
 ---
 

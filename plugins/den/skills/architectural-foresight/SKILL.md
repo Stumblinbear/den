@@ -1,7 +1,7 @@
 ---
 name: architectural-foresight
 description: Identifies commitments in code or a proposed design that could obstruct the project's intended development.
-when_to_use: ALWAYS invoke this skill when planning an architecture, or when reviewing a project, a design or a diff for what it commits the project to beyond the immediate task. Do not assess those long-term consequences directly; use this skill first.
+when_to_use: ALWAYS invoke this skill when designing or choosing between options for a public API, a trait or registration surface, a stored or saved format, a schema, a data model, or a mechanism other code will build on; when scoping a step or writing a plan; and when reviewing a project, a design or a diff for what it commits the project to beyond the immediate task. Do not judge such an option by the callers it has today; use this skill first.
 user-invocable: false
 ---
 
