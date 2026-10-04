@@ -203,20 +203,12 @@ question open), that launch goes at once, since the user's time is for the
 decisions and a wait for permission to look is a wait for nothing. After a
 stage lands: report, and where the next stage needs a go-ahead, propose it
 (agent and scope) and wait. For implementation the proposal names the
-implementer and the brief's scope, and for a send-back that carries a question
-for the user it is the route question; either answer is the go for the route
-chosen. A reply that does not answer a pending go is not the go, however close
+implementer and the brief's scope. A reply that does not answer a pending go is not the go, however close
 its subject: what it asks for is done, and the launch still waits, because
 approval by adjacency is the failure mode where work starts on a reading
 rather than a decision.
 
-A send-back on an implementer's report that carries a question for the user
-takes one of two routes, and the user chooses. A resume of the agent that made
-the change holds that agent's own read of the files and the work it did, and
-not this session's triage calls. A brief to a standing implementer holds
-neither. The route question is put as the facts of each route and the ask.
-Neither route is recommended, ranked or worded to steer: the user weighs them
-against what this session cannot see. An agent, a fork included, that stopped
+An agent, a fork included, that stopped
 with a question holds exactly that context: its question reaches the user
 before anything else does, and it is resumed with the answer, never replaced.
 
