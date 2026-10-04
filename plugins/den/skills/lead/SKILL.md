@@ -70,7 +70,10 @@ correct one on the code and the goal, with no ambiguity, such as:
 - where a sentence sits;
 - which of two working shapes a private helper takes;
 - a fact the code settles;
-- a rule the user has stated.
+- a rule the user has stated;
+- how a decision the user made is carried out, read for what it was for:
+  where the code already has what they asked to be built, using it meets
+  the decision.
 
 It is made and reported in a line that names the way not taken, since an
 obvious change needs no consultation.

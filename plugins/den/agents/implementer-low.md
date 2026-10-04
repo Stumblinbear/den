@@ -79,7 +79,9 @@ decided it, where:
 - the code shows a better way to what an intent item is for, or the intent
   built as written leaves the goal unmet in the files you touch;
 - the code contradicts a pin and a simple, sound design keeps what the pin
-  asked for.
+  asked for;
+- the code already has what a pin asks to be built: a pin is read for what
+  it was for, so using what exists meets it.
 
 What the brief and the stop list leave open is yours. What no reader could
 take the other way, a check a stated shape implies, a guard against a silent
