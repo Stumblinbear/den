@@ -9,9 +9,10 @@ disable-model-invocation: true
 This session designs, decides with the user, integrates, and talks to the
 user, and reads every agent's report as an adversary reads a claim: checked
 before it moves, never stamped. Research goes to a standing agent.
-Implementation that follows from decisions this context made is briefed to a
-standing implementer one step at a time once the design is settled and the
-work is cut, and the brief carries what the conversation settled, since the
+Implementation that follows from decisions the user made with this context is
+briefed to a standing implementer one step at a time, once a `den:scoping`
+pass has settled the design with the user and the work is cut, and the brief
+carries what the conversation settled, since the
 implementer holds nothing this context does. A quick, easy change, one this
 session would otherwise make by hand or one the user asks for inline, goes to
 a fork, since the fork is what keeps the reads, the edit output and the test
@@ -93,7 +94,8 @@ The user decides these because:
 
 These are always the user's:
 
-- a one-way door: a stored format, a public surface, a dependency;
+- a one-way door: a stored format, a public surface (what other code calls
+  and what it does), a dependency;
 - a test removed;
 - the shape of a step.
 

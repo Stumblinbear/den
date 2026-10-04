@@ -9,10 +9,11 @@ user-invocable: false
 
 ## Before the brief
 
-The brief carries the direction record's path, the decisions the user
-settled, each with its reason, and the questions still open. An agent that
-reads the record itself reads the direction as it stands; a restatement
-drifts from the day it is written.
+The brief follows a `den:scoping` pass and carries the direction record's
+path, the decisions the user settled, each with its reason, and the
+questions the user chose to leave open. An agent that reads the record itself
+reads the direction as it stands; a restatement drifts from the day it is
+written.
 
 A change that adds a module, a stored format, a public surface or a new
 mechanism has its decomposition put to the user before the brief, since the

@@ -1,7 +1,7 @@
 ---
 name: scoping
 description: Reads the direction record and settles consequential decisions before a brief is written, one question at a time, with existing context read first and confirmed direction kept distinct from assumptions.
-when_to_use: ALWAYS invoke this skill before writing a brief with an unresolved consequential decision, when implementation exposes a conflict with the direction record, and when the user says "scope this", "grill me", or "interview me". Do not settle the missing decision in a brief or workaround; use this skill first.
+when_to_use: ALWAYS invoke this skill when a plan is written or revised, before the first brief of each step, when implementation exposes a conflict with the direction record, and when the user says "scope this", "grill me", or "interview me". Do not settle a choice in a plan, a brief or a workaround; use this skill first.
 ---
 
 # Scoping
@@ -27,47 +27,50 @@ discovery, and revisit them when new evidence arrives or a task decision
 depends on an answer. A confirmed future capability can constrain a boundary
 without authorizing its implementation.
 
-## When the pass runs
-
-The pass runs before a brief and reopens when implementation exposes a conflict
-with the direction record. When a decision would produce materially different
-work and the available direction does not settle it, open the pass yourself and
-keep it to the questions whose answers change what gets built. The user came
-with work to do, not an interview. When existing context settles the
-consequential choices, carry the record's path straight to the brief without
-new questions. Diff size does not settle whether a choice is expensive to
-reverse. When the user asks for the pass, it is unbounded and no ask is too
-small for it.
-
-Existing code, a passing regression test, or a previously accepted local fix
-establishes behavior, not agreement with the assumption behind it. When new
-evidence calls that assumption into question, check its authority and reopen
-the affected decision while independent work continues.
-
 ## Decisions only
 
 What is asked is a decision, and only one that is the user's to make. A fact
 the code, the docs or the git history holds, a convention the codebase already
 establishes, or a choice a written rule of the project or of these skills
 already answers, is looked up and applied rather than asked: a turn spent
-confirming what you could have read is a turn not spent on a decision.
-Placement, module boundaries, interface depth, type shape and naming left open
-after design exploration belong to the implementer, so they go in the brief as
-intent rather than to the user as a question. One of them that is itself a
-requirement (a user-facing name, a CLI flag, a config key) is a decision like
-any other, and is asked. Classify a choice by its consequences: an
+confirming what you could have read is a turn not spent on a decision. A step
+the user specified outright, a rename to names they gave or a move they
+dictated, leaves nothing to ask.
+
+Whether a choice is already settled is what the pass finds out: the session's
+sense that context settles it is the reading the pass exists to check.
+Existing code, a passing regression test, a previously accepted local fix, or
+an earlier plan's `Proposed:` line establishes behavior or intent, not the
+user's agreement with the assumption behind it. When new evidence calls that
+assumption into question, check its authority and reopen the affected
+decision while independent work continues.
+
+Which file and module code sits in, and the shape and names of private
+types, belong to the implementer, so they go in the brief as intent. What the
+change does and how other code uses it is the user's: which part owns a
+behavior, the calls other parts make and what they do, what an operation does
+on a conflict or a failure, every public name and every stored format.
+Classify a choice by its consequences, never by its diff size: an
 internal-looking interface or fallback that changes behavior beyond the agreed
-contract is still a design decision, even when the code change is small.
+contract is still a design decision.
 
 ## One question at a time
 
-Missing project intent first where it changes the design, then dependencies,
+Before the first question, walk the ask's dimensions and list every choice
+the change makes in each:
+
+- scope and what counts as done;
+- ownership: which part does what;
+- data and stored formats;
+- how other parts call it, and the names they read;
+- failure and conflict behavior;
+- lifecycle and timing.
+
+A choice no recorded decision of the user's settles goes in the queue. Ask
+missing project intent first where it changes the design, then dependencies,
 highest impact and uncertainty, so each question goes where the readings
-diverge most; branch across the ask's dimensions
-(scope, data, interaction, failure behavior, integration, what counts as
-done) rather than drilling one chain to the bottom. Keep the queue to
-yourself: each answer rewrites it, and a preview commits you to questions the
-next answer may retire.
+diverge most. Keep the queue to yourself: each answer rewrites it, and a
+preview commits you to questions the next answer may retire.
 
 Every question carries your recommended answer with what it buys, what it
 costs, and the alternative rejected and why. When the work is a one-way
@@ -81,7 +84,7 @@ the tool hides the prose written before it.
 
 ## Stopping
 
-The pass ends at the user saying done, or when every consequential decision is
+The pass ends at the user saying done, or when every choice on the list is
 settled. Record what remains open and what depends on it. An assumption may carry
 reversible work forward; an unresolved choice on a one-way door waits for
 the user's answer. Ending the pass answers nothing that is still open.
