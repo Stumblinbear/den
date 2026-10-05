@@ -21,6 +21,9 @@ brief instead: a fork's spawn reads this context from cache, but each later
 turn reads all of it again, so past a few turns the fork costs more than an
 implementer reading a brief.
 
+Comments and docs are the implementer's and the comment pass's to write;
+briefs and fork instructions leave them out.
+
 ## What the work is for
 
 The user holds a goal, often in general terms, and this session and the user
