@@ -17,6 +17,10 @@ minor bump may change behavior.
   method can write, and points to changing the signature instead.
 - A review after a clean one reads only what changed since, instead of the
   whole change again.
+- A plan records an implementation shape the user suggested as a `Sketched:`
+  line, and a brief carries it as intent, so the implementer departs from it
+  where the code shows it wrong instead of building or stopping on it as a
+  decision.
 
 ### Changed
 

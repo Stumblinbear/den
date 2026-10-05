@@ -27,7 +27,10 @@ and the implementer, in the code, decides the rest better than a brief written
 from above it. The pins stand in a list of their own, each naming the user as
 its source and when, with their words or the option they chose, and their
 reason where they gave one, so an item that cannot be written that way reads
-as intent. This session's own calls go into the intent
+as intent. A shape the user sketched for the implementation, a map, a
+thread, a type, is intent naming them as its source, however firmly it was
+said, since they decide what the system does and cannot see every shape
+that doing it takes. This session's own calls go into the intent
 with their reason. An external constraint the brief rests on is stated
 as a fact with its source. A brief is the intended shape, and the goal
 governs it:
@@ -55,7 +58,7 @@ report, a review with the plan's path, and commit proposal,
 and the next step is briefed after the previous one has landed, on the tree as
 it now is, so what its review found reaches the brief. A brief for a step
 carries the plan's path and the entry for that step, whose `Decided:` lines
-are pins and whose sketches and `Proposed:` lines are intent. Its intent
+are pins and whose sketches, `Sketched:` and `Proposed:` lines are intent. Its intent
 serves that step alone, since a mechanism built ahead for a later step is
 designed before the later step is scoped, without the person who decides it,
 and the later step rebuilds it. Where a later step's needs would shape what
