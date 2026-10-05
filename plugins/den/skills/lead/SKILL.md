@@ -165,6 +165,9 @@ exercises between check-ins:
 - `den:surveyor`, on sonnet, surveys, and "read X and report what is there"
   is a survey, not research;
 - `den:implementer-haiku` does mechanics where the compiler is the spec;
+- `den:quality-reviewer`, on opus, reads a change for what the next reader
+  of its code would object to, names, shapes and costs, and its findings are
+  the user's to rule;
 - fable, as the reviewer's model or as the implementer's `model` override,
   takes the work whose correctness argument is a derivation and whose wrong
   result passes green, root-cause work of that kind included.
@@ -215,6 +218,14 @@ before anything else does, and it is resumed with the answer, never replaced.
 ## Review
 
 Every change runs `den:review-and-fix`.
+
+A change that adds names, types or mechanisms a reader will live with gets
+`den:quality-reviewer` first, launched with the inputs `den:review-and-fix`
+takes once the implementer's report is triaged, its findings put to the user
+as rulings and fixed by one fixer before the defect review reads the tree, so
+the review, its tests and the comment pass run once on the final shape.
+Whether a change gets one is this session's judgement: a mechanical sweep or
+a fix round does not.
 
 An edit that changes what code does is reviewed by a fresh run over the tree
 before it reaches a commit proposal, however small: a fix for a finding, a

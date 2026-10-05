@@ -9,6 +9,10 @@ minor bump may change behavior.
 
 ### Added
 
+- A quality reviewer, on Opus, reads a change for the shape of its code:
+  names, bookkeeping, types, large performance costs and patterns the
+  language or framework warns against. The lead runs it before the review on
+  changes that warrant it, and its findings are the user's to rule.
 - The Rust API guidance flags a `RefCell` or `Cell` added so a read-only
   method can write, and points to changing the signature instead.
 - A review after a clean one reads only what changed since, instead of the

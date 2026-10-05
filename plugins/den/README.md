@@ -96,6 +96,12 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   would need heavy scaffolding, questionable patterns, and choices that do not
   serve the project's goals; a question it would ask arrives as a decision
   finding. The tests it writes are the only files it touches.
+- `quality-reviewer` (opus): reads a change for what the next reader of its
+  code would object to: names, missing named types, bookkeeping, types that
+  admit invalid states, large performance costs and patterns the language or
+  framework warns against. Run before the review on changes the lead judges
+  warrant it; its findings are `quality` or, where a repair would undo a
+  ruling, `decision`. Read-only.
 - `closure-verifier`: verdicts a review's findings against the fixed tree,
   CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION keeps
   an item unresolved when closure depends on a product decision.
@@ -173,9 +179,9 @@ file, and the hook run does nothing. The data directory survives plugin updates.
 
 The plugin declares no dependencies, so Claude Code installs nothing for it.
 
-The `reviewer`, `closure-verifier` and `comment-reviewer` agents render the
-review scope with `git` through `bash`, so both have to be available where the
-session runs. A working-tree scope includes untracked files that are not
+The `reviewer`, `quality-reviewer`, `closure-verifier` and `comment-reviewer`
+agents render the review scope with `git` through `bash`, so both have to be
+available where the session runs. A working-tree scope includes untracked files that are not
 ignored, rendered as the new files they would become; a range between two
 revisions does not.
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Renders a review scope for the reviewer, closure-verifier and
-# comment-reviewer agents, which run this script themselves: the repository,
-# the range, the status, the stat, and the diff itself when the whole
-# rendering fits. Bash tool output past roughly 30,000 characters comes back
+# Renders a review scope for the reviewer, quality-reviewer, closure-verifier
+# and comment-reviewer agents, which run this script themselves: the
+# repository, the range, the status, the stat, and the diff itself when the
+# whole rendering fits. Bash tool output past roughly 30,000 characters comes back
 # as a file path and a 2KB preview, which costs the reviewer more to read back
 # than pulling the diff per file, so past that ceiling the stat is the map and
 # the per-file commands are printed in place of the diff.
