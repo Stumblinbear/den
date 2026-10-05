@@ -24,6 +24,10 @@ minor bump may change behavior.
 
 ### Changed
 
+- When the lead finds the approach is the problem, such as review findings
+  returning round after round to one mechanism, it goes back to the goal and
+  the constraints you set and derives what they imply before offering routes,
+  instead of proposing the next fix from inside the mechanism in hand.
 - A doc comment promises only what its item upholds, not how the rest of the
   program happens to use it, such as the value a state starts in, and a
   member whose name says all it is can go without a doc unless it carries a

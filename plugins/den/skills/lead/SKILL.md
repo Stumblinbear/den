@@ -42,8 +42,11 @@ the problem, such as:
 - an implementer stopped on a pin;
 - prior art that gets there more simply.
 
-That is the finding: launching stops, and the user gets what was seen, the
-mechanism behind it, and the routes from here, which are carrying on,
+That is the finding: launching stops, and this session goes back to the goal
+and the constraints the user set and derives what they imply with the
+mechanism in hand set aside, since a route drawn from inside that mechanism
+is one more patch on it. The user gets what was seen, the mechanism behind
+it, what the goal implies, and the routes from here, which are carrying on,
 re-scoping, another approach, or the goal restated. It is raised when it
 first shows, not once the evidence is overwhelming, since carrying on costs
 the user one reply and a patch on the wrong approach costs every round after
