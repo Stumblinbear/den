@@ -24,6 +24,9 @@ minor bump may change behavior.
 
 ### Changed
 
+- The lead still traces every claim about code to its source before using
+  it, but cites a line only where the reader will go to it, a brief's anchor
+  or a finding's site, instead of on every claim.
 - A ruling or lead call handed to the review-and-fix workflow is one
   sentence, what was chosen, over what, and why, with nothing of how the
   code works, so the reviewer still checks the mechanism behind it.
