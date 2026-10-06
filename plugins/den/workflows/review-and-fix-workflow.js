@@ -24,10 +24,13 @@ if (plan !== undefined && (typeof plan !== 'string' || plan.trim() === '')) {
   throw new Error('`plan` is the path of the plan the change belongs to')
 }
 // Sized for one decision and its reason: the reviewer, the fixer and the
-// verifier each read the whole list.
+// verifier each read the whole list. The message asks for 400 and the check
+// allows 512: an agent cannot count characters to within a few, so a cap at
+// the length asked for fails at the boundary and burns the retries.
 const RULING_LIMIT = 400
+const RULING_CAP = 512
 const isRulingList = (list) => list === undefined || (Array.isArray(list) &&
-  list.every((ruling) => typeof ruling === 'string' && ruling.trim() !== '' && ruling.length <= RULING_LIMIT))
+  list.every((ruling) => typeof ruling === 'string' && ruling.trim() !== '' && ruling.length <= RULING_CAP))
 if (!isRulingList(rulings)) {
   throw new Error(`\`rulings\` lists the decisions the user has settled that a finding could contradict, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
 }

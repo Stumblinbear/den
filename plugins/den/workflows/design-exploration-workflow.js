@@ -17,14 +17,17 @@ const direction = args && typeof args === 'object' && !Array.isArray(args) ? arg
 const explorer = args && typeof args === 'object' && !Array.isArray(args) ? args.explorer : undefined
 
 // Sized for one decision and its reason: every explorer's launch carries the
-// whole list.
+// whole list. The message asks for 400 and the check allows 512: an agent
+// cannot count characters to within a few, so a cap at the length asked for
+// fails at the boundary and burns the retries.
 const DECISION_LIMIT = 400
+const DECISION_CAP = 512
 
 if (typeof ask !== 'string' || ask.trim() === '' || ask.length > 6000) {
   throw new Error('design-exploration-workflow takes `ask`, the change to decompose, under 6000 characters')
 }
 if (decisions !== undefined && (!Array.isArray(decisions) || decisions.some((decision) =>
-  typeof decision !== 'string' || decision.trim() === '' || decision.length > DECISION_LIMIT))) {
+  typeof decision !== 'string' || decision.trim() === '' || decision.length > DECISION_CAP))) {
   throw new Error(`\`decisions\` is a list of settled decisions, each one decision with its reason, at most ${DECISION_LIMIT} characters`)
 }
 // An agent resolves a relative path against the session's working directory,

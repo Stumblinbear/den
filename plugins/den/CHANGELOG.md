@@ -24,6 +24,10 @@ minor bump may change behavior.
 
 ### Changed
 
+- A ruling, lead call or settled decision handed to the review-and-fix or
+  design-exploration workflow is still asked for at 400 characters, but the
+  check refuses it only past 512, since an agent cannot count characters to
+  within a few and a cap at the asked length failed launches at the boundary.
 - When the lead finds the approach is the problem, such as review findings
   returning round after round to one mechanism, it goes back to the goal and
   the constraints you set and derives what they imply before offering routes,
