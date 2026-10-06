@@ -25,8 +25,8 @@ Workflow({
 | `repo` | Required. The absolute path of the repository whose working tree is reviewed. |
 | `goal` | Required. What the change is for, in the user's terms: the plan's `Goal:` line, quoted. |
 | `plan` | The plan's path, when the change is a step of one. |
-| `rulings` | A list of the decisions the user has settled that a finding could contradict, their rulings on the implementer's report and every skip they ruled on an earlier run's return, each at most 400 characters and each one decision in one sentence: what was chosen, over what, and why, with nothing of how the code works, since the reviewer, the fixer and the verifier take every item as settled and a mechanism handed to them as settled goes unchecked. |
-| `leadCalls` | The same, for this session's own calls: its rulings on the implementer's report and every skip it ruled on an earlier run's return. |
+| `rulings` | The user's rulings on an earlier run's findings and questions: each skip, and each answer to a decision finding, one per item in one sentence of at most 400 characters naming the behaviour the finding flagged, what was ruled, and why. The reviewer, the fixer and the verifier take every item as settled, so an item that describes code without ruling on it ends the checking its claim needed. An item: `A missing config key reads as its default rather than failing, since every caller handles the default and a hard failure would stop startup on an optional key.` A design statement, `Writes go through the queue and reads hit the store directly`, is the plan's and stays out. |
+| `leadCalls` | The same, for this session's own calls on an earlier run's findings and questions. |
 | `reviewer` | Required. The reviewer's model: `opus`, or `fable` when the change outruns its checks, below. A model the user names for the task wins. |
 | `since` | The tree id `git write-tree` printed for the step's last `clean` return (The return, below), on every later run of the step. A run before the step's first `clean` return takes none. |
 
