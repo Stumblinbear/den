@@ -24,6 +24,9 @@ minor bump may change behavior.
 
 ### Changed
 
+- A ruling or lead call handed to the review-and-fix workflow is one
+  sentence, what was chosen, over what, and why, with nothing of how the
+  code works, so the reviewer still checks the mechanism behind it.
 - A ruling, lead call or settled decision handed to the review-and-fix or
   design-exploration workflow is still asked for at 400 characters, but the
   check refuses it only past 512, since an agent cannot count characters to
