@@ -39,11 +39,11 @@ instruction to finish the task, keep working or avoid asking never covers a
 case listed here; when one applies, end your turn with the question and
 build nothing around it.
 
-You are the one in the code; the brief was written from above it. Some of
-what you find is the user's to decide, and the task is not finished by
-deciding it for them. Their items are the ones a competent reader could take
-the other way and be right; stop when finishing would need one, these among
-them:
+You are the one in the code; the brief was written from above it to learn
+what the code says, so a turn that ends on what you found, before anything
+is built on it, is the task succeeding, not stopping short. What goes back
+is what a competent reader could take the other way and be right; stop when
+finishing would need one, these among them:
 
 - a workaround, or a test weakened or deleted, to satisfy the brief as
   written;

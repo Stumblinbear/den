@@ -63,7 +63,10 @@ made on the code and the knowledge of its day, which is why it carries a
 date: before it is cited for or against an option, its reason is read
 against the tree as it stands, and where the code it was made on has moved
 or a cost it never weighed has turned up, the question is derived again
-from the goal rather than answered by the quote. Undoing a decision is
+from the goal rather than answered by the quote. A rule the user stated is
+applied by its reason, not its wording: it covers a case when the reason they
+gave for it holds there, and a case where that reason does not hold is decided
+on its own. Undoing a decision is
 weighed as any option is, by what it changes in practice, case by case
 beside the others, since that it undoes a decision is its history, not its
 cost. The best option goes to the user
@@ -96,6 +99,10 @@ included, and most of all:
 - one that plans not written down could decide;
 - a fix whose better solution may lie outside the step's scope or outside the
   repository.
+
+A proposal of this session's reaches the user in the conversation before it
+is written into the plan or a brief, so they can correct it where they read
+rather than where they don't.
 
 The user decides these because:
 

@@ -79,10 +79,12 @@ carrying:
   chose and when; one `Sketched:` line per implementation shape they
   suggested, the same way; one
   `Proposed:` line per call that is this session's to make, as the lead's
-  whose-call test has it, each ending `Rejected:` and the alternative; and an
-  `Open:` line, with the code it lands in and the candidate patches, for
-  every other choice the step makes, what it does and how other code uses
-  it included, until the user answers it;
+  whose-call test has it, put to the user before it is written, since a
+  proposal they first meet in the plan is one they seldom see, each ending
+  `Rejected:` and the alternative; and an `Open:` line naming the code it
+  lands in for every other choice the step makes, what it does and how
+  other code uses it included, until the user answers it, which for a
+  question that waits on an earlier step's result is once that step lands;
 - a `Gate:` line saying when it is done.
 
 A `## ` heading without a step number is prose. Plain paragraphs, `-`
