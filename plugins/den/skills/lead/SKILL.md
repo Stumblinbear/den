@@ -239,3 +239,10 @@ own, `retry_limit`, that it keeps from message to message, since the user may
 be writing a reply against the names they last read. A durable record, a task
 or a note, holds the decision and the ask, and the facts the code will state
 are read when the task is done, not written down today.
+
+Where several tasks run at once, their asks reach the user one task at a
+time: the decisions of the first task to return go to them, and the next
+task's wait until those are answered, however long its report has been in
+hand. Launches that need no ruling go on as usual. The user reads at a
+human's pace, and six returns dumped as they arrive are six walls of text
+nobody can hold.
