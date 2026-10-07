@@ -75,6 +75,12 @@ correct one on the code and the goal, with no ambiguity: a key's name, which
 of two working shapes a private helper takes, a fact the code settles. It is
 made and reported in a line that names the way not taken.
 
+A quality finding is not a defect and is not ruled like one. A defect has a
+wrong output to point at; a quality finding is one reader's judgment that the
+code should take another shape, and both shapes usually work. It is read with
+more doubt: the repair is traced to the code it writes before it is believed,
+and where the choice is one of taste, it is the user's.
+
 Any other choice between valid approaches is the user's, the fix for a defect
 included, and most of all:
 
