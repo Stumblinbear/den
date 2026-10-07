@@ -22,8 +22,8 @@ Read for:
 
 - a name, checked where it is read, against the verb the language or
   framework already gives the operation and the project's naming rules;
-- a closure, tuple or flag where a named type or function would be found,
-  reused and tested;
+- a closure, tuple or flag where a named type or function would be found
+  and tested;
 - bookkeeping a simpler rule removes, by the deletion test, and one fact kept
   in two homes;
 - a rule followed past the scope its reason covers;

@@ -1,6 +1,6 @@
 ---
 name: code-architecture
-description: Where a new type, function, or module belongs, whether a file is still one concept, whether a module's interface is deep enough to earn its place, and whether a type can represent states that should not exist.
+description: Where a new type, function, or module belongs, whether a file is still one concept, whether an abstraction, a module, a helper, a type or a generic, earns its place, and whether a type can represent states that should not exist.
 when_to_use: ALWAYS invoke this skill before designing, sketching, reviewing, judging the quality of, deciding anything about or writing out any code, for any reason, an existing type or function included, so a type's shape is checked when it grows and not only when it is placed. Do not think through or show code directly; use this skill first.
 user-invocable: false
 ---
@@ -78,11 +78,13 @@ the file is about. If the answer is "X and Y," that's two files.
   came from, a fact read before the code that needs it runs and then
   guarded, a setting copied into each record it produced, a condition at a
   distance restating a fact the code already states. A number that decides
-  an outcome and lives in no setting is a fact with no home. Repeated code
-  is not a repeated fact: a copy becomes a helper only where the helper's
-  name tells the caller's reader what they need, so the call site reads
-  without opening it; a helper a reader must open to follow its caller has
-  moved the lines and not the understanding, and the copies beat it.
+  an outcome and lives in no setting is a fact with no home. A fact is a
+  decision the code makes, and a second copy is that decision written
+  again: changing one copy and not the other makes the code wrong. What
+  reads alike without sharing a decision is not a copy. Where giving a fact
+  one home would take a new helper, type or generic rather than a value the
+  site already holds, that home is an abstraction and earns its place as
+  one, under Interfaces.
 - **Siblings share one shape and one path.** Things that play the same role
   are represented the same way and reached by the same code; two peers
   stored as different kinds, or a second path to a state the first path
@@ -91,29 +93,87 @@ the file is about. If the answer is "X and Y," that's two files.
 
 ## Interfaces
 
-An interface is everything a caller must know to use a module correctly
-(signature, invariants, ordering constraints, error modes, configuration), not
-only the type-level surface. A module earns its place by depth: a lot of
-behaviour behind a small interface. When designing one, ask whether it can
-have fewer methods, simpler parameters, and more hidden inside.
+Every abstraction gives its callers an interface: everything a caller must
+know to use it correctly, its name and signature and also the invariants,
+ordering constraints, error modes and configuration that come with them. A
+module, a trait, a shared type, a generic and a helper function are all
+abstractions, and making one is a trade: each caller stops holding what the
+body does and starts holding the interface. Whether one earns its place is
+the same question wherever it is decided:
 
-- **The deletion test.** Imagine deleting the module. If the complexity
-  vanishes, it was a pass-through; if it reappears across its callers, it was
-  earning its keep.
-- **A library's callers are outside the tree.** An exported item only the
-  tests exercise is the product, not dead weight; its interface is judged on
-  depth and on the obligation it meets, never on in-tree caller count.
-- **A boundary earns its cost through an obligation.** Existing variation is
-  evidence for a trait or injected dependency; a confirmed requirement in the
-  direction record can justify a boundary before a second implementation
-  exists. Name the obligation, what the boundary costs now, and whether a
-  simpler arrangement would satisfy it. An imagined future caller alone is not
-  a reason.
-- **The interface is the test surface.** Callers and tests cross the same
-  interface. Wanting to test past it means the module is the wrong shape.
-- **Deepening replaces tests; it doesn't layer them.** When shallow pieces
-  merge behind one interface, tests written against the pieces are waste
-  once tests exist at the new interface. Delete them.
+**After this, does a reader of each caller need to know less to understand
+and change that code correctly?**
+
+That is the measure because it is what complexity costs: how many places one
+change has to touch, how much a reader must know to make it, and what they
+need to know but cannot see from where they stand. An abstraction lowers all
+three when its interface is much smaller than what it hides, which is what
+makes it deep, and raises them when its interface is nearly as large as its
+body or the body still has to be read.
+
+**Read the call with the body unseen.** Write the call as it will appear and
+read it as someone who has never opened the body. If the name and arguments
+tell them what this caller gets, what it changes and how it can fail, they
+can trust it and read on: the abstraction has replaced a body with something
+smaller. If they must open the body to know what this caller does, what
+exists afterward, which value wins, what order things happen in, the
+abstraction hides something its caller needs: the reader still needs all of
+it, one jump away, under a name that told them to skip it. A body that says
+no more than its name adds the jump and nothing else. The same holds between
+any two functions: when following one keeps sending you into the other, they
+are one piece of reasoning cut in two.
+
+**The deletion test: imagine deleting it and ask what comes back.** An
+abstraction pays for itself by hiding a decision: a rule that must hold, an
+order steps must run in, a value several places must agree on, a way the work
+can fail, a choice likely to change. Inline its body into each caller. If
+what comes back is that decision, held now by every caller and each one a
+place to get it wrong, the abstraction was earning its keep. If what comes
+back is lines each caller reads plainly on its own, nothing was hidden, and
+each caller reads better whole.
+
+**Ask whether the callers want the same thing for the same reason.** Code
+that reads alike is one thing only when it changes together: when changing
+one copy and not the other would make the program wrong. Joining code that
+answers to different reasons ties together callers that had no reason to
+know of each other, and each change one of them needs arrives as a parameter
+or a branch in the shared body that keeps the others as they were, moving
+that caller's behaviour to a place none of them shows. The branches belong
+in the callers, and the helper holds what is the same for all of them; when
+a helper keeps gaining parameters whose only purpose is to let one caller
+differ, put its body back into each caller, keep what that caller uses, and
+look again at what they share.
+
+**When copies do hold one decision, weigh the cure against the drift.** A
+decision written twice wants one home, and what that home is worth paying
+for depends on how quietly the copies can drift apart. Where a site can
+compute the value from something it already holds, it derives it: that costs
+nothing and cannot go stale. Where the copies sit in different files, crates
+or languages and nothing would notice them disagreeing, the drift is a defect
+nobody sees until it runs, and a small mechanism that hands the value across
+is worth it.
+
+**A boundary made before its second caller needs a reason that exists now.**
+A trait, an injected dependency or a generic parameter pays its cost today
+for flexibility used later. Something already varying across it is that
+reason: two implementations, or a test that needs a stand-in for an external
+system. A requirement already settled for the project is too, before the
+second implementation exists. Name the obligation, what the boundary costs
+now, and whether something simpler meets it; an imagined future caller alone
+is not a reason. A generic over types that only look alike is judged the same
+way: types that share one concept's invariants and operations make a good
+generic, types that share a shape do not, and its signature is one more
+thing every reader parses. A library's callers are outside the tree, so an
+exported item only the tests exercise is the product, judged on its depth
+and the obligation it meets, not on how many in-tree callers it has.
+
+**Tests are callers.** Tests cross the same interface callers do, so a test
+that reaches past it, building private parts or asserting on internal state,
+is a reader who needs something the interface hides: the abstraction is the
+wrong shape, and the change belongs in the abstraction, not the test. When
+shallow pieces merge behind one deeper interface, the tests of the pieces
+test interfaces that no longer have callers; once tests exist at the new
+interface, delete the old ones.
 
 ## Signals to watch for while editing
 
@@ -124,12 +184,17 @@ have fewer methods, simpler parameters, and more hidden inside.
   concepts that want their own files.
 - Scrolling past unrelated code to reach the code you're editing.
 - Adding a trait whose only implementor is the production type.
-- Writing a type whose methods each forward to one call on a field.
+- Writing a type whose methods each forward to one call on a field, with no
+  invariant of its own to keep.
 - A test constructing a module's private parts, or asserting on its internal
   state, to reach behaviour the interface doesn't expose.
 - Comparing, or passing side by side, two values that came from one source.
-- Near-duplicate types for one concept, which signal a missing generic
-  primitive.
+- Writing a second type that keeps the same invariants and operations as one
+  that exists.
+- Adding a parameter, or a branch on which caller called, to a shared
+  function so one caller can behave differently from the rest.
+- Opening a function to understand the line that calls it, or moving back
+  and forth between two functions to follow either one.
 - A method that errors or branches on what the value has been through rather
   than on what it was given: a field that is "not yet", a flag that records
   which constructor ran or which method has been called.

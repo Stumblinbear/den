@@ -21,6 +21,8 @@ git's whitespace options in the argument replaces that default; to see
 whitespace changes, pass `--ignore-cr-at-eol`, which hides only a carriage
 return ending a line. An option's value is written into it (`-U5`,
 `--diff-filter=M`), since a separate word before `--` is read as a revision.
+A pathspec is written as git takes it, `:(exclude)docs`; no shell reads the
+argument, so quotes around a word are dropped and escapes are not.
 
 Where `difft` (difftastic) is on PATH, a changed code file is diffed by
 syntax. A file added or deleted whole, a file difftastic cannot parse, and

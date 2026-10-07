@@ -56,7 +56,8 @@ export function diffArgs(argument: string): DiffArgs {
 	const given = argument
 		.trim()
 		.split(/\s+/)
-		.filter((w) => w !== "");
+		.filter((w) => w !== "")
+		.map(unquoted);
 	const dash = given.indexOf("--");
 	const before = dash === -1 ? given : given.slice(0, dash);
 	const paths = dash === -1 ? [] : given.slice(dash + 1);
@@ -82,4 +83,16 @@ export function diffArgs(argument: string): DiffArgs {
 			),
 		context: context === undefined ? 3 : Number(context),
 	};
+}
+
+// A word written with shell quotes, `':!docs'`, is taken without them: the
+// argument reaches here unread by any shell.
+function unquoted(word: string): string {
+	const quote = word[0];
+
+	return (quote === "'" || quote === '"') &&
+		word.length > 1 &&
+		word.endsWith(quote)
+		? word.slice(1, -1)
+		: word;
 }
