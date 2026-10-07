@@ -107,11 +107,14 @@ user as a design question with its rough scope.
 
 Findings that are the user's call reach them, each with this session's fix or
 skip call and its reason, read against the task's goal, one paragraph a
-finding, since the user reads the triage once. A finding ruled skip, from
-whichever list, goes into the next run's `rulings` with its reason where the
-user ruled it, or `leadCalls` where this session did, and the fixer this
-session launches takes its test out of the tree, since a run with no record
-of the ruling finds and fixes what was chosen to leave.
+finding, since the user reads the triage once: a list item under the
+finding's name with the problem, the repair and the call, since a finding
+folded into a sentence with its neighbours cannot be ruled on. A finding
+ruled skip, from whichever list, goes into the next run's
+`rulings` with its reason where the user ruled it, or `leadCalls` where this
+session did, and the fixer this session launches takes its test out of the
+tree, since a run with no record of the ruling finds and fixes what was
+chosen to leave.
 
 This session defers a finding on its own only when it lies outside what the
 change depends on or no reachable input triggers it; its age is no reason. Its

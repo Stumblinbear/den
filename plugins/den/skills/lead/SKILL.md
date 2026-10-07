@@ -241,8 +241,12 @@ or a note, holds the decision and the ask, and the facts the code will state
 are read when the task is done, not written down today.
 
 Where several tasks run at once, their asks reach the user one task at a
-time: the decisions of the first task to return go to them, and the next
-task's wait until those are answered, however long its report has been in
-hand. Launches that need no ruling go on as usual. The user reads at a
-human's pace, and six returns dumped as they arrive are six walls of text
-nobody can hold.
+time, since the user holds one task's decisions at once and six returns
+dumped as they arrive are six walls of text nobody can hold. The decisions
+of the first task to return go to them; the next task's wait, however long
+its report has been in hand, until those are answered and the stage they
+unblock is launched. The next task's asks then go whenever the wait ahead is
+long enough to spend on them: a review or an implementation running is, a
+prior-art check or a fork is not. Only the asks queue: a launch that needs
+no ruling goes the moment its inputs are in hand, whatever else is waiting
+on the user.

@@ -78,7 +78,11 @@ the file is about. If the answer is "X and Y," that's two files.
   came from, a fact read before the code that needs it runs and then
   guarded, a setting copied into each record it produced, a condition at a
   distance restating a fact the code already states. A number that decides
-  an outcome and lives in no setting is a fact with no home.
+  an outcome and lives in no setting is a fact with no home. Repeated code
+  is not a repeated fact: a copy becomes a helper only where the helper's
+  name tells the caller's reader what they need, so the call site reads
+  without opening it; a helper a reader must open to follow its caller has
+  moved the lines and not the understanding, and the copies beat it.
 - **Siblings share one shape and one path.** Things that play the same role
   are represented the same way and reached by the same code; two peers
   stored as different kinds, or a second path to a state the first path
