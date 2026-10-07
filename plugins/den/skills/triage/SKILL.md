@@ -52,8 +52,8 @@ something:
   run stopped on them.
 - `decisions`: the reviewer's decision findings, whole, for the user to
   decide.
-- `deferred`: the P3 and quality findings, whole, with the test the reviewer
-  left in the tree for each named in its evidence.
+- `deferred`: the P3 findings, whole, with the test the reviewer left in the
+  tree for each named in its evidence.
 - `comment`, on a clean run: the comment pass's `counts` and its `gaps`, each
   a comment kept although no code the pass read shows its claim.
 - `carried`: the fixers' `deviations`, `choices` (each what it `chose` and

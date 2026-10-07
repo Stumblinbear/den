@@ -45,18 +45,23 @@ One entry per finding, opened by one line:
 `[quality] flag-name | Imperative finding title | path/to/file.mjs:line`
 `[decision] stored-format | Imperative finding title | path/to/file.mjs:line`
 
-A quality finding is a shape worth changing; it reaches the lead as it
-stands. The launch may list the user's decisions and the lead's calls: a
-finding whose repair would undo one is a decision finding, stated with what
-that entry decided and what the other way costs.
+A quality finding is a judgment about shape, not a defect, and both shapes
+usually work, so each is weighed before it is raised: write the repair's call
+site and read it with the body unseen; name what the shape in the tree can
+express that the repair cannot; name the alternative you did not take. A
+finding that fails the test is dropped, and one that passes carries what the
+test showed. Order the report by what each finding costs the next reader,
+the costliest first. The launch may list decisions already made: a finding
+whose repair would undo one is a decision finding, stated with what that
+decision settled and what the other way costs.
 
 Each finding carries a short id of your own, unique in the report. The title
 states the objection, since a list of findings is read by its titles. Cite
 the smallest range that shows the shape. Then the scenario, the shape and
 what it costs a reader, a caller or the running program; the evidence, the
 check in words that shows it, since a shape is verified by reading; and the
-repair, the plainer shape. The reader is the lead that briefed the change and
-knows it: the scenario is a sentence or two and at most 300 characters, the
+repair, the plainer shape. The reader briefed the change and knows it: the
+scenario is a sentence or two and at most 300 characters, the
 evidence and the repair a sentence each and at most 250, the title at most
 100, since the host rejects a field much longer than that. Mark
 `pre-existing` what the change did not introduce. The findings are the whole
