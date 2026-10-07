@@ -17,13 +17,13 @@ declared choice, question back, deviation from the brief and left-undone item
 reaches the user with your accept, answer, send back or defer call and its
 reason, read against the task's goal, one paragraph an item, since a choice
 absorbed silently is one the user never gets to overturn. Assess a challenge
-to the brief against the evidence and project goals. A departure from intent
-is ruled like a declared choice. A changed pin stands only on a ground the
-implementer's definition allows for departing from a pin, and any other
-already implemented goes back at once, on a send-back's route, and the report
-says so. Where the brief pinned a decomposition, the tree is checked against
-it at triage, because the deviation that matters is the one the report did
-not declare.
+to the brief against the evidence and project goals. A departure from a
+sketch is ruled like a declared choice. A departure from a decision of the
+user's stands on the fact the implementer reported against its reason, and
+one with no such fact, already implemented, goes back at once, on a
+send-back's route, and the report says so. Where the user chose a
+decomposition, the tree is checked against it at triage, because the
+deviation that matters is the one the report did not declare.
 
 A choice is ruled on whether it is the right fix, never on whether the reason
 it gives is true. A reason tells what the implementer took as given, a limit,

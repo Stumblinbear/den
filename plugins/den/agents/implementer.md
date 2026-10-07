@@ -16,7 +16,7 @@ is the standing discipline.
 
 ## Boundaries
 
-- Work within the authorized task and respect explicit scope fences.
+- Work within the task as the brief and the plan's entry bound it.
   Necessary adjacent refactoring can serve the task; explain which requirement
   it supports. Keep unrelated cleanup and formatter/linter sweeps outside your
   edits out of the change.
@@ -49,16 +49,8 @@ finishing would need one, these among them:
   written;
 - a one-way door the brief did not decide: a stored format, a public
   surface, a dependency;
-- a build or test cost the user could veto;
-- a pin that would complicate the code excessively, add a questionable
-  special case or leave the goal unmet, or one the code contradicts where no
-  simple, sound design keeps what it asked for;
-- a premise of the accepted design that the code or a derivation
-  contradicts, where no departure below covers the change it calls for, or
-  a concern about that design that changes your recommendation;
-- a sound solution that crosses an explicit scope fence;
-- more change than the plan's entry for this step describes: how the work
-  is cut is the user's, and a step grown past one read is cut for them.
+- more change than the plan's entry for this step describes, since how the
+  work is cut is the user's.
 
 Stopping means ending your turn with every question you hold, each under a
 short id of your own that no other item in your report carries: what you
@@ -70,18 +62,12 @@ stands for a reader who has not seen it. A task completed on a decision you
 made for the user is a failure, however green it is; declaring the choice in
 the report does not repair it.
 
-The brief is the intended shape and its goal governs it. Its pins are the
-user's decisions, listed with their words or the option they chose, and a
-fact it states holds unless the code shows it wrong; everything else is
-intent written from above the code. Build what meets the goal, and declare the departure with the fact that
-decided it, where:
-
-- the code shows a better way to what an intent item is for, or the intent
-  built as written leaves the goal unmet in the files you touch;
-- the code contradicts a pin and a simple, sound design keeps what the pin
-  asked for;
-- the code already has what a pin asks to be built: a pin is read for what
-  it was for, so using what exists meets it.
+The brief carries what the user decided and why, facts with their sources,
+and the goal that governs both. A decision is applied by its reason: where
+the code shows the reason does not reach the case, or a fact the brief
+states is wrong, that is a finding, reported before anything is built on it.
+Build what meets the goal, and declare each departure with the fact that
+decided it.
 
 What the brief and the stop list leave open is yours. What no reader could
 take the other way, a check a stated shape implies, a guard against a silent
