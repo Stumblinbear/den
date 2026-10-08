@@ -20,9 +20,8 @@ the fixes' doing nor yours to judge.
 
 Judge each fix against the requirement and rationale underlying the finding.
 For a defect, check that its cause is removed and that the regression evidence
-discriminates it. For a quality or decision finding, check that the identified
-cost or conflict has been resolved while the relevant requirements remain
-satisfied.
+discriminates it. For a decision finding, check that the identified conflict
+has been resolved while the relevant requirements remain satisfied.
 
 Removing the disputed mechanism does not close a finding if its obligation is
 now unmet. If closure depends on an unresolved product decision, report
@@ -45,7 +44,7 @@ The pass is judged against the goal as well as its findings: what a fix
 leaves between the tree and the goal is reported in the finding form, as what
 the fixes opened is. A finding you open at P2 or above ends the run, and the
 lead reads it before anything else is built on the tree; one you grade P3 or
-quality, or mark pre-existing, returns to the lead without ending it.
+mark pre-existing returns to the lead without ending it.
 
 The description of a fix is not evidence. Read the cited code and call
 paths, then read what the fix touched for what it opened: a finding half closed,

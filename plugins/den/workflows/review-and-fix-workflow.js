@@ -51,9 +51,8 @@ if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'leadC
   throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `rulings`, `leadCalls`, `reviewer` and `since` and nothing else')
 }
 
-// The finding kinds the run fixes on its own. A P3 or a quality finding names
-// a shape written in more places than the line it cites, so it goes back to
-// the lead, who sweeps the class in one pass or leaves it.
+// The finding kinds the run fixes on its own. A P3 goes back to the lead, who
+// fixes it with the rest of the return in one pass or leaves it.
 const FIXED = new Set(['P0', 'P1', 'P2'])
 
 // A field's description sets its length, and the cap sits well above it: an
@@ -113,7 +112,7 @@ const FINDING = {
   type: 'object',
   properties: {
     id: { type: 'string', description: 'a short slug for this finding' },
-    kind: { type: 'string', enum: ['P0', 'P1', 'P2', 'P3', 'quality', 'decision'] },
+    kind: { type: 'string', enum: ['P0', 'P1', 'P2', 'P3', 'decision'] },
     title: { type: 'string', maxLength: 150, description: 'what is wrong' },
     path: { type: 'string' },
     line: { type: 'integer', description: 'the first line of the range that shows it' },

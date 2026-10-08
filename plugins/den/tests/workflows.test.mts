@@ -551,18 +551,17 @@ test("one fixer takes the defects at P2 and above as one brief, and everything e
 	const blocker = finding({ id: "lost-write", kind: "P0" });
 	const defect = finding();
 	const minor = finding({ id: "log-line", kind: "P3" });
-	const pattern = finding({ id: "flag-name", kind: "quality" });
 	const decision = finding({ id: "stored-format", kind: "decision" });
 	const old = finding({ id: "old-guard", kind: "P1", preExisting: true });
 	const { launches, result } = await record(ARGS, {
-		findings: [minor, blocker, decision, defect, pattern, old],
+		findings: [minor, blocker, decision, defect, old],
 	});
 
 	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
 	assert.deepEqual(findingsIn(launch(launches, 1).prompt), [blocker, defect]);
 	assert.deepEqual(findingsIn(launch(launches, 2).prompt), [blocker, defect]);
 	assert.equal(result.status, "clean");
-	assert.deepEqual(result.deferred, [minor, pattern]);
+	assert.deepEqual(result.deferred, [minor]);
 	assert.deepEqual(result.decisions, [decision]);
 	assert.deepEqual(result.carried, { ...EMPTY_CARRIED, preExisting: [old] });
 	assert.equal(result.open, undefined);
