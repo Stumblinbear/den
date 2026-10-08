@@ -18,6 +18,20 @@ Treat implementation effort as an engineering cost, not an implied deadline.
 Time constrains the choice only when the user says it does. Correctness,
 coherence and maintenance costs still decide whether the effort is justified.
 
+## A fix is derived, not applied
+
+Before repairing anything, a defect, a finding, a workaround that seems
+needed, write what the thing being repaired is: what it stands for in the
+domain, what its inputs can and cannot be, and the shape it would have if
+the defect could not be written at all. The repair is the difference between
+the tree and that shape. A patch written from the symptom handles the case
+where it showed and leaves the shape that produced it, so the next reader
+carries the condition and the next writer makes the mistake again. Where the
+derived shape reaches past the change in hand, a public surface, a stored
+format, another module's type, it goes to the person who decides with the
+patch beside it as the smaller option, since the churn is theirs to weigh
+and a fix shrunk in advance hides the better one.
+
 ## Check the constraint behind the choice
 
 When a change needs a workaround, trace the constraint that makes it necessary
