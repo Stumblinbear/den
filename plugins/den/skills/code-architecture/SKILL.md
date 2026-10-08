@@ -75,9 +75,12 @@ fits. Ask what the thing is, specifically, and answer:
 
 - in the domain's terms and the vocabulary its siblings already use;
 - with its role in the name: an identifier is an `Id`;
-- for an operation, with the verb its language or framework already gives it
-  (`spawn`, `insert`, `remove`), since the reader already knows that verb's
-  contract.
+- for a function, by what it is: one that acts takes the verb its language or
+  framework already gives it (`insert`, `remove`, `open`); one that returns a
+  value without acting is named for the value (`len`, `parent`); one that
+  answers yes or no reads as a claim about its subject (`is_empty`,
+  `contains`). A bare state word, `drawing`, `covered`, `enabled`, names no
+  action, no value and no subject, so it is none of these.
 
 Name the thing, not the category it belongs to or what it resembles: `tree`,
 not `data_structures`. A generic name is the reader's first guess made
