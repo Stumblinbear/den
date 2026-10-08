@@ -10,8 +10,9 @@ user-invocable: false
 ## What gets a test
 
 A test is written for a defect that was observed, red before the fix with the
-red run reported, and for the rule a change introduces, at the seam the change
-lives in.
+red run reported, for the rule a change introduces, at the boundary the
+change promises across, and for a promise the change rests on that no test
+pins.
 
 A test pins a promise: what the code guarantees to whatever uses it, which is
 other code that calls it, another program, or a person using the program. A
@@ -35,10 +36,13 @@ from outside the code under test. A value the test recomputes by the code's
 own path is the code agreeing with itself, and the test passes whatever the
 code does.
 
-A new test fails for a reason no test in the file already fails for. Where one
-already drives the same inputs, the assertion joins it and is seen red there: a
-second test over one scenario proves nothing the first could not, and the two
-have to be kept in step.
+A new test fails for a reason no test in the file already fails for.
+
+Where the input a test needs is another module's output, the test uses that
+module, a helper its owner keeps, or its output written out as data; where the
+promise is to take whatever that module may send, the test sends each form the
+contract allows. A copy of the producer's steps in the test is the producer
+agreeing with itself, and drifts from it unseen.
 
 ## Which tests stay
 
@@ -50,6 +54,9 @@ where the mistake it catches would be hard to see by reading the code:
 - an ordering between steps;
 - bookkeeping across calls;
 - arithmetic.
+
+A race test controls the schedule it tests; one that sleeps and hopes is not a
+test.
 
 Where the fix is plain in the code, a forwarded value or a one-line guard a
 reviewer takes in at a glance, the test comes out after its green run, and the
@@ -65,5 +72,5 @@ more.
 ## Ruling on a proposed test
 
 A test someone else proposes or leaves in the tree is ruled by the same two
-questions. It is kept when it pins a promise and earns its upkeep, and skipped
-otherwise, whoever wrote it.
+questions. It is kept when it pins a promise and earns its upkeep, rewritten
+where it could pin one and does not, and skipped otherwise, whoever wrote it.
