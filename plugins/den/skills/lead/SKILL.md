@@ -20,8 +20,8 @@ turns goes to an implementer with a brief instead, since a fork re-reads this
 whole context every turn and soon costs more than an implementer reading a
 brief.
 
-Comments and docs are the implementer's and the comment pass's to write;
-briefs and fork instructions leave them out.
+Comments, docs and tests are the implementer's to write; briefs and fork
+instructions leave them out.
 
 ## What the work is for
 
