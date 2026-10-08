@@ -24,6 +24,15 @@ minor bump may change behavior.
 
 ### Changed
 
+- A fix is derived before it is applied: the design-decisions skill asks what
+  the thing being repaired is and the shape it would have if the defect could
+  not be written, and the implementers load that skill with the others.
+- The code-architecture skill has its language references read as part of
+  applying the rules, every reference whose topic the change touches, instead
+  of offered for a question that may never be asked.
+- The implementer is written as a partner in the code: a stop carries the
+  option it would take and why, and the one question that needs an answer
+  rather than every choice left open.
 - The code-architecture skill teaches the decision behind each rule: the
   moment the question comes up, the question, what in the code answers it,
   and a case each way. Its signal lists and calibration sections are folded

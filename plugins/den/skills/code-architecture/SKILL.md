@@ -306,8 +306,12 @@ exist at the new interface, delete the old ones.
 
 ## Language-specific guidance
 
-For the concrete thresholds, idioms, and mechanisms of a specific language,
-read the matching references.
+The references below hold a language's concrete thresholds, idioms and
+mechanisms, which the rules above leave out so they hold in any language.
+Before writing or judging code in that language, read every reference whose
+topic the change touches, as part of applying the rules rather than when a
+question comes up, since the moment a reference would have answered passes
+unnoticed by a reader who has not read it.
 
 ### Rust
 
