@@ -1,57 +1,41 @@
 # Rust: API boundary & ownership design
 
 Every signature is a contract about what the boundary does with a value:
-observe it, mutate it, consume it, store it, or share it. Encode that in the
-types. Two canonical principles from the API Guidelines drive the choices:
-**the caller controls copying** (`C-CALLER-CONTROL`: don't take ownership just
-to read) and **minimum necessary assumptions** (`C-GENERIC`: accept the
-weakest type that does the job).
+observe it, mutate it, consume it, store it, or share it. The question at
+each parameter and return type is which of those it does, and the types say
+so. Two principles from the API Guidelines answer most of it: **the caller
+controls copying** (`C-CALLER-CONTROL`: don't take ownership just to read)
+and **minimum necessary assumptions** (`C-GENERIC`: accept the weakest type
+that does the job).
 
-The highest-frequency mistake this prevents: over-owning parameters and cloning
-to appease the borrow checker. The fix for a borrow-check fight is almost always
-to fix the *signature*, not to `.clone()` at the call site.
+The highest-frequency mistake this prevents: over-owning parameters and
+cloning to appease the borrow checker. A borrow-check fight is almost always
+answered by fixing the *signature*, not by a `.clone()` at the call site.
 
 Owning is correct when the callee consumes or stores the value; returning a
 borrow is correct when the result is genuinely a view into caller-visible
-state.
+state. Close to unconditional: borrow (`&str`, `&[T]`, `&T`) when only
+observing, take the pointee and not the wrapper, and fix the signature
+instead of cloning. Situational: generic bounds, builder receiver style, and
+whether to return a borrow or an owned value.
 
 ## Contents
 
-- Signals to watch for
 - 1. Borrow or generalize inputs
 - 2. Return according to provenance
 - 3. Fix signatures, not call sites
 - 4. Accept the pointee abstraction
 - 5. Model sharing explicitly, but only when it's real
 - 6. Choose builder receivers from terminal ownership
-- Calibration
 - Sources
-
-## Signals to watch for
-
-- **`.clone()` / `.to_string()` / `.to_vec()` added to make the borrow checker
-  happy.** The parameter it feeds probably only needs `&`. Fix the callee's
-  signature. (clippy: `redundant_clone`)
-- **`&String`, `&Vec<T>`, `&Box<T>` parameters.** Take `&str`, `&[T]`, `&T`;
-  deref coercion handles the owning callers for free. (clippy: `ptr_arg`,
-  `borrowed_box`)
-- **An owned `String` / `Vec<T>` / `T` parameter the function only reads.**
-  (clippy: `needless_pass_by_value`)
-- **A public getter that returns `Vec<String>` by cloning an internal field.**
-  Return an iterator or a slice view instead.
-- **`Arc<Mutex<_>>` in a struct that never actually crosses threads or has
-  multiple owners.** Restructure ownership first; reach for shared/interior
-  mutability only when the sharing is real.
-- **A `RefCell` or `Cell` added so a `&self` method can write.** The
-  method's contract changed from observing to mutating, and the cell hides
-  that from every caller. Take `&mut self`, or move the write out so the
-  read stays a read; where callers hold the value shared, that restructure
-  is the change, not the cell.
 
 ## 1. Borrow or generalize inputs
 
-Prefer a borrow when ownership is unnecessary; generalize (`AsRef`,
-`IntoIterator`, `Into`) when it buys caller ergonomics.
+The question comes up at an owned `String`, `Vec<T>` or `T` parameter the
+function only reads (clippy: `needless_pass_by_value`). Ask what the function
+does with the value. If it only observes, take `&T`; if it stores or
+consumes it, take it owned. Generalize (`AsRef`, `IntoIterator`, `Into`)
+when that buys the caller something:
 
 ```rust
 fn scan(xs: Vec<Item>, path: String) { /* read only */ }        // before
@@ -61,14 +45,15 @@ fn scan(xs: impl IntoIterator<Item = Item>,
 
 `File::open` takes `impl AsRef<Path>` for exactly this reason. Generics add
 signature complexity and monomorphized code size, so they're situational, not
-mandatory. Take an owned `String`/`Vec<T>`/`T` when the function will **store or
-consume** it; use `impl Into<T>` when it unconditionally needs an owned `T` and
-conversion convenience matters; use `&T` when it only observes.
+mandatory. Use `impl Into<T>` when the function unconditionally needs an
+owned `T` and conversion convenience matters.
 
 ## 2. Return according to provenance
 
-Return owned data that's newly created or transferred; return a borrow only when
-the result is deliberately a view into an argument or the receiver.
+The question comes up at a public getter that returns `Vec<String>` by
+cloning an internal field. Ask where the result comes from. Newly created or
+transferred data is returned owned; a result that is deliberately a view into
+an argument or the receiver is returned borrowed:
 
 ```rust
 fn names(&self) -> Vec<String> { self.names.clone() }           // before
@@ -77,16 +62,19 @@ fn names(&self) -> impl Iterator<Item = &str> {                  // after
 }
 ```
 
-`Path::file_name` returns `Option<&OsStr>` tied to `self`; `CStr::to_string_lossy`
-returns `Cow<str>` because the conversion may borrow or allocate; return-position
-`impl Trait` hides a concrete iterator/closure type while keeping static dispatch.
-Note the *opposite* failure: an unconditional "public APIs must return owned"
-rule would diverge from `std`. Return a borrow when the value is genuinely a
-view.
+`Path::file_name` returns `Option<&OsStr>` tied to `self`;
+`CStr::to_string_lossy` returns `Cow<str>` because the conversion may borrow
+or allocate; return-position `impl Trait` hides a concrete iterator or
+closure type while keeping static dispatch. The opposite failure is an
+unconditional "public APIs must return owned" rule, which would diverge from
+`std`: a value that is genuinely a view is returned as one.
 
 ## 3. Fix signatures, not call sites
 
-A clone forced by the borrow checker is usually a signature bug one level down.
+The question comes up when you add a `.clone()`, `.to_string()` or
+`.to_vec()` to make the borrow checker happy (clippy: `redundant_clone`). Ask
+whether the callee needs ownership at all. A clone forced by the borrow
+checker is usually a signature bug one level down:
 
 ```rust
 consume_for_read(config.clone());                                // before
@@ -95,63 +83,65 @@ inspect_config(&config);                                         // after
 fn inspect_config(c: &Config) { inspect(c); }
 ```
 
-Cloning is legitimate when two independent owned values must both survive, or when
-shared ownership genuinely doesn't fit.
+Cloning is legitimate when two independent owned values must both survive,
+or when shared ownership genuinely doesn't fit.
 
 ## 4. Accept the pointee abstraction
 
-Take the borrowed *slice/str/pointee*, not a borrow of the owning wrapper:
-deref coercion means owning callers still pass with a plain `&`.
+The question comes up at a `&String`, `&Vec<T>` or `&Box<T>` parameter
+(clippy: `ptr_arg`, `borrowed_box`). Ask whether the wrapper is part of what
+the function needs. Usually only the pointee is, so take `&str`, `&[T]` or
+`&T`; deref coercion means owning callers still pass with a plain `&`:
 
 ```rust
 fn show(s: &String, xs: &Vec<u8>, n: &Box<Node>)                 // before
 fn show(s: &str,    xs: &[u8],    n: &Node)                       // after
 ```
 
-Keep the wrapper only when its capacity, allocator, pointer identity, ownership,
-or a wrapper-specific operation is actually part of the contract.
+The wrapper stays only when its capacity, allocator, pointer identity,
+ownership, or a wrapper-specific operation is actually part of the contract.
 
 ## 5. Model sharing explicitly, but only when it's real
 
-Shared ownership and interior mutability trade compile-time guarantees for
-reference counts, runtime borrow panics, or lock overhead and deadlock risk.
-Restructure ownership before reaching for them.
+The question comes up at an `Arc<Mutex<_>>` in a struct that never crosses
+threads or has multiple owners, and at a `RefCell` or `Cell` added so a
+`&self` method can write. Ask whether the sharing is real: are there several
+owners, or mutation that is genuinely concurrent? Shared ownership and
+interior mutability trade compile-time guarantees for reference counts,
+runtime borrow panics, or lock overhead and deadlock risk, so restructure
+ownership first:
 
 ```rust
 struct App { cfg: Arc<Mutex<Config>> }                           // before
 fn run(cfg: &Config, state: &mut State) { /* ... */ }            // after
 ```
 
-Use `Rc`/`Arc` for genuine multiple ownership, `RefCell` when runtime-checked
-interior mutation is intrinsic to the design, and a lock when mutation is
-genuinely concurrent, not as a default for "the borrow checker is hard."
+`Rc`/`Arc` is for genuine multiple ownership, `RefCell` for runtime-checked
+interior mutation intrinsic to the design, and a lock for mutation that is
+genuinely concurrent, not a default for "the borrow checker is hard."
+
+A cell added so a `&self` method can write changes the method's contract
+from observing to mutating, and hides that change from every caller. Take
+`&mut self`, or move the write out so the read stays a read. Where callers
+hold the value shared, that restructure is the change, not the cell.
 
 ## 6. Choose builder receivers from terminal ownership
 
-Prefer a non-consuming `&mut self` builder when the terminal `build` can borrow;
-use a consuming `self` builder when `build` transfers builder-owned state.
+The question comes up when you write a builder: do its setters take
+`&mut self` or `self`? Ask what the terminal `build` does with the builder's
+state. Where `build` can borrow, a non-consuming `&mut self` builder lets
+callers configure conditionally without rebinding; where `build` transfers
+builder-owned state, a consuming `self` builder fits:
 
 ```rust
 fn option(&mut self, x: X) -> &mut Self;                         // non-consuming
 fn option(mut self, x: X) -> Self;  fn build(self) -> Product;   // consuming
 ```
 
-`reqwest::RequestBuilder` consumes `self` through configuration to `build`/`send`;
-`clap` combines consuming builders with `impl Into<Id>` and `impl IntoIterator`.
-Neither style is universally better: terminal ownership and whether callers
-build conditionally decide.
-
-## Calibration
-
-- **Close to unconditional:** borrow (`&str`/`&[T]`/`&T`) when only observing;
-  take the pointee not the wrapper; fix the signature instead of cloning to
-  appease the borrow checker.
-- **Situational:** generic bounds (`AsRef`/`Into`/`IntoIterator`), which are
-  ergonomic tools and not mandatory; builder receiver style; whether to return
-  a borrow or owned (decided by provenance).
-- **Deliberate exceptions, not smells:** owning a parameter that's stored or
-  consumed; cloning when two independent owned values must survive; `Rc`/`Arc`/
-  `RefCell`/`Mutex` for genuine shared ownership or concurrent mutation.
+`reqwest::RequestBuilder` consumes `self` through configuration to
+`build`/`send`; `clap` combines consuming builders with `impl Into<Id>` and
+`impl IntoIterator`. Neither style is universally better: terminal ownership
+and whether callers build conditionally decide.
 
 ## Sources
 

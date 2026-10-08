@@ -24,6 +24,10 @@ minor bump may change behavior.
 
 ### Changed
 
+- The code-architecture skill teaches the decision behind each rule: the
+  moment the question comes up, the question, what in the code answers it,
+  and a case each way. Its signal lists and calibration sections are folded
+  into the rules they belonged to.
 - The lead still traces every claim about code to its source before using
   it, but cites a line only where the reader will go to it, a brief's anchor
   or a finding's site, instead of on every claim.
