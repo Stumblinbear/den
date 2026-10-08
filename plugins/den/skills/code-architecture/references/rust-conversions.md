@@ -29,7 +29,6 @@ the type, rather than being renamed `try_new` by rote.
 - 5. `FromStr` and `str::parse`
 - 6. Borrowing & ownership conversions
 - 7. A lint that suggests a trait
-- Sources
 
 ## 1. Constructors: `new`, domain verbs, builders
 
@@ -176,23 +175,3 @@ The question comes up when a lint such as `should_implement_trait` or
 semantics fit the type. Where they do, implement it. Where they don't, an
 impl written to silence the lint breaks the contract every generic caller
 relies on, which is worse than the lint it silenced.
-
-## Sources
-
-- Rust API Guidelines, checklist (C-CTOR, C-CONV, C-CONV-TRAITS, C-COMMON-TRAITS,
-  C-DEREF): https://rust-lang.github.io/api-guidelines/checklist.html
-- C-CTOR (constructors are static inherent methods):
-  https://rust-lang.github.io/api-guidelines/predictability.html#constructors-are-static-inherent-methods-c-ctor
-- `From` (when to implement; reflexive; `?`):
-  https://doc.rust-lang.org/std/convert/trait.From.html
-- `TryFrom`: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
-- `FromStr` / `str::parse`:
-  https://doc.rust-lang.org/std/str/trait.FromStr.html
-- `Default`: https://doc.rust-lang.org/std/default/trait.Default.html
-- `AsRef` / `Borrow` / `ToOwned` / `Cow`:
-  https://doc.rust-lang.org/std/convert/trait.AsRef.html
-- `NonZero::new` / `Regex::new` (fallible constructors keeping the `new` name):
-  https://doc.rust-lang.org/std/num/struct.NonZero.html#method.new
-- clippy: `from_over_into`, `should_implement_trait`, `new_without_default`,
-  `new_ret_no_self`:
-  https://rust-lang.github.io/rust-clippy/master/index.html#from_over_into

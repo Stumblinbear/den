@@ -23,7 +23,6 @@ layer holds a value, how much a variant carries.
 - 3. The cause is in `Display`, not `source()`
 - 4. Each clause names what it is about
 - 5. Recoverable obstruction vs violated invariant
-- Sources
 
 ## 1. Typed errors at every boundary
 
@@ -163,20 +162,3 @@ message documents that assumption, and in tests, examples and prototypes.
 condition is an "invariant" is a context-dependent API judgment: the same
 missing key is a user's mistake in a config file and a bug in a table the
 program built itself.
-
-## Sources
-
-- `thiserror`: https://docs.rs/crate/thiserror/latest
-- `std::error::Error` (a cause in `source()` or in `Display`, not both):
-  https://doc.rust-lang.org/std/error/trait.Error.html
-- The error-handling project group on `source()` versus `Display`, and
-  maintainers' reports of causes lost at `{}` print sites:
-  https://github.com/rust-lang/project-error-handling/issues/27
-- Rust API Guidelines, C-GOOD-ERR (public errors implement `Error + Send + Sync`):
-  https://rust-lang.github.io/api-guidelines/interoperability.html
-- `#[non_exhaustive]` (RFC 2008):
-  https://rust-lang.github.io/rfcs/2008-non-exhaustive.html
-- Rust Book, to panic or not to panic:
-  https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html
-- `std::result` (`Result` is `#[must_use]`):
-  https://doc.rust-lang.org/std/result/

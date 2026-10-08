@@ -34,7 +34,6 @@ mechanism, different purpose.
 - 5. Prefer explicit borrowing over a blanket `Deref`
 - 6. Preserve wire shape; reach for `nutype` when constrained
 - 7. Newtype to cross the orphan rule
-- Sources
 
 ## 1. Temporal types, not numeric time
 
@@ -181,20 +180,3 @@ impl Display for Names {
 ```
 
 The cost is deliberate method and trait forwarding.
-
-## Sources
-
-- Rust API Guidelines, type safety (C-NEWTYPE, `Miles`/`Kilometers`):
-  https://rust-lang.github.io/api-guidelines/type-safety.html
-- Rust API Guidelines, predictability (C-DEREF):
-  https://rust-lang.github.io/api-guidelines/predictability.html
-- Rust Book, Advanced Types (newtype, alias ≠ distinct type):
-  https://doc.rust-lang.org/book/ch20-03-advanced-types.html
-- Rust Book, Advanced Traits (orphan rule, newtype workaround):
-  https://doc.rust-lang.org/book/ch20-02-advanced-traits.html
-- `Duration` / `Instant`: https://doc.rust-lang.org/std/time/struct.Duration.html
-- `Path` / `IpAddr` / `char`: https://doc.rust-lang.org/std/path/struct.Path.html
-- `derive_more`: https://docs.rs/derive_more/latest/derive_more/
-- `nutype`: https://docs.rs/nutype/latest/nutype/
-- Serde container attributes (`transparent`): https://serde.rs/container-attrs.html
-- `uuid::Uuid`: https://docs.rs/uuid/latest/uuid/struct.Uuid.html

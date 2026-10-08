@@ -27,7 +27,6 @@ whether to return a borrow or an owned value.
 - 4. Accept the pointee abstraction
 - 5. Model sharing explicitly, but only when it's real
 - 6. Choose builder receivers from terminal ownership
-- Sources
 
 ## 1. Borrow or generalize inputs
 
@@ -142,22 +141,3 @@ fn option(mut self, x: X) -> Self;  fn build(self) -> Product;   // consuming
 `build`/`send`; `clap` combines consuming builders with `impl Into<Id>` and
 `impl IntoIterator`. Neither style is universally better: terminal ownership
 and whether callers build conditionally decide.
-
-## Sources
-
-- Rust API Guidelines, Flexibility (C-CALLER-CONTROL, C-GENERIC):
-  https://rust-lang.github.io/api-guidelines/flexibility.html
-- Rust API Guidelines, builders (C-BUILDER):
-  https://rust-lang.github.io/api-guidelines/type-safety.html#builders-enable-construction-of-complex-values-c-builder
-- `File::open` (`impl AsRef<Path>`):
-  https://doc.rust-lang.org/std/fs/struct.File.html#method.open
-- `Path::file_name` (borrowed return):
-  https://doc.rust-lang.org/std/path/struct.Path.html#method.file_name
-- `CStr::to_string_lossy` (`Cow<str>`):
-  https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.to_string_lossy
-- Return-position `impl Trait`:
-  https://doc.rust-lang.org/reference/types/impl-trait.html#abstract-return-types
-- clippy: `ptr_arg`, `needless_pass_by_value`, `redundant_clone`, `borrowed_box`:
-  https://rust-lang.github.io/rust-clippy/master/index.html#ptr_arg
-- The Rust Book on `Rc`, `RefCell`, and shared-state concurrency:
-  https://doc.rust-lang.org/book/ch15-04-rc.html

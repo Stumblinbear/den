@@ -314,3 +314,4 @@ read the matching references.
 - `references/rust-errors.md`: typed errors and what their messages say.
 - `references/rust-api-boundaries.md`: borrowing and ownership at boundaries.
 - `references/rust-conversions.md`: constructors and the conversion traits.
+- `references/sources.md`: the sources behind the Rust references.

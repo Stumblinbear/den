@@ -20,7 +20,6 @@ the principle, not part of it.
 - 2. Type shape: illegal combinations can't be built
 - 3. Typestate: illegal operation sequences can't be called
 - 4. API hardening (adjacent, not the core principle)
-- Sources
 
 ## 1. Constructor-level: refine at the boundary
 
@@ -163,19 +162,3 @@ one question:
   a value whose whole point is to be consumed (`Result`, guards, lazy
   iterator adapters). Ask whether ignoring the value is routinely legitimate;
   where it is, the attribute only breeds `let _ = ...`.
-
-## Sources
-
-- Rust Book, encoding state and behavior as types:
-  https://doc.rust-lang.org/stable/book/ch18-03-oo-design-patterns.html
-- Alexis King, "Parse, don't validate":
-  https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
-- Rust API Guidelines, type safety (C-NEWTYPE, C-CUSTOM-TYPE):
-  https://rust-lang.github.io/api-guidelines/type-safety.html
-- Rust API Guidelines, future-proofing (C-SEALED, C-NEWTYPE-HIDE,
-  C-STRUCT-PRIVATE): https://rust-lang.github.io/api-guidelines/future-proofing.html
-- `std::num::NonZero`: https://doc.rust-lang.org/std/num/struct.NonZero.html
-- Embedded Rust Book, GPIO typestate:
-  https://doc.rust-lang.org/stable/embedded-book/design-patterns/hal/gpio.html
-- `PhantomData`: https://doc.rust-lang.org/std/marker/struct.PhantomData.html
-- Serde container attributes (`try_from`): https://serde.rs/container-attrs.html
