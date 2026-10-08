@@ -69,7 +69,7 @@ test("the direction record and the decision list are checked before dispatch", a
 		{ decisions: "The loader owns the host registry" },
 		{ decisions: [7] },
 		{ decisions: [" "] },
-		{ decisions: ["x".repeat(401)] },
+		{ decisions: ["x".repeat(513)] },
 		{ basis: "Two hosts, independently maintained" },
 		{ explorer: undefined },
 		{ explorer: "haiku" },
@@ -424,7 +424,7 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 		{ ...ARGS, plan: "" },
 		{ ...ARGS, reviewer: "haiku" },
 		{ ...ARGS, rulings: "one decision" },
-		{ ...ARGS, rulings: ["x".repeat(401)] },
+		{ ...ARGS, rulings: ["x".repeat(513)] },
 		{ ...ARGS, leadCalls: "one call" },
 		{ ...ARGS, leadCalls: [" "] },
 		// Anything but a full lowercase id; see the `since` check in the

@@ -143,7 +143,7 @@ for (const runtime of runtimes()) {
 		// The matcher, not the hook, keeps every other agent out.
 		assert.equal(
 			matcherFor("review-triage-flag"),
-			"^(den:reviewer|den:closure-verifier)$",
+			"^(den:reviewer|den:closure-verifier|den:quality-reviewer)$",
 		);
 
 		// A stop with no type reached the hook unscoped, since no matcher can
