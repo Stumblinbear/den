@@ -88,3 +88,7 @@
 - `nutype`: https://docs.rs/nutype/latest/nutype/
 - Serde container attributes (`transparent`): https://serde.rs/container-attrs.html
 - `uuid::Uuid`: https://docs.rs/uuid/latest/uuid/struct.Uuid.html
+- Rust API Guidelines, Naming (C-GETTER, C-CONV, C-ITER):
+  https://rust-lang.github.io/api-guidelines/naming.html
+- Clippy, `wrong_self_convention`:
+  https://rust-lang.github.io/rust-clippy/master/index.html#wrong_self_convention

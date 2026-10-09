@@ -77,10 +77,16 @@ fits. Ask what the thing is, specifically, and answer:
 - with its role in the name: an identifier is an `Id`;
 - for a function, by what it is: one that acts takes the verb its language or
   framework already gives it (`insert`, `remove`, `open`); one that returns a
-  value without acting is named for the value (`len`, `parent`); one that
-  answers yes or no reads as a claim about its subject (`is_empty`,
-  `contains`). A bare state word, `drawing`, `covered`, `enabled`, names no
-  action, no value and no subject, so it is none of these.
+  value it holds or derives cheaply is named for the value (`len`, `parent`);
+  one that looks a value up by a key and may find none says so in the way its
+  language does, returning the absence rather than failing (`get(key)`); one
+  that searches by a condition says so too (`find`); a count is named as a
+  count; one that answers yes or no reads as a claim about its subject
+  (`is_empty`, `contains`). These are different things, so one of the shapes
+  applied to all of them misnames the rest: a keyed lookup called `user(id)`
+  reads as a property that is always there. A bare state word, `drawing`,
+  `covered`, `enabled`, names no action, no value and no subject, so it is
+  none of these. The language's references name its words.
 
 Name the thing, not the category it belongs to or what it resembles: `tree`,
 not `data_structures`. A generic name is the reader's first guess made
@@ -276,6 +282,16 @@ gaining parameters whose only purpose is to let one caller differ, put its
 body back into each caller, keep what that caller uses, and look again at
 what they share.
 
+A helper is cut at the general case its callers share and named for it, not
+at the first caller's case. A wait for "the first job finished", written for
+one test, is a wait for the job with an id, with that test choosing its id;
+promoted as written, it is a general-sounding name over one caller's accident,
+and the next caller either misuses it or writes another. A helper one caller
+needs stays in that caller. One that several need lives where they find it:
+as a method on the type the callers already hold, found by typing a dot after
+it, rather than a free function beside one of the callers, which is found only
+by reading that caller.
+
 **A boundary made before its second caller needs a reason that exists now.**
 The question comes up when you add a trait whose only implementor is the
 production type, an injected dependency, or a generic parameter. Each pays
@@ -321,4 +337,6 @@ unnoticed by a reader who has not read it.
 - `references/rust-errors.md`: typed errors and what their messages say.
 - `references/rust-api-boundaries.md`: borrowing and ownership at boundaries.
 - `references/rust-conversions.md`: constructors and the conversion traits.
+- `references/rust-naming.md`: the words for getters, lookups, searches,
+  predicates and conversions, from the API guidelines and std.
 - `references/sources.md`: the sources behind the Rust references.
