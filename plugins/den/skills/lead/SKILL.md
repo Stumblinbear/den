@@ -167,8 +167,6 @@ exercises between check-ins:
   result passes green; an implementer on the override is proposed with a
   rationale and launched only on the user's explicit approval.
 
-State the model in the user-facing message at every launch and resume.
-
 ## Launch authorization
 
 A go-ahead from the user covers one launch that edits the tree: one step's
