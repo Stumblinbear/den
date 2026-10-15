@@ -173,35 +173,20 @@ that must tolerate retries, such as a handler fed by a queue that redelivers,
 says so in its contract, and its remove of nothing is then what the contract
 promises.
 
-**One fact, one home.** The question comes up when you write a value some
-other site already knows, or a check that two values agree. A fact is a
-decision the code makes; ask what thing it is a property of. It is stated
-once, on that thing, and every other site derives it or is handed it. A
-second copy is the decision written again, and the first change that reaches
-one copy and not the other makes the code wrong. The check you are about to
-write is the tell, and each of these is a second copy:
-
-- a comparison of two values from one source;
-- a parameter beside the value it came from, as in `draw(rows, rows.len())`;
-- a fact read before the code that needs it runs and then guarded, since the
-  guard exists only because the early copy can go stale;
-- a setting copied into each record it produced;
-- a condition at a distance restating a fact the code already states.
-
-A number that decides an outcome and lives in no setting is a fact with no
-home: a reader looking for the decision cannot find it. What reads alike
-without sharing a decision is not a copy. A database timeout and an HTTP
-timeout that happen to be thirty seconds are two facts, because changing one
-leaves the other right; a client timeout that must stay under the server's
-idle timeout is one decision written twice.
-
-What the one home is worth paying for depends on how quietly the copies can
-drift apart. Where a site can compute the value from something it already
-holds, it derives it: that costs nothing and cannot go stale. Where the
-copies sit in different files, crates or languages and nothing would notice
-them disagreeing, a small mechanism that hands the value across is worth it:
-a size limit a server enforces and its client in another language checks
-again is read from the server or from one generated file, not restated.
+**One fact, one home.** Each piece of state lives in one place, and every
+other site derives it or is handed it. A second copy is state that can
+disagree with the first. The code that keeps the two in step exists only
+because the copy does: a check that two values agree, a guard against an
+early read going stale, a parameter beside the value it came from as in
+`draw(rows, rows.len())`, a setting copied into each record it produced. A
+decision written as a constant is state too. Written twice, an edit can reach
+one copy and not the other, and one that decides an outcome but lives in no
+setting has no home a reader can find. Two values that merely match, such as
+two timeouts that happen to be thirty seconds, are two pieces of state. A
+computation holds none: a hypotenuse written at two sites can never disagree
+with itself. Where copies of one piece of state sit in different files or
+languages and nothing would notice them disagree, a small mechanism hands the
+value across.
 
 **Siblings share one shape and one path.** The question comes up when you add
 a peer to things that play one role, write a type that keeps the invariants
@@ -311,6 +296,17 @@ library's callers are outside the tree, so an exported item only the tests
 exercise is the product, judged on its depth and the obligation it meets,
 not on how many in-tree callers it has.
 
+**Before a trait of your own, the one std already has.** The question comes
+up when you need a capability across types: a conversion, an order, an
+iteration, a display or a parse. Std's trait for it (`From` and `Into`,
+`TryFrom`, `PartialOrd`, `Iterator`, `Display`, `FromStr`) is one every reader
+already knows and every other crate already speaks. A trait of your own is one
+more name and contract each reader has to learn, and it earns that only by
+naming something std does not. A trait whose one method reads a value as
+another type is `Into`. Where a library already does the job, adding it is a
+trade-off the user decides: name the library, what it buys and what it costs,
+and ask.
+
 **Tests are callers.** Tests cross the same interface callers do. The
 question comes up when a test needs to build a module's private parts, or
 assert on its internal state, to reach behaviour the interface does not
@@ -335,7 +331,8 @@ unnoticed by a reader who has not read it.
 - `references/rust-invalid-states.md`: refined types, enums and typestate.
 - `references/rust-semantic-types.md`: newtypes and std types over primitives.
 - `references/rust-errors.md`: typed errors and what their messages say.
-- `references/rust-api-boundaries.md`: borrowing and ownership at boundaries.
+- `references/rust-api-boundaries.md`: borrowing and ownership at boundaries,
+  and returns in place of out-parameters.
 - `references/rust-conversions.md`: constructors and the conversion traits.
 - `references/rust-naming.md`: the words for getters, lookups, searches,
   predicates and conversions, from the API guidelines and std.

@@ -68,6 +68,18 @@ closure type while keeping static dispatch. The opposite failure is an
 unconditional "public APIs must return owned" rule, which would diverge from
 `std`: a value that is genuinely a view is returned as one.
 
+An out-parameter, `out: &mut Vec<T>` filled by the callee, answers the same
+question from the wrong side: the result is the callee's to return, and the
+caller's storage is the caller's. It is nearly always written to reuse one
+buffer across a hot loop, and a returned iterator gives that without it: a
+lazy iterator allocates nothing, and a caller that wants a buffer extends
+its own from the result, so the reuse stays the caller's choice and the
+signature says what the function answers. Where results must be handed out
+as they are found and the callee cannot be an iterator, a recursive walk or
+a callback into foreign code, a closure called per item leaves the caller
+in charge of each. The out-parameter that stays is byte I/O into caller
+storage, `Read::read(&mut buf)`, where the buffer is the protocol.
+
 ## 3. Fix signatures, not call sites
 
 The question comes up when you add a `.clone()`, `.to_string()` or

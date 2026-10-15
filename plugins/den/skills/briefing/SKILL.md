@@ -1,7 +1,7 @@
 ---
 name: briefing
 description: What a brief for an implementer carries and leaves open, and how a change's steps are briefed one at a time.
-when_to_use: ALWAYS invoke this skill before writing a brief for an implementer, a fixer's or a send-back's among them, and before the first step of a plan is briefed. Do not write a brief directly; use this skill first.
+<!-- when_to_use: ALWAYS invoke this skill before writing a brief for an implementer, a fixer's or a send-back's among them, and before the first step of a plan is briefed. Do not write a brief directly; use this skill first. -->
 user-invocable: false
 ---
 

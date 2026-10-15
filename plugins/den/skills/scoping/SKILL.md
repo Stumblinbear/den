@@ -1,6 +1,6 @@
 ---
 name: scoping
-description: Reads the direction record and settles consequential decisions before a brief is written, one question at a time, with existing context read first and confirmed direction kept distinct from assumptions.
+description: Settles consequential decisions before a brief is written, one question at a time, with existing context read first and confirmed direction kept distinct from assumptions.
 when_to_use: ALWAYS invoke this skill when a plan is written or revised, before the first brief of each step, when implementation exposes a conflict with the direction record, and when the user says "scope this", "grill me", or "interview me". Do not settle a choice in a plan, a brief or a workaround; use this skill first.
 ---
 

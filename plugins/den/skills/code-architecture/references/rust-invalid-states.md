@@ -23,11 +23,13 @@ the principle, not part of it.
 
 ## 1. Constructor-level: refine at the boundary
 
-**Parse, don't validate.** The question comes up at a
-`validate(&x) -> Result<(), _>` call followed by continued use of the raw
-`x`. Checked and unchecked data then have the same type, so nothing
-downstream can tell which it holds, and the check does not stick. Ask what
-type a checked value is, and have the check return it, at the boundary, once:
+**Parse, don't validate.** The question comes up at a function whose only
+job is returning `Ok` or `Err`, a `check(&x) -> Result<(), _>`. Its result
+proves nothing a caller can hold, since checked and unchecked data have the
+same type. What replaces it is decided case by case: where the code acts on
+the result at one site, the check is written inline there, beside what it
+guards; where the checked value travels on, the check returns the type it
+established, at the boundary, once:
 
 ```rust
 validate_username(raw)?; use_name(raw);   // before: proof doesn't stick to `raw`

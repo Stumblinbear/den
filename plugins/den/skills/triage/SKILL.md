@@ -1,48 +1,29 @@
 ---
 name: triage
 description: How an implementer's report and a review-and-fix run's return are ruled item by item.
-when_to_use: ALWAYS invoke this skill when an implementer or a fork reports, and when a review-and-fix-workflow run returns. Do not rule on a report's or a return's items directly; use this skill first.
 user-invocable: false
 ---
 
-# Triage
+You judge choices and recommendations by whether it is the right fix, never by
+the reason that was given to you, no matter how true it is. A reason tells you
+what the writer believes, not what is true, and especially not what you should
+believe.
 
-Each item is classed by whether a reader could take it either way, not by its
-size.
-
-## An implementer's report
-
-A finished implementer's or fork's report is triaged like a review's: every
-declared choice, question back, deviation from the brief and left-undone item
-reaches the user with your accept, answer, send back or defer call and its
-reason, read against the task's goal, one paragraph an item, since a choice
-absorbed silently is one the user never gets to overturn. Assess a challenge
-to the brief against the evidence and project goals. A departure from a
-sketch is ruled like a declared choice. A departure from a decision of the
-user's stands on the fact the implementer reported against its reason, and
-one with no such fact, already implemented, goes back at once, on a
-send-back's route, and the report says so. Where the user chose a
-decomposition, the tree is checked against it at triage, because the
-deviation that matters is the one the report did not declare.
-
-A choice is ruled on whether it is the right fix, never on whether the reason
-it gives is true. A reason tells what the implementer took as given, a limit,
-a rule, a shape already in the tree, and a workaround's reason is as true as a
-fix's. So the call first works out the right fix from the code and the goal,
-as if the choice had not been made, and accepts the choice only where it is
-that fix; anywhere else the call is a send-back to it. A choice that keeps
-or makes an item public is ruled on its name as well, checked where an
-importer reads it, as `den:code-architecture` checks a name.
-
-A fixer inside a `den:review-and-fix` run cannot be resumed: a send-back on
-its declarations is briefed fresh after the run returns.
+A proper fix and a dirty hack look nearly the same on the surface,
+it is only when examined in context of the goal, the codebase, and good design
+practices are considered. A symptom at one location in the code doesn't mean
+the patch arrives at that location, the root cause is usually elsewhere.
+Therefore, you make sure to work out the right fix on your own, ensuring you take
+into account the goal and good design practices, as though any existing choice
+or recommendation had not been made. This does not mean that you must pick a
+different solution, it only means that you have considered alternatives
+thoroughly.
 
 ## The return of a run
 
 `status` is `clean` when every finding the run fixed closed and nothing was
-introduced, so the comment pass ran; `open` otherwise. `carried` and
-`passes` always come back; every other key is present only when it holds
-something:
+introduced; `open` otherwise. `carried` and `passes` always come back; every
+other key is present only when it holds something:
 
 - `open`: findings the run could not close, each whole with its `verdict`
   and the verifier's `reason`: REOPENED after the second pass, or
@@ -68,71 +49,12 @@ stay closed: what the return holds arrives word for word, since a ruling and
 a triage turn on the words their writer chose. Findings the run fixed and
 closed take no call.
 
-## Ruling on the return
-
-Every return is first read for what it says about the approach. Each of
-these is a reason to weigh whether another approach would serve the goal
-better than the fix:
-
-- a finding whose fix would work around the shape of the design or the
-  framing of the problem instead of correcting a slip in carrying it out;
-- several findings that return to one mechanism, or to a mechanism an
-  earlier round's fixes touched;
-- findings that only a bar the goal lacks could weigh.
-
-Where one would, it goes to the user beside the fixes it would replace, and
-those wait for the answer while the rest of the return is triaged as below.
+## Output
 
 The return is triaged as one list: each item gets this session's call, and
 every call that changes the tree, a finding left open, a decision ruled fix, a
 sweep of `deferred`, goes to one fixer in one brief, since the items were
-found in one read and a fixer given them one at a time leaves the copies. A
-finding the fixes introduced is read for the mechanism before any fixer is
-briefed, since it is a problem the run made.
-Neither missing intent nor an undocumented rationale is automatically a
-defect; equally, prior approval does not exempt a choice from contradictory
-evidence.
+found in one read and a fixer given them one at a time leaves the copies.
 
-A brief for a finding carries the reviewer's repair only once this session has
-traced it against the finding's discriminating check, since the repair is a
-sketch. Route a bug, a finding, a repair or a declared choice at its root
-cause, found by asking why one or two levels above the report: what made this
-the natural mistake, and what else that answer touches. An agent's diagnosis
-and remedy are the report, not the cause. A fix at the cause replaces a patch
-at the symptom, because each patch is a condition the next reader carries, and
-where the same expression is written by hand at several sites the fix is the
-one place that makes the mistake unwritable, not the sites corrected; two
-findings with one mechanism are one fix. A cause in the design reaches the
-user as a design question with its rough scope.
-
-Findings that are the user's call reach them, each with this session's fix or
-skip call and its reason, read against the task's goal, one paragraph a
-finding, since the user reads the triage once: a list item under the
-finding's name with the problem, the code it sits in, the repair sketched in
-that code and the call, since a finding folded into a sentence with its
-neighbours cannot be ruled on. A finding ruled skip, from whichever list,
-goes into the next run's `rulings` with its reason where the user ruled it,
-or `leadCalls` where this session did, and the fixer this session launches
-takes its test out of the
-tree, since a run with no record of the ruling finds and fixes what was
-chosen to leave.
-
-This session defers a finding on its own only when it lies outside what the
-change depends on or no reachable input triggers it; its age is no reason. Its
-own deferrals are reported in a list apart from the calls that accept, each
-with that reason, so the user can overturn one without reading it as settled,
-and go into a task, never into `rulings` or `leadCalls`: a deferral written
-there tells every later reviewer not to raise the finding, and a fresh review
-is the next chance to catch one that was wrong. A deferral the user rules is a
-skip.
-
-## The commit proposal
-
-The proposal follows this session's own run of the project's tests and
-checks, since a fixer's pass count is a claim. It lists the return's
-`comment.gaps`, since each is a comment that stands on a claim no code the
-pass read shows, and the user decides whether such a claim is committed. A
-test the reviewer left in the tree is still red for every finding not fixed,
-under `deferred` or ruled skip, so the proposal lists those findings and their
-tests, and puts to the user whether each test is committed, taken out by a
-send-back or left for the next step, since a test removed is theirs.
+You defer a finding when it lies outside what the change depends on or no
+reachable input triggers it; its age is no reason.
