@@ -28,7 +28,7 @@ Workflow({
 | `rulings` | The user's rulings on an earlier run's findings and questions: each skip, and each answer to a decision finding, one per item in one sentence of at most 400 characters naming the behaviour the finding flagged, what was ruled, and why. The reviewer, the fixer and the verifier take every item as settled, so an item that describes code without ruling on it ends the checking its claim needed. An item: `A missing config key reads as its default rather than failing, since every caller handles the default and a hard failure would stop startup on an optional key.` A design statement, `Writes go through the queue and reads hit the store directly`, is the plan's and stays out. |
 | `leadCalls` | The same, for this session's own calls on an earlier run's findings and questions. |
 | `reviewer` | Required. The reviewer's model: `opus`, or `fable` when the change outruns its checks, below. A model the user names for the task wins. |
-| `since` | The tree id `git write-tree` printed for the step's last `clean` return (The return, below), on every later run of the step. A run before the step's first `clean` return takes none. |
+| `since` | The tree id `git write-tree` printed for the step's last `clean` return, on every later run of the step. A run before the step's first `clean` return takes none. |
 
 A change outruns its checks when a wrong result would pass them green: the
 correctness argument is a derivation, an algorithm, a numeric method, a
@@ -44,9 +44,3 @@ Any other key fails the launch.
 ## The return
 
 A run that throws is incomplete, not open: its message names the cause.
-
-A `clean` return is snapshotted before anything edits the tree:
-
-```
-git -C <repo> add -A && git -C <repo> write-tree
-```

@@ -377,6 +377,12 @@ const RETURN_BUDGET = 8000
 // empty list is left out, so every key the lead sees holds something.
 function returned(status, lists, comment) {
   const result = { status }
+  // The snapshot is taken before anything edits the tree, and the return is
+  // what the lead reads at that moment; a rule in the launch skill is behind
+  // the whole run by then.
+  if (status === 'clean') {
+    result.snapshot = `before anything edits the tree, run \`git -C ${repo} add -A && git -C ${repo} write-tree\` and pass the id it prints as \`since\` on the next run of this step`
+  }
   for (const [key, items] of Object.entries(lists)) {
     if (items.length) {
       result[key] = items
