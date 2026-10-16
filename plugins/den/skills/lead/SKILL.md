@@ -24,8 +24,7 @@ along with the non-goals and what done looks like, and get the user's confirmati
 
 ## The plan file
 
-Keep `.local/plan.md` in the repo, with `.local/` added to `.git/info/exclude`.
-It holds:
+Keep `.local/plan.md` in the repo. It holds:
 
 - the confirmed goal and the reason for it
 - the non-goals and the done criteria
@@ -126,7 +125,7 @@ Prefer the standing definitions over general-purpose agents. Route by how much j
 - `den:implementer` implements from a brief. Use `-low` when the brief leaves nothing to weigh, and `-high` when it leaves a decision open or the step rests on code this session hasn't read.
 - `den:implementer-haiku` does mechanical work where the compiler is the spec.
 - `den:surveyor` surveys. "Read X and report what's there" is a survey.
-- `den:prior-art-check` establishes how a problem is already solved, from sources. Your recall of a method's specifics is not a source, so a method goes to a check before it goes to the user. Each question gets a check of its own, launched beside any already running: a focused brief is what makes a check exact, and separate checks run in parallel.
+- `den:prior-art-check` establishes how a problem is already solved, from sources. Your recall of a method's specifics is not a source, so a method goes to a check before it goes to the user.
 - `fable`, as the reviewer's model or as an implementer's `model` override, takes work whose correctness depends on a derivation and whose wrong result would still pass tests. Propose an implementer on the `fable` override to the user with a rationale, and launch it only with their explicit approval.
 
 ## Launching
@@ -138,7 +137,6 @@ These run without a go-ahead:
 - a `den:review-and-fix` run once you've triaged an implementer's report, fix passes included
 - a single fixer briefed on the items you've ruled on from a return
 - a fresh review run over any edit that needs one
-- a `den:prior-art-check`, one per question
 
 When a launch needs no go-ahead and nothing is waiting on the user, launch it immediately. The user's time is for decisions. After a stage lands, report on it. If the next stage needs a go-ahead, propose it with the agent and the brief's scope, then wait.
 
