@@ -1,21 +1,24 @@
-// SubagentStop half of the implementer-triage relay: a finished implementer
-// leaves a flag, and nothing else. `implementer-triage-inject` does the
-// injecting, and its reminder is what puts an implementer's declared choices,
-// questions and loose ends to the user, whose decisions they are.
-//
-// Which agents reach here is the matcher's decision in `hooks.json`: the
-// implementers and Claude Code's built-in `fork` type, which is how a quick
-// change runs under the lead rules.
+// The PreToolUse hook of the implementer-triage relay: an implementer's
+// hand-back leaves a flag for `implementer-triage-inject` to announce. See
+// `lib/relay.mts` for when a hand-back fires it.
 import { implementerTriageDir, raiseFlag } from "../lib/relay.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
+
+// Every agent's hand-back reaches this hook; see `raiseFlag`.
+const IMPLEMENTERS: ReadonlySet<string> = new Set([
+	"den:implementer",
+	"den:implementer-low",
+	"den:implementer-high",
+	"den:implementer-haiku",
+]);
 
 try {
 	const input = await hookInput();
 	const dir = input === null ? null : implementerTriageDir(input);
 
 	if (input !== null && dir !== null) {
-		raiseFlag(dir, input);
+		raiseFlag(dir, input, IMPLEMENTERS);
 	}
 } catch {
-	// Never fail loudly: a broken flag write must not block the subagent.
+	// Never fail loudly; see the header of `lib/relay.mts`.
 }

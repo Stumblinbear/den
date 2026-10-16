@@ -1,26 +1,6 @@
 {
 	"description": "Review-triage and implementer-triage relays, and the reminder on an edit to text an agent follows.",
 	"hooks": {
-		"SubagentStop": [
-			{
-				"matcher": "^(den:reviewer|den:closure-verifier|den:quality-reviewer)$",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/review-triage-flag"
-					}
-				]
-			},
-			{
-				"matcher": "^(den:implementer(-low|-high|-haiku)?|fork)$",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-triage-flag"
-					}
-				]
-			}
-		],
 		"UserPromptSubmit": [
 			{
 				"hooks": [
@@ -36,6 +16,19 @@
 			}
 		],
 		"PreToolUse": [
+			{
+				"matcher": "^SubagentHandback$",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/review-triage-flag"
+					},
+					{
+						"type": "command",
+						"command": "node \"${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs\" --data \"${CLAUDE_PLUGIN_DATA}\" hooks/implementer-triage-flag"
+					}
+				]
+			},
 			{
 				"matcher": "^(Edit|Write)$",
 				"hooks": [

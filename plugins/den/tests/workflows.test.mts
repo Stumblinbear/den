@@ -813,6 +813,7 @@ test("the return leads with what the lead acts on and leaves out every list with
 
 	assert.deepEqual(Object.keys(clean.result), [
 		"status",
+		"snapshot",
 		"comment",
 		"carried",
 		"passes",

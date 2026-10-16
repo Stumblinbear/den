@@ -1,34 +1,49 @@
-// UserPromptSubmit half of the implementer-triage relay: every flag
-// `implementer-triage-flag` left becomes one reminder to triage what the
-// implementers reported, and the files it read are deleted.
+// The UserPromptSubmit hook of the implementer-triage relay: when the prompt
+// delivers an implementer's hand-back, it takes the flag
+// `implementer-triage-flag` left for that implementer and reminds the lead to
+// triage the report.
 
-import {
-	type Flag,
-	implementerTriageDir,
-	inject,
-	takeFlags,
-	who,
-} from "../lib/relay.mts";
+import { subagentHandBack } from "../lib/hand-back.mts";
+import { writePromptOutput } from "../lib/prompt-output.mts";
+import { type Flag, implementerTriageDir, takeFlag } from "../lib/relay.mts";
+import { faults } from "../lib/shared/fault.mts";
+import { fieldsOf } from "../lib/shared/fields.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
 
-// The reminder for `pending` implementers that reported finishing: how many
-// they were and who. The rules are the triage skill's, and the reminder loads
-// them at the moment they apply instead of restating them.
-function reminder(pending: readonly Flag[]): string {
-	const named = who(pending);
+// An unreadable hand-back is den's own fault, so `internal`; see
+// `UnreadableHandBack`.
+const HAND_BACK_FAULTS = faults(
+	"den",
+	"An implementer's hand-back gets no triage reminder while this stands",
+);
 
+// The reminder for one implementer's report. It names the triage skill and
+// none of its rules; see the header of `lib/relay.mts`.
+function reminder(flag: Flag): string {
 	return [
-		`${pending.length} implementer agent(s) reported finishing${named ? ` (${named})` : ""}.`,
+		`An implementer agent reported finishing${flag.agentType ? ` (${flag.agentType})` : ""}.`,
 		"Immediately invoke `den:triage` and triage each report, even if `den:triage` is already in your context.",
 	].join(" ");
 }
 
-// The session id is the one thing read from the input: it names the flags
-// that are this session's to announce.
+// The session id names the flags that are this session's to announce, and the
+// prompt names the one agent whose flag it delivers.
 const input = await hookInput();
 const dir = input === null ? null : implementerTriageDir(input);
-const pending = dir === null ? [] : takeFlags(dir);
+const prompt = fieldsOf(input)["prompt"];
+const handBack =
+	dir === null || typeof prompt !== "string" ? null : subagentHandBack(prompt);
 
-if (pending.length > 0) {
-	inject(reminder(pending));
+if (dir !== null && handBack !== null) {
+	if ("fault" in handBack) {
+		writePromptOutput({
+			fault: HAND_BACK_FAULTS.internalFault(new Error(handBack.fault)).message,
+		});
+	} else {
+		const flag = takeFlag(dir, handBack.sender);
+
+		if (flag !== null) {
+			writePromptOutput({ reminder: reminder(flag) });
+		}
+	}
 }

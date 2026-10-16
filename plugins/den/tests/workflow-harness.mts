@@ -22,20 +22,44 @@ type Workflow = (
 	log: (message: string) => void,
 ) => Promise<unknown>;
 
+/** A workflow den ships under `workflows/`, by its file's base name. */
+export type WorkflowName =
+	| "design-exploration-workflow"
+	| "review-and-fix-workflow";
+
+const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
+
+/** The declaration the host reads a workflow's metadata from. */
+const META = /^export const meta = /m;
+
+const workflowSource = (name: WorkflowName): string =>
+	readFileSync(new URL(`../workflows/${name}.js`, import.meta.url), "utf8");
+
+/**
+ * The `meta.description` a shipped workflow declares, evaluated as the
+ * literal it is rather than matched by pattern, so a test that expects it
+ * does not share the reading it checks in `review-triage-inject`.
+ */
+export async function workflowDescription(name: WorkflowName): Promise<string> {
+	// The meta declaration is the first statement, so returning it there
+	// leaves the rest of the body parsed and never run.
+	const meta = await new AsyncFunction(
+		"args",
+		workflowSource(name).replace(META, "return "),
+	)();
+
+	return String(meta.description);
+}
+
 export function runWorkflow(
-	name: "design-exploration-workflow" | "review-and-fix-workflow",
+	name: WorkflowName,
 	args: unknown,
 	agent: Agent,
 	log: (message: string) => void = () => {},
 ): Promise<unknown> {
-	const source = readFileSync(
-		new URL(`../workflows/${name}.js`, import.meta.url),
-		"utf8",
-	);
 	// The host extracts exported metadata before executing the function body.
 	// Retain that declaration locally; the top-level return stays in the body.
-	const body = source.replace(/^export const meta = /m, "const meta = ");
-	const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
+	const body = workflowSource(name).replace(META, "const meta = ");
 	const workflow = new AsyncFunction(
 		"args",
 		"agent",

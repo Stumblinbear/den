@@ -22,7 +22,9 @@ const PLUGIN_DIR = join(ROOT, "plugins");
 //
 // A plugin takes a shared source when what it runs imports it, directly or
 // through another shared source: every write of a session record takes a lock,
-// so `file-lock.mts` comes with `session-state.mts`.
+// so `file-lock.mts` comes with `session-state.mts`. den takes `fault.mts`
+// without `entry.mts`: it words its faults there and writes them to the user
+// from its own hooks.
 const EVERY_PLUGIN: readonly string[] = [
 	"fields.mts",
 	"hook-input.mts",
@@ -48,7 +50,7 @@ interface Plugin {
 
 const PLUGINS: readonly Plugin[] = [
 	{ name: "context-budget", files: CONFIGURED },
-	{ name: "den", files: EVERY_PLUGIN },
+	{ name: "den", files: [...EVERY_PLUGIN, "fault.mts"] },
 	{ name: "model-prompts", files: CONFIGURED },
 ];
 

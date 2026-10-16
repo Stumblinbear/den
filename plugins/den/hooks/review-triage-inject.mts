@@ -1,54 +1,150 @@
-// UserPromptSubmit half of the review-triage relay: every flag
-// `review-triage-flag` left becomes one reminder to triage what the reviewers
-// found, and the files it read are deleted.
+// The UserPromptSubmit hook of the review-triage relay: it reminds the lead to
+// triage a quality review when the prompt delivers the hand-back
+// `review-triage-flag` flagged, and each `den:review-and-fix` return.
+//
+// A review-and-fix return needs no flag: its task notification is the prompt
+// this hook reads (see `lib/task-notification.mts`), so the reminder rides on
+// the turn the return arrives with.
 
-import {
-	type Flag,
-	inject,
-	reviewTriageDir,
-	takeFlags,
-	who,
-} from "../lib/relay.mts";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { subagentHandBack } from "../lib/hand-back.mts";
+import { type PromptOutput, writePromptOutput } from "../lib/prompt-output.mts";
+import { reviewTriageDir, takeFlag } from "../lib/relay.mts";
+import { faults } from "../lib/shared/fault.mts";
+import { errorMessage, fieldsOf } from "../lib/shared/fields.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
+import { completedWorkflow } from "../lib/task-notification.mts";
 
-// The reminder for `pending` review agents that completed: how many they were
-// and who. The rules are the triage skill's, and the reminder loads them at
-// the moment they apply instead of restating them.
-function reminder(pending: readonly Flag[]): string {
-	const quality = pending.filter(
-		(flag) => flag.agentType === "den:quality-reviewer",
-	);
-	const inRun = pending.filter(
-		(flag) => flag.agentType !== "den:quality-reviewer",
-	);
-	const lines: string[] = [];
+const REVIEW_AND_FIX = fileURLToPath(
+	new URL("../workflows/review-and-fix-workflow.js", import.meta.url),
+);
 
-	if (quality.length > 0) {
-		lines.push(
-			`${quality.length} quality review(s) completed.`,
-			"Immediately invoke `den:triage` and triage every finding in each report, even if `den:triage` is already in your context.",
-		);
+// A review-and-fix fault is den's own, not the user's: its shipped workflow
+// file, or its reading of a notification Claude Code reshaped. So each is
+// `internal`, and the fix is to report it.
+const REVIEW_AND_FIX_FAULTS = faults(
+	"den",
+	"A review-and-fix return gets no triage reminder while this stands",
+);
+
+// An unreadable hand-back is den's own fault, so `internal`; see
+// `UnreadableHandBack`.
+const HAND_BACK_FAULTS = faults(
+	"den",
+	"A quality review's hand-back gets no triage reminder while this stands",
+);
+
+/** The line the user reads for den's own fault over `detail`. */
+const faultLine = (detail: string, cause?: unknown): string =>
+	REVIEW_AND_FIX_FAULTS.internalFault(new Error(detail, { cause })).message;
+
+// Each reminder names the triage skill and none of its rules; see the header
+// of `lib/relay.mts`.
+const IN_RUN_REMINDER =
+	"Immediately invoke `den:triage` and triage every item the `den:review-and-fix` return holds, even if `den:triage` is already in your context.";
+
+const QUALITY_REMINDER = [
+	"A quality review completed.",
+	"Immediately invoke `den:triage` and triage every finding in each report, even if `den:triage` is already in your context.",
+].join(" ");
+
+// What a quality reviewer's hand-back in `prompt` has for the lead or the user,
+// taking the reviewer's flag; nothing for any other prompt.
+function qualityReview(dir: string, prompt: string): PromptOutput {
+	const handBack = subagentHandBack(prompt);
+
+	if (handBack === null) {
+		return {};
 	}
 
-	if (inRun.length > 0) {
-		const named = who(inRun);
-
-		lines.push(
-			`${inRun.length} review agent(s) completed${named ? ` (${named})` : ""}.`,
-			"They ran inside a `den:review-and-fix` run: when its return arrives,",
-			"Immediately invoke `den:triage` and triage every item it holds, even if `den:triage` is already in your context.",
-		);
+	if ("fault" in handBack) {
+		return {
+			fault: HAND_BACK_FAULTS.internalFault(new Error(handBack.fault)).message,
+		};
 	}
 
-	return lines.join(" ");
+	return takeFlag(dir, handBack.sender) === null
+		? {}
+		: { reminder: QUALITY_REMINDER };
 }
 
-// The session id is the one thing read from the input: it names the flags
-// that are this session's to announce.
+/**
+ * The description the review-and-fix workflow declares in its `meta`, which
+ * its task notification names it by.
+ *
+ * @remarks
+ * Read from the workflow file, the one home of that text: the `meta` is a
+ * literal the host reads, so the workflow can import nothing to share it. The
+ * workflow must write `description:` first in the file, as a quoted string
+ * with no escapes in it.
+ *
+ * @throws when the file cannot be read, or holds no quoted `description:`
+ */
+function reviewAndFixDescription(): string {
+	const source = readFileSync(REVIEW_AND_FIX, "utf8");
+	const found = /\bdescription:\s*(['"])(.*?)\1/.exec(source);
+
+	if (found?.[2] === undefined) {
+		throw new Error("it declares no `description:`");
+	}
+
+	return found[2];
+}
+
+// What a review-and-fix return in `prompt` has for the lead or the user, and
+// nothing for any other prompt.
+function reviewAndFixReturn(prompt: string): PromptOutput {
+	const notification = completedWorkflow(prompt);
+
+	if (notification === null) {
+		return {};
+	}
+
+	let description: string;
+
+	try {
+		description = reviewAndFixDescription();
+	} catch (error) {
+		return {
+			fault: faultLine(
+				`could not read the review-and-fix workflow's description from ${REVIEW_AND_FIX} (${errorMessage(error)})`,
+				error,
+			),
+		};
+	}
+
+	if ("fault" in notification) {
+		// Another workflow's notification is not this hook's to report, however
+		// it reads.
+		return notification.head.includes(description)
+			? {
+					fault: faultLine(
+						`a review-and-fix return's task notification could not be read (${notification.fault}); Claude Code may have changed its shape`,
+					),
+				}
+			: {};
+	}
+
+	return notification.description === description
+		? { reminder: IN_RUN_REMINDER }
+		: {};
+}
+
 const input = await hookInput();
 const dir = input === null ? null : reviewTriageDir(input);
-const pending = dir === null ? [] : takeFlags(dir);
+const prompt = fieldsOf(input)["prompt"];
+const outputs =
+	typeof prompt === "string"
+		? [
+				dir === null ? {} : qualityReview(dir, prompt),
+				reviewAndFixReturn(prompt),
+			]
+		: [];
+const reminders = outputs.flatMap((output) => output.reminder ?? []);
+const faultLines = outputs.flatMap((output) => output.fault ?? []);
 
-if (pending.length > 0) {
-	inject(reminder(pending));
-}
+writePromptOutput({
+	...(reminders.length > 0 ? { reminder: reminders.join(" ") } : {}),
+	...(faultLines.length > 0 ? { fault: faultLines.join(" ") } : {}),
+});

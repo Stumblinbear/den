@@ -134,17 +134,15 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
 
 Hooks, registered while the plugin is enabled:
 
-- Review triage: a finished `den:reviewer` or `den:closure-verifier`, as a
-  `review-and-fix` run launches them, is recorded, and the next prompt you
-  submit carries a reminder to load `triage` and rule on everything the run's
-  return holds.
-- Implementer triage: a finished implementer, fork of the session or
-  `review-and-fix` fixer is recorded, and the next prompt you submit carries
-  a reminder to load `triage`, under which every choice it declared, question
-  it asked, deviation it made and item it left undone reaches you with a call
-  on each. A fixer inside a run declares its choices in the run's return; for
-  an implementer or fork, the route a send-back takes is yours whenever the
-  round already needs your answer.
+- Review triage: a `review-and-fix` run's return, and a `quality-reviewer`'s
+  report, arrive with a reminder to load `triage` and rule on everything they
+  hold.
+- Implementer triage: an implementer's report arrives with a reminder to load
+  `triage`, under which every choice it declared, question it asked,
+  deviation it made and item it left undone reaches you with a call on each.
+  A fixer inside a `review-and-fix` run declares its choices in the run's
+  return; for an implementer, the route a send-back takes is yours whenever
+  the round already needs your answer.
 - Agent-text audit: an edit or write to a file under a `skills`, `agents`,
   `hooks` or `references` directory, or to a `SKILL.md` or `CLAUDE.md`, adds
   one line to the session's context before the edit, saying to write it under
@@ -190,19 +188,24 @@ The lead stages the working tree with `git add -A` before each
 `git write-tree`: the snapshot the next run reviews against. Nothing
 references that tree, and `git gc` prunes it once it is two weeks old.
 
-What the hooks read: the path of the file an edit is about to change. Nothing
-in your project is opened.
+What the hooks read: the path of the file an edit is about to change, the
+text of every prompt submitted, including the reports subagents hand back and
+the notices of finished background tasks, and den's own `review-and-fix`
+workflow file. A prompt is examined for who sent it and which workflow it
+reports, and none of it is stored. Nothing in your project is opened.
 
-What the hooks write: one small JSON file per finished agent, under
+What the hooks write: one small JSON file per agent report, under
 `claude-review-triage/` and `claude-implementer-triage/` in the OS temp
 directory, inside a subdirectory named for the session so that one session
 never hears another's agents. The file is deleted as its reminder is injected;
 the session's subdirectory stays.
 
-What the hooks can do to a session: add one reminder per relay to the context
-of the next prompt you submit, and one line before an edit to a skill, an
-agent definition, a hook or a rules file. Nothing is shown to you, and no tool
-call is ever blocked.
+What the hooks can do to a session: add one reminder for each agent report or
+`review-and-fix` return to the context of the turn it arrives on, and one
+line before an edit to a skill, an agent definition, a hook or a rules file.
+You see a line only when a `review-and-fix` return or an agent's hand-back
+cannot be read, and no
+tool call is ever blocked.
 
 ## Installation
 
@@ -238,10 +241,20 @@ commit.
 
 ## Operation and limitations
 
-A reminder arrives on the next prompt you submit, not at the moment the agent
-finishes. A `SubagentStop` hook cannot write into the parent's context, so the
-completion is recorded and a `UserPromptSubmit` hook injects it. Several
-agents finishing together produce one reminder naming all of them.
+A reminder arrives with the report it is about. An agent hands its report back
+through a tool call, and a hook on that call records it before the report is
+delivered; the report's delivery then runs a `UserPromptSubmit` hook, which
+injects the reminder. A `review-and-fix` return is recognized from its own
+task notification. A report that arrives while the session is mid-turn lands,
+with its reminder, at the session's next tool call or at the end of its turn.
+Each report gets its own reminder, so several agents reporting together
+produce one reminder each.
+
+The workflow's description, the `description` in the `meta` of
+`workflows/review-and-fix-workflow.js`, is what the hook recognizes a return
+by. If a return's notification cannot be read, or the description cannot be
+read from that file, you see one line saying so, and that return gets no
+reminder.
 
 The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:lead`. The skills and agents do nothing until you invoke or
@@ -270,7 +283,7 @@ naming the file, and the hook run does nothing. Delete the file to go back to
 the default.
 
 If a reminder never arrives, the two temp directories above hold the pending
-flags. Deleting them resets both relays; the next completion starts over.
+flags. Deleting them resets both relays; the next report starts over.
 
 ## Contributing
 

@@ -139,6 +139,14 @@ minor bump may change behavior.
   asks for, and they now test code whose result is the state it leaves
   behind, not only a value it returns.
 
+### Fixed
+
+- The triage reminder arrives on the turn an implementer's or quality
+  reviewer's report does. It used to arrive part of a turn late, or only with
+  your next message. A `review-and-fix` return carries its own reminder, and
+  an implementer or reviewer inside a run, or a fork of the session, raises
+  none.
+
 ## [0.7.0] - 2026-09-17
 
 ### Changed
