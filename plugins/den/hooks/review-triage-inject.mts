@@ -26,7 +26,7 @@ function reminder(pending: readonly Flag[]): string {
 	if (quality.length > 0) {
 		lines.push(
 			`${quality.length} quality review(s) completed.`,
-			"Invoke `den:triage` and triage every finding in each report.",
+			"Immediately invoke `den:triage` and triage every finding in each report, even if `den:triage` is already in your context.",
 		);
 	}
 
@@ -36,7 +36,7 @@ function reminder(pending: readonly Flag[]): string {
 		lines.push(
 			`${inRun.length} review agent(s) completed${named ? ` (${named})` : ""}.`,
 			"They ran inside a `den:review-and-fix` run: when its return arrives,",
-			"invoke `den:triage` and triage every item it holds.",
+			"Immediately invoke `den:triage` and triage every item it holds, even if `den:triage` is already in your context.",
 		);
 	}
 
