@@ -348,6 +348,7 @@ unnoticed by a reader who has not read it.
 - `references/rust-errors.md`: typed errors and what their messages say.
 - `references/rust-api-boundaries.md`: borrowing and ownership at boundaries,
   and returns in place of out-parameters.
+- `references/rust-iterators.md`: what an iterator holds, lazy and small.
 - `references/rust-conversions.md`: constructors and the conversion traits.
 - `references/rust-naming.md`: the words for getters, lookups, searches,
   predicates and conversions, from the API guidelines and std.
