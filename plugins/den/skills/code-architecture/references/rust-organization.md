@@ -36,6 +36,9 @@ through a concept. Either the code reaching in belongs in the field's file,
 as an accessor or a method, or the field belongs in the file that reaches for
 it.
 
+Once files are grouped, an item only its group uses is `pub(super)` or
+private, not `pub(crate)`.
+
 ## What counts as one concept
 
 Each of these is one concept and one file, because its parts read each

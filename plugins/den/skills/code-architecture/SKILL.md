@@ -42,6 +42,21 @@ the code reaching in beside the field or the field beside the code that
 keeps it. A type or helper that keeps its own invariant is not shared state
 but the interface the other side calls.
 
+The question comes up again when a file joins a directory, and when you find a
+file by reading a directory's listing through. A directory groups the files of
+one larger concept under its name, so a reader goes to the group and a writer
+knows where new code goes. The bonds that hold a file together hold a group:
+its files change together, a change to the concept reaching all of them and
+nothing outside, or they share machinery nothing else uses, as a map and a set
+share their tree's nodes. Files that could be grouped two ways, by the role
+each plays or by the feature it serves, are grouped by the more common change:
+one feature altered across its roles argues for the feature, one role's
+contract altered across features argues for the role. A file whose concept
+grows children becomes a directory with its root file as the table of
+contents. Name the group for its concept. A word several file names share
+suggests a group and does not decide it, and a word repeating the crate's name
+names nothing.
+
 **Find the seam, not the line count.** When a file needs splitting, or is
 large enough to prompt the question, count its concepts: the count decides,
 not the length. Cut where two concepts meet:

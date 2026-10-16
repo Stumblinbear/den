@@ -28,6 +28,8 @@ Read for:
   in two homes;
 - a rule followed past the scope its reason covers;
 - a type that admits a state the domain does not have;
+- the directory a change adds a file to: whether a reader can still find code
+  there by its group;
 - a cost a reader would ask about: work repeated where a gate or a cache
   would skip it, a scan where an index exists, allocation or copying in a hot
   path where a borrow serves, quadratic work over a collection, a
