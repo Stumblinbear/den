@@ -7,30 +7,15 @@
 // Outside a repository, or when the diff fails, the reason is printed and
 // the exit is 0, so the skill's preamble renders the reason rather than an
 // error the session cannot read.
-import { mkdirSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { basename, join } from "node:path";
+import { writeFileSync } from "node:fs";
+import { basename } from "node:path";
 import process from "node:process";
 import { fileCount, renderPage } from "../lib/diff-page.mts";
 import { readRange } from "../lib/diff-range.mts";
+import { stampedTempFile } from "../lib/stamped-temp-file.mts";
 
-// Pages go beside the other den plugins' per-session files, under the OS
-// temp directory, so a page outlives nothing it should not and needs no
-// cleanup of its own.
+/** The directory under the OS temp directory that pages go in. */
 const PAGES_DIR = "claude-den-diff-pages";
-
-function pagePath(root: string): string {
-	const stamp = new Date()
-		.toISOString()
-		.replace(/[:.]/g, "-")
-		.replace("T", "-")
-		.slice(0, 19);
-	const dir = join(tmpdir(), PAGES_DIR);
-
-	mkdirSync(dir, { recursive: true });
-
-	return join(dir, `${basename(root)}-${stamp}.html`);
-}
 
 function main(): string {
 	const read = readRange(process.argv.slice(2).join(" "));
@@ -45,7 +30,7 @@ function main(): string {
 		return "The diff is empty.";
 	}
 
-	const path = pagePath(root);
+	const path = stampedTempFile(PAGES_DIR, basename(root), "html");
 	const added = files.reduce((sum, file) => sum + file.added, 0);
 	const removed = files.reduce((sum, file) => sum + file.removed, 0);
 

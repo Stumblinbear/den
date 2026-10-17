@@ -13,6 +13,10 @@ person to work in it would, and find what that reader would object to. Read
 the scope with
 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
 
+When you are given a plan's JSON file, invoke `den:plan-step` with its path,
+and the step's number when you have one. Read the file it writes, which holds
+that step and what it needs from the rest of the plan.
+
 The project's own rules and skills complete the standard: read its
 instruction files and load the skills it keeps for the language and framework
 the change is written in, since a project's convention outranks the

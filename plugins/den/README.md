@@ -60,8 +60,17 @@ diff-page; the rest are hidden from the `/` menu:
   terminal. The page has an overview, the survey, a tab per step, and your
   decisions and the agent's proposals each with its reason. The code and
   images a plan points at are read into the page as it is written, and the
-  plan file is left as it was. Claude runs it whenever it puts a plan to you.
+  plan file is left as it was. The line naming the page also names any
+  problem in the plan, such as an ID used twice or a fact a step relies on
+  that the survey lacks. Claude runs it whenever it puts a plan to you.
   Nothing is published unless you ask for a link.
+- `plan-step`: writes one step of a plan to a markdown file an agent reads:
+  the plan's goal, done criteria and non-goals, the step's decisions and
+  proposals, the facts it relies on as claim and `path:lines`, its proposed
+  change and its gate. Without a step number it covers the step in progress,
+  or every step when not exactly one is. The implementers, the reviewers and
+  the closure verifier run it when handed a plan's JSON file. It is not in
+  the `/` menu.
 - `slicing`: how a change is cut into steps a reviewer holds in one read and
   sequenced by risk, with the test a boundary must pass, the settled
   techniques for cutting what looks atomic, and the interrogation of the

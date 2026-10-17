@@ -66,6 +66,10 @@ as a proposal marked `leftToAgent`.
 
 Write `over` only for an alternative that was actually weighed.
 
+A plan holds what this task settled. A rule CLAUDE.md or memory already
+states stays out, since every session already loads it. Name the user in the
+third person, since agents read the plan too.
+
 The plan is a hypothesis: after each step lands, what was learned rewrites the
 next entry and each `status`. A falsified assumption re-cuts the smallest remaining
 part it invalidated; a change to the goal or to a one-way door re-plans the

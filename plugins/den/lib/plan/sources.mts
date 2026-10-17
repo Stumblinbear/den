@@ -3,8 +3,9 @@
 // nothing once open. `UnreadSource` names one it could not read.
 import { readFileSync } from "node:fs";
 import { dirname, extname, join } from "node:path";
-import { git, type Output } from "./git-command.mts";
-import { errorMessage, fieldsOf, isTable } from "./shared/fields.mts";
+import { git, type Output } from "../git-command.mts";
+import { errorMessage, fieldsOf } from "../shared/fields.mts";
+import { blocksOf } from "./parts.mts";
 
 /** A file a code or image block points at that could not be read. */
 export interface UnreadSource {
@@ -32,39 +33,8 @@ interface ImageSrc {
 	readonly src: string;
 }
 
-/** The elements of `value` that are objects, or none where it is no array. */
-const objects = (value: unknown): JsonObject[] =>
-	Array.isArray(value) ? value.filter(isTable) : [];
-
 const text = (value: unknown): string | undefined =>
 	typeof value === "string" ? value : undefined;
-
-/** Every block in `plan` at a place the schema allows a code or image block. */
-function* blocksOf(plan: JsonObject): Generator<JsonObject> {
-	for (const fact of objects(plan["survey"])) {
-		yield* objects(fact["evidence"]);
-	}
-
-	for (const step of objects(plan["steps"])) {
-		const lists = [
-			step["afterItLands"],
-			step["proposedChange"],
-			step["reliesOn"],
-		];
-
-		for (const block of lists.flatMap(objects)) {
-			yield block;
-
-			if (block["kind"] === "row") {
-				yield* objects(block["blocks"]);
-			}
-
-			if (block["kind"] === "fact") {
-				yield* objects(block["evidence"]);
-			}
-		}
-	}
-}
 
 /** The `data:` URI media type for each image extension a page shows. */
 const IMAGE_TYPES: Readonly<Record<string, string>> = {
@@ -78,13 +48,6 @@ const IMAGE_TYPES: Readonly<Record<string, string>> = {
 	".svg": "image/svg+xml",
 	".webp": "image/webp",
 };
-
-/**
- * `gitPath` with every backslash turned to `/`, the separator git and the
- * disk both take. A file whose name holds a backslash cannot be named.
- */
-const withForwardSlashes = (gitPath: string): string =>
-	gitPath.replaceAll("\\", "/");
 
 /**
  * The repository a plan's `gitPath`s are relative to: the one the plan file
@@ -118,7 +81,7 @@ class PlanRepo {
 			return root;
 		}
 
-		const show = `${commit}:${withForwardSlashes(gitPath)}`;
+		const show = `${commit}:${gitPath}`;
 		const output = git(["-C", root.resolved, "show", show], `git show ${show}`);
 
 		return "out" in output
@@ -130,9 +93,7 @@ class PlanRepo {
 	path(gitPath: string): Read<string> {
 		const root = this.root();
 
-		return "error" in root
-			? root
-			: { resolved: join(root.resolved, withForwardSlashes(gitPath)) };
+		return "error" in root ? root : { resolved: join(root.resolved, gitPath) };
 	}
 }
 
@@ -187,9 +148,11 @@ function slice(
 }
 
 /**
- * Where a code block's `from` points, as {@link UnreadSource.source} names it.
+ * Names where a code block's `from` points, as {@link UnreadSource.source}
+ * does: its path, any line range and any commit, or "a code block" where it
+ * names no path.
  */
-function codeSource(from: JsonObject): string {
+export function codeSource(from: JsonObject): string {
 	const path =
 		text(from["gitPath"]) ?? text(from["absolutePath"]) ?? "a code block";
 	const range = lineRange(from["lines"]);
@@ -277,16 +240,15 @@ function settle<T>(block: JsonObject, read: Read<T>): void {
  * block, and returns every source that could not be read.
  *
  * @remarks
+ * Each `gitPath` in `plan` must use `/` as its separator, as
+ * `normaliseGitPaths` leaves it, and is read relative to the repository
+ * `planFile` sits in.
+ *
  * `plan` is changed in place: a block that was read gets `resolved`, and one
- * that was not gets `error` with the reason. A code block whose `from`
- * carries its own `text` is left as it is. Nothing is written to disk.
- *
- * `plan` is parsed JSON that nothing has checked against the schema. An entry
- * that is not an object, or a block of another kind, is passed over and left
- * for the page to show as it stands.
- *
- * A `gitPath` is relative to the repository `planFile` sits in, and takes
- * `/` or `\` as its separator.
+ * that was not gets `error` with the reason, each in place of the other. A
+ * code block whose `from` carries its own `text` is left as it is, and so are
+ * an entry that is not an object and a block of another kind. Nothing is
+ * written to disk.
  */
 export function resolveSources(
 	plan: Record<string, unknown>,

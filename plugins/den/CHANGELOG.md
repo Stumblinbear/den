@@ -25,6 +25,13 @@ minor bump may change behavior.
   the second real case, one-way doors and designed failure paths, and lists
   the signs of a first idea shipped unexamined. The implementers start with it
   loaded.
+- A `plan-step` skill, not in the `/` menu, writes one step of a plan to a
+  markdown file an agent reads: the plan's goal, done criteria and non-goals,
+  the step's decisions and proposals, the facts it relies on as claim and
+  `path:lines`, its proposed change and its gate. Without a step number it
+  covers the step in progress, or every step when not exactly one is. The
+  implementers, the reviewer, the quality reviewer and the closure verifier
+  run it when handed a plan's JSON file.
 
 ### Changed
 
@@ -37,7 +44,8 @@ minor bump may change behavior.
   implementation shape the user suggested is a decision marked as a sketch,
   which a brief carries as intent. The page carries the code and images the
   plan points at, read as it is written, and the line naming the page lists
-  any source that could not be read. Claude runs `plan-page` to put a plan to
+  any source that could not be read and any problem in the plan, such as an
+  ID used twice or a fact a step relies on that the survey lacks. Claude runs `plan-page` to put a plan to
   the user; it is no longer in the `/` menu.
 - The code-architecture skill has its language references read as part of
   applying the rules, every reference whose topic the change touches, instead

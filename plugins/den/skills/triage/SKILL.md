@@ -1,6 +1,6 @@
 ---
 name: triage
-description: How a problem's fix is chosen, and how a list of findings is ruled item by item.
+description: How a problem's fix is chosen.
 when_to_use: ALWAYS invoke this skill when weighing a fix or ruling on findings, whether an agent reported them or the user raised the problem. Do not propose a fix directly; use this skill first.
 user-invocable: false
 ---

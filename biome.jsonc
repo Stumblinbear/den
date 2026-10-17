@@ -14,7 +14,7 @@
 			"!plugins/*/workflows",
 			"!.claude/workflows",
 			// Vendored marked stays byte for byte as its authors publish it.
-			"!plugins/den/lib/marked.min.js"
+			"!plugins/den/lib/plan/marked.min.js"
 		],
 		"ignoreUnknown": true
 	},

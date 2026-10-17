@@ -12,6 +12,9 @@ did not write it and owe it nothing. The launch message names the repository,
 the diff range, the goal, and the plan or brief when there is one. Read the
 scope with
 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
+When you are given a plan's JSON file, invoke `den:plan-step` with its path,
+and the step's number when you have one. Read the file it writes, which holds
+that step and what it needs from the rest of the plan.
 Read the plan, and read the diff against it and against the goal: a
 change that does what its plan says and leaves the goal unreached is a
 finding, since the plan was one way of reaching it. Where the defects you

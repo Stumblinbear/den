@@ -2,7 +2,7 @@
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"$id": "plan.schema.json",
 	"title": "Plan",
-	"description": "A plan written by the planning agent and rendered by plan-viewer.html for the person who decides it. Text fields marked as markdown accept CommonMark; raw HTML in them is shown as text. Fields described as filled in by the generator are never written by the planning agent.",
+	"description": "A plan written by the planning agent and rendered by lib/plan/viewer.html for the person who decides it. Text fields marked as markdown accept CommonMark; raw HTML in them is shown as text. Fields described as filled in by the generator are never written by the planning agent.",
 	"type": "object",
 	"additionalProperties": false,
 	"required": ["title", "problem", "goal", "steps"],
@@ -38,7 +38,7 @@
 			"items": {
 				"$ref": "#/$defs/markdown"
 			},
-			"description": "Limits every step must respect. An empty list is shown as 'None stated'."
+			"description": "Limits every step must respect."
 		},
 		"survey": {
 			"type": "array",

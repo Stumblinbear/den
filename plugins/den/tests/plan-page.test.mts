@@ -1,6 +1,7 @@
-// Tests for the plan-page script and the two libraries it runs. The unit
-// cases call `resolveSources` and `renderPage` directly; the launcher cases
-// run the command the skill's preamble runs, each over a plan file and a temp
+// Tests for the plan-page script and the libraries that read a plan and write
+// its page. The unit cases call `loadPlan`, `normaliseGitPaths`,
+// `resolveSources` and `renderPage` directly; the launcher cases run the
+// command the skill's preamble runs, each over a plan file and a temp
 // directory of its own.
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -15,9 +16,13 @@ import { join } from "node:path";
 import process from "node:process";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { runInNewContext } from "node:vm";
 import { dataDir, fixtureDir, runtimes } from "../../../tests/harness.mts";
-import { renderPage } from "../lib/plan-page.mts";
-import { resolveSources } from "../lib/plan-sources.mts";
+import { normaliseGitPaths } from "../lib/plan/git-paths.mts";
+import { loadPlan } from "../lib/plan/load.mts";
+import { renderPage } from "../lib/plan/page.mts";
+import { resolveSources } from "../lib/plan/sources.mts";
+import { fieldsOf } from "../lib/shared/fields.mts";
 
 const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
@@ -78,22 +83,72 @@ test("a gitPath is read from disk, or from git at a commit, relative to the plan
 		kind: "code",
 		from: { gitPath, lines: [2, 3], commit },
 	});
-	const blocks: Record<string, unknown>[] = [
-		onDisk("src/a.txt"),
-		onDisk("src\\a.txt"),
-		atCommit("src/a.txt"),
-		atCommit("src\\a.txt"),
-	];
-	const unread = resolveSources(oneStep(...blocks), join(repo, "plan.json"));
+	const file = join(repo, "plan.json");
 
-	assert.deepEqual(unread, []);
+	writeFileSync(
+		file,
+		JSON.stringify(
+			oneStep(
+				onDisk("src/a.txt"),
+				onDisk("src\\a.txt"),
+				atCommit("src/a.txt"),
+				atCommit("src\\a.txt"),
+			),
+		),
+	);
+
+	const loaded = loadPlan(file);
+
+	assert.ok(!("failure" in loaded), JSON.stringify(loaded));
+	assert.deepEqual(loaded.unread, []);
+
+	const [step] = loaded.plan["steps"] as { proposedChange: object[] }[];
+
 	assert.deepEqual(
-		blocks.map((block) => block["resolved"]),
+		step?.proposedChange.map((block) => fieldsOf(block)["resolved"]),
 		[
 			{ text: "TWO\nTHREE\n", firstLine: 2 },
 			{ text: "TWO\nTHREE\n", firstLine: 2 },
 			{ text: "two\nthree\n", firstLine: 2 },
 			{ text: "two\nthree\n", firstLine: 2 },
+		],
+	);
+});
+
+test("every gitPath turns to forward slashes: open questions, and code, diff, sketch and image blocks wherever they sit", () => {
+	const planOpen = { id: "q_plan", question: "q", gitPath: "a\\plan.md" };
+	const stepOpen = { id: "q_step", question: "q", gitPath: "b\\step\\" };
+	const diff = { kind: "diff", gitPath: "c\\diff.rs", patch: "" };
+	const from = { gitPath: "d\\code.rs", lines: [1, 1] };
+	const sketch = { kind: "sketch", gitPath: "e\\sketch.rs", text: "" };
+	const image = { kind: "image", gitPath: "f\\shot.png", alt: "a" };
+
+	normaliseGitPaths({
+		title: "A plan",
+		decisions: { open: [planOpen] },
+		survey: [{ id: "F1", claim: "c", evidence: [diff] }],
+		steps: [
+			{
+				title: "The step",
+				status: "pending",
+				decisions: { open: [stepOpen] },
+				proposedChange: [
+					{ kind: "code", from },
+					{ kind: "row", blocks: [sketch, image] },
+				],
+			},
+		],
+	});
+
+	assert.deepEqual(
+		[planOpen, stepOpen, diff, from, sketch, image].map((x) => x.gitPath),
+		[
+			"a/plan.md",
+			"b/step/",
+			"c/diff.rs",
+			"d/code.rs",
+			"e/sketch.rs",
+			"f/shot.png",
 		],
 	);
 });
@@ -195,15 +250,26 @@ test("an image is carried as a data URI of its bytes, and a missing one fails it
 	);
 });
 
-test("the page carries the plan as JSON no string in it can close, and marked inlined", () => {
-	const plan = { title: "</script><script>alert(1)</script>", steps: [] };
-	const html = renderPage(plan);
-	const opening = '<script type="application/json" id="plan">';
+/** The text of the script element whose opening tag is `opening` in `html`. */
+function scriptText(html: string, opening: string): string {
 	const start = html.indexOf(opening) + opening.length;
-	const json = html.slice(start, html.indexOf("</script>", start));
-	const marked = readFileSync(join(PLUGIN, "lib", "marked.min.js"), "utf8");
 
-	assert.deepEqual(JSON.parse(json), plan);
+	return html.slice(start, html.indexOf("</script>", start));
+}
+
+test("the page carries the plan and its problems as JSON no string in them can close, and marked inlined", () => {
+	const plan = { title: "</script><script>alert(1)</script>", steps: [] };
+	const problems = ["</script><script>alert(2)</script>"];
+	const html = renderPage(plan, problems);
+	const marked = readFileSync(
+		join(PLUGIN, "lib", "plan", "marked.min.js"),
+		"utf8",
+	);
+	const jsonIn = (id: string) =>
+		JSON.parse(scriptText(html, `<script type="application/json" id="${id}">`));
+
+	assert.deepEqual(jsonIn("plan"), plan);
+	assert.deepEqual(jsonIn("problems"), problems);
 	assert.ok(html.includes(`<script id="marked">${marked}</script>`));
 });
 
@@ -249,7 +315,7 @@ for (const runtime of runtimes()) {
 				{
 					title: "Three",
 					status: "pending",
-					reliesOn: [codeAt(source, [1, 1])],
+					reliesOn: [{ ...codeAt(source, [1, 1]), caption: "why" }],
 				},
 			],
 		});
@@ -269,6 +335,115 @@ for (const runtime of runtimes()) {
 			`Plan page: ${path} (Cache wake; 3 steps, 1 committed, 1 in progress, 1 pending)\n`,
 		);
 		assert.equal(readFileSync(file, "utf8"), text);
+	});
+
+	test(`[${runtime}] a problem the checks find is named on the line`, () => {
+		const file = join(fixtureDir("plan-page-src"), "twice.json");
+
+		writeFileSync(
+			file,
+			JSON.stringify({
+				title: "Twice",
+				survey: [
+					{ id: "F7", claim: "a" },
+					{ id: "F7", claim: "b" },
+				],
+				steps: [{ title: "One", status: "pending" }],
+			}),
+		);
+
+		const { out, temp } = run(file, dataDir(runtime));
+		const [path] = pagesIn(temp);
+
+		assert.ok(path !== undefined, out);
+		assert.ok(out.slice(out.indexOf(path) + path.length).includes("F7"), out);
+	});
+
+	test(`[${runtime}] the page's diff parser runs as the generator's does`, () => {
+		const file = join(fixtureDir("plan-page-src"), "diff.json");
+		const patch = [
+			"--- a/one.txt",
+			"+++ b/one.txt",
+			"@@ -1 +1 @@",
+			"-a",
+			"+b",
+			"--- a/two.txt",
+			"+++ b/two.txt",
+			"@@ -4 +4 @@",
+			"-c",
+		].join("\n");
+
+		writeFileSync(file, JSON.stringify(oneStep()));
+
+		const { out, temp } = run(file, dataDir(runtime));
+		const [path] = pagesIn(temp);
+
+		assert.ok(path !== undefined, out);
+
+		const script = scriptText(
+			readFileSync(path, "utf8"),
+			'<script id="diff-parser">',
+		);
+		const parsed = runInNewContext(
+			`${script}\nJSON.stringify(diffRows(${JSON.stringify(patch)}))`,
+		);
+
+		assert.deepEqual(JSON.parse(parsed), {
+			rows: [
+				{ kind: "file", text: "one.txt" },
+				{ kind: "hunk", text: "⋯ " },
+				{ kind: "removed", text: "-a", oldLine: 1 },
+				{ kind: "added", text: "+b", newLine: 1 },
+				{ kind: "file", text: "two.txt" },
+				{ kind: "hunk", text: "⋯ " },
+				{ kind: "removed", text: "-c", oldLine: 4 },
+			],
+			files: ["one.txt", "two.txt"],
+			numbered: true,
+		});
+	});
+
+	test(`[${runtime}] the page's block walk runs without the module it came from, a step's blocks in the order the checks walk them`, () => {
+		const file = join(fixtureDir("plan-page-src"), "walk.json");
+
+		writeFileSync(file, JSON.stringify(oneStep()));
+
+		const { out, temp } = run(file, dataDir(runtime));
+		const [path] = pagesIn(temp);
+
+		assert.ok(path !== undefined, out);
+
+		const script = scriptText(
+			readFileSync(path, "utf8"),
+			'<script id="block-walk">',
+		);
+		const step = {
+			afterItLands: [{ kind: "text", markdown: "lands" }],
+			proposedChange: [
+				{
+					kind: "row",
+					blocks: [null, { kind: "text", markdown: "in row" }],
+				},
+			],
+			reliesOn: [
+				{
+					kind: "fact",
+					id: "F1",
+					evidence: [{ kind: "text", markdown: "evidence" }],
+				},
+			],
+		};
+		const walked = runInNewContext(
+			`${script}\nJSON.stringify([...blocksIn(${JSON.stringify(step)})].map((b) => b.markdown ?? b.kind))`,
+		);
+
+		assert.deepEqual(JSON.parse(walked), [
+			"lands",
+			"row",
+			"in row",
+			"fact",
+			"evidence",
+		]);
 	});
 
 	test(`[${runtime}] JSON that does not parse is reported, not rendered`, () => {

@@ -192,11 +192,11 @@ pre.code .l{display:block;white-space:pre;padding-right:16px;min-height:1.65em}
 pre.code.plain .l{padding-left:16px}
 pre.code .n{display:inline-block;box-sizing:content-box;min-width:3ch;padding:0 12px 0 10px;text-align:right;color:var(--num);user-select:none}
 pre.code .n.m{display:none}
-pre.code .a{background:var(--add-bg);color:var(--add-ink)}
-pre.code .d{background:var(--del-bg);color:var(--del-ink)}
-pre.code .x,pre.code .h{color:var(--mute)}
-pre.code .h{background:var(--soft)}
-pre.code .f{color:var(--ink);background:var(--group);font-weight:600}
+pre.code .added{background:var(--add-bg);color:var(--add-ink)}
+pre.code .removed{background:var(--del-bg);color:var(--del-ink)}
+pre.code .context,pre.code .hunk,pre.code .note{color:var(--mute)}
+pre.code .hunk,pre.code .note{background:var(--soft)}
+pre.code .file{color:var(--ink);background:var(--group);font-weight:600}
 .about{display:flex;gap:12px;align-items:baseline;padding:11px 16px;background:var(--orange-soft);border-top:1px solid var(--orange-line);font-size:14px;line-height:1.45;color:var(--about-ink)}
 .about .copy{flex:0 0 auto}
 .about .key.trial{background:#fff}
@@ -307,9 +307,15 @@ details.evcode>.blocks{margin-top:8px}
 </head>
 <body>
 <div id="app"></div>
-<!-- plan-page.mts fills the next element with the plan JSON; see PLAN_SLOT there. -->
+<!-- page.mts fills the next element with the plan JSON; see PLAN_SLOT there. -->
 <script type="application/json" id="plan">{}</script>
-<!-- plan-page.mts fills the next element with marked.min.js; see PLAN_SLOT there. -->
+<!-- page.mts fills the next element with the plan's problems; see PROBLEMS_SLOT there. -->
+<script type="application/json" id="problems">[]</script>
+<!-- page.mts fills the next element with splitLines and diffRows from diff.mts; see DIFF_PARSER_SLOT there. -->
+<script id="diff-parser"></script>
+<!-- page.mts fills the next element with blocksAmong and blocksIn from parts.mts; see BLOCK_WALK_SLOT there. -->
+<script id="block-walk"></script>
+<!-- page.mts fills the next element with marked.min.js; see MARKED_SLOT there. -->
 <script id="marked"></script>
 <script>
 (() => {
@@ -327,6 +333,7 @@ details.evcode>.blocks{margin-top:8px}
     app.innerHTML = `<div class="wrap"><main><div class="problems"><b>Couldn’t read the plan JSON.</b><ul><li>${esc(e.message)}</li></ul></div></main></div>`;
     return;
   }
+  var problems = JSON.parse(document.getElementById('problems').textContent);
 
   if (window.marked) {
     marked.use({
@@ -364,57 +371,23 @@ details.evcode>.blocks{margin-top:8px}
   var stepDec = steps.map((s) => decs(s.decisions, s.proposals));
   var factById = new Map();
   var openById = new Map();
-  var problems = [];
-  var seen = new Set();
-  function claimId(id, what) {
-    if (!id) { problems.push(`A ${what} has no ID.`); return; }
-    if (seen.has(id)) problems.push(`${id} is used more than once.`);
-    seen.add(id);
-  }
-  survey.forEach((f) => { claimId(f.id, 'survey fact'); factById.set(f.id, f); });
-  planDec.open.forEach((o) => { claimId(o.id, 'open question'); openById.set(o.id, { o: o, step: null }); });
-  planDec.proposals.forEach((a) => { claimId(a.id, 'proposal'); });
+  survey.forEach((f) => { factById.set(f.id, f); });
+  planDec.open.forEach((o) => { openById.set(o.id, { o: o, step: null }); });
   stepDec.forEach((d, i) => {
-    d.open.forEach((o) => { claimId(o.id, 'open question'); openById.set(o.id, { o: o, step: i }); });
-    d.proposals.forEach((a) => { claimId(a.id, 'proposal'); });
+    d.open.forEach((o) => { openById.set(o.id, { o: o, step: i }); });
   });
 
-  function walk(blocks, fn) {
-    arr(blocks).forEach((b) => {
-      if (!b || typeof b !== 'object') return;
-      fn(b);
-      if (b.kind === 'row') walk(b.blocks, fn);
-      if (b.kind === 'fact') walk(b.evidence, fn);
-    });
-  }
+  // blocksIn comes from the #block-walk script.
   var factUse = new Map();
   var attached = new Set();
   steps.forEach((s, i) => {
-    [s.afterItLands, s.proposedChange, s.reliesOn].forEach((list) => {
-      walk(list, (b) => {
-        arr(b.about).forEach((id) => {
-          if (!openById.has(id)) problems.push(`Step ${i + 1} has a block about “${id}”, which isn’t an open question.`);
-          else attached.add(id);
-        });
-        if (b.kind === 'diff') {
-          const named = diffRows(b.patch || '').files.length;
-          if (named > 1) problems.push(`Step ${i + 1} has a diff covering ${named} files. Give each file its own block.`);
-        }
-        if (b.kind === 'fact') {
-          if (!factById.has(b.id)) problems.push(`Step ${i + 1} relies on ${b.id}, which isn’t in the survey.`);
-          else {
-            if (!factUse.has(b.id)) factUse.set(b.id, new Set());
-            factUse.get(b.id).add(i);
-          }
-        }
-      });
-    });
-  });
-
-  steps.forEach((s, i) => {
-    arr(s.reliesOn).forEach((b) => {
-      if (b && b.kind !== 'fact' && !b.caption) problems.push(`Step ${i + 1} relies on a ${b.kind || 'block'} block without a caption saying why.`);
-    });
+    for (const b of blocksIn(s)) {
+      arr(b.about).forEach((id) => { if (openById.has(id)) attached.add(id); });
+      if (b.kind === 'fact' && factById.has(b.id)) {
+        if (!factUse.has(b.id)) factUse.set(b.id, new Set());
+        factUse.get(b.id).add(i);
+      }
+    }
   });
 
   function needs(d) { return d.open.length + d.proposals.filter((a) => a.status === 'notRaised').length; }
@@ -449,7 +422,7 @@ details.evcode>.blocks{margin-top:8px}
   }
 
   // ---- code rendering ------------------------------------------------------
-  function splitLines(t) { return String(t).replace(/\r\n?/g, '\n').replace(/\n$/, '').split('\n'); }
+  // splitLines and diffRows come from the #diff-parser script.
   function codeLines(text, first) {
     var numbered = typeof first === 'number' && Number.isFinite(first);
     return `<pre class="code${numbered ? '' : ' plain'}">${splitLines(text).map((l, i) => `<span class="l">${numbered ? `<span class="n">${first + i}</span>` : ''}${esc(l)}</span>`).join('')}</pre>`;
@@ -457,37 +430,8 @@ details.evcode>.blocks{margin-top:8px}
   function sketchLines(text) {
     return `<pre class="code plain">${splitLines(text).map((l) => {
       var c = l.charAt(0);
-      return `<span class="l${c === '+' ? ' a' : c === '-' ? ' d' : ''}">${esc(l)}</span>`;
+      return `<span class="l${c === '+' ? ' added' : c === '-' ? ' removed' : ''}">${esc(l)}</span>`;
     }).join('')}</pre>`;
-  }
-  // A file's headers run to its first hunk from the patch's start, from `diff --git`, or from a
-  // `--- ` line followed directly by `+++ ` and `@@`, which is how a plain `diff -u` starts its
-  // next file. Elsewhere a line's first character classifies it, since a removed `-- x` is written
-  // `--- x` and an added `++ x` is `+++ x`; a hunk all but never holds that three-line run, and
-  // reading it there avoids trusting `@@` line counts, which hand-written patches get wrong.
-  function diffRows(patch) {
-    var lines = splitLines(patch), files = [], rows = [], o = null, n = null, numbered = false, inHeaders = true;
-    var hunk = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@ ?(.*)$/;
-    lines.forEach((l, i) => {
-      if (l.indexOf('diff --git') === 0) { inHeaders = true; return; }
-      if (l.indexOf('--- ') === 0 && (lines[i + 1] || '').indexOf('+++ ') === 0 && hunk.test(lines[i + 2] || '')) inHeaders = true;
-      if (inHeaders) {
-        if (/^(index |--- |new file mode|deleted file mode|similarity index|rename (from|to) )/.test(l)) return;
-        if (l.indexOf('+++ ') === 0) {
-          const f = l.slice(4).replace(/^b\//, '');
-          if (f !== '/dev/null') { files.push(f); rows.push({ k: 'f', t: f }); }
-          return;
-        }
-      }
-      var h = l.match(hunk);
-      if (h) { o = +h[1]; n = +h[2]; numbered = true; inHeaders = false; rows.push({ k: 'h', t: `⋯ ${h[3] || ''}` }); return; }
-      var c = l.charAt(0);
-      if (c === '+') rows.push({ k: 'a', o: '', n: n != null ? n++ : '', t: l });
-      else if (c === '-') rows.push({ k: 'd', o: o != null ? o++ : '', n: '', t: l });
-      else if (c === '\\') rows.push({ k: 'h', t: l });
-      else rows.push({ k: 'x', o: o != null ? o++ : '', n: n != null ? n++ : '', t: l });
-    });
-    return { rows: rows, files: files, numbered: numbered };
   }
   function diffLines(patch) {
     var parsed = diffRows(patch), rows = parsed.rows, files = parsed.files, numbered = parsed.numbered;
@@ -496,9 +440,10 @@ details.evcode>.blocks{margin-top:8px}
     function nums(o, n, one) {
       return `<span class="n o">${o}</span><span class="n nw">${n}</span><span class="n m">${one}</span>`;
     }
-    var html = rows.filter((r) => r.k !== 'f' || files.length > 1).map((r) => {
-      if (r.k === 'f' || r.k === 'h') return `<span class="l ${r.k}">${numbered ? nums('', '', '') : ''}${esc(r.t)}</span>`;
-      return `<span class="l ${r.k}">${numbered ? nums(r.o, r.n, r.k === 'd' ? r.o : r.n) : ''}${esc(r.t)}</span>`;
+    var html = rows.filter((r) => r.kind !== 'file' || files.length > 1).map((r) => {
+      if (r.kind === 'file' || r.kind === 'hunk' || r.kind === 'note') return `<span class="l ${r.kind}">${numbered ? nums('', '', '') : ''}${esc(r.text)}</span>`;
+      const o = r.oldLine ?? '', n = r.newLine ?? '';
+      return `<span class="l ${r.kind}">${numbered ? nums(o, n, r.kind === 'removed' ? o : n) : ''}${esc(r.text)}</span>`;
     }).join('');
     return { html: `<pre class="code${numbered ? '' : ' plain'}">${html}</pre>`, files: files };
   }
@@ -775,8 +720,7 @@ details.evcode>.blocks{margin-top:8px}
     currentRoute = route;
     document.title = (plan.title || 'Plan') + (route.step != null ? ` · ${pad2(route.step)} ${steps[route.step].title}` : '');
     var body = route.step != null ? renderStep(route.step) : route.tab === 'survey' ? renderSurvey() : renderOverview();
-    var uniq = Array.from(new Set(problems));
-    var probs = uniq.length ? `<div class="problems" role="alert"><b>This plan’s JSON has problems.</b><ul>${uniq.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
+    var probs = problems.length ? `<div class="problems" role="alert"><b>This plan’s JSON has problems.</b><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
     app.innerHTML = '<header class="top"><div class="in"><h1>' + esc(plan.title || 'Untitled plan') + '</h1></div></header>' +
       renderBar(route) +
       '<div class="wrap"><nav class="tabs" aria-label="Plan sections">' + tabItems(route) + '</nav><main>' + probs + body + '</main></div>';
