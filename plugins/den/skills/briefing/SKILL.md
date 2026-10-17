@@ -39,7 +39,7 @@ defect has not.
 The brief is written from the last word on each decision, since a conversation
 revisits its decisions and the earlier text is superseded. Approval of an
 outcome is not a specification of it, and a go on a plan decides none of its
-`Proposed:` lines. A lean goes to the user as a recommendation with its cost,
+`Agent proposed:` lines. A lean goes to the user as a recommendation with its cost,
 never into the part the implementer reads as permission.
 
 A question back from an implementer is the brief working, and the brief
@@ -55,9 +55,9 @@ Each step runs the whole cycle on its own, launch, triage of the implementer's
 report, a review with the plan's path, and commit proposal,
 and the next step is briefed after the previous one has landed, on the tree as
 it now is, so what its review found reaches the brief. A brief for a step
-carries the plan's path and the entry for that step, whose `Decided:` lines
-are the user's decisions with their reasons and whose `Sketched:` and
-`Proposed:` lines are sketches, the user's and this session's, open to what
+carries the plan's path and the entry for that step, whose `User decided:`
+lines are the user's decisions with their reasons and whose `Sketched:` and
+`Agent proposed:` lines are sketches, the user's and this session's, open to what
 the implementer finds. The brief
 serves that step alone, since a mechanism built ahead for a later step is
 designed before the later step is scoped, without the person who decides it,

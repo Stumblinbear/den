@@ -74,11 +74,11 @@ carrying:
 - the existing code the step rests on, pasted in a fence whose info string
   is `lang path:from-to`, and the change sketched in a `diff` fence, since
   the reader judges a cut by the code it cuts, not by prose about it;
-- one `Decided:` line per decision the user made about what the system
-  does, inside the step it affects, with their words or the option they
-  chose and when; one `Sketched:` line per implementation shape they
+- one `User decided:` line per decision the user made about what the
+  system does, inside the step it affects, with their words or the option
+  they chose and when; one `Sketched:` line per implementation shape they
   suggested, the same way; one
-  `Proposed:` line per call that is this session's to make, as the lead's
+  `Agent proposed:` line per call that is this session's to make, as the lead's
   whose-call test has it, put to the user before it is written, since a
   proposal they first meet in the plan is one they seldom see, each ending
   `Rejected:` and the alternative; and an `Open:` line naming the code it

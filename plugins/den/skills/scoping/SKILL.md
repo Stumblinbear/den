@@ -40,7 +40,7 @@ dictated, leaves nothing to ask.
 Whether a choice is already settled is what the pass finds out: the session's
 sense that context settles it is the reading the pass exists to check.
 Existing code, a passing regression test, a previously accepted local fix, or
-an earlier plan's `Proposed:` line establishes behavior or intent, not the
+an earlier plan's `Agent proposed:` line establishes behavior or intent, not the
 user's agreement with the assumption behind it. When new evidence calls that
 assumption into question, check its authority and reopen the affected
 decision while independent work continues.

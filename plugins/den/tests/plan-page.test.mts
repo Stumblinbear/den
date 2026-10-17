@@ -64,9 +64,9 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 			"",
 			"## Step 1: the library [pending]",
 			"",
-			"Decided: the renderer lives in den. Rejected: the job's directory.",
+			"User decided: the renderer lives in den. Rejected: the job's directory.",
 			"",
-			"Proposed: pages go under their own directory. Rejected: one shared one.",
+			"Agent proposed: pages go under their own directory. Rejected: one shared one.",
 			"",
 			"Open: whether a plan carries its date.",
 			"",
@@ -83,7 +83,7 @@ test("the labelled lines the shape names are picked out, the user's decisions pi
 	);
 	assert.match(
 		html,
-		/<div class="proposed"><p><b>Proposed<\/b> pages go under/,
+		/<div class="proposed"><p><b>Agent proposed<\/b> pages go under/,
 	);
 	assert.equal(html.match(/<span class="alt">Rejected:<\/span>/g)?.length, 2);
 	assert.match(html, /<div class="open"><b>Open decision<\/b> whether a plan/);
@@ -96,7 +96,7 @@ test("the alternative is greyed inside a decision and nowhere else", () => {
 		md(
 			"# A plan",
 			"",
-			"Decided: pages go under their own directory. Rejected: one shared one.",
+			"User decided: pages go under their own directory. Rejected: one shared one.",
 			"",
 			"Constraints: the grey span, and that a Rejected: clause elsewhere is plain.",
 		),

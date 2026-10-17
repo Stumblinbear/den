@@ -59,7 +59,8 @@ const FENCE = /^(`{3,})(.*)$/;
 const BLOCK_START = /^(#|```|[-*] )/;
 
 // The line labels the den:slicing plan shape defines.
-const LABEL = /^(Gate|Decided|Proposed|Open|Goal|Not doing|Constraints):\s*/;
+const LABEL =
+	/^(Gate|User decided|Agent proposed|Open|Goal|Not doing|Constraints):\s*/;
 
 /** One block read out of the lines, with the index the plan resumes at. */
 interface Read {
@@ -319,7 +320,7 @@ function paragraph(text: string): string {
 		return `<div class="open"><b>Open decision</b> ${body}</div>`;
 	}
 
-	if (label === "Decided" || label === "Proposed") {
+	if (label === "User decided" || label === "Agent proposed") {
 		const decision = body.replace(
 			/Rejected:/g,
 			'<span class="alt">Rejected:</span>',
@@ -327,9 +328,9 @@ function paragraph(text: string): string {
 
 		// The user's own decision wears their pill, since the page asks them to
 		// stand behind it; a proposal is labelled for them to overturn or keep.
-		return label === "Decided"
+		return label === "User decided"
 			? `<div class="decided"><p><span class="you">you</span>${decision}</p></div>`
-			: `<div class="proposed"><p><b>Proposed</b> ${decision}</p></div>`;
+			: `<div class="proposed"><p><b>Agent proposed</b> ${decision}</p></div>`;
 	}
 
 	return `<p><b>${label}.</b> ${body}</p>`;
