@@ -1,233 +1,210 @@
-// The plan-page library and the script the skill runs with it. The unit cases
-// go from a plan's markdown to the HTML the page carries; the launcher cases
-// run the exact command the skill's preamble runs, over a plan file and a
-// temp directory of their own.
+// Tests for the plan-page script and the two libraries it runs. The unit
+// cases call `resolveSources` and `renderPage` directly; the launcher cases
+// run the command the skill's preamble runs, each over a plan file and a temp
+// directory of its own.
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync, spawnSync } from "node:child_process";
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import process from "node:process";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { dataDir, fixtureDir, runtimes } from "../../../tests/harness.mts";
-import { parsePlan, renderPage } from "../lib/plan-page.mts";
+import { renderPage } from "../lib/plan-page.mts";
+import { resolveSources } from "../lib/plan-sources.mts";
 
 const PLUGIN = join(fileURLToPath(new URL(".", import.meta.url)), "..");
 const LAUNCHER = join(PLUGIN, "lib", "shared", "launch.mjs");
 
-const md = (...lines: readonly string[]): string => `${lines.join("\n")}\n`;
+/**
+ * Writes `lines` to `name` under `dir`, each ending in a newline, and returns
+ * the file's path.
+ */
+function writeLines(dir: string, name: string, ...lines: string[]): string {
+	const file = join(dir, name);
 
-/** A plan's markdown as a page, under the plan's own title. */
-function page(markdown: string): string {
-	const plan = parsePlan(markdown);
+	writeFileSync(file, lines.map((line) => `${line}\n`).join(""));
 
-	return renderPage(plan, plan.title);
+	return file;
 }
 
-/** A plan in the shape: a prose section, then a step in each of the states. */
-const PLAN = md(
-	"# Cache wake",
-	"",
-	"An idle session is woken before its prompt cache expires.",
-	"",
-	"Not doing: a store of plans.",
-	"",
-	"## How the pieces call each other",
-	"",
-	"```text",
-	"watcher -> wake",
-	"```",
-	"",
-	"## Step 1: the pure decision [committed]",
-	"",
-	"Gate: the tests green.",
-	"",
-	"## Step 2: the wake [in progress]",
-	"",
-	"Gate: the launcher cases green.",
-	"",
-	"## Step 3: the notice [pending]",
-	"",
-	"Open: whether the notice names the model.",
-);
-
-test("the labelled lines the shape names are picked out, the user's decisions pilled", () => {
-	const html = page(
-		md(
-			"# A plan",
-			"",
-			"Goal: a plan is read away from the terminal.",
-			"",
-			"Not doing: a store of plans.",
-			"",
-			"Constraints: nothing under the repository is written.",
-			"",
-			"## Step 1: the library [pending]",
-			"",
-			"User decided: the renderer lives in den. Rejected: the job's directory.",
-			"",
-			"Agent proposed: pages go under their own directory. Rejected: one shared one.",
-			"",
-			"Open: whether a plan carries its date.",
-			"",
-			"Gate: the tests green on node and bun.",
-		),
-	);
-
-	assert.match(html, /<p><b>Goal\.<\/b> a plan is read away from/);
-	assert.match(html, /<p><b>Not doing\.<\/b> a store of plans\.<\/p>/);
-	assert.match(html, /<p><b>Constraints\.<\/b> nothing under/);
-	assert.match(
-		html,
-		/<div class="decided"><p><span class="you">you<\/span>the renderer lives in den\./,
-	);
-	assert.match(
-		html,
-		/<div class="proposed"><p><b>Agent proposed<\/b> pages go under/,
-	);
-	assert.equal(html.match(/<span class="alt">Rejected:<\/span>/g)?.length, 2);
-	assert.match(html, /<div class="open"><b>Open decision<\/b> whether a plan/);
-	assert.match(html, /<p class="gate"><b>Gate<\/b> the tests green on node/);
-	assert.match(html, /<span class="state next">pending<\/span>/);
+/** A code block reading `lines` of the file at `absolutePath`. */
+const codeAt = (absolutePath: string, lines: [number, number]) => ({
+	kind: "code",
+	from: { absolutePath, lines },
 });
 
-test("the alternative is greyed inside a decision and nowhere else", () => {
-	const html = page(
-		md(
-			"# A plan",
-			"",
-			"User decided: pages go under their own directory. Rejected: one shared one.",
-			"",
-			"Constraints: the grey span, and that a Rejected: clause elsewhere is plain.",
-		),
+/** A plan of one pending step whose change is `blocks`. */
+const oneStep = (...blocks: object[]) => ({
+	title: "A plan",
+	steps: [{ title: "The step", status: "pending", proposedChange: blocks }],
+});
+
+test("a gitPath is read from disk, or from git at a commit, relative to the plan's repository, with either separator", () => {
+	const repo = fixtureDir("plan-page-repo");
+	const gitIn = (...args: string[]) =>
+		execFileSync("git", ["-C", repo, ...args], { encoding: "utf8" });
+
+	gitIn("init", "-q");
+	mkdirSync(join(repo, "src"));
+	writeLines(repo, "src/a.txt", "one", "two", "three");
+	gitIn("add", "src/a.txt");
+	gitIn(
+		"-c",
+		"user.name=t",
+		"-c",
+		"user.email=t@t",
+		"commit",
+		"-q",
+		"-m",
+		"v1",
 	);
 
-	assert.equal(html.match(/<span class="alt">Rejected:<\/span>/g)?.length, 1);
-	assert.match(
-		html,
-		/<p><b>Constraints\.<\/b> the grey span, and that a Rejected: clause elsewhere is plain\.<\/p>/,
+	const commit = gitIn("rev-parse", "HEAD").trim();
+
+	writeLines(repo, "src/a.txt", "ONE", "TWO", "THREE");
+
+	const onDisk = (gitPath: string) => ({
+		kind: "code",
+		from: { gitPath, lines: [2, 3] },
+	});
+	const atCommit = (gitPath: string) => ({
+		kind: "code",
+		from: { gitPath, lines: [2, 3], commit },
+	});
+	const blocks: Record<string, unknown>[] = [
+		onDisk("src/a.txt"),
+		onDisk("src\\a.txt"),
+		atCommit("src/a.txt"),
+		atCommit("src\\a.txt"),
+	];
+	const unread = resolveSources(oneStep(...blocks), join(repo, "plan.json"));
+
+	assert.deepEqual(unread, []);
+	assert.deepEqual(
+		blocks.map((block) => block["resolved"]),
+		[
+			{ text: "TWO\nTHREE\n", firstLine: 2 },
+			{ text: "TWO\nTHREE\n", firstLine: 2 },
+			{ text: "two\nthree\n", firstLine: 2 },
+			{ text: "two\nthree\n", firstLine: 2 },
+		],
 	);
 });
 
-test("two labelled lines one under the other are two lines", () => {
-	const html = page(
-		md(
-			"# A plan",
-			"",
-			"## Step 1: the library [pending]",
-			"",
-			"Open: whether a plan carries its date.",
-			"Gate: the tests green on node and bun.",
-		),
-	);
+test("code blocks are read wherever the page shows one, a level down in rows and facts included", () => {
+	const dir = fixtureDir("plan-page-src");
+	const file = writeLines(dir, "src.txt", "only");
+	const blocks = Array.from({ length: 6 }, () => codeAt(file, [1, 1]));
+	const [survey, lands, change, relies, inRow, inFact] = blocks;
+	const plan = {
+		title: "A plan",
+		survey: [{ id: "F1", claim: "c", evidence: [survey] }],
+		steps: [
+			{
+				title: "The step",
+				status: "pending",
+				afterItLands: [lands],
+				proposedChange: [
+					change,
+					{ kind: "row", blocks: [inRow, { kind: "text", markdown: "x" }] },
+				],
+				reliesOn: [
+					{ ...relies, caption: "why" },
+					{ kind: "fact", id: "F1", evidence: [inFact] },
+				],
+			},
+		],
+	};
 
-	assert.match(
-		html,
-		/<div class="open"><b>Open decision<\/b> whether a plan carries its date\.<\/div>/,
-	);
-	assert.match(
-		html,
-		/<p class="gate"><b>Gate<\/b> the tests green on node and bun\.<\/p>/,
+	resolveSources(plan, join(dir, "plan.json"));
+
+	const reliesOn = plan.steps[0]?.reliesOn ?? [];
+
+	for (const block of [survey, lands, change, inRow, inFact, reliesOn[0]]) {
+		assert.deepEqual((block as { resolved?: unknown }).resolved, {
+			text: "only\n",
+			firstLine: 1,
+		});
+	}
+});
+
+test("a range running past the file's end fails its block, and one ending on the last line reads", () => {
+	const dir = fixtureDir("plan-page-src");
+	const file = writeLines(dir, "src.txt", "a", "b", "c");
+	const fits = codeAt(file, [3, 3]);
+	const past = { ...codeAt(file, [3, 4]), resolved: { text: "stale" } };
+	const unread = resolveSources(oneStep(fits, past), join(dir, "plan.json"));
+
+	assert.deepEqual(fits, { ...fits, resolved: { text: "c\n", firstLine: 3 } });
+	assert.equal("resolved" in past, false);
+	assert.equal(typeof (past as { error?: unknown }).error, "string");
+	assert.deepEqual(
+		unread.map((source) => source.source),
+		[`${file}:3–4`],
 	);
 });
 
-test("a code span is escaped and left out of the bold pass, and a number beside one survives", () => {
-	const html = page(
-		md(
-			"# A plan",
-			"",
-			"The **shape** is `a < b` in step 3 of 4, and `**not bold**` stays literal.",
-		),
-	);
+test("a range ending on a blank line keeps the blank line", () => {
+	const dir = fixtureDir("plan-page-src");
+	const file = writeLines(dir, "src.txt", "alpha", "", "beta");
+	const block = codeAt(file, [1, 2]);
 
-	assert.match(html, /<b>shape<\/b>/);
-	assert.match(html, /<code>a &lt; b<\/code>/);
-	assert.match(html, /in step 3 of 4,/);
-	assert.match(html, /<code>\*\*not bold\*\*<\/code>/);
-	assert.doesNotMatch(html, /undefined/);
+	resolveSources(oneStep(block), join(dir, "plan.json"));
+
+	assert.deepEqual(block, {
+		...block,
+		resolved: { text: "alpha\n\n", firstLine: 1 },
+	});
 });
 
-test("a diff fence is coloured under the caption its info string carries", () => {
-	const html = page(
-		md(
-			"# A plan",
-			"",
-			"```diff plugins/den/skills/lead/SKILL.md:99-102",
-			" the sequence is put to the user",
-			"-before the first step",
-			"+as a page before the first step",
-			"```",
-		),
+test("an image is carried as a data URI of its bytes, and a missing one fails its block", () => {
+	const dir = fixtureDir("plan-page-src");
+	const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0xff]);
+
+	writeFileSync(join(dir, "shot.png"), bytes);
+
+	const found = {
+		kind: "image",
+		alt: "a",
+		absolutePath: join(dir, "shot.png"),
+	};
+	const missing = {
+		kind: "image",
+		alt: "b",
+		absolutePath: join(dir, "no.png"),
+	};
+	const unread = resolveSources(
+		oneStep(found, missing),
+		join(dir, "plan.json"),
 	);
 
-	assert.match(
-		html,
-		/<div class="cap">plugins\/den\/skills\/lead\/SKILL\.md:99-102<\/div>/,
+	assert.deepEqual((found as { resolved?: unknown }).resolved, {
+		src: `data:image/png;base64,${bytes.toString("base64")}`,
+	});
+	assert.equal(typeof (missing as { error?: unknown }).error, "string");
+	assert.deepEqual(
+		unread.map((source) => source.source),
+		[join(dir, "no.png")],
 	);
-	assert.match(html, /<span class="del">-before the first step<\/span>/);
-	assert.match(
-		html,
-		/<span class="add">\+as a page before the first step<\/span>/,
-	);
-	assert.match(html, /<pre> the sequence is put to the user\n/);
 });
 
-test("a fence closes only on a run as long as the one that opened it", () => {
-	const html = page(
-		md(
-			"# A plan",
-			"",
-			"````md plugins/den/skills/plan-page/SKILL.md:9-11",
-			"# A plan as a page",
-			"",
-			"```text",
-			"watcher -> wake",
-			"```",
-			"````",
-			"",
-			"After the fence.",
-		),
-	);
+test("the page carries the plan as JSON no string in it can close, and marked inlined", () => {
+	const plan = { title: "</script><script>alert(1)</script>", steps: [] };
+	const html = renderPage(plan);
+	const opening = '<script type="application/json" id="plan">';
+	const start = html.indexOf(opening) + opening.length;
+	const json = html.slice(start, html.indexOf("</script>", start));
+	const marked = readFileSync(join(PLUGIN, "lib", "marked.min.js"), "utf8");
 
-	assert.equal(html.match(/<div class="code">/g)?.length, 1);
-	assert.match(
-		html,
-		/<div class="cap">plugins\/den\/skills\/plan-page\/SKILL\.md:9-11<\/div>/,
-	);
-	assert.match(html, /```text\nwatcher -&gt; wake\n```/);
-	assert.match(html, /<p>After the fence\.<\/p>/);
-});
-
-test("angle brackets in pasted code arrive escaped", () => {
-	const html = page(
-		md(
-			"# A plan",
-			"",
-			"```ts plugins/den/lib/plan-page.mts:22-27",
-			"const steps: Array<Section> = [];",
-			"```",
-		),
-	);
-
-	assert.match(html, /const steps: Array&lt;Section&gt; = \[\];/);
-	assert.doesNotMatch(html, /Array<Section>/);
-});
-
-test("a heading that numbers no step is a card and no row", () => {
-	const html = page(PLAN);
-
-	assert.equal(html.match(/<table class="grid">/g)?.length, 1);
-	assert.equal(html.match(/<tr><td>\d+<\/td>/g)?.length, 3);
-	assert.match(html, /<a href="#s1">the pure decision<\/a>/);
-	assert.match(html, /<div class="card" id="x0"><h2>How the pieces call each/);
-	assert.doesNotMatch(html, /<a href="#x0">/);
-});
-
-test("a plan with no numbered step renders without the step table", () => {
-	const html = page(md("# Notes", "", "## What is here", "", "prose."));
-
-	assert.doesNotMatch(html, /<table class="grid">/);
-	assert.match(html, /<div class="card" id="x0">/);
+	assert.deepEqual(JSON.parse(json), plan);
+	assert.ok(html.includes(`<script id="marked">${marked}</script>`));
 });
 
 /**
@@ -259,21 +236,27 @@ function pagesIn(temp: string): readonly string[] {
 	return existsSync(dir) ? readdirSync(dir).map((name) => join(dir, name)) : [];
 }
 
-/** A plan file written under a fixture directory, for the script to read. */
-function planFile(name: string, text: string): string {
-	const file = join(fixtureDir("plan-page-src"), name);
-
-	writeFileSync(file, text);
-
-	return file;
-}
-
 for (const runtime of runtimes()) {
-	test(`[${runtime}] a plan is written as one page, named for its file`, () => {
-		const { out, temp } = run(
-			planFile("cache-wake.md", PLAN),
-			dataDir(runtime),
-		);
+	test(`[${runtime}] a plan is written as one page named for its file, and the plan file is left as it was`, () => {
+		const dir = fixtureDir("plan-page-src");
+		const source = writeLines(dir, "src.txt", "x");
+		const file = join(dir, "cache-wake.json");
+		const text = JSON.stringify({
+			title: "Cache wake",
+			steps: [
+				{ title: "One", status: "committed" },
+				{ title: "Two", status: "inProgress" },
+				{
+					title: "Three",
+					status: "pending",
+					reliesOn: [codeAt(source, [1, 1])],
+				},
+			],
+		});
+
+		writeFileSync(file, text);
+
+		const { out, temp } = run(file, dataDir(runtime));
 		const [path, ...more] = pagesIn(temp);
 
 		assert.ok(path !== undefined && more.length === 0, out);
@@ -281,18 +264,19 @@ for (const runtime of runtimes()) {
 			path.startsWith(join(temp, "claude-den-plan-pages", "cache-wake-")),
 			path,
 		);
-		assert.notEqual(out.trim(), "");
-
-		const html = readFileSync(path, "utf8");
-
-		assert.match(html, /<h1>Cache wake<\/h1>/);
-		assert.match(html, /<span class="state done">committed<\/span>/);
+		assert.equal(
+			out,
+			`Plan page: ${path} (Cache wake; 3 steps, 1 committed, 1 in progress, 1 pending)\n`,
+		);
+		assert.equal(readFileSync(file, "utf8"), text);
 	});
 
-	test(`[${runtime}] a file that cannot be read is reported, not rendered`, () => {
-		const missing = join(fixtureDir("plan-page-src"), "nothing.md");
+	test(`[${runtime}] JSON that does not parse is reported, not rendered`, () => {
+		const file = join(fixtureDir("plan-page-src"), "broken.json");
 
-		const { out, temp } = run(missing, dataDir(runtime));
+		writeFileSync(file, '{ "title": ');
+
+		const { out, temp } = run(file, dataDir(runtime));
 
 		assert.notEqual(out.trim(), "");
 		assert.deepEqual(pagesIn(temp), []);
@@ -305,28 +289,3 @@ for (const runtime of runtimes()) {
 		assert.deepEqual(pagesIn(temp), []);
 	});
 }
-
-test("a line opening with a hash that is no title or section heading is prose, not a hang", () => {
-	const file = planFile(
-		"sub.md",
-		md("# A plan", "", "### A subheading", "", "prose.", ""),
-	);
-	const temp = fixtureDir("plan-page-temp");
-	const result = spawnSync(
-		process.execPath,
-		[LAUNCHER, "--data", dataDir("node"), "scripts/plan-page", file],
-		{
-			encoding: "utf8",
-			timeout: 10_000,
-			// biome-ignore lint/style/noProcessEnv: the child needs PATH to find its interpreter.
-			env: { ...process.env, TMPDIR: temp, TEMP: temp, TMP: temp },
-		},
-	);
-
-	assert.equal(
-		result.signal,
-		null,
-		`killed by ${result.signal} after the timeout: the parser never advanced past the line`,
-	);
-	assert.equal(pagesIn(temp).length, 1, result.stdout);
-});

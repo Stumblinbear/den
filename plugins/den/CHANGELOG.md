@@ -18,16 +18,20 @@ minor bump may change behavior.
 - A review after a clean one reads only what changed since, instead of the
   whole change again; the clean return carries the command that takes the
   snapshot.
-- A plan records an implementation shape the user suggested as a `Sketched:`
-  line, and a brief carries it as intent, so the implementer departs from it
-  where the code shows it wrong instead of building or stopping on it as a
-  decision.
 
 ### Changed
 
-- A fix is derived before it is applied: the design-decisions skill asks what
-  the thing being repaired is and the shape it would have if the defect could
-  not be written, and the implementers load that skill with the others.
+- A plan is one JSON file per task, `.local/plans/<task>.json`, in the shape
+  `slicing/references/plan.schema.json` defines, and `plan-page` renders it
+  through a new viewer as one self-contained page. Each of the user's
+  decisions carries its reason and, where one was weighed, the alternative it
+  beat, and the page shows both. The agent's own calls are proposals, listed
+  apart from the decisions with the user's answer as their status. An
+  implementation shape the user suggested is a decision marked as a sketch,
+  which a brief carries as intent. The page carries the code and images the
+  plan points at, read as it is written, and the line naming the page lists
+  any source that could not be read. Claude runs `plan-page` to put a plan to
+  the user; it is no longer in the `/` menu.
 - The code-architecture skill has its language references read as part of
   applying the rules, every reference whose topic the change touches, instead
   of offered for a question that may never be asked.
@@ -85,8 +89,8 @@ minor bump may change behavior.
   first, whether it goes to a fork or to an implementer.
 - Agent definitions and skills are shorter: narration and rules said twice
   are gone.
-- A brief pins only what the user decided, and a plan marks the lead's own
-  calls `Proposed:`, which the implementer weighs against the code. Where one
+- A brief pins only what the user decided, and a plan lists the lead's own
+  calls as proposals, which the implementer weighs against the code. Where one
   of the user's decisions would complicate the code, the implementer asks
   rather than works around it. A review keeps the lead's calls apart from the
   user's decisions.
@@ -114,10 +118,6 @@ minor bump may change behavior.
 - The closure verifier in `review-and-fix` runs on the model the run was
   launched with, the `reviewer` argument, instead of always on Opus, so a
   Fable review's findings are judged closed by Fable.
-- `design-exploration` runs only when the user asks for it, since it is
-  expensive: it no longer triggers on a change that adds a module, a stored
-  format, a public surface or a new mechanism, and the brief puts that
-  decomposition to the user instead.
 - The Rust errors reference holds that every error is a typed enum, `main`
   included, with no boundary where erasing to `anyhow` or `Box<dyn Error>`
   pays. A variant earns its place by changing what the caller does, or at a
@@ -138,6 +138,13 @@ minor bump may change behavior.
 - Agents no longer write tests for logs or metrics, including ones a brief
   asks for, and they now test code whose result is the state it leaves
   behind, not only a value it returns.
+
+### Removed
+
+- The `architectural-foresight`, `design-decisions`, `design-exploration` and
+  `diagnosing` skills, which were not working or not helping. The
+  `design-exploration-workflow` and its `design-explorer` and `design-judge`
+  agents remain.
 
 ### Fixed
 

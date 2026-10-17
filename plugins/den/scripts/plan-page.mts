@@ -1,23 +1,22 @@
-// What the plan-page skill's preamble runs: a plan written in the den:slicing
-// shape rendered as a page under `<os temp dir>/claude-den-plan-pages/`, and
-// one line on stdout naming the file, with the plan's title and its step
-// tallies. The argument is the plan file's path, taken as the whole argument
-// string, so a path holding spaces arrives whole.
+// Renders a plan file as a page, for the plan-page skill's preamble.
 //
-// No argument, or a file that cannot be read, prints the reason and exits 0,
-// so the skill's preamble renders that reason rather than an error the
-// session cannot read. Whatever else the file holds is rendered: a plan with
-// no title goes under its file name.
+// The argument is the plan file's path, taken as the whole argument string,
+// so a path holding spaces arrives whole. The plan is JSON in the shape
+// `skills/slicing/references/plan.schema.json` defines, and the page carries
+// every file its blocks point at. One line on stdout names the page, with the
+// plan's title, its step tallies and every source left unread.
+//
+// No argument, a file that cannot be read, or JSON that is not an object
+// prints the reason and writes no page. The exit is 0 either way, so the
+// preamble shows the reason rather than an error the session cannot read.
+// The plan file is only ever read.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, extname, join } from "node:path";
 import process from "node:process";
-import {
-	parsePlan,
-	renderPage,
-	type StepState,
-	stepCount,
-} from "../lib/plan-page.mts";
+import { renderPage } from "../lib/plan-page.mts";
+import { resolveSources } from "../lib/plan-sources.mts";
+import { errorMessage, fieldsOf, isTable } from "../lib/shared/fields.mts";
 
 /**
  * The directory pages go in, under the OS temp directory beside the diff
@@ -43,23 +42,36 @@ function pagePath(name: string): string {
 	return join(dir, `${name}-${stamp}.html`);
 }
 
-/** A plan's text, or why the file naming it could not be read. */
-type Source = { text: string } | { failure: string };
+/** `n` of `noun` in words, plural except at one: `1 step`, `2 sources`. */
+const count = (n: number, noun: string): string =>
+	`${n} ${noun}${n === 1 ? "" : "s"}`;
 
-/** The text of `file`, or the failure reading it gave; never throws. */
-function read(file: string): Source {
-	try {
-		return { text: readFileSync(file, "utf8") };
-	} catch (error) {
-		const why = error instanceof Error ? error.message : String(error);
+/** Each step status the plan schema allows, and the line's words for it. */
+const STATUS_WORDS = {
+	committed: "committed",
+	inProgress: "in progress",
+	pending: "pending",
+} as const;
 
-		return { failure: `Cannot read ${file}: ${why}` };
-	}
+/**
+ * `steps` counted in all and by status, as the line words it:
+ * `3 steps, 1 committed, 1 in progress, 1 pending`.
+ */
+function stepTally(steps: unknown): string {
+	const statuses = Array.isArray(steps)
+		? steps.map((step) => fieldsOf(step)["status"])
+		: [];
+	const tallies = Object.entries(STATUS_WORDS).map(
+		([status, words]) =>
+			`${statuses.filter((s) => s === status).length} ${words}`,
+	);
+
+	return [count(statuses.length, "step"), ...tallies].join(", ");
 }
 
 /**
- * The line to print: the page's path with the plan's title and step tallies,
- * or the reason no page was written. Writes the page as its one effect.
+ * Writes the page and returns the line to print: the page's path with the
+ * plan's title and tallies, or the reason no page was written.
  */
 function main(): string {
 	const file = process.argv.slice(2).join(" ").trim();
@@ -68,23 +80,45 @@ function main(): string {
 		return "No plan given: the argument is the plan file's path.";
 	}
 
-	const source = read(file);
+	let source: string;
 
-	if ("failure" in source) {
-		return source.failure;
+	try {
+		source = readFileSync(file, "utf8");
+	} catch (error) {
+		return `Cannot read ${file}: ${errorMessage(error)}`;
 	}
 
-	const plan = parsePlan(source.text);
+	let plan: unknown;
+
+	try {
+		plan = JSON.parse(source);
+	} catch (error) {
+		return `${file} is not valid JSON: ${errorMessage(error)}`;
+	}
+
+	if (!isTable(plan)) {
+		return `${file} holds no plan: its JSON is not an object.`;
+	}
+
+	const unread = resolveSources(plan, file);
 	const name = basename(file, extname(file));
-	const title = plan.title === "" ? name : plan.title;
-	const steps = plan.sections.filter((section) => section.step !== null);
-	const tally = (state: StepState): number =>
-		steps.filter((step) => step.state === state).length;
+	const title =
+		typeof plan["title"] === "string" && plan["title"] !== ""
+			? plan["title"]
+			: name;
 	const path = pagePath(name);
 
-	writeFileSync(path, renderPage(plan, title));
+	writeFileSync(path, renderPage(plan));
 
-	return `Plan page: ${path} (${title}; ${stepCount(steps.length)}, ${tally("committed")} committed, ${tally("in progress")} in progress, ${tally("pending")} pending)`;
+	const tally = stepTally(plan["steps"]);
+
+	if (unread.length === 0) {
+		return `Plan page: ${path} (${title}; ${tally})`;
+	}
+
+	const named = unread.map(({ source, reason }) => `${source}: ${reason}`);
+
+	return `Plan page: ${path} (${title}; ${tally}; ${count(unread.length, "source")} unread). Not read: ${named.join("; ")}`;
 }
 
 process.stdout.write(`${main()}\n`);

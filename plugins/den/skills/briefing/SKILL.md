@@ -39,7 +39,7 @@ defect has not.
 The brief is written from the last word on each decision, since a conversation
 revisits its decisions and the earlier text is superseded. Approval of an
 outcome is not a specification of it, and a go on a plan decides none of its
-`Agent proposed:` lines. A lean goes to the user as a recommendation with its cost,
+proposals. A lean goes to the user as a recommendation with its cost,
 never into the part the implementer reads as permission.
 
 A question back from an implementer is the brief working, and the brief
@@ -48,17 +48,17 @@ only when the user sets them.
 
 ## Steps
 
-A change lands as a sequence of steps. The plan is
-written to a temporary directory and its steps are tracked in the task list;
-the sequence is put to the user before the first step's launch proposal, since where the cuts fall is their decision.
+A change lands as a sequence of steps, tracked in the task list. The sequence
+is put to the user before the first step's launch proposal, since where the
+cuts fall is their decision.
 Each step runs the whole cycle on its own, launch, triage of the implementer's
 report, a review with the plan's path, and commit proposal,
 and the next step is briefed after the previous one has landed, on the tree as
 it now is, so what its review found reaches the brief. A brief for a step
-carries the plan's path and the entry for that step, whose `User decided:`
-lines are the user's decisions with their reasons and whose `Sketched:` and
-`Agent proposed:` lines are sketches, the user's and this session's, open to what
-the implementer finds. The brief
+carries the plan's path and the step's number instead of restating the plan.
+The step's decisions are the user's, with their reasons. Its proposals, and
+any implementation shape the user sketched, are open to what the implementer
+finds. The brief
 serves that step alone, since a mechanism built ahead for a later step is
 designed before the later step is scoped, without the person who decides it,
 and the later step rebuilds it. Where a later step's needs would shape what
@@ -67,6 +67,7 @@ diff outgrew one read was cut wrong: it is re-cut where it grew and the part
 already done is reviewed as its own step, because the user reads every step's
 diff, and a diff they cannot read is a decision they cannot overturn.
 
-The plan is cut against a read of the code, and an entry is read again before
-its brief where earlier steps moved what it rests on. A cut rests on facts the
-plan never states, and an implementer inherits the ones that are wrong.
+The plan is cut against a read of the code. Earlier steps can change that code
+without the plan being updated, and an implementer inherits every fact that
+has gone stale. So before a step's brief, the step and the survey facts it
+relies on are checked against the code as it now is.

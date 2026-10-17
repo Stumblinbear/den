@@ -24,15 +24,15 @@ along with the non-goals and what done looks like, and get the user's confirmati
 
 ## The plan file
 
-Each task gets a new plan file, `.local/plans/<task>.md` in the repo, named
+Each task gets a new plan file, `.local/plans/<task>.json` in the repo, named
 for the task and created once its goal is confirmed, so one task's plan never
-mixes with another's. It holds:
+mixes with another's. It is written in den:slicing's plan shape and starts as
+one step. It holds:
 
 - the confirmed goal and the reason for it
 - the non-goals and the done criteria
 - every decision, with a one-line reason
 - open questions
-- the quality checks below that apply
 
 Update it whenever a decision changes. The plan file survives compaction; your
 memory of the conversation doesn't.

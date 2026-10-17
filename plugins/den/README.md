@@ -7,8 +7,8 @@ agents; every launch is authorized on its own.
 ## What it provides
 
 Skills, applied by Claude when their trigger fires. The ones a person can
-also run as `/den:<name>` are lead, project-direction, scoping,
-diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
+also run as `/den:<name>` are lead, project-direction, scoping and
+diff-page; the rest are hidden from the `/` menu:
 
 - `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
@@ -37,11 +37,6 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   consequential choices: up to five questions, or as many as it takes when
   you ask for the pass. That limit applies only to task scoping; project
   discovery is unbounded. Unanswered decisions remain open.
-- `design-exploration`: for a change whose shape you want options on before
-  choosing, such as a new module, a persisted format, a public surface or a
-  new mechanism. Three explorers each propose a decomposition against the code
-  and the project's direction record, a judge compares the suitable ones or
-  reports missing input or that none suits, and you choose.
 - `review-and-fix`: runs the `review-and-fix-workflow` workflow on the working
   tree in one pass: a review against the task's goal, one Opus fixer over every
   finding at P2 and above, a closure pass that gives a reopened finding one
@@ -59,13 +54,14 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   range with optional `git diff` options such as `-W`; omit the range for
   the working tree against HEAD. Nothing is published unless you ask for a
   link.
-- `plan-page`: renders a plan written in the `slicing` shape as one page file,
-  the first screen, a step table and a section per step with its state, the
-  code it rests on under its caption, coloured diff sketches and the decisions
-  picked out, and sends you the file, for reading a plan from a phone or away
-  from the terminal. The argument is the plan file's path; a plan with no
-  title is rendered under its file name. Nothing is published unless you ask
-  for a link.
+- `plan-page`: renders a plan, one JSON file in the shape
+  `slicing/references/plan.schema.json` defines, as one self-contained page
+  file and sends it to you, for reading a plan from a phone or away from the
+  terminal. The page has an overview, the survey, a tab per step, and your
+  decisions and the agent's proposals each with its reason. The code and
+  images a plan points at are read into the page as it is written, and the
+  plan file is left as it was. Claude runs it whenever it puts a plan to you.
+  Nothing is published unless you ask for a link.
 - `slicing`: how a change is cut into steps a reviewer holds in one read and
   sequenced by risk, with the test a boundary must pass, the settled
   techniques for cutting what looks atomic, and the interrogation of the
@@ -73,12 +69,6 @@ diagnosing, diff-page and plan-page; the rest are hidden from the `/` menu:
   questions you would ask of it.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
-- `design-decisions`: how an engineering choice is made and stated: the
-  tradeoff a recommendation carries, reuse before writing, and simplicity as
-  a tool rather than a lean.
-- `diagnosing`: how a cause is established from a symptom: the observation
-  that would have contradicted it, what an absence claim owes, and what the
-  report separates as established from assumed.
 - `writing-for-agents`: principles for writing instructions an agent will
   follow.
 - `writing-a-skill`: how a Claude Code skill is written, from the listing

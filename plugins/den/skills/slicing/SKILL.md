@@ -53,45 +53,21 @@ test, and none makes one.
 
 ## The plan
 
-One markdown file, read by the person who decides it before any code
-exists and by each step's implementer after, so it shows the code a step
-rests on rather than describing it. `# Title`, a date line, then one
-screen: a paragraph of the problem, a `Goal:` line with what the change is
-for in the user's terms, a `Not doing:` line, a `Constraints:` line, and one
-sentence on why the steps are in this order. Under `## How the pieces
-call each other`, a text fence naming each piece with its file and step.
+One JSON file in the shape `references/plan.schema.json` defines. Read it
+before writing a plan. Put the plan to the user with `den:plan-page`.
 
-Then one `## Step N: title [pending]` per step, the tag one of `committed`,
-`in progress` and `pending` and the step's whole record of state, each
-carrying:
+A proposal is a call the agent made. It stays a proposal whatever the user
+answers, and its `status` records the answer. A decision is one the user made
+themselves. An open question answered with the agent's recommendation is an
+approved proposal. One answered with the user's own answer is a decision.
 
-- two to four sentences: its scope, what it depends on, and what each type
-  it touches is once it lands, since a step cut around a method leaves the
-  type around it as it was, and what that type has become is what the next
-  step inherits;
-- every site a shape the step removes still has, in the layers the step
-  touches, since a removal that leaves one is the shape moved;
-- the existing code the step rests on, pasted in a fence whose info string
-  is `lang path:from-to`, and the change sketched in a `diff` fence, since
-  the reader judges a cut by the code it cuts, not by prose about it;
-- one `User decided:` line per decision the user made about what the
-  system does, inside the step it affects, written as the decision itself
-  with when it was made; one `Sketched:` line per implementation shape they
-  suggested, the same way; one
-  `Agent proposed:` line per call that is this session's to make, as the lead's
-  whose-call test has it, put to the user before it is written, since a
-  proposal they first meet in the plan is one they seldom see, each ending
-  `Rejected:` and the alternative; and an `Open:` line naming the code it
-  lands in for every other choice the step makes, what it does and how
-  other code uses it included, until the user answers it, which for a
-  question that waits on an earlier step's result is once that step lands;
-- a `Gate:` line saying when it is done.
+Leave a question to the implementer when it is better decided in the code,
+as a proposal marked `leftToAgent`.
 
-A `## ` heading without a step number is prose. Plain paragraphs, `-`
-lists, `**bold**`, `` `code` `` and links otherwise.
+Write `over` only for an alternative that was actually weighed.
 
 The plan is a hypothesis: after each step lands, what was learned rewrites the
-next entry and each tag. A falsified assumption re-cuts the smallest remaining
+next entry and each `status`. A falsified assumption re-cuts the smallest remaining
 part it invalidated; a change to the goal or to a one-way door re-plans the
 whole and goes to the person who decides it. Most changes are one step, and a
 one-step plan is stated as one. An entry is read against the defect the step

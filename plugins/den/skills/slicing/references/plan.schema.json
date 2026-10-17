@@ -1,0 +1,726 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "plan.schema.json",
+	"title": "Plan",
+	"description": "A plan written by the planning agent and rendered by plan-viewer.html for the person who decides it. Text fields marked as markdown accept CommonMark; raw HTML in them is shown as text. Fields described as filled in by the generator are never written by the planning agent.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["title", "problem", "goal", "steps"],
+	"properties": {
+		"title": {
+			"type": "string",
+			"description": "The plan's name, a few words."
+		},
+		"problem": {
+			"$ref": "#/$defs/markdown",
+			"description": "One paragraph: what is wrong today and why it matters."
+		},
+		"goal": {
+			"$ref": "#/$defs/markdown",
+			"description": "What the change is for, in the user's terms."
+		},
+		"doneWhen": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/markdown"
+			},
+			"description": "What must be true for the whole plan to be done."
+		},
+		"notDoing": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/markdown"
+			},
+			"description": "What is deliberately out of scope."
+		},
+		"constraints": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/markdown"
+			},
+			"description": "Limits every step must respect. An empty list is shown as 'None stated'."
+		},
+		"survey": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/fact"
+			},
+			"description": "Facts about the code and its dependencies that the plan is built on. Steps refer to them with fact blocks."
+		},
+		"decisions": {
+			"$ref": "#/$defs/decisions",
+			"description": "Decisions that apply to the whole plan rather than one step."
+		},
+		"proposals": {
+			"$ref": "#/$defs/proposals",
+			"description": "Proposals that apply to the whole plan rather than one step."
+		},
+		"steps": {
+			"type": "array",
+			"minItems": 1,
+			"items": {
+				"$ref": "#/$defs/step"
+			},
+			"description": "In landing order. A step's number is its position; steps have no IDs."
+		}
+	},
+	"$defs": {
+		"markdown": {
+			"type": "string"
+		},
+		"lineRange": {
+			"type": "array",
+			"prefixItems": [
+				{
+					"type": "integer",
+					"minimum": 1
+				},
+				{
+					"type": "integer",
+					"minimum": 1
+				}
+			],
+			"minItems": 2,
+			"maxItems": 2,
+			"description": "[first, last], 1-based and inclusive."
+		},
+		"openId": {
+			"type": "string",
+			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+			"description": "A short snake_case name the agent chooses for the question, usually the name the decision will carry once answered, e.g. opening_type."
+		},
+		"agentId": {
+			"type": "string",
+			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+			"description": "A short snake_case name the agent chooses for the choice, e.g. opening_drawing."
+		},
+		"factId": {
+			"type": "string",
+			"pattern": "^F[0-9]+$"
+		},
+		"step": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["title", "status", "summary", "gate"],
+			"properties": {
+				"title": {
+					"type": "string"
+				},
+				"status": {
+					"enum": ["pending", "inProgress", "committed"]
+				},
+				"cut": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["reason"],
+					"description": "Why this step is a separate step. A boundary earns its place by one of the slicing skill's tests; the first step usually states the risk it tests.",
+					"properties": {
+						"test": {
+							"enum": ["risk", "teaches", "oneRead"],
+							"description": "risk: this step tests the assumption most likely wrong. teaches: landing the previous step teaches what this one should be. oneRead: this step and the previous one together exceed one read. Leave it out only if no test applies; the page flags that on every step after the first."
+						},
+						"reason": {
+							"$ref": "#/$defs/markdown"
+						}
+					}
+				},
+				"summary": {
+					"$ref": "#/$defs/markdown",
+					"description": "Two to four sentences on what the step does. Type-level detail goes in afterItLands."
+				},
+				"afterItLands": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/block"
+					},
+					"description": "What each type the step touches becomes once it lands, and what it removes and where those removed things still appear. Free-form blocks."
+				},
+				"gate": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/markdown"
+					},
+					"description": "What must be true for this step to be done."
+				},
+				"proposedChange": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/block"
+					},
+					"description": "The change for the person to review: diffs, sketches, and anything that explains them, in reading order."
+				},
+				"reliesOn": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/reliesOnItem"
+					},
+					"description": "What the step stands on, in reading order: survey facts (with the evidence this step needs), and anything else, each with a caption saying why the step relies on it."
+				},
+				"decisions": {
+					"$ref": "#/$defs/decisions"
+				},
+				"proposals": {
+					"$ref": "#/$defs/proposals"
+				}
+			}
+		},
+		"decisions": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"open": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/openQuestion"
+					},
+					"description": "Choices still waiting on the user."
+				},
+				"user": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/userDecision"
+					},
+					"description": "Choices the user made, and implementation shapes the user sketched."
+				}
+			}
+		},
+		"proposals": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/agentProposal"
+			},
+			"description": "Calls the agent made."
+		},
+		"openQuestion": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "question"],
+			"properties": {
+				"id": {
+					"$ref": "#/$defs/openId",
+					"description": "Unique across the plan. Usually the key the decision will have once it is answered."
+				},
+				"question": {
+					"$ref": "#/$defs/markdown"
+				},
+				"gitPath": {
+					"type": "string",
+					"description": "The file or folder the answer lands in, relative to the repo root. The page flags a 'now' question without one."
+				},
+				"when": {
+					"enum": ["now", "trial"],
+					"default": "now",
+					"description": "trial: the user judges it by eye when the step is tried, not before."
+				}
+			}
+		},
+		"agentProposal": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "choice", "status"],
+			"properties": {
+				"id": {
+					"$ref": "#/$defs/agentId",
+					"description": "Unique across the plan's open questions and proposals; the name of the choice."
+				},
+				"choice": {
+					"$ref": "#/$defs/markdown",
+					"description": "What the agent chose."
+				},
+				"over": {
+					"$ref": "#/$defs/markdown",
+					"description": "The alternative it passed over. Rendered after the word 'over'."
+				},
+				"why": {
+					"$ref": "#/$defs/markdown"
+				},
+				"status": {
+					"enum": [
+						"notRaised",
+						"noObjection",
+						"leftToAgent",
+						"approved",
+						"objected"
+					],
+					"description": "notRaised: the user has not yet replied having seen it. noObjection: the user replied having seen it and did not object. leftToAgent: left to the implementer to decide in the code. approved / objected: the user's answer."
+				}
+			}
+		},
+		"userDecision": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["key", "why"],
+			"properties": {
+				"key": {
+					"type": "string",
+					"description": "snake_case name for the decision, e.g. opening_shape."
+				},
+				"choice": {
+					"$ref": "#/$defs/markdown",
+					"description": "The decision itself, not the reply that made it."
+				},
+				"sketch": {
+					"$ref": "#/$defs/markdown",
+					"description": "An implementation shape the user suggested, written in place of choice. The page marks it as a sketch."
+				},
+				"why": {
+					"$ref": "#/$defs/markdown",
+					"description": "The user's reason, which the implementer weighs the decision by."
+				},
+				"over": {
+					"$ref": "#/$defs/markdown",
+					"description": "What the user rejected. Rendered after the word 'over'."
+				},
+				"decided": {
+					"type": "string",
+					"description": "When it was decided, as an ISO date. Kept for the implementer; not shown on the page."
+				}
+			},
+			"oneOf": [
+				{
+					"required": ["choice"]
+				},
+				{
+					"required": ["sketch"]
+				}
+			]
+		},
+		"fact": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["id", "claim"],
+			"properties": {
+				"id": {
+					"$ref": "#/$defs/factId",
+					"description": "Unique across the plan and never reused."
+				},
+				"claim": {
+					"$ref": "#/$defs/markdown"
+				},
+				"evidence": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/leafBlock"
+					}
+				}
+			}
+		},
+		"blockCommon": {
+			"type": "object",
+			"properties": {
+				"caption": {
+					"$ref": "#/$defs/markdown",
+					"description": "The sentence that introduces the block."
+				},
+				"about": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/openId"
+					},
+					"description": "Open questions this block is about. The page shows them on the block as well as in the Decisions box."
+				}
+			}
+		},
+		"block": {
+			"description": "Any block. row and fact blocks may hold leaf blocks, one level deep.",
+			"oneOf": [
+				{
+					"$ref": "#/$defs/textBlock"
+				},
+				{
+					"$ref": "#/$defs/codeBlock"
+				},
+				{
+					"$ref": "#/$defs/diffBlock"
+				},
+				{
+					"$ref": "#/$defs/sketchBlock"
+				},
+				{
+					"$ref": "#/$defs/listBlock"
+				},
+				{
+					"$ref": "#/$defs/tableBlock"
+				},
+				{
+					"$ref": "#/$defs/imageBlock"
+				},
+				{
+					"$ref": "#/$defs/factBlock"
+				},
+				{
+					"$ref": "#/$defs/rowBlock"
+				}
+			]
+		},
+		"leafBlock": {
+			"description": "Any block except row and fact.",
+			"oneOf": [
+				{
+					"$ref": "#/$defs/textBlock"
+				},
+				{
+					"$ref": "#/$defs/codeBlock"
+				},
+				{
+					"$ref": "#/$defs/diffBlock"
+				},
+				{
+					"$ref": "#/$defs/sketchBlock"
+				},
+				{
+					"$ref": "#/$defs/listBlock"
+				},
+				{
+					"$ref": "#/$defs/tableBlock"
+				},
+				{
+					"$ref": "#/$defs/imageBlock"
+				}
+			]
+		},
+		"textBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "markdown"],
+			"properties": {
+				"kind": {
+					"const": "text"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"markdown": {
+					"$ref": "#/$defs/markdown"
+				}
+			}
+		},
+		"codeBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "from"],
+			"description": "Existing code, shown exactly. Use sketch for code that is not exact.",
+			"properties": {
+				"kind": {
+					"const": "code"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"lang": {
+					"type": "string",
+					"description": "Defaults to the file extension."
+				},
+				"label": {
+					"type": "string",
+					"description": "What the block's header shows instead of the path, e.g. 'bevy_gizmos 0.19.1 · src/retained.rs'."
+				},
+				"from": {
+					"oneOf": [
+						{
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["gitPath", "lines"],
+							"description": "A file in the repo. Read from disk when the page is generated, or from git at commit when one is given.",
+							"properties": {
+								"gitPath": {
+									"type": "string",
+									"description": "Relative to the repo root."
+								},
+								"lines": {
+									"$ref": "#/$defs/lineRange"
+								},
+								"commit": {
+									"type": "string"
+								}
+							}
+						},
+						{
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["absolutePath", "lines"],
+							"description": "Any file on disk, such as a dependency's source in Cargo's registry.",
+							"properties": {
+								"absolutePath": {
+									"type": "string"
+								},
+								"lines": {
+									"$ref": "#/$defs/lineRange"
+								}
+							}
+						},
+						{
+							"type": "object",
+							"additionalProperties": false,
+							"required": ["text"],
+							"description": "Code pasted as-is.",
+							"properties": {
+								"text": {
+									"type": "string"
+								},
+								"firstLine": {
+									"type": "integer",
+									"minimum": 1,
+									"description": "Number the lines from here. Without it the lines are unnumbered."
+								}
+							}
+						}
+					]
+				},
+				"resolved": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["text"],
+					"description": "Filled in by the generator for gitPath and absolutePath sources.",
+					"properties": {
+						"text": {
+							"type": "string"
+						},
+						"firstLine": {
+							"type": "integer",
+							"minimum": 1
+						}
+					}
+				},
+				"error": {
+					"type": "string",
+					"description": "Filled in by the generator when the source could not be read."
+				}
+			}
+		},
+		"diffBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "gitPath", "patch"],
+			"description": "An exact change to one file, as unified diff text. One file per diff; never mix files in one block.",
+			"properties": {
+				"kind": {
+					"const": "diff"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"gitPath": {
+					"type": "string",
+					"description": "The one file this diff changes, relative to the repo root."
+				},
+				"label": {
+					"type": "string",
+					"description": "Header text instead of the path."
+				},
+				"patch": {
+					"type": "string"
+				}
+			}
+		},
+		"sketchBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "gitPath", "text"],
+			"description": "The shape of a change to one file, not exact code. One file per sketch; never mix files in one block. Lines starting with + or - are shown as added or removed.",
+			"properties": {
+				"kind": {
+					"const": "sketch"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"gitPath": {
+					"type": "string",
+					"description": "The one file this sketch changes, relative to the repo root. It may not exist yet."
+				},
+				"lang": {
+					"type": "string"
+				},
+				"text": {
+					"type": "string"
+				}
+			}
+		},
+		"listBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "items"],
+			"properties": {
+				"kind": {
+					"const": "list"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"items": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/markdown"
+					}
+				}
+			}
+		},
+		"tableBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "columns", "rows"],
+			"properties": {
+				"kind": {
+					"const": "table"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"columns": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"rows": {
+					"type": "array",
+					"items": {
+						"type": "array",
+						"items": {
+							"$ref": "#/$defs/markdown"
+						}
+					}
+				}
+			}
+		},
+		"imageBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "alt"],
+			"properties": {
+				"kind": {
+					"const": "image"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"gitPath": {
+					"type": "string"
+				},
+				"absolutePath": {
+					"type": "string"
+				},
+				"alt": {
+					"type": "string"
+				},
+				"resolved": {
+					"type": "object",
+					"additionalProperties": false,
+					"required": ["src"],
+					"description": "Filled in by the generator, usually as a data: URI.",
+					"properties": {
+						"src": {
+							"type": "string"
+						}
+					}
+				},
+				"error": {
+					"type": "string",
+					"description": "Filled in by the generator when the image could not be read."
+				}
+			},
+			"oneOf": [
+				{
+					"required": ["gitPath"]
+				},
+				{
+					"required": ["absolutePath"]
+				}
+			]
+		},
+		"factBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "id"],
+			"description": "A survey fact this step relies on. The page shows the fact's claim; evidence here is what this step needs to show under it.",
+			"properties": {
+				"kind": {
+					"const": "fact"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"id": {
+					"$ref": "#/$defs/factId"
+				},
+				"evidence": {
+					"type": "array",
+					"items": {
+						"$ref": "#/$defs/leafBlock"
+					}
+				}
+			}
+		},
+		"rowBlock": {
+			"type": "object",
+			"additionalProperties": false,
+			"required": ["kind", "blocks"],
+			"description": "Two or more blocks side by side on wide screens.",
+			"properties": {
+				"kind": {
+					"const": "row"
+				},
+				"caption": {
+					"$ref": "#/$defs/blockCommon/properties/caption"
+				},
+				"about": {
+					"$ref": "#/$defs/blockCommon/properties/about"
+				},
+				"blocks": {
+					"type": "array",
+					"minItems": 2,
+					"items": {
+						"$ref": "#/$defs/leafBlock"
+					}
+				}
+			}
+		},
+		"reliesOnItem": {
+			"description": "A survey fact, or any other block with a caption saying why the step relies on it.",
+			"allOf": [
+				{
+					"$ref": "#/$defs/block"
+				},
+				{
+					"if": {
+						"properties": {
+							"kind": {
+								"const": "fact"
+							}
+						},
+						"required": ["kind"]
+					},
+					"then": true,
+					"else": {
+						"required": ["caption"]
+					}
+				}
+			]
+		}
+	}
+}
