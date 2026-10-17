@@ -111,11 +111,11 @@ Implementers and reviewers start with no conversation history. One who doesn't k
 
 - **Why:** the user's goal and how this task serves it.
 - **Outcome:** what to deliver and how it will be judged done.
-- **Fixed decisions:** what's settled, with reasons, so they can tell when new facts undermine a decision.
+- **Plan:** the plan file's path. It holds every decision with its reason, so the brief points to it and restates none.
 - **Quality checks:** the ones that apply.
 - **Latitude:** what's theirs to decide.
 - **Boundaries:** what's out of scope.
-- **When to stop and report:** anything that would change a fixed decision, the scope, or a one-way door.
+- **When to stop and report:** anything that would change a decision in the plan, the scope, or a one-way door.
 - **What to return:** a summary, the decisions they made, deviations with reasons, and open questions.
 
 Comments, docs and tests are the implementer's to write; briefs and fork instructions leave them out.

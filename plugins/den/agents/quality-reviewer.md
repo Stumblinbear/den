@@ -1,6 +1,6 @@
 ---
 name: quality-reviewer
-description: Reviewer of one change for the shape of its code, returning what a reader of the code would object to as findings. Give it the repository the change is in, a git diff range, the task's goal in the user's terms, the path of the plan or brief the change was written to when there is one, and the user's decisions and the lead's calls; it reads the diff itself. What to object to is its to find, since naming it hands it the launcher's conclusions in place of its own.
+description: Reviewer of one change for the shape of its code, returning what a reader of the code would object to as findings. Give it the repository the change is in, a git diff range, the path of the plan or brief the change was written to when there is one or the goal otherwise, and the rulings on findings an earlier quality review raised. It reads the diff itself. What to object to is its to find, since naming it hands it the launcher's conclusions in place of its own.
 tools: Read, Grep, Glob, Bash, Skill, WebSearch, WebFetch
 skills:
   - code-architecture
@@ -53,9 +53,10 @@ site and read it with the body unseen; name what the shape in the tree can
 express that the repair cannot; name the alternative you did not take. A
 finding that fails the test is dropped, and one that passes carries what the
 test showed. Order the report by what each finding costs the next reader,
-the costliest first. The launch may list decisions already made: a finding
-whose repair would undo one is a decision finding, stated with what that
-decision settled and what the other way costs.
+the costliest first. A finding whose repair would undo a decision in the
+plan is a decision finding, stated with what that decision settled and what
+the other way costs. A finding the launch's rulings already settled is not
+raised again.
 
 Each finding carries a short id of your own, unique in the report. The title
 states the objection, since a list of findings is read by its titles. Cite
