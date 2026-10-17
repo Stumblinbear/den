@@ -17,11 +17,11 @@ diff-page; the rest are hidden from the `/` menu:
 - `briefing`: what a brief for an implementer pins and leaves open, and how a
   plan's steps are briefed one at a time. The lead loads it before writing a
   brief.
-- `triage`: how an implementer's report and a `review-and-fix` return are
-  ruled item by item, what each key of the return holds, and what a commit
-  proposal carries. The triage hooks tell the lead to load it.
+- `triage`: how the lead chooses a fix, working out the right one from the
+  goal and good design before weighing the fix a report or a reviewer
+  proposed. The triage hooks tell the lead to load it.
 - `testing`: which test a change gets, what its assertions compare against,
-  and which tests stay in the tree. The implementer starts with it loaded.
+  and which tests stay in the tree.
 - `project-direction`: establishes or updates project goals, priorities,
   constraints and intended development with you before task scoping. Discovery
   has no default time or question budget. It records the understanding durably
@@ -67,6 +67,13 @@ diff-page; the rest are hidden from the `/` menu:
   techniques for cutting what looks atomic, and the interrogation of the
   first attempt, which is presumed wrong until each cut has answered the
   questions you would ask of it.
+- `quality-bar`: what a good change looks like, for the lead planning one, the
+  implementer building it and the reviewer reading it. A good change fits
+  existing patterns, lives in the module that owns its concept, keeps one
+  source of truth, abstracts at the second real case and chooses stored
+  formats, public surfaces and dependencies on purpose. The skill also lists
+  the signs of a first idea shipped unexamined. The implementers start with it
+  loaded.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
 - `writing-for-agents`: principles for writing instructions an agent will
@@ -76,6 +83,11 @@ diff-page; the rest are hidden from the `/` menu:
 - `writing-for-humans`: what a README, a document, a doc comment, a comment
   inside a body, or a report owes the person who reads it, and the register
   that keeps it from reading as machine-written, with a catalog of the tells.
+- `writing-architecture-docs`: what an `ARCHITECTURE.md` holds, in order: a
+  bird's eye view, a codemap, the invariants and boundaries the structure
+  depends on, and the cross-cutting concerns. It also covers what the file
+  leaves to the code and its doc comments, and the length that keeps it read
+  and true. Claude loads it when it creates, edits or reviews one.
 - `unsafety-author`: Rust `# Safety` contracts and unsafe documentation.
 
 Agents, launched as `den:<name>` through the Agent tool or by a workflow:
@@ -97,9 +109,10 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   an item unresolved when closure depends on a product decision.
 - `comment-reviewer` (opus): comment coverage and register on a settled change.
   It edits comments, and nothing else.
-- `implementer` (opus): the default implementer. Executes a brief,
-  uses the direction record to make choices left open, declares those choices
-  and deviations, and stops dependent work on broken assumptions.
+- `implementer` (opus): the default implementer. Executes a brief, decides
+  what the brief left open from its design rationale, reports those choices
+  and its departures, and stops with a question before building on a decision
+  that was not its to make.
   Implementation has no implicit deadline; necessary adjacent refactoring is
   assessed against the task's requirements, with changes to accepted designs
   or explicit scope fences brought back to you before implementation.
@@ -114,11 +127,6 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   approach is chosen. Read-only.
 - `surveyor` (sonnet) and `file-peek` (haiku): read-only evidence sweeps, and
   targeted extraction from files too large to read whole.
-- `design-explorer` (opus): one decomposition serving the task's purpose and
-  project direction, from the angle it is given, with consequential choices
-  tied to requirements and their costs. Read-only.
-- `design-judge` (opus): checks project fit before comparing structural
-  quality, current cost and cost of change; the choice stays yours.
 - `localizer` and `localization-reviewer` (opus): natural target-language
   localization, and its review.
 
@@ -127,12 +135,11 @@ Hooks, registered while the plugin is enabled:
 - Review triage: a `review-and-fix` run's return, and a `quality-reviewer`'s
   report, arrive with a reminder to load `triage` and rule on everything they
   hold.
-- Implementer triage: an implementer's report arrives with a reminder to load
-  `triage`, under which every choice it declared, question it asked,
-  deviation it made and item it left undone reaches you with a call on each.
+- Implementer triage: an implementer's report arrives with a reminder that a
+  report raising an issue, such as a deviation, a question, a stop or a failed
+  check, is triaged under `triage`.
   A fixer inside a `review-and-fix` run declares its choices in the run's
-  return; for an implementer, the route a send-back takes is yours whenever
-  the round already needs your answer.
+  return.
 - Agent-text audit: an edit or write to a file under a `skills`, `agents`,
   `hooks` or `references` directory, or to a `SKILL.md` or `CLAUDE.md`, adds
   one line to the session's context before the edit, saying to write it under
@@ -216,15 +223,15 @@ Start a session and invoke the lead rules:
 /den:lead
 ```
 
-The session then cites code by path and line, sends research to the standing
-agents, and, once a design is pinned, proposes the implementer and the step's
-scope and waits for your go. A quick change the session would otherwise make
-by hand goes to a fork of itself instead, which keeps the file reads, the edit
-output and the test run out of your main context. Work past a few turns goes
-to an implementer with a brief, since each turn a fork takes after its spawn
-reads the whole session context again. Once the change is in the
-working tree and the session has put the implementer's report to you, it runs
-`review-and-fix` on the tree with the task's goal. The run fixes the defects
+The session then confirms the goal, the non-goals and what done looks like
+with you, records them and each decision in a plan file under
+`.local/plans/`, sends research to the standing agents, and, once a design is
+pinned, proposes the implementer and the step's scope and waits for your go.
+When it explains code, it shows you the code. Once the session has triaged
+the implementer's report, it reviews the working tree without asking you: a
+change that adds names, types or mechanisms goes to `quality-reviewer` first,
+and once its defects are resolved, `review-and-fix` runs on the tree with the
+task's goal. The run fixes the defects
 it finds and returns once; the session brings you the decisions that are
 yours, launches a fixer for what it rules, reviews again, and proposes the
 commit.
@@ -250,8 +257,8 @@ The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:lead`. The skills and agents do nothing until you invoke or
 launch them.
 
-A brief and an exploration carry the direction record's path, and the agents
-read the record there. Future plans can constrain today's choices without
+A brief carries the direction record's path, and the agents read the record
+there. Future plans can constrain today's choices without
 authorizing extra implementation. `project-direction` establishes or updates
 that context when it is missing, conflicting or superseded. It uses
 `direction-docs` to record that understanding. `direction-docs` maintains the

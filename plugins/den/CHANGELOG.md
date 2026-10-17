@@ -18,6 +18,13 @@ minor bump may change behavior.
 - A review after a clean one reads only what changed since, instead of the
   whole change again; the clean return carries the command that takes the
   snapshot.
+- A `quality-bar` skill: what a good change looks like, for the lead planning
+  one, the implementer building it and the reviewer reading it. It covers
+  fitting existing patterns, code in the module that owns its concept, one
+  source of truth, interfaces small next to what they hide, abstracting at
+  the second real case, one-way doors and designed failure paths, and lists
+  the signs of a first idea shipped unexamined. The implementers start with it
+  loaded.
 
 ### Changed
 
@@ -42,20 +49,15 @@ minor bump may change behavior.
   moment the question comes up, the question, what in the code answers it,
   and a case each way. Its signal lists and calibration sections are folded
   into the rules they belonged to.
-- The lead still traces every claim about code to its source before using
-  it, but cites a line only where the reader will go to it, a brief's anchor
-  or a finding's site, instead of on every claim.
+- The lead still traces every claim about code to its source before relying
+  on it, and no longer cites a path and line on every claim.
 - A ruling or lead call handed to the review-and-fix workflow is one
   sentence, what was chosen, over what, and why, with nothing of how the
   code works, so the reviewer still checks the mechanism behind it.
-- A ruling, lead call or settled decision handed to the review-and-fix or
-  design-exploration workflow is still asked for at 400 characters, but the
-  check refuses it only past 512, since an agent cannot count characters to
-  within a few and a cap at the asked length failed launches at the boundary.
-- When the lead finds the approach is the problem, such as review findings
-  returning round after round to one mechanism, it goes back to the goal and
-  the constraints you set and derives what they imply before offering routes,
-  instead of proposing the next fix from inside the mechanism in hand.
+- A ruling or lead call handed to the review-and-fix workflow is still asked
+  for at 400 characters, but the check refuses it only past 512, since an
+  agent cannot count characters to within a few and a cap at the asked length
+  failed launches at the boundary.
 - A doc comment promises only what its item upholds, not how the rest of the
   program happens to use it, such as the value a state starts in, and a
   member whose name says all it is can go without a doc unless it carries a
@@ -74,19 +76,38 @@ minor bump may change behavior.
 - Naming judges a word within its context: where a call site tells two
   meanings apart, one word serves both, and a rename keeps the pattern its
   siblings share instead of setting one member of a family apart.
-- When the work says the approach is the problem, the lead stops and puts
-  that to you as one question, instead of fixing the same mechanism round
-  after round. One finding can be enough: a fix that would work around the
-  design's shape or the problem's framing makes the lead weigh another
-  approach from the first review round, and ask you when one would serve the
-  goal better. Only the fixes it would replace wait for your answer. A goal
-  now says who reads the result and what makes it good enough for them.
-- The lead sends only a quick change to a fork and longer work to an
-  implementer with a brief, since a fork reads the whole session context
-  again on every turn after its spawn. Triage no longer says which agent a
-  fix goes to.
-- A change you tell the lead to make launches without the lead asking you
-  first, whether it goes to a fork or to an implementer.
+- The lead skill is written as a tech lead's rules. Before work starts, the
+  lead states the goal, its reason, the non-goals and what done looks like,
+  and waits for you to confirm them. It rereads the plan at each stage
+  boundary, before judging what an implementer returns, before taking a
+  choice to you and before proposing a commit. A brief carries the goal and
+  how the task serves it, the outcome, the plan's path, the quality checks
+  that apply, what the implementer may decide, the boundaries, when to stop
+  and what to return. When the lead explains code, it gives the context
+  behind it and shows the code.
+- When an implementer departs from the design, the lead checks the obstacle
+  in the code, decides whether it breaks the design or only the route taken,
+  and works out its own answer before weighing the implementer's. A
+  departure with no reason given goes back to the same implementer as a
+  question. At each stage boundary, and after each departure, the lead asks
+  whether it would still choose the design, and it raises a problem with the
+  approach as soon as it sees one.
+- Every implementation launch waits for your go-ahead, a change you asked
+  for included, since you may have refinements to give first. The lead has
+  no rule sending a quick change to a fork of the session.
+- The lead proposes a commit once the review is done and it judges the
+  change ready. The proposal no longer lists the comment pass's gaps or the
+  tests a review left red for you to rule on.
+- Triage is one rule: a choice or a recommendation is judged on whether it is
+  the right fix, worked out from the goal and the code as if it had not been
+  made, never on the reason given for it. Its rules for an implementer's
+  report and for the commit proposal are gone; the lead's rules on an
+  implementer's departures cover the report.
+- The implementers start with `quality-bar` and `code-architecture` loaded,
+  and no longer with `testing`. A report opens on the questions the
+  implementer stopped on, then its departures from the brief, the choices it
+  made, what it is unsure of, the verification counts and the state of the
+  tree.
 - Agent definitions and skills are shorter: narration and rules said twice
   are gone.
 - A brief pins only what the user decided, and a plan lists the lead's own
@@ -132,9 +153,7 @@ minor bump may change behavior.
 - A review's `rulings` and `leadCalls` hold decisions only, each what was
   chosen, over what and why. An item that only says how the code behaves is
   no longer one, since the reviewer takes every item as settled and would
-  never check the claim. The lead states a claim about code only as widely
-  as it traced it, the paths and call sites it read, so a claim checked on
-  one path is no longer passed on in a ruling or a brief as true of all.
+  never check the claim.
 - Agents no longer write tests for logs or metrics, including ones a brief
   asks for, and they now test code whose result is the state it leaves
   behind, not only a value it returns.
@@ -142,9 +161,9 @@ minor bump may change behavior.
 ### Removed
 
 - The `architectural-foresight`, `design-decisions`, `design-exploration` and
-  `diagnosing` skills, which were not working or not helping. The
-  `design-exploration-workflow` and its `design-explorer` and `design-judge`
-  agents remain.
+  `diagnosing` skills, which were not working or not helping.
+- The `design-exploration-workflow` and its `design-explorer` and
+  `design-judge` agents, which only the `design-exploration` skill launched.
 
 ### Fixed
 

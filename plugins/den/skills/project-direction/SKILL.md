@@ -48,8 +48,8 @@ not itself completion. Scoping's bound on task questions does not apply here.
 
    Recommendations follow from goals the user has stated; questions about
    missing goals leave room for the user to supply them. Keep technical
-   implications distinguishable from product commitments. Mechanisms belong
-   in design exploration.
+   implications distinguishable from product commitments. Mechanisms are
+   decided per task, not here.
 
    Use AskUserQuestion, or prose when a question needs a worked example. Keep
    investigating gaps that remain answerable. A direction the user deliberately

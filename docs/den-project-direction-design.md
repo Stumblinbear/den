@@ -88,8 +88,8 @@ report that choice as unresolved and continue only independent work.
 
 ### 2. Design exploration uses a common basis
 
-Superseded: the basis is the project's direction record, read by the
-explorers and the judge at its path; the launch carries no restatement of it.
+Superseded: design exploration is removed from den, with its workflow and
+the explorer and judge agents.
 
 Update `skills/design-exploration/SKILL.md`, its workflow input validation, and
 the explorer/judge prompts together. Add an explicit `basis` input separate from

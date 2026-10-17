@@ -1,5 +1,5 @@
 // Exercises the shipped workflow bodies with a host-shaped agent callback.
-// This checks handoffs and control flow, not the model's design judgment or
+// This checks handoffs and control flow, not the model's judgment or
 // the external Workflow host's schema enforcement.
 import { readFileSync } from "node:fs";
 
@@ -23,9 +23,7 @@ type Workflow = (
 ) => Promise<unknown>;
 
 /** A workflow den ships under `workflows/`, by its file's base name. */
-export type WorkflowName =
-	| "design-exploration-workflow"
-	| "review-and-fix-workflow";
+export type WorkflowName = "review-and-fix-workflow";
 
 const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 
@@ -77,25 +75,3 @@ export function runWorkflow(
 		log,
 	);
 }
-
-export const proposal = () => ({
-	status: "proposed",
-	summary: "One owned implementation, with a replaceable host boundary.",
-	modules: [],
-	state: [],
-	seams: [],
-	reversal: "Replace one host adapter.",
-	costs: "One additional boundary.",
-	choices: [],
-	assumptions: [],
-	contested: [],
-	questions: [],
-});
-
-export const noSuitableProposal = () => ({
-	outcome: "no-suitable-proposal",
-	recommendation: null,
-	ranking: [],
-	differences: "Every proposal fails the required compatibility obligation.",
-	questions: ["Which compatibility obligation may change, if any?"],
-});
