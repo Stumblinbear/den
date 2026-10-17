@@ -21,8 +21,8 @@ surface is theirs to choose, and the brief carries their choice.
 
 ## What a brief carries
 
-A brief carries the goal, the decisions the user made in their words with
-the reason they gave and when, the facts the code cannot show with their
+A brief carries the goal, the decisions the user made, each with the reason
+they gave and when, the facts the code cannot show with their
 sources, and the questions still open. The implementer, in the code, decides
 the rest better than a brief written from above it, and reads each decision
 by its reason, so a decision written without one is one it cannot weigh. A
