@@ -22,7 +22,7 @@ const HAND_BACK_FAULTS = faults(
 function reminder(flag: Flag): string {
 	return [
 		`An implementer agent reported finishing${flag.agentType ? ` (${flag.agentType})` : ""}.`,
-		"If the report raises an issue, such as a deviation, a question, a stop or a failed check, invoke `den:triage` and triage it, even if `den:triage` is already in your context.",
+		"If the report raises an issue, such as a deviation, a question, a stop or a failed check, invoke `den:triage` and triage it, even if `den:triage` is already in your context, since an earlier load sits too far back to keep the report's framing out of your ruling.",
 	].join(" ");
 }
 

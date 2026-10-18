@@ -42,11 +42,11 @@ const faultLine = (detail: string, cause?: unknown): string =>
 // Each reminder names the triage skill and none of its rules; see the header
 // of `lib/relay.mts`.
 const IN_RUN_REMINDER =
-	"If the `den:review-and-fix` return holds anything to rule on, any finding or carried item, invoke `den:triage` and triage every one, even if `den:triage` is already in your context.";
+	"If the `den:review-and-fix` return holds anything to rule on, any finding or carried item, invoke `den:triage` and triage every one, even if `den:triage` is already in your context, since an earlier load sits too far back to keep the report's framing out of your ruling.";
 
 const QUALITY_REMINDER = [
 	"A quality review completed.",
-	"If it raised findings, invoke `den:triage` and triage every finding in each report, even if `den:triage` is already in your context.",
+	"If it raised findings, invoke `den:triage` and triage every finding in each report, even if `den:triage` is already in your context, since an earlier load sits too far back to keep the report's framing out of your ruling.",
 ].join(" ");
 
 // What a quality reviewer's hand-back in `prompt` has for the lead or the user,
