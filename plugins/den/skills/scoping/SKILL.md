@@ -1,31 +1,13 @@
 ---
 name: scoping
-description: Settles consequential decisions before a brief is written, one question at a time, with existing context read first and confirmed direction kept distinct from assumptions.
-when_to_use: ALWAYS invoke this skill when a plan is written or revised, before the first brief of each step, when implementation exposes a conflict with the direction record, and when the user says "scope this", "grill me", or "interview me". Do not settle a choice in a plan, a brief or a workaround; use this skill first.
+description: Settles the user's consequential decisions with them, one question at a time.
+when_to_use: ALWAYS invoke this skill when the user says "scope this", "grill me", or "interview me". Do not begin questioning directly; use this skill first.
 ---
 
 # Scoping
 
 An ask that reads two ways gets built one way, and the wrong reading costs a
 round to build and a round to undo.
-
-## The direction record
-
-The project's direction record holds this feature's purpose, the relevant
-constraints and planned developments, and which statements remain assumptions.
-Read it alongside the supplied context and the user's answers. Code
-establishes current behavior; the record establishes what the project is
-working toward.
-
-What this pass establishes or corrects about that direction goes back into
-the record.
-Task-specific decisions stay with the task unless they also change the broader
-direction.
-
-Preserve questions deliberately left open or recorded when the user ended
-discovery, and revisit them when new evidence arrives or a task decision
-depends on an answer. A confirmed future capability can constrain a boundary
-without authorizing its implementation.
 
 ## Decisions only
 
@@ -46,7 +28,7 @@ assumption into question, check its authority and reopen the affected
 decision while independent work continues.
 
 Which file and module code sits in, and the shape and names of private
-types, belong to the implementer, so they go in the brief as intent. What the
+types, are decided by whoever writes the code. What the
 change does and how other code uses it is the user's: which part owns a
 behavior, the calls other parts make and what they do, what an operation does
 on a conflict or a failure, every public name and every stored format.
@@ -85,12 +67,7 @@ the tool hides the prose written before it.
 ## Stopping
 
 The pass ends at the user saying done, or when every choice on the list is
-settled. Record what remains open and what depends on it. An assumption may carry
+settled. Its outcome is the settled decisions, each with its reason, and what
+remains open with what depends on it. An assumption may carry
 reversible work forward; an unresolved choice on a one-way door waits for
 the user's answer. Ending the pass answers nothing that is still open.
-
-## Where the answers go
-
-Carry the record's path, the settled decisions as a list, one decision with
-its reason each, and the unresolved questions into what follows; when nothing
-follows, report those three as the outcome.

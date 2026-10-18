@@ -32,11 +32,16 @@ minor bump may change behavior.
   covers the step in progress, or every step when not exactly one is. The
   implementers, the reviewer, the quality reviewer and the closure verifier
   run it when handed a plan's JSON file.
+- A `planning` skill, which the lead runs by name and which is not in the `/`
+  menu, holds the procedure for a task's plan: write it, settle its choices
+  with `scoping`, cut the change into steps a reviewer holds in one read, put
+  it to the user with `plan-page`, mark each step in progress as it starts,
+  and rewrite the next step as each one lands.
 
 ### Changed
 
 - A plan is one JSON file per task, `.local/plans/<task>.json`, in the shape
-  `slicing/references/plan.schema.json` defines, and `plan-page` renders it
+  `planning/references/plan.schema.json` defines, and `plan-page` renders it
   through a new viewer as one self-contained page. Each of the user's
   decisions carries its reason and, where one was weighed, the alternative it
   beat, and the page shows both. The agent's own calls are proposals, listed
@@ -87,12 +92,12 @@ minor bump may change behavior.
 - The lead skill is written as a tech lead's rules. Before work starts, the
   lead states the goal, its reason, the non-goals and what done looks like,
   and waits for you to confirm them. It rereads the plan at each stage
-  boundary, before judging what an implementer returns, before taking a
-  choice to you and before proposing a commit. A brief carries the goal and
-  how the task serves it, the outcome, the plan's path, the quality checks
-  that apply, what the implementer may decide, the boundaries, when to stop
-  and what to return. When the lead explains code, it gives the context
-  behind it and shows the code.
+  boundary, before judging what an implementer returns and before taking a
+  choice to you. A brief carries the goal and how the task serves it, the
+  outcome, the plan's path, the quality checks that apply, what the
+  implementer may decide, the boundaries, when to stop and what to return.
+  When the lead explains code, it gives the context behind it and shows the
+  code.
 - When an implementer departs from the design, the lead checks the obstacle
   in the code, decides whether it breaks the design or only the route taken,
   and works out its own answer before weighing the implementer's. A
@@ -165,6 +170,11 @@ minor bump may change behavior.
 - Agents no longer write tests for logs or metrics, including ones a brief
   asks for, and they now test code whose result is the state it leaves
   behind, not only a value it returns.
+- `scoping` runs when `planning` settles a plan's choices or when the user
+  says "scope this", "grill me" or "interview me". It leaves the direction
+  record to `project-direction` and `direction-docs`.
+- A brief no longer carries the direction record's path; `planning` reads the
+  record when it writes the plan.
 
 ### Removed
 
@@ -172,6 +182,9 @@ minor bump may change behavior.
   `diagnosing` skills, which were not working or not helping.
 - The `design-exploration-workflow` and its `design-explorer` and
   `design-judge` agents, which only the `design-exploration` skill launched.
+- The `slicing` skill, whose rules for cutting a change into steps are part
+  of `planning`.
+- The `briefing` skill; the lead's own rules for briefs stand.
 
 ### Fixed
 

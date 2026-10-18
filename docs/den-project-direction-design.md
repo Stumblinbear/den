@@ -65,6 +65,9 @@ need not be reconfirmed merely because another stage starts.
 
 ### 1. Scoping establishes context before task choices
 
+Superseded: planning reads the direction record; scoping only settles the
+user's decisions.
+
 Extend `skills/scoping/SKILL.md` rather than introducing another mandatory
 interview skill. Its opening work becomes:
 
@@ -166,6 +169,9 @@ against the findings, the goal and the plan's path.
 Update `skills/design-decisions/SKILL.md` to own the common rule connecting
 direction, uncertainty, current cost and reversibility. Scoping obtains that
 context; exploration and implementation use it.
+
+Superseded: planning obtains that context from the direction record; scoping
+only settles the user's decisions.
 
 Audit `skills/code-architecture/SKILL.md` for rules that would defeat that
 reasoning. In particular, a single implementation is not sufficient evidence

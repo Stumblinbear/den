@@ -14,29 +14,27 @@ diff-page; the rest are hidden from the `/` menu:
   routing, launch authorization, review and commit gates, how to talk to you.
   Invoke it yourself; it is never loaded automatically, and it never reaches a
   subagent.
-- `briefing`: what a brief for an implementer pins and leaves open, and how a
-  plan's steps are briefed one at a time. The lead loads it before writing a
-  brief.
 - `triage`: how the lead chooses a fix, working out the right one from the
   goal and good design before weighing the fix a report or a reviewer
   proposed. The triage hooks tell the lead to load it.
 - `testing`: which test a change gets, what its assertions compare against,
   and which tests stay in the tree.
 - `project-direction`: establishes or updates project goals, priorities,
-  constraints and intended development with you before task scoping. Discovery
+  constraints and intended development with you, including when a task
+  depends on direction that is missing or out of date. Discovery
   has no default time or question budget. It records the understanding durably
   and, if you end the pass early, preserves unresolved questions for a future
   session.
 - `direction-docs`: creates and maintains the durable direction record from
   established goals and agreed changes. It owns document structure, links,
-  sources and uncertainty; discovery uses it while recording answers, and
-  scoping uses it when a clarification changes project direction.
-- `scoping`: connects an ask to project goals, constraints and planned
-  developments before a brief is written, distinguishing confirmed direction
-  from assumptions. It reads available context first, then asks about
-  consequential choices: up to five questions, or as many as it takes when
-  you ask for the pass. That limit applies only to task scoping; project
-  discovery is unbounded. Unanswered decisions remain open.
+  sources and uncertainty; discovery uses it while recording answers, and it
+  records direction you clarify during a task.
+- `scoping`: settles your consequential decisions one question at a time,
+  each with a recommended answer, what it buys and costs, and the alternative
+  it beat. What the code, the docs or a written rule already answers is looked
+  up, not asked. `planning` runs it for every plan, and you can start it with
+  "scope this", "grill me" or "interview me". Unanswered decisions remain
+  open.
 - `review-and-fix`: runs the `review-and-fix-workflow` workflow on the working
   tree in one pass: a review against the task's goal, one Opus fixer over every
   finding at P2 and above, a closure pass that gives a reopened finding one
@@ -55,7 +53,7 @@ diff-page; the rest are hidden from the `/` menu:
   the working tree against HEAD. Nothing is published unless you ask for a
   link.
 - `plan-page`: renders a plan, one JSON file in the shape
-  `slicing/references/plan.schema.json` defines, as one self-contained page
+  `planning/references/plan.schema.json` defines, as one self-contained page
   file and sends it to you, for reading a plan from a phone or away from the
   terminal. The page has an overview, the survey, a tab per step, and your
   decisions and the agent's proposals each with its reason. The code and
@@ -71,11 +69,12 @@ diff-page; the rest are hidden from the `/` menu:
   or every step when not exactly one is. The implementers, the reviewers and
   the closure verifier run it when handed a plan's JSON file. It is not in
   the `/` menu.
-- `slicing`: how a change is cut into steps a reviewer holds in one read and
-  sequenced by risk, with the test a boundary must pass, the settled
-  techniques for cutting what looks atomic, and the interrogation of the
-  first attempt, which is presumed wrong until each cut has answered the
-  questions you would ask of it.
+- `planning`: the procedure the lead runs for a task's plan, one JSON file at
+  `.local/plans/<task>.json`. It writes the goal and the survey, settles each
+  choice with `scoping`, cuts the change into steps a reviewer holds in one
+  read, ordered by risk and interrogated before you see them, and puts the
+  plan to you with `plan-page`. It marks each step in progress as it starts
+  and rewrites the next after it lands. It is not in the `/` menu.
 - `quality-bar`: what a good change looks like, for the lead planning one, the
   implementer building it and the reviewer reading it. A good change fits
   existing patterns, lives in the module that owns its concept, keeps one
@@ -266,8 +265,8 @@ The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:lead`. The skills and agents do nothing until you invoke or
 launch them.
 
-A brief carries the direction record's path, and the agents read the record
-there. Future plans can constrain today's choices without
+`planning` reads the direction record when it writes a task's plan. Future
+plans can constrain today's choices without
 authorizing extra implementation. `project-direction` establishes or updates
 that context when it is missing, conflicting or superseded. It uses
 `direction-docs` to record that understanding. `direction-docs` maintains the

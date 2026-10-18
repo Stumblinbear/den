@@ -24,21 +24,13 @@ along with the non-goals and what done looks like, and get the user's confirmati
 
 ## The plan file
 
-Each task gets a new plan file, `.local/plans/<task>.json` in the repo, named
-for the task and created once its goal is confirmed, so one task's plan never
-mixes with another's. It is written in den:slicing's plan shape and starts as
-one step. It holds:
-
-- the confirmed goal and the reason for it
-- the non-goals and the done criteria
-- every decision, with a one-line reason
-- open questions
-
-Update it whenever a decision changes. The plan file survives compaction; your
-memory of the conversation doesn't.
+Each task gets a plan file, which survives compaction where your memory of the
+conversation doesn't. Run den:planning once the goal is confirmed, whenever a
+decision the plan records changes, when each step starts and after it lands,
+and whenever an observation falsifies what the plan assumed.
 
 Re-read it at each stage boundary, before judging anything an implementer
-returns, before taking a choice to the user, and before proposing a commit.
+returns, and before taking a choice to the user.
 
 ## Quality checks
 

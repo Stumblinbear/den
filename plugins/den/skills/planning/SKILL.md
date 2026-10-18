@@ -1,11 +1,40 @@
 ---
-name: slicing
-description: How a change is cut into steps a reviewer holds in one read and sequenced by risk, with the test a boundary must pass, the settled techniques for cutting what looks atomic, and the interrogation of the first attempt.
-when_to_use: ALWAYS invoke this skill when planning how a change will land, before its first step starts, and whenever an observation falsifies what the plan assumed. Do not order the steps directly or take the first cut as right, however obvious it looks; use this skill first.
+name: planning
+description: The procedure that writes a task's plan, puts it to the user and keeps it current while its steps land.
 user-invocable: false
 ---
 
-# Slicing
+# Planning
+
+A plan is one JSON file per task, `.local/plans/<task>.json` in the
+repository, in the shape `references/plan.schema.json` defines.
+
+1. Once the task's goal is confirmed, create a new plan file named for the
+   task, so one task's plan never mixes with another's. Read the schema before
+   writing it.
+2. Read the project's direction record, where it has one: it holds what the
+   project is working toward, which the code cannot show. A capability the
+   record plans can constrain a boundary without authorizing its
+   implementation.
+3. Write the problem, the goal, what done is, what is out of scope and the
+   constraints, then the survey: the facts about the code the plan rests on,
+   each with its evidence.
+4. Settle each choice the plan makes with `den:scoping`.
+5. Cut the change into steps.
+6. Put the plan to the user with `den:plan-page`.
+7. When a step starts, mark it `inProgress`.
+8. After each step lands, rewrite the next step from what was learned and
+   update each `status`.
+
+A revision re-enters at the step it changes: a changed decision at step 4; a
+falsified assumption at step 3, where the survey fact that stated it is
+corrected, and at step 5, where the smallest remaining part it invalidated is
+re-cut. A change to the goal or to a one-way door re-plans from step 3.
+Whatever changes what the user approved goes back to them at step 6.
+
+The plan holds what this task settled: a rule CLAUDE.md or memory already
+states stays out, since every session loads it. The plan names the user in
+the third person, since agents read it too.
 
 ## The unit
 
@@ -15,7 +44,8 @@ committed, before the next starts. The read is the bound, and it is
 generous: a reviewer holds several hundred lines across a few mechanisms in
 one attentive sitting, and a mechanical sweep across forty files. What
 exceeds it is a diff whose parts must be judged in separate sittings, a
-rewrite of two subsystems at once.
+rewrite of two subsystems at once. A step is read against the defect it
+exists to remove, since a step that keeps the defect narrower is not a cut.
 
 ## Separation and order are different rules
 
@@ -50,32 +80,6 @@ implementation under live callers; strangler fig for replacing a subsystem;
 a seam introduced before the behaviour that uses it; a red test before the
 fix when the fix is the risky part. Each honours a boundary that passed a
 test, and none makes one.
-
-## The plan
-
-One JSON file in the shape `references/plan.schema.json` defines. Read it
-before writing a plan. Put the plan to the user with `den:plan-page`.
-
-A proposal is a call the agent made. It stays a proposal whatever the user
-answers, and its `status` records the answer. A decision is one the user made
-themselves. An open question answered with the agent's recommendation is an
-approved proposal. One answered with the user's own answer is a decision.
-
-Leave a question to the implementer when it is better decided in the code,
-as a proposal marked `leftToAgent`.
-
-Write `over` only for an alternative that was actually weighed.
-
-A plan holds what this task settled. A rule CLAUDE.md or memory already
-states stays out, since every session already loads it. Name the user in the
-third person, since agents read the plan too.
-
-The plan is a hypothesis: after each step lands, what was learned rewrites the
-next entry and each `status`. A falsified assumption re-cuts the smallest remaining
-part it invalidated; a change to the goal or to a one-way door re-plans the
-whole and goes to the person who decides it. Most changes are one step, and a
-one-step plan is stated as one. An entry is read against the defect the step
-exists to remove, since an entry that keeps the defect narrower is not a cut.
 
 ## Interrogate the first attempt
 

@@ -1,7 +1,7 @@
 ---
 name: direction-docs
 description: Creates, organizes and updates project direction documents from established goals and agreed changes, preserving their meaning, reasons and uncertainty.
-when_to_use: ALWAYS invoke this skill when creating, updating or reorganizing project direction documents, whether recording discovery or incorporating direction clarified during scoping. Do not write or edit a direction document directly; use this skill first.
+when_to_use: ALWAYS invoke this skill when creating, updating or reorganizing project direction documents, whether recording discovery or incorporating direction the user clarified during a task. Do not write or edit a direction document directly; use this skill first.
 user-invocable: false
 ---
 
@@ -60,7 +60,7 @@ question's context, consequences and what would help answer it.
 Link the entry point from existing agent instructions or the repository's
 documentation entry point. Give topic links short descriptions of the decisions
 they inform. Add cross-links for established dependencies and incorporate
-connections clarified by the user or scoping; do not try to anticipate every
+connections the user clarified; do not try to anticipate every
 future task. Keep the entry point useful without requiring every topic to be read.
 
 Update affected links and summaries when direction changes or moves. Check that

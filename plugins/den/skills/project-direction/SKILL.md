@@ -1,7 +1,7 @@
 ---
 name: project-direction
 description: Establishes and durably records project goals, priorities, constraints and intended development with the user, preserving the reasons behind them and questions still unresolved.
-when_to_use: ALWAYS invoke this skill when the user asks to establish or revisit project direction, and before task scoping when relevant project direction is missing, conflicting or superseded. Do not infer project commitments or conduct the discovery directly; use this skill first.
+when_to_use: ALWAYS invoke this skill when the user asks to establish or revisit project direction, and when a task depends on project direction that is missing, conflicting or superseded. Do not infer project commitments or conduct the discovery directly; use this skill first.
 ---
 
 # Project direction
@@ -12,7 +12,7 @@ and explain their consequences. Run this conversation in the lead session.
 Discovery has no default time or question budget. Continue investigating and
 questioning until the project's goals and intended development are understood,
 including the reasons behind consequential tradeoffs. Producing a document is
-not itself completion. Scoping's bound on task questions does not apply here.
+not itself completion.
 
 1. **Recover what is already known.**
 

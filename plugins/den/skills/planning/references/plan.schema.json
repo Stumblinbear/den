@@ -113,7 +113,7 @@
 					"type": "object",
 					"additionalProperties": false,
 					"required": ["reason"],
-					"description": "Why this step is a separate step. A boundary earns its place by one of the slicing skill's tests; the first step usually states the risk it tests.",
+					"description": "Why this step is a separate step.",
 					"properties": {
 						"test": {
 							"enum": ["risk", "teaches", "oneRead"],
@@ -229,7 +229,7 @@
 				},
 				"over": {
 					"$ref": "#/$defs/markdown",
-					"description": "The alternative it passed over. Rendered after the word 'over'."
+					"description": "The alternative it weighed and passed over, left out when none was weighed. Rendered after the word 'over'."
 				},
 				"why": {
 					"$ref": "#/$defs/markdown"
@@ -242,7 +242,7 @@
 						"approved",
 						"objected"
 					],
-					"description": "notRaised: the user has not yet replied having seen it. noObjection: the user replied having seen it and did not object. leftToAgent: left to the implementer to decide in the code. approved / objected: the user's answer."
+					"description": "notRaised: the user has not yet replied having seen it. noObjection: the user replied having seen it and did not object. leftToAgent: left to the implementer to decide in the code. approved / objected: the user's answer, which leaves it a proposal: a recommendation the user accepted is approved here, never moved to the decisions."
 				}
 			}
 		},
@@ -269,7 +269,7 @@
 				},
 				"over": {
 					"$ref": "#/$defs/markdown",
-					"description": "What the user rejected. Rendered after the word 'over'."
+					"description": "What the user weighed and rejected, left out when nothing was weighed. Rendered after the word 'over'."
 				},
 				"decided": {
 					"type": "string",

@@ -2,15 +2,15 @@
 //
 // The argument is the plan file's path, taken as the whole argument string,
 // so a path holding spaces arrives whole. The plan is JSON in the shape
-// `skills/slicing/references/plan.schema.json` defines, and the page carries
+// `skills/planning/references/plan.schema.json` defines, and the page carries
 // every file its blocks point at. One line on stdout names the page, with the
 // plan's title, its step tallies, every source left unread and every problem
 // in the plan.
 //
-// No argument, a file that cannot be read, or JSON that is not an object
-// prints the reason and writes no page. The exit is 0 either way, so the
-// preamble shows the reason rather than an error the session cannot read.
-// The plan file is only ever read.
+// No argument, a file that cannot be read, JSON that does not parse, or JSON
+// that is not an object prints the reason and writes no page. The exit is 0
+// either way, so the preamble shows the reason rather than an error the
+// session cannot read. The plan file is only ever read.
 import { writeFileSync } from "node:fs";
 import process from "node:process";
 import { count, planLine } from "../lib/plan/line.mts";
