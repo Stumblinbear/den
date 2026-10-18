@@ -14,16 +14,23 @@ import {
 	statSync,
 } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, relative } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MARKETPLACE = "den";
 
-// Installed by Claude Code from the plugin's lockfile, and never part of the
-// checkout's copy.
-const KEPT = "node_modules";
+/**
+ * Whether the refresh leaves `path` in the installed copy as it is.
+ *
+ * @remarks
+ * `path` is relative to the plugin root. Only the root `node_modules` is
+ * kept, since Claude Code installs it from the plugin's lockfile.
+ */
+function isKept(path: string): boolean {
+	return path === "node_modules";
+}
 
 const plugin = process.argv[2];
 
@@ -68,33 +75,55 @@ if (target === undefined || !existsSync(target)) {
 	process.exit(1);
 }
 
-for (const path of files(target)) {
-	if (!existsSync(join(source, path))) {
-		rmSync(join(target, path));
+// The checkout's listing keeps each name's case, so it decides what is stale:
+// `existsSync` on a case-insensitive filesystem finds `skills/Foo` after a
+// rename to `skills/foo`, and the installed `Foo` would keep its old name.
+const checkoutPaths = new Set(entries(source));
+
+for (const path of entries(target)) {
+	const installed = join(target, path);
+	const checkout = join(source, path);
+
+	// Removing a stale directory removes the entries listed after it. An entry
+	// that is a file on one side and a directory on the other goes too, since
+	// `cpSync` refuses to copy either kind over the other.
+	if (
+		existsSync(installed) &&
+		(!checkoutPaths.has(path) ||
+			statSync(installed).isDirectory() !== statSync(checkout).isDirectory())
+	) {
+		rmSync(installed, { recursive: true });
 	}
 }
 
 cpSync(source, target, {
 	recursive: true,
-	filter: (path) => path !== join(source, KEPT),
+	filter: (path) => !isKept(relative(source, path)),
 });
 
 process.stdout.write(`${plugin} refreshed at ${target}; run /reload-plugins\n`);
 
-function files(dir: string): string[] {
+/**
+ * Every file and directory below `dir`, as a path relative to `root`, leaving
+ * out each path {@link isKept} keeps and everything under it.
+ *
+ * @remarks
+ * `dir` is relative to `root`. A directory comes before its contents.
+ */
+function entries(root: string, dir = ""): string[] {
 	const found: string[] = [];
 
-	for (const name of readdirSync(dir)) {
-		if (name === KEPT) {
+	for (const name of readdirSync(join(root, dir))) {
+		const path = join(dir, name);
+
+		if (isKept(path)) {
 			continue;
 		}
 
-		const path = join(dir, name);
+		found.push(path);
 
-		if (statSync(path).isDirectory()) {
-			found.push(...files(path).map((child) => join(name, child)));
-		} else {
-			found.push(name);
+		if (statSync(join(root, path)).isDirectory()) {
+			found.push(...entries(root, path));
 		}
 	}
 
