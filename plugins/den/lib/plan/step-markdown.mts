@@ -317,6 +317,7 @@ function stepLines(steps: unknown[], i: number, survey: Survey): string[] {
 		`Status: ${STEP_STATUS_WORDS[status] ?? status}.`,
 		"",
 		...section("## Summary", prose(step["summary"])),
+		...section("## Risk it resolves", prose(step["resolvesRisk"])),
 		...section("## Once it lands", blockList(step["afterItLands"], survey)),
 		...section("## Gate", bullets(step["gate"])),
 		...section("## Decisions", decisionLines(step)),

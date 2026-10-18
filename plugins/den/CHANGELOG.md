@@ -27,8 +27,8 @@ minor bump may change behavior.
   loaded.
 - A `plan-step` skill, not in the `/` menu, writes one step of a plan to a
   markdown file an agent reads: the plan's goal, done criteria and non-goals,
-  the step's decisions and proposals, the facts it relies on as claim and
-  `path:lines`, its proposed change and its gate. Without a step number it
+  the risk the step resolves, its decisions and proposals, the facts it relies
+  on as claim and `path:lines`, its proposed change and its gate. Without a step number it
   covers the step in progress, or every step when not exactly one is. The
   implementers, the reviewer, the quality reviewer and the closure verifier
   run it when handed a plan's JSON file.

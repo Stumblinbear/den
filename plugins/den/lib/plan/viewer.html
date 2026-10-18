@@ -103,6 +103,7 @@ table.cut td.n{font:13px/1.6 var(--mono);color:var(--mute)}
 .srow .used a{font:12px/1.6 var(--mono);padding:0 7px;border-radius:4px;background:var(--chip2);color:var(--ink)}
 table.cut td.t a{font-weight:600;color:var(--ink)}
 table.cut tr.warn td.r{background:var(--warn-bg)}
+table.cut td.r .resolves.after{margin-top:8px}
 .test{display:inline-block;font:600 10px/1.7 var(--mono);letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:0 7px;margin-right:8px;vertical-align:1px}
 .test.risk{color:var(--ink);background:#E9E9E4}
 .test.teaches{color:#1B6436;background:#E5F4EA}
@@ -360,7 +361,7 @@ details.evcode>.blocks{margin-top:8px}
   }
   const halfIcon = '<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M9 4a5 5 0 0 1 0 10z" fill="currentColor"/></svg>';
   const checkIcon = '<svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4l3 3L11.5 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const testLabels = { risk: 'Risk', teaches: 'Teaches', oneRead: 'One read' };
+  const testLabels = { teaches: 'Teaches', oneRead: 'One read' };
   const statusLabels = { notRaised: 'not raised', noObjection: 'no objection', leftToAgent: 'left to the implementer', approved: 'approved', objected: 'objected' };
 
   // ---- index the plan ------------------------------------------------------
@@ -609,7 +610,8 @@ details.evcode>.blocks{margin-top:8px}
         var c = s.cut, named = c && testLabels[c.test], flagged = !named && i > 0;
         var chip = named ? `<span class="test ${c.test}">${testLabels[c.test]}</span>` : flagged ? '<span class="test none">No test named</span>' : '';
         var reason = c?.reason ? mdi(c.reason) : '';
-        return `<tr${flagged ? ' class="warn"' : ''}><td class="n">${pad2(i)}</td><td class="t"><a href="#step-${i + 1}">${esc(s.title)}</a></td><td class="r">${chip}${reason}</td></tr>`;
+        var risk = s.resolvesRisk ? `<div class="resolves${chip || reason ? ' after' : ''}"><span class="test risk">Risk</span>${mdi(s.resolvesRisk)}</div>` : '';
+        return `<tr${flagged ? ' class="warn"' : ''}><td class="n">${pad2(i)}</td><td class="t"><a href="#step-${i + 1}">${esc(s.title)}</a></td><td class="r">${chip}${reason}${risk}</td></tr>`;
       }).join('') + '</tbody></table></div></section>';
 
     var openHtml = '';

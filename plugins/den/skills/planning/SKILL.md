@@ -50,12 +50,13 @@ exists to remove, since a step that keeps the defect narrower is not a cut.
 ## Separation and order are different rules
 
 Order is by risk. The assumption most likely to be wrong is tested first,
-inside the first step or as it; a risk is a reason to order, not a step of
-its own, and a change with one step has nothing to order. A walking
-skeleton, the thinnest path end to end before any breadth, is for a change
-that spans layers. A one-way door, such as a stored format, a public
+inside the first step or as it, and a change with one step has nothing to
+order. A step that resolves a risk the later steps rely on earns its boundary
+by the first test below, since its answer changes what they should be. A
+walking skeleton, the thinnest path end to end before any breadth, is for a
+change that spans layers. A one-way door, such as a stored format, a public
 surface or a dependency, is decided early and landed in the latest step that
-can hold it. Order never makes a boundary, whether it comes from risk or
+can hold it. Order alone never makes a boundary, whether it comes from risk or
 from one piece needing another.
 
 A change is one step until a boundary earns its place, by one of two tests:

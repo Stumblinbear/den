@@ -116,13 +116,17 @@
 					"description": "Why this step is a separate step.",
 					"properties": {
 						"test": {
-							"enum": ["risk", "teaches", "oneRead"],
-							"description": "risk: this step tests the assumption most likely wrong. teaches: landing the previous step teaches what this one should be. oneRead: this step and the previous one together exceed one read. Leave it out only if no test applies; the page flags that on every step after the first."
+							"enum": ["teaches", "oneRead"],
+							"description": "teaches: landing the previous step teaches what this one should be. oneRead: this step and the previous one together exceed one read. Leave it out only if no test applies; the page flags that on every step after the first."
 						},
 						"reason": {
 							"$ref": "#/$defs/markdown"
 						}
 					}
+				},
+				"resolvesRisk": {
+					"$ref": "#/$defs/markdown",
+					"description": "The risk this step resolves, stated as what could be wrong: \"the cache key may not survive a process restart\"."
 				},
 				"summary": {
 					"$ref": "#/$defs/markdown",

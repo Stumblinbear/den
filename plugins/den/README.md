@@ -63,8 +63,8 @@ diff-page; the rest are hidden from the `/` menu:
   that the survey lacks. Claude runs it whenever it puts a plan to you.
   Nothing is published unless you ask for a link.
 - `plan-step`: writes one step of a plan to a markdown file an agent reads:
-  the plan's goal, done criteria and non-goals, the step's decisions and
-  proposals, the facts it relies on as claim and `path:lines`, its proposed
+  the plan's goal, done criteria and non-goals, the risk the step resolves,
+  its decisions and proposals, the facts it relies on as claim and `path:lines`, its proposed
   change and its gate. Without a step number it covers the step in progress,
   or every step when not exactly one is. The implementers, the reviewers and
   the closure verifier run it when handed a plan's JSON file. It is not in
