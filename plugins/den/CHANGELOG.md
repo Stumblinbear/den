@@ -7,6 +7,8 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-19
+
 ### Added
 
 - A quality reviewer, on Opus, reads a change for the shape of its code:
@@ -735,7 +737,8 @@ Initial release.
 - The `flag-review` and `comment-review` skills render the review scope
   through a shared `diff-scope.sh` helper and inline the diff when it fits.
 
-[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.7.0...HEAD
+[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.8.0...HEAD
+[0.8.0]: https://github.com/Stumblinbear/den/compare/den--v0.7.0...den--v0.8.0
 [0.7.0]: https://github.com/Stumblinbear/den/compare/den--v0.6.0...den--v0.7.0
 [0.6.0]: https://github.com/Stumblinbear/den/compare/den--v0.5.0...den--v0.6.0
 [0.5.0]: https://github.com/Stumblinbear/den/compare/den--v0.4.0...den--v0.5.0
