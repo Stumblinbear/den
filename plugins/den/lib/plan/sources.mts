@@ -54,7 +54,7 @@ const IMAGE_TYPES: Readonly<Record<string, string>> = {
  * sits in. Git is asked for its root once, when a block first needs it.
  */
 class PlanRepo {
-	readonly #dir: string;
+	#dir: string;
 	#root: Output | undefined;
 
 	constructor(planFile: string) {

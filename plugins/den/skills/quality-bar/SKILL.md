@@ -1,6 +1,6 @@
 ---
 name: quality-bar
-description: Defines what a good change looks like in any codebase, for leads, implementers, and reviewers: patterns, ownership, domain model, sources of truth, interfaces, abstraction timing, one-way doors, and deviating from a brief well.
+description: "Defines what a good change looks like in any codebase, for leads, implementers, and reviewers: patterns, ownership, domain model, sources of truth, interfaces, abstraction timing, one-way doors, and deviating from a brief well."
 when_to_use: ALWAYS invoke this skill when you're planning a change, reviewing a change, or receiving a change from an agent.
 user-invocable: false
 ---
