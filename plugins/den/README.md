@@ -62,7 +62,7 @@ diff-page; the rest are hidden from the `/` menu:
   problem in the plan, such as an ID used twice or a fact a step relies on
   that the survey lacks. Claude runs it whenever it puts a plan to you.
   Nothing is published unless you ask for a link.
-- `plan-step`: writes one step of a plan to a markdown file an agent reads:
+- `plan-step`: gives an agent one step of a plan as the skill's text:
   the plan's goal, done criteria and non-goals, the risk the step resolves,
   its decisions and proposals, the facts it relies on as claim and `path:lines`, its proposed
   change and its gate. Without a step number it covers the step in progress,

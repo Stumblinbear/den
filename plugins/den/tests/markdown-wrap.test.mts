@@ -1,4 +1,4 @@
-// Tests for the markdown wrapper the plan-step file is written through.
+// Tests for the markdown wrapper plan-step wraps the step's prose with.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { wrapMarkdown } from "../lib/markdown-wrap.mts";

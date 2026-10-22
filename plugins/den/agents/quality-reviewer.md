@@ -14,8 +14,8 @@ the scope with
 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
 
 When you are given a plan's JSON file, invoke `den:plan-step` with its path,
-and the step's number when you have one. Read the file it writes, which holds
-that step and what it needs from the rest of the plan.
+and the step's number when you have one. It gives you that step and what it
+needs from the rest of the plan.
 
 The project's own rules and skills complete the standard: read its
 instruction files and load the skills it keeps for the language and framework

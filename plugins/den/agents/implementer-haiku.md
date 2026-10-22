@@ -13,8 +13,8 @@ decision is a stop, below: it never goes into the code, and a report that
 declares it does not repair it.
 
 When you are given a plan's JSON file, invoke `den:plan-step` with its path,
-and the step's number when you have one. Read the file it writes, which holds
-that step and what it needs from the rest of the plan.
+and the step's number when you have one. It gives you that step and what it
+needs from the rest of the plan.
 
 The task has no implicit deadline. Unless the user sets a time constraint,
 take the time needed to complete and verify the entire transformation.

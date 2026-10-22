@@ -7,6 +7,10 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+- `plan-step` gives the agent the step as the skill's text instead of writing
+  it to a file, so the agent reads it without a second call.
+
 ## [0.8.0] - 2026-10-19
 
 ### Added

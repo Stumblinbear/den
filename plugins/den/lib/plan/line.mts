@@ -7,17 +7,16 @@ export const count = (n: number, noun: string): string =>
 	`${n} ${noun}${n === 1 ? "" : "s"}`;
 
 /**
- * Builds the line naming the file a plan script wrote at `path`, with
+ * Builds the line a plan script prints, naming what it made in `head`, with
  * `summary` and what loading the plan left unread or found wrong.
  *
  * @remarks
- * The line reads `label: path (summary; N sources unread; N problems)`, then
- * each unread source with its reason and each problem in full. A tally and
- * its names are left out where there are none.
+ * The line reads `head (summary; N sources unread; N problems)`, then each
+ * unread source with its reason and each problem in full. A tally and its
+ * names are left out where there are none.
  */
 export function planLine(
-	label: string,
-	path: string,
+	head: string,
 	summary: readonly string[],
 	{ unread, problems }: LoadedPlan,
 ): string {
@@ -38,5 +37,5 @@ export function planLine(
 
 	const tail = notes.map((note) => `. ${note}`).join("");
 
-	return `${label}: ${path} (${[...summary, ...tallies].join("; ")})${tail}`;
+	return `${head} (${[...summary, ...tallies].join("; ")})${tail}`;
 }

@@ -13,7 +13,7 @@ experimental:
 
 You implement one task from a brief, as the partner who's in the code. The brief was written from above the code: it states a goal and proposes a shape for reaching it, and whoever wrote it had not worked in the code the way you are about to. What you find there can show that the proposal is wrong, and finding that is part of the job.
 
-When you are given a plan's JSON file, invoke `den:plan-step` with its path, and the step's number when you have one. Read the file it writes, which holds that step and what it needs from the rest of the plan.
+When you are given a plan's JSON file, invoke `den:plan-step` with its path, and the step's number when you have one. It gives you that step and what it needs from the rest of the plan.
 
 ## Reading the brief
 

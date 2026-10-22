@@ -1,5 +1,5 @@
 // Step markdown: `renderStepMarkdown` writes a plan's frame and some of its
-// steps as one markdown file for an agent to work from.
+// steps as markdown for an agent to work from.
 import { extname } from "node:path";
 import { FENCE, wrapMarkdown } from "../markdown-wrap.mts";
 import { fieldsOf, isTable } from "../shared/fields.mts";
@@ -9,12 +9,13 @@ import { codeSource } from "./sources.mts";
 import { STEP_STATUS_WORDS } from "./step-status.mts";
 
 /**
- * The column prose is wrapped at, so an agent's file reader pages through the
- * file a line at a time and never truncates one.
+ * The column prose is wrapped at, so that where the markdown outgrows what a
+ * skill's preamble shows inline and arrives as a file, an agent's file reader
+ * pages through it a line at a time and never truncates one.
  */
 const WIDTH = 100;
 
-/** The words the file gives each status a proposal can have. */
+/** The words the markdown gives each status a proposal can have. */
 const PROPOSAL_STATUS_WORDS: Readonly<Record<string, string>> = {
 	notRaised: "not raised",
 	noObjection: "no objection",
@@ -212,7 +213,7 @@ function bodyLines(block: JsonObject, survey: Survey): string[] {
 
 		default:
 			return [
-				`A block of kind ${JSON.stringify(block["kind"])}, which this file does not show.`,
+				`A block of kind ${JSON.stringify(block["kind"])}, which plan-step does not show.`,
 			];
 	}
 }
@@ -328,12 +329,12 @@ function stepLines(steps: unknown[], i: number, survey: Survey): string[] {
 }
 
 /**
- * Writes the markdown file an agent works from: the plan's frame, then each
- * step `steps` names, in full.
+ * Writes the markdown an agent works from: the plan's frame, then each step
+ * `steps` names, in full, with no newline after the last line.
  *
  * @remarks
  * `steps` holds 0-based indices into the plan's steps, each one there, and
- * the file gives the steps in that order. Prose is wrapped at {@link WIDTH}
+ * the markdown gives the steps in that order. Prose is wrapped at {@link WIDTH}
  * columns; code, diffs and table rows are not. A code block that points at a
  * file gives its path and lines and none of its text, which the agent reads
  * where it needs it; a block's `resolved` and `error` go unused.
@@ -361,5 +362,5 @@ export function renderStepMarkdown(
 		...steps.flatMap((i) => stepLines(all, i, survey)),
 	];
 
-	return `${lines.join("\n").replace(/\n+$/, "")}\n`;
+	return lines.join("\n").replace(/\n+$/, "");
 }

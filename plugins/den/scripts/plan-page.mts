@@ -61,7 +61,11 @@ function main(): string {
 
 	writeFileSync(path, renderPage(plan, problems));
 
-	return planLine("Plan page", path, [title, stepTally(plan["steps"])], loaded);
+	return planLine(
+		`Plan page: ${path}`,
+		[title, stepTally(plan["steps"])],
+		loaded,
+	);
 }
 
 process.stdout.write(`${main()}\n`);

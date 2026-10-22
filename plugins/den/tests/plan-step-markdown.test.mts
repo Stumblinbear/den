@@ -1,4 +1,4 @@
-// Tests for the step file plan-step writes, which an agent reads, not the
+// Tests for the step markdown plan-step prints, which an agent reads, not the
 // user: the user's decisions in it are named as the user's, and a sketch's
 // code keeps its lines whole.
 import assert from "node:assert/strict";
@@ -9,8 +9,8 @@ import { fixtureDir } from "../../../tests/harness.mts";
 import { loadPlan } from "../lib/plan/load.mts";
 import { renderStepMarkdown } from "../lib/plan/step-markdown.mts";
 
-/** Writes `plan` into `dir` and returns step 1 as the step file has it. */
-function stepFile(plan: object, dir: string): string {
+/** Writes `plan` into `dir` and returns step 1 as plan-step prints it. */
+function stepMarkdown(plan: object, dir: string): string {
 	const file = join(dir, "plan.json");
 
 	writeFileSync(file, JSON.stringify(plan));
@@ -22,8 +22,8 @@ function stepFile(plan: object, dir: string): string {
 	return renderStepMarkdown(loaded, [0]);
 }
 
-test("the step file heads the user's decisions as the user's, not the reading agent's", () => {
-	const written = stepFile(
+test("the step heads the user's decisions as the user's, not the reading agent's", () => {
+	const written = stepMarkdown(
 		{
 			title: "A plan",
 			decisions: {
@@ -31,7 +31,7 @@ test("the step file heads the user's decisions as the user's, not the reading ag
 			},
 			steps: [{ title: "One", status: "inProgress", summary: "s", gate: [] }],
 		},
-		fixtureDir("plan-step-file"),
+		fixtureDir("plan-step-markdown"),
 	);
 
 	assert.ok(written.includes("opening_shape"), written);
@@ -41,7 +41,7 @@ test("the step file heads the user's decisions as the user's, not the reading ag
 test("a sketched decision's code keeps its lines whole however long", () => {
 	const code =
 		"fn f() { let x = 1; /* a comment running well past the hundred columns the file wraps prose at */ }";
-	const written = stepFile(
+	const written = stepMarkdown(
 		{
 			title: "A plan",
 			steps: [
@@ -58,7 +58,7 @@ test("a sketched decision's code keeps its lines whole however long", () => {
 				},
 			],
 		},
-		fixtureDir("plan-step-file"),
+		fixtureDir("plan-step-markdown"),
 	);
 
 	assert.ok(written.includes(code), written);
