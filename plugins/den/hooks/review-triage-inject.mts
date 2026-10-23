@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { subagentHandBack } from "../lib/hand-back.mts";
 import { type PromptOutput, writePromptOutput } from "../lib/prompt-output.mts";
-import { reviewTriageDir, takeFlag } from "../lib/relay.mts";
+import { reviewTriageDir, TRIAGE_CALL_RULE, takeFlag } from "../lib/relay.mts";
 import { faults } from "../lib/shared/fault.mts";
 import { errorMessage, fieldsOf } from "../lib/shared/fields.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
@@ -41,12 +41,15 @@ const faultLine = (detail: string, cause?: unknown): string =>
 
 // Each reminder names the triage skill and none of its rules; see the header
 // of `lib/relay.mts`.
-const IN_RUN_REMINDER =
-	"If the `den:review-and-fix` return holds anything to rule on, any finding or carried item, invoke `den:triage` and triage every one, even if `den:triage` is already in your context, since an earlier load sits too far back to keep the report's framing out of your ruling.";
+const IN_RUN_REMINDER = [
+	"If the `den:review-and-fix` return holds anything to rule on, any finding or carried item, invoke `den:triage` and triage every one.",
+	TRIAGE_CALL_RULE,
+].join(" ");
 
 const QUALITY_REMINDER = [
 	"A quality review completed.",
-	"If it raised findings, invoke `den:triage` and triage every finding in each report, even if `den:triage` is already in your context, since an earlier load sits too far back to keep the report's framing out of your ruling.",
+	"If it raised findings, invoke `den:triage` and triage every finding in each report.",
+	TRIAGE_CALL_RULE,
 ].join(" ");
 
 // What a quality reviewer's hand-back in `prompt` has for the lead or the user,

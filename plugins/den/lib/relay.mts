@@ -33,6 +33,13 @@ import { join } from "node:path";
 import { fieldsOf } from "./shared/fields.mts";
 
 /** A pending hand-back, as its flag file recorded it. */
+/**
+ * The sentence every triage reminder ends with, so the three reminders say
+ * one thing about the call itself.
+ */
+export const TRIAGE_CALL_RULE =
+	"The call is this turn's first tool call, before any ruling or reply: a copy of `den:triage` already in your context does not stand in for it, since it sits too far back to keep the report's framing out of your ruling, and a ruling made without the call is a failure.";
+
 export interface Flag {
 	/** Empty when the file carried no type; the reminder then names none. */
 	readonly agentType: string;

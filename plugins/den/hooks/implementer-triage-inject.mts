@@ -5,7 +5,12 @@
 
 import { subagentHandBack } from "../lib/hand-back.mts";
 import { writePromptOutput } from "../lib/prompt-output.mts";
-import { type Flag, implementerTriageDir, takeFlag } from "../lib/relay.mts";
+import {
+	type Flag,
+	implementerTriageDir,
+	TRIAGE_CALL_RULE,
+	takeFlag,
+} from "../lib/relay.mts";
 import { faults } from "../lib/shared/fault.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
 import { hookInput } from "../lib/shared/hook-input.mts";
@@ -22,7 +27,8 @@ const HAND_BACK_FAULTS = faults(
 function reminder(flag: Flag): string {
 	return [
 		`An implementer agent reported finishing${flag.agentType ? ` (${flag.agentType})` : ""}.`,
-		"If the report raises an issue, such as a deviation, a question, a stop or a failed check, invoke `den:triage` and triage it, even if `den:triage` is already in your context, since an earlier load sits too far back to keep the report's framing out of your ruling.",
+		"If the report raises an issue, such as a deviation, a question, a stop or a failed check, invoke `den:triage` and triage it.",
+		TRIAGE_CALL_RULE,
 	].join(" ");
 }
 

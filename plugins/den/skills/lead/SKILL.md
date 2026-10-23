@@ -136,7 +136,7 @@ When a launch needs no go-ahead and nothing is waiting on the user, launch it im
 
 ## Review
 
-A change that adds names, types, or mechanisms a reader will live with goes to `den:quality-reviewer` first. Once its defects are resolved, run `den:review-and-fix` to catch bugs. A mechanical sweep or a fix round doesn't need the quality review.
+A change that adds names, types, or mechanisms a reader will live with goes to `den:quality-reviewer` first, a fix round that adds one included. Once its defects are resolved, run `den:review-and-fix` to catch bugs. A mechanical sweep doesn't need the quality review.
 
 Triage findings with your own judgment, against the goal and the quality checks.
 

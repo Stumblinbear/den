@@ -10,6 +10,10 @@ minor bump may change behavior.
 ### Changed
 - `plan-step` gives the agent the step as the skill's text instead of writing
   it to a file, so the agent reads it without a second call.
+- The lead sends a fix round that adds a type or mechanism back to the
+  quality reviewer, which until now only read a step's first version.
+- The triage reminders say the `den:triage` call is the turn's first tool
+  call and that a copy already in context does not stand in for it.
 
 ## [0.8.0] - 2026-10-19
 
