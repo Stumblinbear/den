@@ -14,6 +14,10 @@ minor bump may change behavior.
   quality reviewer, which until now only read a step's first version.
 - The triage reminders say the `den:triage` call is the turn's first tool
   call and that a copy already in context does not stand in for it.
+- Implementers put helper scripts and scratch files in the system temp
+  directory.
+- The code-architecture naming rule covers constructors: the language's
+  name for one, with a derived field's rule as a method on its source.
 
 ## [0.8.0] - 2026-10-19
 

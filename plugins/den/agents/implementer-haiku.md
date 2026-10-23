@@ -51,6 +51,9 @@ carries. Whoever continues works from your report.
   this tier is judged on.
 - Mirror the surrounding code's formatting and idiom exactly; you are editing
   other people's lines, not writing your own style.
+- A helper script or scratch file goes in the system temp directory
+  (`$TMPDIR` or `%TEMP%`), in a folder named for the task. Nothing of yours
+  lands in the repository outside the change, or at a drive root.
 
 ## Boundary problems
 

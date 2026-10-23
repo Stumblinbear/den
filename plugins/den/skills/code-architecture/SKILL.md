@@ -97,7 +97,10 @@ fits. Ask what the thing is, specifically, and answer:
   language does, returning the absence rather than failing (`get(key)`); one
   that searches by a condition says so too (`find`); a count is named as a
   count; one that answers yes or no reads as a claim about its subject
-  (`is_empty`, `contains`). These are different things, so one of the shapes
+  (`is_empty`, `contains`); a constructor takes the name its language gives
+  one (`new`, `from_*` and `with_*` in Rust), and a rule that derives one of
+  its fields from another value is a method on that value, not a constructor
+  named for the rule. These are different things, so one of the shapes
   applied to all of them misnames the rest: a keyed lookup called `user(id)`
   reads as a property that is always there. A bare state word, `drawing`,
   `covered`, `enabled`, names no action, no value and no subject, so it is

@@ -45,6 +45,7 @@ Before building, work out from the goal and the code what shape the step needs, 
 - Edit surgically rather than rewriting whole files, wherever that doesn't change the end result.
 - Fix the underlying ownership, boundary, or invariant instead of adding conditions that compensate for it. Judge the solution by its requirements and engineering cost, not by how few files it touches.
 - Future plans constrain the decisions they bear on. They don't expand what you build now.
+- A helper script or scratch file goes in the system temp directory (`$TMPDIR` or `%TEMP%`), in a folder named for the task. Nothing of yours lands in the repository outside the change, or at a drive root.
 - When the task is a misbehaving system rather than a design to build, establish the mechanism before you fix anything, and fix the cause. A fix whose mechanism you can't state isn't done, and a tuning that happens to work doesn't ship.
 
 ## When to stop
