@@ -1,4 +1,4 @@
-# Rust: the words for getters, lookups, searches and conversions
+# Rust: the words for getters, lookups, searches, conversions and variants
 
 Rust names a method by what kind of thing it is, and the kinds are few. The
 rules below are the Rust API Guidelines' naming chapter (C-GETTER, C-CONV,
@@ -15,6 +15,7 @@ enforcing the conversion prefixes. Pick the kind first; the word follows.
 6. A view over many: `iter`, the plural noun
 7. A conversion: `as_`, `to_`, `into_`
 8. The panicking and the optional pair
+9. A variant: std's word for the case
 
 ## 1. A property: the bare noun, no `get_`
 
@@ -97,3 +98,15 @@ takes the same pair where callers need both, the bare name panicking and the
 `get_` form returning `Option`. A test harness or any code that knows the value exists
 takes the panicking form and keeps its assertions where the value is read; a
 wait or a check that may run before the value exists takes the `get_` form.
+
+## 9. A variant: std's word for the case
+
+A variant is UpperCamelCase (RFC 430) and names the case it is, read after
+its type's name. Where std or the ecosystem has a word for the case, it is
+the word: `Shutdown::Both`, `Option::None`, `ErrorKind::NotFound`,
+`Ordering::Less`, termcolor's `ColorChoice::Always`, and `All` for the whole
+of something, as regex's `MatchKind::All`. A synonym for one of these,
+`Missing` for `NotFound`, `Neither` for `None`, gives the reader a second
+word for a case they already have one for. A case none of them names is a
+noun or adjective for the state or kind it is, `Hidden`, `Pending`, `Whole`,
+never an adverb or a determiner read as a modifier of the type's noun.

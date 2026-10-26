@@ -24,8 +24,9 @@ ecosystem's default and the framework's costly patterns are named there.
 
 Read for:
 
-- a name, checked where it is read, against the verb the language or
-  framework already gives the operation and the project's naming rules;
+- a name, checked where it is read, against the word the language or
+  framework already uses for a thing of its kind, an operation's verb or an
+  enum variant's case, and the project's naming rules;
 - a closure, tuple or flag where a named type or function would be found
   and tested;
 - bookkeeping a simpler rule removes, by the deletion test, and one fact kept

@@ -89,6 +89,11 @@ type, field or function, and again when a review asks whether a name still
 fits. Ask what the thing is, specifically, and answer:
 
 - in the domain's terms and the vocabulary its siblings already use;
+- with the word its language or framework already uses for a thing of
+  that kind, an operation's verb and an enum variant's case alike, since a
+  synonym for a word the reader already holds for one meaning is a second
+  word to learn and a difference to look for; a thing the language has no
+  word for is named afresh, as a noun for what it is;
 - with its role in the name: an identifier is an `Id`;
 - for a function, by what it is: one that acts takes the verb its language or
   framework already gives it (`insert`, `remove`, `open`); one that returns a
@@ -354,5 +359,5 @@ unnoticed by a reader who has not read it.
 - `references/rust-iterators.md`: what an iterator holds, lazy and small.
 - `references/rust-conversions.md`: constructors and the conversion traits.
 - `references/rust-naming.md`: the words for getters, lookups, searches,
-  predicates and conversions, from the API guidelines and std.
+  predicates, conversions and variants, from the API guidelines and std.
 - `references/sources.md`: the sources behind the Rust references.
