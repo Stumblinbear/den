@@ -28,10 +28,11 @@ for what that skill does not hold:
 
 - a closure or tuple where a named type or function would be found and
   tested;
-- a cost a reader would ask about: work repeated where a gate or a cache
-  would skip it, a scan where an index exists, allocation or copying in a hot
-  path where a borrow serves, quadratic work over a collection, a
-  synchronisation point added for nothing;
+- a cost a reader would ask about, on any path, since a waste that is free
+  to remove is a finding wherever it runs: work repeated where a gate or a
+  cache would skip it, a scan where an index exists, a collection built and
+  read once where an iterator or a borrow serves, quadratic work over a
+  collection, a synchronisation point added for nothing;
 - a pattern the language's or framework's own guidance warns against, where
   its ecosystem has settled on another idiom.
 

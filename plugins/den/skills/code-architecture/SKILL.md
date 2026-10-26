@@ -222,6 +222,21 @@ path to one state. Each is one thing twice, and the second must mirror the
 first forever. The second handler goes in the table, and `reset` replaces the
 value with a newly constructed one.
 
+**A type not yet written.** The question comes up when you pass the same few
+values from one function to the next, when you write a function that takes
+four or five arguments that always travel together, when you write a check or
+a lookup again at each call, and when you fix something by adding one more
+function beside the last. Ask what the values are together, and the answer is
+a type: the values its fields, the functions its methods, the check its
+invariant kept in one place. A parser's input, position and errors handed to
+every parse function are the parser; a request's id, its selection and what
+later events took from it, threaded through send, narrow and reply, are the
+pending request. Adding a function beside the others leaves the invariant in
+every caller, where the type keeps it once and each call reads as what it
+asks for. To find the type, inline the functions and look at what they share:
+what is shared is the type, named for what the group is, never for the
+functions.
+
 ## Interfaces
 
 Every abstraction gives its callers an interface: everything a caller must
