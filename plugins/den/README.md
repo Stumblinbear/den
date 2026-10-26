@@ -42,6 +42,12 @@ diff-page; the rest are hidden from the `/` menu:
   your working tree without asking and never waits on the session; what it does
   not fix comes back for the session to route. The script ships under
   `workflows/`.
+- `quality-review`: runs the `quality-review-workflow` workflow, one
+  `quality-reviewer` over a git diff range, and returns its report as the
+  reviewer wrote it. The launch takes the repository, the range, the goal, the
+  plan, and your rulings and the session's calls on an earlier quality
+  review's findings, and nothing else, so no account of the change reaches
+  the reviewer. The script ships under `workflows/`.
 - `diff-page`: renders a git diff range as one page file, a collapsible
   section per file with old and new line numbers and coloured lines, and
   sends you the file, for reading a change from a phone or away from the
@@ -107,11 +113,12 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   serve the project's goals; a question it would ask arrives as a decision
   finding. The tests it writes are the only files it touches.
 - `quality-reviewer` (opus): reads a change for what the next reader of its
-  code would object to: names, missing named types, bookkeeping, types that
-  admit invalid states, large performance costs and patterns the language or
-  framework warns against. Run before the review on changes the lead judges
-  warrant it; its findings are `quality` or, where a repair would undo a
-  ruling, `decision`. Read-only.
+  code would object to: every rule of `code-architecture`, taken by its
+  heading, then missing named types, large performance costs and patterns
+  the language or framework warns against. Run through
+  `quality-review` before the review on changes the lead judges warrant it;
+  its findings are `quality` or, where a repair would undo a ruling,
+  `decision`. Read-only.
 - `closure-verifier`: verdicts a review's findings against the fixed tree,
   CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION keeps
   an item unresolved when closure depends on a product decision.
@@ -140,9 +147,9 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
 
 Hooks, registered while the plugin is enabled:
 
-- Review triage: a `review-and-fix` run's return, and a `quality-reviewer`'s
-  report, arrive with a reminder to load `triage` and rule on everything they
-  hold.
+- Review triage: a `review-and-fix` run's return, a `quality-review` run's
+  return, and a `quality-reviewer`'s report, arrive with a reminder to load
+  `triage` and rule on everything they hold.
 - Implementer triage: an implementer's report arrives with a reminder that a
   report raising an issue, such as a deviation, a question, a stop or a failed
   check, is triaged under `triage`.
@@ -195,8 +202,8 @@ references that tree, and `git gc` prunes it once it is two weeks old.
 
 What the hooks read: the path of the file an edit is about to change, the
 text of every prompt submitted, including the reports subagents hand back and
-the notices of finished background tasks, and den's own `review-and-fix`
-workflow file. A prompt is examined for who sent it and which workflow it
+the notices of finished background tasks, and den's own two workflow
+files. A prompt is examined for who sent it and which workflow it
 reports, and none of it is stored. Nothing in your project is opened.
 
 What the hooks write: one small JSON file per agent report, under
@@ -206,11 +213,10 @@ never hears another's agents. The file is deleted as its reminder is injected;
 the session's subdirectory stays.
 
 What the hooks can do to a session: add one reminder for each agent report or
-`review-and-fix` return to the context of the turn it arrives on, and one
-line before an edit to a skill, an agent definition, a hook or a rules file.
-You see a line only when a `review-and-fix` return or an agent's hand-back
-cannot be read, and no
-tool call is ever blocked.
+workflow return to the context of the turn it arrives on, and one line before
+an edit to a skill, an agent definition, a hook or a rules file. You see a
+line only when a workflow's return or an agent's hand-back cannot be read, and
+no tool call is ever blocked.
 
 ## Installation
 
@@ -237,7 +243,7 @@ with you, records them and each decision in a plan file under
 pinned, proposes the implementer and the step's scope and waits for your go.
 When it explains code, it shows you the code. Once the session has triaged
 the implementer's report, it reviews the working tree without asking you: a
-change that adds names, types or mechanisms goes to `quality-reviewer` first,
+change that adds names, types or mechanisms goes to `quality-review` first,
 and once its defects are resolved, `review-and-fix` runs on the tree with the
 task's goal. The run fixes the defects
 it finds and returns once; the session brings you the decisions that are
@@ -249,17 +255,16 @@ commit.
 A reminder arrives with the report it is about. An agent hands its report back
 through a tool call, and a hook on that call records it before the report is
 delivered; the report's delivery then runs a `UserPromptSubmit` hook, which
-injects the reminder. A `review-and-fix` return is recognized from its own
-task notification. A report that arrives while the session is mid-turn lands,
-with its reminder, at the session's next tool call or at the end of its turn.
-Each report gets its own reminder, so several agents reporting together
-produce one reminder each.
+injects the reminder. A `review-and-fix` or `quality-review` return is
+recognized from its own task notification. A report that arrives while the
+session is mid-turn lands, with its reminder, at the session's next tool call
+or at the end of its turn. Each report gets its own reminder, so several
+agents reporting together produce one reminder each.
 
-The workflow's description, the `description` in the `meta` of
-`workflows/review-and-fix-workflow.js`, is what the hook recognizes a return
-by. If a return's notification cannot be read, or the description cannot be
-read from that file, you see one line saying so, and that return gets no
-reminder.
+Each workflow's description, the `description` in the `meta` of its file
+under `workflows/`, is what the hook recognizes its return by. If a return's
+notification cannot be read, or a description cannot be read from its file,
+you see one line saying so, and that return gets no reminder.
 
 The hooks fire whenever the plugin is enabled, whether or not you invoked
 `/den:lead`. The skills and agents do nothing until you invoke or

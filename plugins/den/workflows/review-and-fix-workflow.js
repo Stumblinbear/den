@@ -12,16 +12,22 @@ export const meta = {
 const input = args && typeof args === 'object' && !Array.isArray(args) ? args : {}
 const { repo, goal, plan, rulings, leadCalls, reviewer, since } = input
 
-// Each agent stands in the session's working directory, so a relative path
-// would resolve against the very tree this argument is here to override.
-if (typeof repo !== 'string' || !/^([A-Za-z]:[\\/]|[\\/])/.test(repo)) {
-  throw new Error('`repo` is the absolute path of the repository whose working tree is reviewed')
+// Each path goes to the agents as one line; see the comment on `isLine` in
+// `quality-review-workflow.js`.
+const isLine = (value) => typeof value === 'string' && value.trim() !== '' && !/[\r\n]/.test(value)
+
+// See the comment on `isAbsolute` in `quality-review-workflow.js` for why
+// each path is absolute.
+const isAbsolute = (path) => /^([A-Za-z]:[\\/]|[\\/])/.test(path)
+
+if (!isLine(repo) || !isAbsolute(repo)) {
+  throw new Error('`repo` is the absolute path of the repository whose working tree is reviewed, as one line')
 }
 if (typeof goal !== 'string' || goal.trim() === '') {
   throw new Error('review-and-fix-workflow takes `goal`, what the change is for in the user\'s terms, as nonempty text')
 }
-if (plan !== undefined && (typeof plan !== 'string' || plan.trim() === '')) {
-  throw new Error('`plan` is the path of the plan the change belongs to')
+if (plan !== undefined && (!isLine(plan) || !isAbsolute(plan))) {
+  throw new Error('`plan` is the absolute path of the plan the change belongs to, as one line')
 }
 // Sized for one decision and its reason: the reviewer, the fixer and the
 // verifier each read the whole list. The message asks for 400 and the check

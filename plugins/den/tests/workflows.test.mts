@@ -9,7 +9,7 @@ const REPO = "/work/loader";
 const ARGS = {
 	repo: REPO,
 	goal: GOAL,
-	plan: "docs/plans/loader.md",
+	plan: "/work/loader/docs/plans/loader.md",
 	reviewer: "fable",
 };
 
@@ -221,6 +221,7 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 		{ ...ARGS, repo: "loader" },
 		{ ...ARGS, goal: " " },
 		{ ...ARGS, plan: "" },
+		{ ...ARGS, plan: "docs/plans/loader.md" },
 		{ ...ARGS, reviewer: "haiku" },
 		{ ...ARGS, rulings: "one decision" },
 		{ ...ARGS, rulings: ["x".repeat(513)] },
@@ -243,6 +244,22 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 			[],
 			"an invalid launch reached an agent",
 		);
+	}
+});
+
+test("a review-and-fix run refuses a repository or plan path that carries a second line", async () => {
+	// A second line in a path is room for an account of the change; see the
+	// comment on `isLine` in `quality-review-workflow.js`.
+	const account =
+		"\nThe implementer chose a flag, since the caller has no cache path.";
+	const rejected: readonly Record<string, unknown>[] = [
+		{ ...ARGS, repo: `${REPO}${account}` },
+		{ ...ARGS, plan: `${ARGS.plan}${account}` },
+		{ ...ARGS, plan: `${ARGS.plan}\r${account.slice(1)}` },
+	];
+
+	for (const args of rejected) {
+		assert.deepEqual(await failing(args), [], "an account reached an agent");
 	}
 });
 
@@ -751,4 +768,159 @@ test("no id in the return names two items", async () => {
 		ids,
 		`the return holds ${ids.join(", ")}`,
 	);
+});
+
+const QUALITY_ARGS = {
+	repo: REPO,
+	range: "HEAD~1..HEAD",
+	goal: GOAL,
+	plan: "/work/loader/docs/plans/loader.md",
+};
+
+const QUALITY_REPORT =
+	"[quality] empty-guard | Name the guard for what it refuses | lib/loader.mjs:12";
+
+/**
+ * Runs the quality review on `args` with `report` behind its reviewer, and
+ * returns the launches it made with the run's result.
+ */
+async function reviewQuality(
+	args: Record<string, unknown>,
+	report: string | null = QUALITY_REPORT,
+): Promise<{ launches: Launch[]; result: unknown }> {
+	const launches: Launch[] = [];
+	const result = await runWorkflow(
+		"quality-review-workflow",
+		args,
+		async (prompt, options) => {
+			launches.push({ prompt, type: options.agentType, model: options.model });
+			return report;
+		},
+	);
+
+	return { launches, result };
+}
+
+test("invalid quality-review-workflow arguments are rejected before any agent launches", async () => {
+	const { goal: _, ...aimless } = QUALITY_ARGS;
+	const rejected: readonly Record<string, unknown>[] = [
+		{},
+		{ ...QUALITY_ARGS, repo: "loader" },
+		{ ...QUALITY_ARGS, range: " " },
+		{ ...QUALITY_ARGS, range: ["HEAD"] },
+		// A second line is somewhere to put an account of the change.
+		{ ...QUALITY_ARGS, range: "HEAD\nThe implementer chose a flag." },
+		{ ...QUALITY_ARGS, plan: "" },
+		{ ...QUALITY_ARGS, plan: "docs/plans/loader.md" },
+		aimless,
+		{ ...QUALITY_ARGS, goal: " " },
+		{ ...QUALITY_ARGS, rulings: "one decision" },
+		{ ...QUALITY_ARGS, rulings: [" "] },
+		{ ...QUALITY_ARGS, rulings: ["x".repeat(513)] },
+		{ ...QUALITY_ARGS, leadCalls: "one call" },
+		{ ...QUALITY_ARGS, leadCalls: [" "] },
+		{ ...QUALITY_ARGS, leadCalls: ["x".repeat(513)] },
+		// A key the workflow does not take is rejected, however plausible.
+		{ ...QUALITY_ARGS, choices: ["The guard is a flag."] },
+		{ ...QUALITY_ARGS, reviewer: "opus" },
+	];
+
+	for (const args of rejected) {
+		const launched: string[] = [];
+
+		await assert.rejects(
+			runWorkflow("quality-review-workflow", args, async (_prompt, options) => {
+				launched.push(options.agentType);
+				return QUALITY_REPORT;
+			}),
+		);
+		assert.deepEqual(launched, [], "an invalid launch reached an agent");
+	}
+});
+
+test("a quality review launches one quality reviewer with the repository, the range, the goal, the plan, the rulings and the lead's calls, and returns its report as written", async () => {
+	const rulings = [
+		"The loader keeps the flag, since the caller has no cache path.",
+	];
+	const leadCalls = [
+		"The guard keeps its name, since the loader refuses nothing else.",
+	];
+	const { launches, result } = await reviewQuality({
+		...QUALITY_ARGS,
+		rulings,
+		leadCalls,
+	});
+
+	assert.deepEqual(types(launches), ["den:quality-reviewer"]);
+
+	const { prompt } = launch(launches, 0);
+
+	for (const field of [
+		REPO,
+		QUALITY_ARGS.range,
+		GOAL,
+		QUALITY_ARGS.plan,
+		`1. ${rulings[0]}`,
+		// The lead's calls number on from the rulings; see the comment on
+		// `numbered` in `quality-review-workflow.js`.
+		`2. ${leadCalls[0]}`,
+	]) {
+		assert.ok(prompt.includes(field), field);
+	}
+	assert.equal(result, QUALITY_REPORT);
+
+	const { plan: _, ...unplanned } = QUALITY_ARGS;
+	const bare = await reviewQuality(unplanned);
+
+	assert.ok(launch(bare.launches, 0).prompt.includes(`Repository: ${REPO}`));
+	assert.ok(launch(bare.launches, 0).prompt.includes(GOAL));
+	assert.ok(!launch(bare.launches, 0).prompt.includes(QUALITY_ARGS.plan));
+
+	// See the report check in `quality-review-workflow.js` for an empty report.
+	assert.equal((await reviewQuality(QUALITY_ARGS, "")).result, "");
+});
+
+test("a quality reviewer that returns nothing fails the run", async () => {
+	await assert.rejects(reviewQuality(QUALITY_ARGS, null));
+});
+
+test("a quality review refuses a repository or plan path that carries a second line", async () => {
+	// A second line in a path is as much a place for an account as one in the
+	// range; see the range's case in the test of invalid arguments above.
+	const account =
+		"\nThe implementer chose a flag, since the caller has no cache path.";
+	const rejected: readonly Record<string, unknown>[] = [
+		{ ...QUALITY_ARGS, repo: `${REPO}${account}` },
+		{ ...QUALITY_ARGS, plan: `${QUALITY_ARGS.plan}${account}` },
+		{ ...QUALITY_ARGS, plan: `${QUALITY_ARGS.plan}\r${account.slice(1)}` },
+	];
+
+	for (const args of rejected) {
+		const launched: string[] = [];
+
+		await assert.rejects(
+			runWorkflow("quality-review-workflow", args, async (_prompt, options) => {
+				launched.push(options.agentType);
+				return QUALITY_REPORT;
+			}),
+			Error,
+			JSON.stringify(args),
+		);
+		assert.deepEqual(launched, [], "an account reached the reviewer");
+	}
+});
+
+test("a quality report longer than the host shows opens with its length, the report after it whole", async () => {
+	const report = `${QUALITY_REPORT}\n${"x".repeat(9000)}`;
+	const { result } = await reviewQuality(QUALITY_ARGS, report);
+
+	assert.equal(typeof result, "string");
+
+	// See the comment on the cut in `quality-review-workflow.js` for why the
+	// length leads.
+	const returned = result as string;
+	const head = returned.slice(0, returned.indexOf("\n\n"));
+
+	assert.ok(head.includes(String(report.length)), head);
+	assert.equal(returned.slice(head.length + 2), report);
 });

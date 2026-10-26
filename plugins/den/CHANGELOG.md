@@ -7,6 +7,14 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+- A `quality-review` skill launches the quality reviewer through a workflow
+  that takes the repository, the diff range, the goal, the plan, and the
+  user's rulings and the lead's calls on earlier findings, and nothing else, so an implementer's account
+  of a change no longer reaches the reviewer and steers it past the choices
+  it should be judging. Its return arrives with the triage reminder, and a
+  report longer than the host shows opens with a line giving its length.
+
 ### Changed
 - `plan-step` gives the agent the step as the skill's text instead of writing
   it to a file, so the agent reads it without a second call.
@@ -16,6 +24,8 @@ minor bump may change behavior.
   call and that a copy already in context does not stand in for it.
 - Implementers put helper scripts and scratch files in the system temp
   directory.
+- The quality reviewer reads for every rule of the code-architecture skill,
+  taken by its heading, instead of a short digest of a few of them.
 - The code-architecture naming rule covers constructors: the language's
   name for one, with a derived field's rule as a method on its source.
 

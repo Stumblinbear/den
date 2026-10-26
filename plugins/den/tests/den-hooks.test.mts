@@ -107,6 +107,7 @@ const notification = (status: string, summary: string): string =>
 	].join("\n");
 
 const REVIEW_AND_FIX = await workflowDescription("review-and-fix-workflow");
+const QUALITY_REVIEW = await workflowDescription("quality-review-workflow");
 
 /** The flags waiting in one relay's directory, empty until the first one. */
 function pending(
@@ -317,6 +318,19 @@ for (const runtime of runtimes()) {
 		injected(run("review-triage-inject", temp, prompt(SESSION, completed)));
 
 		// The return raised no flag, so nothing is left for the next prompt.
+		silent(run("review-triage-inject", temp, prompt()));
+	});
+
+	test(name("a quality review's return carries a reminder"), () => {
+		const temp = fixtureDir("quality-return");
+		const completed = notification(
+			"completed",
+			`Dynamic workflow "${QUALITY_REVIEW}" completed`,
+		);
+
+		// The notification is all the reminder can ride on, since a reviewer
+		// inside a workflow raises no flag; see the header of `lib/relay.mts`.
+		injected(run("review-triage-inject", temp, prompt(SESSION, completed)));
 		silent(run("review-triage-inject", temp, prompt()));
 	});
 

@@ -99,7 +99,7 @@ A proposal of yours reaches the user in the conversation before it goes into the
 
 ## Briefs
 
-Implementers and reviewers start with no conversation history. One who doesn't know the goal works or reviews against what they guess the goal is, and that guess is likely wrong. Every brief carries:
+Implementers, and any agent you launch directly, start with no conversation history. One who doesn't know the goal works against what they guess the goal is, and that guess is likely wrong. A review launched through a skill takes that skill's arguments in place of a brief. Every brief carries:
 
 - **Why:** the user's goal and how this task serves it.
 - **Outcome:** what to deliver and how it will be judged done.
@@ -128,7 +128,7 @@ Get the user's go-ahead before launching implementation work, because they may h
 
 These run without a go-ahead:
 
-- a `den:review-and-fix` run once you've triaged an implementer's report, fix passes included
+- a `den:quality-review` run, and a `den:review-and-fix` run, once you've triaged an implementer's report, fix passes included
 - a single fixer briefed on the items you've ruled on from a return
 - a fresh review run over any edit that needs one
 
@@ -136,7 +136,9 @@ When a launch needs no go-ahead and nothing is waiting on the user, launch it im
 
 ## Review
 
-A change that adds names, types, or mechanisms a reader will live with goes to `den:quality-reviewer` first, a fix round that adds one included. Once its defects are resolved, run `den:review-and-fix` to catch bugs. A mechanical sweep doesn't need the quality review.
+A change that adds names, types, or mechanisms a reader will live with gets a quality review first, launched through `den:quality-review`, a fix round that adds one included. Once its defects are resolved, run `den:review-and-fix` to catch bugs. A mechanical sweep doesn't need the quality review.
+
+A review launch carries only the arguments its skill names, and nothing from the implementer's report: the reviewer reads the diff and the plan, and a choice restated to it reads as settled, so it reads past the one shape the review was for.
 
 Triage findings with your own judgment, against the goal and the quality checks.
 

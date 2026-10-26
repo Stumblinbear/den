@@ -23,7 +23,9 @@ type Workflow = (
 ) => Promise<unknown>;
 
 /** A workflow den ships under `workflows/`, by its file's base name. */
-export type WorkflowName = "review-and-fix-workflow";
+export type WorkflowName =
+	| "review-and-fix-workflow"
+	| "quality-review-workflow";
 
 const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 
