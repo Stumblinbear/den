@@ -58,9 +58,9 @@ Context budget: this session has crossed the point where a summarize starts to p
 
 # Injected on crossing `urgent`. It gets a compaction raised at the end of the
 # step in hand, since past this level the end of the arc is too far off to wait
-# for.
+# for, and only once `/compact` is the next command.
 urgent = """
-Context budget: this session is past the point where waiting for the arc to end is affordable. Finish the step in hand, then recommend `/compact` to the user before starting anything new."""
+Context budget: this session is past the point where waiting for the arc to end is affordable. Finish the step in hand, including anything it leaves waiting on the user. Once `/compact` is the next command the user should run, recommend it in one sentence, and start nothing new before it."""
 
 # The watcher. Past the `notice` threshold, at the end of every turn, it asks a
 # small model one thing: whether the arc of work the session is in has just

@@ -10,7 +10,8 @@ auto-compact choose one for you.
   session, a hook measures how full the context is and injects a message the
   first time it crosses each of two thresholds. The first asks the agent to
   recommend `/compact` at the end of the arc in hand. The second asks for it at
-  the end of the step in hand instead.
+  the end of the step in hand instead, once nothing it left waits on the user and
+  `/compact` is the next command to run.
 - A watcher. Past the first threshold, at the end of every turn, a background
   hook asks a small model one thing: whether the session's arc of work has just
   ended. Its answer reaches the agent on the next turn as advice: where the

@@ -78,7 +78,8 @@ Consequences that answer most "why did it" questions:
 
 Each message says how large the session is and when to recommend `/compact`:
 once the arc has ended and `/compact` is the next command the user should run
-for `notice`, at the end of the step in hand for `urgent`. The hook reads only the fixed 512 KB tail it measures, on every run,
+for `notice`, and once the step in hand is done, nothing it left waits on the user, and `/compact` is the next
+command for `urgent`. The hook reads only the fixed 512 KB tail it measures, on every run,
 and walks nothing.
 
 The resume guard runs on every `SendMessage` the main session sends a subagent
