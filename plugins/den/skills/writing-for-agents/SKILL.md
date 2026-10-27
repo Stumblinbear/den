@@ -47,6 +47,9 @@ tutorials, and behavior the model already gets right unprompted.
   projects its author never saw, so its terms, examples and costs hold
   everywhere or it misleads the next one; what is one project's belongs
   in that project's own rules or plan.
+- **Write in the register of the file's reach.** What every task loads
+  states the principle, and the specifics go to the file the area that
+  needs them loads.
 - **Prefer a leading word to a restatement.** A single concept the model
   already holds from pretraining ("a *tight* loop", "the test goes *red*")
   anchors a whole behavior in one token; a quality restated across three
