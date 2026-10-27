@@ -1,9 +1,9 @@
 # Rust: the words for getters, lookups, searches, conversions and variants
 
 Rust names a method by what kind of thing it is, and the kinds are few. The
-rules below are the Rust API Guidelines' naming chapter (C-GETTER, C-CONV,
-C-ITER) and std's own practice, with clippy's `wrong_self_convention`
-enforcing the conversion prefixes. Pick the kind first; the word follows.
+rules below come from the Rust API Guidelines and std's own practice, with
+clippy's `wrong_self_convention` enforcing the conversion prefixes. Pick the
+kind first; the word follows.
 
 ## Contents
 
@@ -21,7 +21,7 @@ enforcing the conversion prefixes. Pick the kind first; the word follows.
 
 A method that returns something the receiver holds, or derives cheaply and
 without failing, is named for the value: `len()`, `capacity()`, `first()`,
-`depth()`, `parent()`. The guideline (C-GETTER) keeps `get_` off these:
+`depth()`, `parent()`. The API Guidelines keep `get_` off these:
 "with a few exceptions, the `get_` prefix is not used for getters in Rust
 code." The exception is a type with one thing to get, `Cell::get`,
 `RefCell::get_mut`, where the bare name would have nothing to say.
@@ -75,15 +75,15 @@ themselves.
 
 ## 6. A view over many: `iter`, the plural noun
 
-A method returning the items is `iter()`, `iter_mut()`, `into_iter()`
-(C-ITER), or the plural noun when the type has several kinds of item to
-offer: `keys()`, `values()`, `lines()`, `ancestors()`. Returning an iterator is
-how std shows that a method walks many items; a `Vec` return is for when
-the caller needs the whole collection owned.
+A method returning the items is `iter()`, `iter_mut()`, `into_iter()`, or
+the plural noun when the type has several kinds of item to offer: `keys()`,
+`values()`, `lines()`, `ancestors()`. Returning an iterator is how std shows
+that a method walks many items; a `Vec` return is for when the caller needs
+the whole collection owned.
 
 ## 7. A conversion: `as_`, `to_`, `into_`
 
-C-CONV, enforced by clippy's `wrong_self_convention`:
+Enforced by clippy's `wrong_self_convention`:
 
 | prefix | cost | receiver | example |
 | --- | --- | --- | --- |
@@ -107,9 +107,9 @@ wait or a check that may run before the value exists takes the `get_` form.
 
 ## 9. A variant: std's word for the case
 
-A variant is UpperCamelCase (RFC 430) and names the case it is, read after
-its type's name. Where std or the ecosystem has a word for the case, it is
-the word: `Shutdown::Both`, `Option::None`, `ErrorKind::NotFound`,
+A variant is UpperCamelCase and names the case it is, read after its type's
+name. Where std or the ecosystem has a word for the case, it is the word:
+`Shutdown::Both`, `Option::None`, `ErrorKind::NotFound`,
 `Ordering::Less`, termcolor's `ColorChoice::Always`, and `All` for the whole
 of something, as regex's `MatchKind::All`. A synonym for one of these,
 `Missing` for `NotFound`, `Neither` for `None`, gives the reader a second

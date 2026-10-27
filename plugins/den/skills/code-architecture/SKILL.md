@@ -22,16 +22,17 @@ are one concept, look at what binds them. A concept is the smallest unit that
 would lose coherence if you broke it apart, and two things hold a unit
 together. One is private state: fields one piece keeps for the other, or an
 invariant the two uphold together. The other is a change that always reaches
-both: a piece with no reason to change but the other's, as an error enum's
-`Display` matches each variant and changes whenever a variant is added, or
-two phases of one pass. Two pieces bound by neither are two concepts however
-closely their subjects are related. A type and the iterator that walks its
-private buffer are one concept, and so are an error enum and its `Display`,
-though the `Display` reads nothing private. A parser and a formatter for the
-same syntax both use the public tree and nothing private of each other's,
-and each changes for reasons of its own, error recovery in one and line
-layout in the other, so they are two, even though a node added to the tree
-reaches both. A banner comment is a file naming its own concepts.
+both: a piece with no reason to change but the other's, as the code that
+writes an error enum's messages matches each variant and changes whenever a
+variant is added, or two phases of one pass. Two pieces bound by neither are
+two concepts however closely their subjects are related. A type and the
+iterator that walks its private buffer are one concept, and so are an error
+enum and the code that writes its messages, though that code reads nothing
+private. A parser and a formatter for the same syntax both use the public tree
+and nothing private of each other's, and each changes for reasons of its own,
+error recovery in one and line layout in the other, so they are two, even
+though a node added to the tree reaches both. A banner comment is a file
+naming its own concepts.
 
 The question comes up again when a split reaches for a name the other file
 keeps private, by keyword or by convention. Where that name is state, the
@@ -54,8 +55,8 @@ one feature altered across its roles argues for the feature, one role's
 contract altered across features argues for the role. A file whose concept
 grows children becomes a directory with its root file as the table of
 contents. Name the group for its concept. A word several file names share
-suggests a group and does not decide it, and a word repeating the crate's name
-names nothing.
+suggests a group and does not decide it, and a word repeating the package's
+name names nothing.
 
 **Find the seam, not the line count.** When a file needs splitting, or is
 large enough to prompt the question, count its concepts: the count decides,
@@ -94,7 +95,8 @@ fits. Ask what the thing is, specifically, and answer:
   synonym for a word the reader already holds for one meaning is a second
   word to learn and a difference to look for; a thing the language has no
   word for is named afresh, as a noun for what it is;
-- with its role in the name: an identifier is an `Id`;
+- with its role in the name: an identifier's name says it is an id, cased as
+  its language cases the abbreviation;
 - for a function, by what it is: one that acts takes the verb its language or
   framework already gives it (`insert`, `remove`, `open`); one that returns a
   value it holds or derives cheaply is named for the value (`len`, `parent`);
@@ -103,13 +105,14 @@ fits. Ask what the thing is, specifically, and answer:
   that searches by a condition says so too (`find`); a count is named as a
   count; one that answers yes or no reads as a claim about its subject
   (`is_empty`, `contains`); a constructor takes the name its language gives
-  one (`new`, `from_*` and `with_*` in Rust), and a rule that derives one of
-  its fields from another value is a method on that value, not a constructor
-  named for the rule. These are different things, so one of the shapes
-  applied to all of them misnames the rest: a keyed lookup called `user(id)`
-  reads as a property that is always there. A bare state word, `drawing`,
-  `covered`, `enabled`, names no action, no value and no subject, so it is
-  none of these. The language's references name its words.
+  one, the plain constructor for the common case and the language's own words
+  for the others, and a rule that derives one of its fields from another value
+  is a method on that value, not a constructor named for the rule. These are
+  different things, so one of the shapes applied to all of them misnames the
+  rest: a keyed lookup called `user(id)` reads as a property that is always
+  there. A bare state word, `drawing`, `covered`, `enabled`, names no action,
+  no value and no subject, so it is none of these. The language's references
+  name its words.
 
 Name the thing, not the category it belongs to or what it resembles: `tree`,
 not `data_structures`. A generic name is the reader's first guess made
@@ -166,8 +169,8 @@ a new kind breaks each match that misses it; nothing checks a string.
 `render(doc, true)` tells the reader of the call nothing and leaves no room
 for a third kind, where `render(doc, Layout::Print)` does both. A value
 re-checked at each use, or ranged by its encoding rather than its domain,
-becomes a refined type checked once where the data enters;
-`references/rust-invalid-states.md` teaches how.
+becomes a refined type checked once where the data enters, and the
+language's invalid-states reference teaches how.
 
 The case the other way is a condition the type cannot carry: one the type's
 own operations can break, such as a queue that must be non-empty and is then
@@ -338,16 +341,20 @@ library's callers are outside the tree, so an exported item only the tests
 exercise is the product, judged on its depth and the obligation it meets,
 not on how many in-tree callers it has.
 
-**Before a trait of your own, the one std already has.** The question comes
-up when you need a capability across types: a conversion, an order, an
-iteration, a display or a parse. Std's trait for it (`From` and `Into`,
-`TryFrom`, `PartialOrd`, `Iterator`, `Display`, `FromStr`) is one every reader
-already knows and every other crate already speaks. A trait of your own is one
-more name and contract each reader has to learn, and it earns that only by
-naming something std does not. A trait whose one method reads a value as
-another type is `Into`. Where a library already does the job, adding it is a
-trade-off the user decides: name the library, what it buys and what it costs,
-and ask.
+**Before an interface of your own, the one the standard library already
+has.** The question comes up when you need a capability across types: a
+conversion, an order, an iteration, a display or a parse. The standard
+library already says each one, in whatever form the language gives it: an
+interface or trait a type implements, a member every object carries, or a
+naming convention the library's own types keep. That form is one every
+reader already knows and every other library already speaks. An interface
+of your own is one more name and contract each reader has to learn, and it
+earns that only by naming something the standard library does not: one
+whose single method reads a value as another type is the standard
+conversion under a second name. The language's conversions reference names
+the standard form for each capability. Where a library already does the
+job, adding it is a trade-off the user decides: name the library, what it
+buys and what it costs, and ask.
 
 **Tests are callers.** Tests cross the same interface callers do. The
 question comes up when a test needs to build a module's private parts, or
@@ -376,7 +383,29 @@ unnoticed by a reader who has not read it.
 - `references/rust-api-boundaries.md`: borrowing and ownership at boundaries,
   and returns in place of out-parameters.
 - `references/rust-iterators.md`: what an iterator holds, lazy and small.
-- `references/rust-conversions.md`: constructors and the conversion traits.
+- `references/rust-conversions.md`: constructors, the conversion traits and
+  std's trait for each shared capability.
 - `references/rust-naming.md`: the words for getters, lookups, searches,
   predicates, conversions and variants, from the API guidelines and std.
-- `references/sources.md`: the sources behind the Rust references.
+
+### Dart
+
+- `references/dart-organization.md`: libraries, privacy and where to cut them.
+- `references/dart-invalid-states.md`: class modifiers, sealed families,
+  exhaustive switches and fields set too late.
+- `references/dart-semantic-types.md`: extension types, wrapper classes and
+  core types over primitives.
+- `references/dart-errors.md`: exceptions, errors and what they carry.
+- `references/dart-api-boundaries.md`: parameters, copies and views at
+  boundaries, and records in place of out-parameters.
+- `references/dart-iterators.md`: lazy iterables that run again on each
+  pass, and streams.
+- `references/dart-conversions.md`: constructors, parsing and the core
+  library's interfaces.
+- `references/dart-naming.md`: the words for getters, lookups, searches,
+  predicates, conversions and variants, from Effective Dart and the core
+  libraries.
+
+The sources behind both languages' references are listed per file in
+`references/sources.md`, for revising a reference rather than for applying
+it.

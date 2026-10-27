@@ -76,7 +76,7 @@ them contradictions the type still admits. Ask how many states the domain
 has, and give the type exactly those:
 
 ```rust
-struct Mode { reading: bool, writing: bool } // before: 4 states, 1 nonsensical
+struct Mode { reading: bool, writing: bool } // before: 4 states, 2 nonsensical
 enum Mode { Read, Write }                     // after: exactly 2
 ```
 
@@ -153,9 +153,9 @@ they harden a public API rather than model a domain invariant. Each turns on
 one question:
 
 - **Sealed traits.** A `: private::Sealed` supertrait bound keeps the set of
-  implementors closed (embedded-hal seals `AddressMode`; API Guidelines
-  C-SEALED). Ask whether third-party implementation is the point; where it
-  is, the trait stays open.
+  implementors closed (embedded-hal seals `AddressMode`). Ask whether
+  third-party implementation is the point; where it is, the trait stays
+  open.
 - **`#[non_exhaustive]`.** Forces downstream `_ =>` arms and non-exhaustive
   construction, so adding a variant or field isn't a breaking change. Ask
   whether a new variant *should* force every consumer to update; where it

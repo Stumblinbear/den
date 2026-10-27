@@ -90,7 +90,7 @@ type distinction, and the alias and its underlying type stay interchangeable.
 It adds readability and nothing else; it is a comment, not a semantic type.
 
 The API Guidelines' own example is `Miles(f64)` vs `Kilometers(f64)`, a
-compiler-enforced distinction at no runtime cost (C-NEWTYPE). A `Uuid` is
+compiler-enforced distinction at no runtime cost. A `Uuid` is
 already semantic relative to `[u8; 16]`, but `UserId(Uuid)` adds the
 *application* domain identity that `Uuid` itself lacks. Production ECS
 libraries show the same choice: Bevy separately types `EntityIndex`,
@@ -109,7 +109,7 @@ inevitable. An invariant that holds for one field's role and not for the unit
 stays with the owning type's setters.
 
 A newtype also hides its representation: callers see `UserId`, not `Uuid`, so
-the inner type can change without breaking them (C-NEWTYPE-HIDE). That holds
+the inner type can change without breaking them. That holds
 only while the field is private; a public-field newtype such as
 `pub struct Port(pub u16)` distinguishes meaning but exposes the
 representation and enforces no invariant.
@@ -137,7 +137,7 @@ save boilerplate. Ask whether the wrapper truly has reference semantics
 toward its inner type. The compiler applies deref implicitly, so a `Deref`
 impl leaks the inner API, muddies method resolution, and lets callers bypass
 the wrapper's intended surface; the API Guidelines reserve `Deref` and
-`DerefMut` for genuine smart pointers (C-DEREF).
+`DerefMut` for genuine smart pointers.
 
 ```rust
 impl Deref for UserId { type Target = Uuid; /* ... */ }          // before

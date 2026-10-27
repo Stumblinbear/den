@@ -4,8 +4,7 @@ Rust has a standard protocol for making and converting values, and following it
 makes a type interoperate with `?`, `.parse()`, generic bounds, and the whole
 ecosystem for free. Inherent constructors create values; conversion traits
 express relationships between types; `FromStr` parses; borrowing/ownership traits
-separate cheap views from materialization. The API Guidelines encode this as
-C-CTOR, C-CONV, C-CONV-TRAITS, C-COMMON-TRAITS, and C-DEREF.
+separate cheap views from materialization.
 
 The question at each construction or conversion is which part of the protocol
 it is, and whether the trait's contract fits. Where a standard trait's
@@ -29,6 +28,7 @@ the type, rather than being renamed `try_new` by rote.
 - 5. `FromStr` and `str::parse`
 - 6. Borrowing & ownership conversions
 - 7. A lint that suggests a trait
+- 8. Std's trait for each shared capability
 
 ## 1. Constructors: `new`, domain verbs, builders
 
@@ -175,3 +175,18 @@ The question comes up when a lint such as `should_implement_trait` or
 semantics fit the type. Where they do, implement it. Where they don't, an
 impl written to silence the lint breaks the contract every generic caller
 relies on, which is worse than the lint it silenced.
+
+## 8. Std's trait for each shared capability
+
+The question comes up when a capability is needed across types, before a
+trait of your own is written for it. Std's trait for each:
+
+| capability | std's trait |
+| --- | --- |
+| a conversion | `From` and `Into`, `TryFrom` |
+| an order | `PartialOrd` |
+| an iteration | `Iterator` |
+| a display | `Display` |
+| a parse | `FromStr` |
+
+A trait whose one method reads a value as another type is `Into`.

@@ -4,9 +4,8 @@ Every signature is a contract about what the boundary does with a value:
 observe it, mutate it, consume it, store it, or share it. The question at
 each parameter and return type is which of those it does, and the types say
 so. Two principles from the API Guidelines answer most of it: **the caller
-controls copying** (`C-CALLER-CONTROL`: don't take ownership just to read)
-and **minimum necessary assumptions** (`C-GENERIC`: accept the weakest type
-that does the job).
+controls copying** (don't take ownership just to read) and **minimum
+necessary assumptions** (accept the weakest type that does the job).
 
 The highest-frequency mistake this prevents: over-owning parameters and
 cloning to appease the borrow checker. A borrow-check fight is almost always

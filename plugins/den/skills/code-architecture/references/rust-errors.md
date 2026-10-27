@@ -111,7 +111,7 @@ chain-walking printer where it is embedded.
 What this gives up is downcasting through a `dyn Error` chain, which a typed
 error does not need: the caller matches the variant and reads its field.
 Error types still implement `Error`, normally also `Send + Sync + 'static`,
-so they compose (C-GOOD-ERR).
+so they compose.
 
 ## 4. Each clause names what it is about
 
