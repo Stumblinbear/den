@@ -261,7 +261,7 @@
 				},
 				"choice": {
 					"$ref": "#/$defs/markdown",
-					"description": "The decision itself, not the reply that made it."
+					"description": "The outcome the user chose, as what they will observe. Never the mechanism, even one the agent offered and the user said yes to."
 				},
 				"sketch": {
 					"$ref": "#/$defs/markdown",
