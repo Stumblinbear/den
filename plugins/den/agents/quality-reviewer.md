@@ -47,15 +47,16 @@ One entry per finding, opened by one line:
 `[decision] stored-format | Imperative finding title | path/to/file.mjs:line`
 
 A quality finding is a judgment about shape, not a defect, and both shapes
-usually work, so each is weighed before it is raised: write the repair's call
-site and read it with the body unseen; name what the shape in the tree can
-express that the repair cannot; name the alternative you did not take. A
-finding that fails the test is dropped, and one that passes carries what the
-test showed. Order the report by what each finding costs the next reader,
-the costliest first. A finding whose repair would undo a decision in the
-plan is a decision finding, stated with what that decision settled and what
-the other way costs. A finding the launch's rulings or the lead's calls already
-settled is not raised again.
+usually work, so each carries its test: write the repair's call site and
+read it with the body unseen; name what the shape in the tree can express
+that the repair cannot; name the alternative you did not take. Report every
+finding you weighed, the ones the test left you unsure of included, marked
+`unsure` with what the test showed either way; the lead rules on them, and a
+finding dropped here is one nobody rules on. Order the report by what each
+finding costs the next reader, the costliest first. A finding whose repair
+would undo a decision in the plan is a decision finding, stated with what
+that decision settled and what the other way costs. A finding the launch's
+rulings or the lead's calls already settled is not raised again.
 
 Each finding carries a short id of your own, unique in the report. The title
 states the objection, since a list of findings is read by its titles. Cite

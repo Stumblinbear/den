@@ -100,7 +100,7 @@ if (typeof report !== 'string') {
 // cheapest, and the line announcing it goes ahead of the report, the part the
 // host keeps; see `RETURN_BUDGET`.
 if (report.length > RETURN_BUDGET) {
-  const cut = `The report is ${report.length} characters and the host shows the first ${RETURN_BUDGET}: the findings past that are cut. Rerun the review on a narrower range for them.`
+  const cut = `The report is ${report.length} characters and the host shows the first ${RETURN_BUDGET}: the findings past that are in the run's output file, which the completion notice names.`
   log(cut)
   return `${cut}\n\n${report}`
 }

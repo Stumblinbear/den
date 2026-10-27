@@ -38,6 +38,6 @@ A run that throws is incomplete: its message names the cause. Otherwise the
 return is the reviewer's report as it wrote it, each finding opened by a
 `[quality]` or `[decision]` line with its id, title and `path:line`, the
 costliest first. An empty return is a review that found nothing. A report
-longer than the 8,000 characters the host shows opens with a line giving its
-length, since the host cuts the findings past that: rerun the review on a
-narrower range for them.
+longer than the 8,000 characters the host shows inline opens with a line
+giving its length; the findings past that are in the run's output file, which
+the completion notice names, so the rest is read there.

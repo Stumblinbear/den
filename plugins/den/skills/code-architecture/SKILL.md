@@ -119,7 +119,11 @@ Then check the name against how it will be read:
 - **At the call site.** Most readers meet a name where it is called, with the
   body unseen, so check it there: does the call tell them what it does?
   `cleanup(jobs)` sends the reader into the body; `drop_expired(jobs)` does
-  not.
+  not. A method is called on a variable whose name you did not choose, so
+  the method's own name has to say what it returns: `entity.loaded()` says a
+  state, and the reader has to ask what is loaded; `entity.loaded_components()`
+  says it. A one-word name like `len` or `parent` is enough only when the
+  type has one thing that word could mean.
 - **Where it is imported.** A public item is read in an importer's file, away
   from its siblings. `ParseError` reads plainly in a config module and names
   nothing among an importer's imports, where `ConfigParseError` does.

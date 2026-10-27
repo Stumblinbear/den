@@ -26,6 +26,12 @@ without failing, is named for the value: `len()`, `capacity()`, `first()`,
 code." The exception is a type with one thing to get, `Cell::get`,
 `RefCell::get_mut`, where the bare name would have nothing to say.
 
+The noun says what comes back, not what state it is in, and it has to make
+sense after any variable name: `loaded_components()`, not `loaded()`;
+`saved_place()`, not `place()`, when the type could give more than one kind
+of place. `len`, `parent` and `first` are one word because the type has one
+thing each of them could mean.
+
 A property's cost is not in its name. Where a reader should see that a value
 is computed over many items, return an iterator (section 6) or name it as a
 count (section 5) rather than inventing a verb.
