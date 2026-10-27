@@ -95,7 +95,7 @@ The user weighs these choices against what you can't see: plans ahead, their tas
 
 A proposal of yours reaches the user in the conversation before it goes into the plan or a brief, so they can correct it where they are reading.
 
-**Defects.** Run the defect test first. An outcome that's wrong for a reachable input, a message that lies, or a number the code gets wrong is a defect, whatever surface it's on. The test settles that it gets fixed, not how. A defect that predates the change, in code the change depends on, is the user's call to fix now or defer, because fixing everything the work turns up widens the change past what they asked for.
+**Defects.** Run the defect test first. An outcome that's wrong for a reachable input, a message that lies, or a number the code gets wrong is a defect, whatever surface it's on. The test settles that it gets fixed, not how. A defect that predates the change, in code the change depends on, is the user's call to fix now or defer, because fixing everything the work turns up widens the change past what they asked for. When the plan already records a decision to fix a kind of defect, a second instance of that kind is fixed without asking, and the code is swept for the rest: the user answered that question when they decided.
 
 ## Briefs
 
