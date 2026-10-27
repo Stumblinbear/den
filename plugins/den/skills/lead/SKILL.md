@@ -140,7 +140,7 @@ A change that adds names, types, or mechanisms a reader will live with gets a qu
 
 A review launch carries only the arguments its skill names, and nothing from the implementer's report: the reviewer reads the diff and the plan, and a choice restated to it reads as settled, so it reads past the one shape the review was for.
 
-Triage findings with your own judgment, against the goal and the quality checks.
+Triage findings with your own judgment, against the goal and the quality checks. A ruling names the finding, not the reviewer's repair: the fixer decides the shape.
 
 Any edit that changes what code does gets a fresh review run over the tree before it reaches a commit proposal, however small. That includes a fix for a finding, a sweep of deferred items, a fork's change, and an edit you made by hand. A defect written after the last review is one no review saw.
 

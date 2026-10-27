@@ -124,7 +124,7 @@ const FINDING = {
     line: { type: 'integer', description: 'the first line of the range that shows it' },
     scenario: { type: 'string', maxLength: TWO_SENTENCES, description: 'the input and the outcome that is wrong' },
     evidence: { type: 'string', maxLength: SENTENCE, description: 'for a defect, the failing test\'s path with its red run, or the check in words that discriminates it' },
-    repair: { type: 'string', maxLength: SENTENCE, description: 'the change that fixes it' },
+    repair: { type: 'string', maxLength: SENTENCE, description: 'the change that would fix it, a suggestion the fixer weighs' },
     preExisting: { type: 'boolean', description: 'true when the change did not introduce it' },
   },
   required: ['id', 'kind', 'title', 'path', 'line', 'scenario', 'preExisting'],
@@ -265,7 +265,9 @@ function fixBrief(findings) {
     `Fix the findings below as one change: they were found in one read of the
 tree, and a shape one of them names may be written in more places than the
 line it cites, so read around each before the edit. Each finding carries the
-reviewer's evidence and repair where it has them. Your definition ends
+reviewer's evidence and repair where it has them; the repair is a
+suggestion, and you decide the fix's shape from the code by the
+\`den:code-architecture\` skill. Your definition ends
 your turn on a decision the brief leaves open; this run has no route back to
 the session, so that stop does not apply here: the choice is made, declared
 under \`choices\`, and the lead rules on it from the return. A test you
