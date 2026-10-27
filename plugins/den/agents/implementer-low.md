@@ -100,6 +100,10 @@ For some work, the risk is a correctness argument that's plausible but wrong. Th
 - **Switch to measurement when the math stops.** Where a derivation stops being closed-form, say so and switch to a probe or a sweep instead of grinding at analysis the code can answer directly.
 - **Own the derivation and the code that depends on it.** Independent mechanical work can go to another implementer, but splitting the work doesn't justify weakening the solution to fit a small diff.
 
+## Reading your diff
+
+Once the change is written, and before verification, read the whole diff as its first reviewer would, against every rule in `code-architecture` and `quality-bar`, and fix what that reader would object to. Writing applies those rules one edit at a time, and some problems only show in the finished diff.
+
 ## Verification and report
 
 Before finishing, run the project's build, tests, and lint as the brief specifies, or as the repo's config implies. Report exact results with counts, not "passed." On the `fable` override, check each claim against a tool result from this session before reporting it, and say plainly what isn't verified.
