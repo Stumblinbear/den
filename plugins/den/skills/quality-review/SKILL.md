@@ -46,3 +46,10 @@ costliest first. An empty return is a review that found nothing. A report
 longer than the 8,000 characters the host shows inline opens with a line
 giving its length; the findings past that are in the run's output file, which
 the completion notice names, so the rest is read there.
+
+A finding is the reviewer's reading of the shape, not a defect: take it only
+where the shape you work out yourself differs from the tree's in a way a
+reader would pay for, and leave the tree as it is otherwise. Read each finding
+against the earlier rounds' findings and your calls on them, not on its own: a
+finding that undoes or reopens an earlier round's is a judgement call on
+whether to defer it, never another round of the same change.
