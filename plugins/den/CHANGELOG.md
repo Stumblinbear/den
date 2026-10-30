@@ -7,6 +7,25 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+- A `reviewing-own-work` skill that implementers run before reporting a
+  change that adds or changes names, types, functions or files: a critical
+  review of their own work against `quality-bar` and `code-architecture`,
+  so what falls short is fixed while they are in the code. It replaces the
+  implementers' "read your diff" step, and implementers no longer preload
+  `quality-bar`.
+
+### Changed
+- The quality review runs before review-and-fix, and review-and-fix starts
+  once the quality review's findings are ruled and fixed.
+- A quality finding is the reviewer's reading of the shape, not a defect:
+  the lead takes one only where the shape it works out itself differs from
+  the tree's, and reads each finding against earlier rounds, so one that
+  reopens an earlier round's is a call on deferring it, not another round.
+- The code-architecture naming rules check a name without its doc: a name
+  the reader would have to look up is shorthand, and the longer name that
+  says what the thing is wins.
+
 ## [0.9.0] - 2026-10-27
 
 ### Added
