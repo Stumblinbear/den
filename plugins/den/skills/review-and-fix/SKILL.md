@@ -8,8 +8,10 @@ allowed-tools: Workflow
 
 # Review and fix
 
-Run the workflow once the change is in the working tree and the report of
-whatever built it is triaged. It reviews the working tree against HEAD, so the
+Run the workflow once the change is in the working tree, the report of
+whatever built it is triaged, and, where the change adds names, types or
+mechanisms, the findings of its quality review (`den:quality-review`) are
+ruled and fixed. It reviews the working tree against HEAD, so the
 step before is committed first. Stage the tree with `git -C <repo> add -A`
 before every launch.
 

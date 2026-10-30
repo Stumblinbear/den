@@ -1,12 +1,17 @@
 ---
 name: quality-review
 description: How the quality-review-workflow workflow is launched on a change.
-when_to_use: ALWAYS invoke this skill when a change adds names, types or mechanisms and is ready for its quality review. Do not launch den:quality-reviewer directly; use this skill first.
+when_to_use: ALWAYS invoke this skill when a change that adds names, types or mechanisms is in the working tree and the report of whatever built it is triaged, before review-and-fix runs on it. Do not launch den:quality-reviewer directly; use this skill first.
 user-invocable: false
 allowed-tools: Workflow
 ---
 
 # Quality review
+
+The quality review runs before review-and-fix: it catches a wrong shape or a
+performance problem while it is still cheap to change, so the bug review reads
+the shape that will ship. Its findings are ruled and fixed first, and
+review-and-fix follows.
 
 The workflow runs one `den:quality-reviewer` over a diff range and returns its
 report. Its arguments are the whole launch: the reviewer reads the diff and
