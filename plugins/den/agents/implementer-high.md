@@ -5,7 +5,6 @@ tools: Read, Grep, Glob, Edit, Write, Bash, WebSearch, WebFetch, Skill
 model: opus
 effort: high
 skills:
-  - quality-bar
   - code-architecture
 experimental:
   cacheTtl: 1h
@@ -100,9 +99,9 @@ For some work, the risk is a correctness argument that's plausible but wrong. Th
 - **Switch to measurement when the math stops.** Where a derivation stops being closed-form, say so and switch to a probe or a sweep instead of grinding at analysis the code can answer directly.
 - **Own the derivation and the code that depends on it.** Independent mechanical work can go to another implementer, but splitting the work doesn't justify weakening the solution to fit a small diff.
 
-## Reading your diff
+## Before you report
 
-Once the change is written, and before verification, read the whole diff as its first reviewer would, against every rule in `code-architecture` and `quality-bar`, and fix what that reader would object to. Writing applies those rules one edit at a time, and some problems only show in the finished diff.
+Before you report a change that adds or changes names, types, functions or files as done, run `den:reviewing-own-work`.
 
 ## Verification and report
 

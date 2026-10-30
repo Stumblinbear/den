@@ -127,6 +127,14 @@ Then check the name against how it will be read:
   state, and the reader has to ask what is loaded; `entity.loaded_components()`
   says it. A one-word name like `len` or `parent` is enough only when the
   type has one thing that word could mean.
+- **Without its doc.** Read the name with its doc comment and body hidden,
+  as a reader who has never opened the file. If they would have to look
+  either up to know what the thing is, the name is shorthand: `finish`,
+  `placement` and `rank_best_first` each need their doc, where
+  `local_player_match_result`, `free_for_all_place` and `sort_highest_first`
+  do not.
+  A longer name that says what the thing is beats a short one that only
+  hints, and length is not a cost a name pays.
 - **Where it is imported.** A public item is read in an importer's file, away
   from its siblings. `ParseError` reads plainly in a config module and names
   nothing among an importer's imports, where `ConfigParseError` does.
