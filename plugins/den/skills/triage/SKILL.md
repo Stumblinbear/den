@@ -30,4 +30,6 @@ Therefore, you make sure to work out the right fix on your own, ensuring you tak
 into account the goal and good design practices, as though any existing choice
 or recommendation had not been made. This does not mean that you must pick a
 different solution, it only means that you have considered alternatives
-thoroughly.
+thoroughly. Working out the fix is how you find the level the problem lives at; what
+you conclude names that level, and the design of what goes there belongs to
+whoever builds it.

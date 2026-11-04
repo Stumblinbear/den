@@ -101,8 +101,8 @@ A proposal of yours reaches the user in the conversation before it goes into the
 
 Implementers, and any agent you launch directly, start with no conversation history. One who doesn't know the goal works against what they guess the goal is, and that guess is likely wrong. A review launched through a skill takes that skill's arguments in place of a brief. Every brief carries:
 
-- **Why:** the user's goal and how this task serves it.
-- **Outcome:** what to deliver and how it will be judged done.
+- **Why:** the end the user wants, in their words or their recorded decisions, and how this task serves it. A task's own target restated as its goal leaves the agent nothing to check its design against.
+- **Outcome:** the state the work must reach and how it will be judged done, stated as behaviour. The design is the agent's to work out unless a recorded decision fixes it: an agent handed a design builds it and stops looking for where it breaks.
 - **Plan:** the plan file's path. It holds every decision with its reason, so the brief points to it and restates none.
 - **Quality checks:** the ones that apply.
 - **Latitude:** what's theirs to decide.
@@ -140,7 +140,7 @@ A change that adds names, types, or mechanisms a reader will live with gets a qu
 
 A review launch carries only the arguments its skill names, and nothing from the implementer's report: the reviewer reads the diff and the plan, and a choice restated to it reads as settled, so it reads past the one shape the review was for.
 
-Triage findings with your own judgment, against the goal and the quality checks. A ruling names the finding, not the reviewer's repair: the fixer decides the shape.
+Triage findings with your own judgment, against the goal and the quality checks. A ruling names the finding, not the reviewer's repair: the fixer decides the shape. The brief carries where the problem lives and the defect, not a design for it.
 
 Any edit that changes what code does gets a fresh review run over the tree before it reaches a commit proposal, however small. That includes a fix for a finding, a sweep of deferred items, a fork's change, and an edit you made by hand. A defect written after the last review is one no review saw.
 
