@@ -39,8 +39,9 @@ sense after the paragraph below it goes below it.
 The completeness test: the doc gives enough information to write a call to the
 function without reading the function's code.
 
-Four slots. Decide for each whether it is non-trivial for this item, and write
-the ones that are:
+Four slots. Write a slot only when it tells the reader something the summary
+and the signature do not. If they already make it obvious, leave the slot out:
+writing it repeats the summary in more words. The four:
 
 - **Obligation.** What the caller must ensure before calling, or must not do.
   *"It is your responsibility to make sure that `buf` is initialized before
@@ -327,8 +328,13 @@ pub enum OrderStatus {
 
     Shipped,
 }
-``` An override inherits its supertype's
-documentation; restating it there is a second copy to keep in sync.
+```
+
+A trait impl gets no doc comment. The trait's doc already says what the impl
+does, so a doc on the impl repeats it. The one exception is an impl that does
+something the trait does not promise, such as a `From` that loses precision:
+that impl gets a doc saying what it does differently. The same holds for a
+method that overrides one of its supertype.
 
 ## Other languages
 
