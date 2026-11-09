@@ -1,7 +1,7 @@
 ---
 name: writing-for-agents
 description: Principles for instructions an LLM agent will follow, with the calibration for current models.
-when_to_use: ALWAYS invoke this skill before writing or editing any text an agent will follow, whether an agent definition, a CLAUDE.md or rules file, a hook's injected text, a launch prompt for a subagent, or a message a plugin prints to the model, and when an agent keeps ignoring an instruction, before strengthening it. Do not write or edit such text directly; use this skill first.
+when_to_use: ALWAYS invoke this skill before writing or editing a file an agent will follow, whether an agent definition, a skill, a CLAUDE.md or rules file, a hook's injected text, or a message a plugin prints to the model, and when an agent keeps ignoring an instruction, before strengthening it. Do not write or edit such a file directly; use this skill first.
 user-invocable: false
 ---
 
@@ -92,32 +92,70 @@ instructions when the model changes rather than accreting.
   steers as well as enumerating each behavior by name; instructions tuned for
   prior generations are often too prescriptive and degrade output. Never
   instruct the model to echo or explain its internal reasoning as response
-  text: reasoning models can refuse it, and Fable 5.1, Opus 5.5 and Sonnet
+  text: reasoning models can refuse it, and Fable 5.2, Opus 5.5 and Sonnet
   5.5 decline it as reasoning extraction.
-- **Always-thinking models (Fable 5.1, Opus 5.5)**: how much the model thinks
+- **Fable 5.2**: it applies each instruction as written, so calibrating for
+  it is mostly removal.
+  - **Effort, not prose, sets thinking.** At `medium` and above a line asking
+    for less thinking changes nothing. `high` is the starting level, `low`
+    holds for well-specified work, and a level above `high` is kept only
+    where a gain was measured. A level tuned on another model is swept
+    again. Effort barely changes how long a reply is; the text sets that.
+  - **Early stops.** On long work, more often at `low` and `medium`, a turn
+    can end on a list of what remains, an offer to continue, or an ordinary
+    obstacle. The text that steers it separates two kinds of obstacle: an
+    error, a timeout, an empty result or a failing tool is diagnosed and
+    worked through, and a blocker someone chose, a file marked untouchable
+    or access withheld, is left alone and reported.
+  - **An approval rule names the exact actions it covers.** A broad one is
+    applied to routine work too: a rule covering messages to people outside
+    the conversation held back about half of ordinary requests to
+    colleagues.
+  - **An exception is written into the rule it lifts.** A separate line
+    granting it got the step taken in about one try in ten, and the same
+    exception inside the rule in about nine. Naming the steps that need no
+    approval works where a general line to act more freely changes nothing.
+  - **Cautions build up** wherever context carries over: memory, notes,
+    instruction files, a reviewer's conditions passed to the next agent.
+    One whose reason no longer holds is deleted, and an absolute rule
+    states its scope and reason.
+  - **Ownership wording decides structure.** Text that is silent on who owns
+    the code, or presents it as someone else's, gets additions beside the
+    existing structure and nearby problems reported. Text that says the
+    codebase is the agent's own gets repeated code merged and related fixes
+    made, at about one and a half times the output, with changes nobody
+    asked for. A scope rule elsewhere does not cancel it, and the closing
+    summary leaves out the small changes, so the diff is read.
+  - **Delegation follows the text.** A standing line to delegate is acted on
+    readily. A description of whatever starts a subagent states what one
+    costs first, then when it is worth it and how to brief it.
+  - **A hard style limit makes its prose choppy,** so a limit is kept only
+    where something enforces it.
+  - **A token budget written into the prompt changes what it spends,** so
+    one is left out unless a test shows it helps.
+  - **Updates and reports.** It writes little between tool calls. Where a
+    person watches, the text asks for a line before the first call, brief
+    updates, and a recap that stands on its own. A final report is written
+    for a reader who saw none of the work: key points first, full
+    sentences, no term coined during the run.
+- **Always-thinking models (Opus 5.5)**: how much the model thinks
   is set by effort, an agent definition's `effort` field, and not by prose.
   A "think carefully" or "don't overthink" line is deleted, and a lower
   effort cuts thinking more reliably than an instruction asking for less.
   Effort names do not carry across models: Opus 5.5 at `medium` matches
   Opus 5 at `high`.
 - **Self-verifying models (Opus 5)**: drop "verify your work" / "double-check"
-  scaffolding. It causes over-verification with no quality gain. This is
-  Opus-specific: on Fable 5.1 an instruction to test or check the work before
-  reporting stays. Severity filters in review-style prompts ("only report
+  scaffolding. It causes over-verification with no quality gain. Severity filters in review-style prompts ("only report
   high-severity") are followed literally and cause under-reporting; ask for
   everything and filter in a separate pass. Conciseness must be asked for
   explicitly, and in a long prompt the reminder bears repeating near the end.
   Opus 5.5 runs text written for Opus 5 well, and its guidance names the
   verification and conciseness rules, with scope rules, as possibly no
   longer needed there: they are the first put to the removal test.
-- **Under-narrating models (Fable 5.1, Opus 5.5)**: anti-narration rules
-  ("hold findings for the final response") are deleted, not tuned; these
-  models already under-narrate, and where updates are wanted the text says
+- **Under-narrating models (Opus 5.5)**: anti-narration rules
+  ("hold findings for the final response") are deleted, not tuned; the
+  model already under-narrates, and where updates are wanted the text says
   when: a line of intent before the first tool call, a recap at the end.
-  Fable 5.1 also under-formats, so anti-formatting rules ("no bullets") are
-  deleted too. What Fable 5.1 needs in their place: progress claims audited
-  against tool results, the request's scope held rather than widened or
-  narrowed, and targeted edits over whole-file rewrites.
 - **Early stops in unattended runs (Opus 5.5)**: with no one to answer, the
   model can end its turn on a report that announces the next step instead of
   taking it, offers to carry on, or lists decisions none of which block the

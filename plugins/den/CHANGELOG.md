@@ -20,6 +20,12 @@ minor bump may change behavior.
 - Implementers are told the codebase is theirs and that how it is built is
   their call. The rules to edit surgically, and to keep adjacent refactoring
   and unrelated cleanup out of a change, are gone.
+- `writing-for-agents` calibrates for Fable 5.2 in place of Fable 5.1:
+  effort, early stops, approval rules, an exception written into the rule it
+  lifts, cautions that build up, ownership wording, delegation, hard style
+  limits, token budgets in the prompt, and updates and reports.
+- `writing-for-agents` triggers on a file an agent will follow, a skill among
+  them, and no longer on a launch prompt for a subagent.
 - The surveyor's description and the lead's routing line say what a survey
   is: finding where a named thing is and what the code there says. Working
   out what follows from that code is derivation, and neither text offers the
