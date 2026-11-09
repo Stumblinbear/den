@@ -7,6 +7,12 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+- The surveyor's description and the lead's routing line say what a survey
+  is: finding where a named thing is and what the code there says. Working
+  out what follows from that code is derivation, and neither text offers the
+  surveyor for it any longer.
+
 ## [0.10.0] - 2026-10-30
 
 ### Added

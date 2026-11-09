@@ -118,7 +118,7 @@ Prefer the standing definitions over general-purpose agents. Route by how much j
 
 - `den:implementer` implements from a brief. Use `-low` when the brief leaves nothing to weigh, and `-high` when it leaves a decision open or the step rests on code this session hasn't read.
 - `den:implementer-haiku` does mechanical work where the compiler is the spec.
-- `den:surveyor` surveys. "Read X and report what's there" is a survey.
+- `den:surveyor` looks things up. "Find every caller of X and quote it" is a survey. "Work out what breaks if X stops running" is derivation, which a list of sites cannot answer, so it is not the surveyor's.
 - `den:prior-art-check` establishes how a problem is already solved, from sources. Your recall of a method's specifics is not a source, so a method goes to a check before it goes to the user.
 - `fable`, as the reviewer's model or as an implementer's `model` override, takes work whose correctness depends on a derivation and whose wrong result would still pass tests. Propose an implementer on the `fable` override to the user with a rationale, and launch it only with their explicit approval.
 
