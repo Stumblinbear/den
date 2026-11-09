@@ -258,44 +258,18 @@ function reviewScope() {
   return `${SCOPE}${FOCUS}\n\nGoal: ${goal}${written}${settled}`
 }
 
+// What a fixer does with the findings and the lists is in its definition, so
+// its brief is the run's data and nothing else.
 function fixBrief(findings) {
   const parts = [
     `Goal: ${goal}`,
     SCOPE,
-    `Fix the findings below as one change: they were found in one read of the
-tree, and a shape one of them names may be written in more places than the
-line it cites, so read around each before the edit. Each finding carries the
-reviewer's evidence and repair where it has them; the repair is a
-suggestion, and you decide the fix's shape from the code by the
-\`den:code-architecture\` skill. Your definition ends
-your turn on a decision the brief leaves open; this run has no route back to
-the session, so that stop does not apply here: the choice is made, declared
-under \`choices\`, and the lead rules on it from the return. A test you
-weaken, delete or rewrite reaches the lead under \`deviations\` with its
-file, since it is the one edit the return cannot otherwise show. That reader
-briefed the change and knows it, so each item of your report is the phrase
-or the sentence the schema asks for.`,
+    'The findings to fix:',
     JSON.stringify(findings, null, 2),
-    `A finding whose evidence is a failing test is fixed when that test
-passes. A finding the reviewer verified by reading gets the test the testing
-rules you hold give it; where they give it none, the check in words the
-reviewer gave is its verification. A
-failing test no finding here names belongs to a finding the lead rules on; it
-stays red and untouched, since a red run is no reason to fix past a decision
-that is the lead's.`,
   ]
 
   if (RULED) {
-    parts.push(`Where a finding's repair would undo one of these, the tree stays as it is
-and \`choices\` names the finding you left and the decision that left it.
-${RULED}`)
-  }
-
-  if (findings.some((finding) => finding.reopened)) {
-    parts.push(`A finding carrying \`reopened\` was fixed once in this run, and the closure
-verifier read the tree and judged it not closed, for the reason under that
-key. The fix in the tree is where you start, and this is the run's last pass
-at it: what still stands after it goes to the lead.`)
+    parts.push(RULED)
   }
 
   return parts.join('\n\n') + PLANNED
@@ -420,7 +394,7 @@ async function fix(pass, findings) {
   const report = await agent(fixBrief(findings), {
     label: stage,
     phase: 'Fix',
-    agentType: 'den:implementer',
+    agentType: 'den:finding-fixer',
     schema: FIX,
   })
   checkReport(report, stage, ['deviations', 'choices', 'unsure'])

@@ -1,7 +1,7 @@
 ---
 name: review-and-fix
 description: How the review-and-fix-workflow workflow is launched on the working tree.
-when_to_use: ALWAYS invoke this skill when a change in the working tree is ready for review. Do not launch den:reviewer, den:closure-verifier or den:comment-reviewer on a change directly; use this skill first.
+when_to_use: ALWAYS invoke this skill when a change in the working tree is ready for review. Do not launch den:reviewer, den:finding-fixer, den:closure-verifier or den:comment-reviewer on a change directly; use this skill first.
 user-invocable: false
 allowed-tools: Workflow
 ---

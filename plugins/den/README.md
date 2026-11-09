@@ -119,6 +119,9 @@ Agents, launched as `den:<name>` through the Agent tool or by a workflow:
   `quality-review` before the review on changes the lead judges warrant it;
   its findings are `quality` or, where a repair would undo a ruling,
   `decision`. Read-only.
+- `finding-fixer` (opus): fixes a review's findings inside a
+  `review-and-fix` run and declares the choices it made. Only that workflow
+  launches it; a fix you brief yourself goes to an implementer.
 - `closure-verifier`: verdicts a review's findings against the fixed tree,
   CLOSED or REOPENED, and reports what the fixes opened. NEEDS-DECISION keeps
   an item unresolved when closure depends on a product decision.

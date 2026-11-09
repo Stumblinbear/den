@@ -7,6 +7,15 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+- A `finding-fixer` agent that fixes a review's findings inside a
+  `review-and-fix` run. The run's fix passes launch it in place of
+  `implementer`, and its brief is the goal, the scope, the findings and the
+  decisions already made: what a fixer does with them is in its definition.
+  It keeps its change as wide as the findings, and it makes and declares
+  every choice a finding leaves open, since the run has no route back to the
+  session.
+
 ### Changed
 - The surveyor's description and the lead's routing line say what a survey
   is: finding where a named thing is and what the code there says. Working
