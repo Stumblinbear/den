@@ -18,6 +18,9 @@ qualifies as readily as a *why*.
 - **The reader knows the language and the repository.** Anything they get free
   from either buys nothing: describe what the code does only where the behavior
   is non-obvious to someone who knows the language well.
+- **A rewrite changes the meaning or nothing.** A comment rewritten to the same
+  meaning in other words stays as it was: the reader learns nothing from the
+  change and the diff grows.
 
 ## The kinds that clear it
 

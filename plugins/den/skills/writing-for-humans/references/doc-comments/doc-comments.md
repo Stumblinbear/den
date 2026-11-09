@@ -39,6 +39,15 @@ sense after the paragraph below it goes below it.
 The completeness test: the doc gives enough information to write a call to the
 function without reading the function's code.
 
+A true fact is not a promise. A fact can be true of the body and still not
+belong in the doc, however accurate, since written there it reads as a promise
+the item never made. Before writing one, ask two things. Does the summary
+already say it? A summary that says the method returns the nearest match
+already says the result matches, so a line saying so is not written. Does
+another item own it? What a value's kind means is written on that kind, not on
+every method that returns one. What survives both questions is the item's own
+promise, and that is what is written.
+
 Four slots. Write a slot only when it tells the reader something the summary
 and the signature do not. If they already make it obvious, leave the slot out:
 writing it repeats the summary in more words. The four:
@@ -65,9 +74,13 @@ State a slot **as the obligation** (what the caller must ensure), not as the
 arithmetic or encoding that derives it. The derivation is the body; the caller
 needs the bound.
 
-Keep the body's mechanism out: a doc that names the sorting algorithm makes the
-algorithm harder to change, because callers now depend on what you wrote. The
-same holds for constants, encodings, and buffer layouts.
+Keep the body's mechanism out. A doc says what the item does and what the
+caller can rely on. It does not say how the item does it. There are two
+reasons. A doc that describes the mechanism has to be rewritten every time the
+implementation changes, even when the behavior stays the same. And once the
+mechanism is written down, callers start to depend on it, so it becomes harder
+to change: a doc that names the sorting algorithm pins the algorithm. The same
+holds for constants, encodings and buffer layouts.
 
 The commonest form of it is a list of the item's own members: an enum's
 summary naming its variants, a plugin's doc naming what it registers, a
@@ -256,14 +269,24 @@ measurement.
 
 ## Rewriting a doc
 
-An existing doc is the weakest source for its own rewrite: a rewrite that
-starts from its sentences keeps their claims in new words, true or not. Draft
-the new doc from the item first, by the sections above: what it is, what a
-caller must know, the reason the code cannot show. Then read the old doc for
-claims the draft lacks and check each against every site it covers. One the
-code contradicts anywhere is cut; one the code already shows is cut as
-restatement; one no code shows has no source but the old doc, so it stays as
-written and is flagged.
+The old doc is not a source. A rewrite that starts from its sentences keeps
+its claims, true or not. The item is the source: its signature, its fields,
+its body and its callers.
+
+For every doc in scope:
+
+1. Write a new doc from the item, by the sections above. Write every one,
+   including a doc that looks fine. A doc judged on a read gets passed; a doc
+   written again gets checked.
+2. Compare the new doc with the old one.
+   - They say different things: the new doc goes in. Different things means a
+     different claim, a fact at the wrong level, or a slot added or removed.
+   - They say the same things in different words: the old doc stays. The
+     reader learns nothing from the change and the diff grows.
+3. One kind of line in the old doc cannot come from the item: a statement
+   about something outside this code, such as how an OS or a library behaves
+   or what another program expects. Leave it as written and report it, so
+   whoever has its source can check it.
 
 ```rust
 // Before: the summary copies the variants rustdoc lists under it.
