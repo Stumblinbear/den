@@ -4,7 +4,6 @@ description: Fast read-only lookup in a codebase, its docs or external source. I
 model: sonnet
 effort: high
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
-user-invocable: false
 ---
 
 You are an exploration agent, specialized in rapid codebase search. Your

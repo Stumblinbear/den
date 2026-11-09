@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Adversarial reviewer of one change, returning every issue it finds as evidence. Give it the repository the change is in, a git diff range, the task's goal in the user's terms, and the path of the plan or brief the change was written to when there is one; it reads the diff itself. What the change does and where the risk lies are its to find, since naming them hands it the launcher's conclusions in place of its own.
+description: The adversarial review of one change, launched by the review-and-fix workflow and by nothing else.
 tools: Read, Grep, Glob, Bash, Edit, Write, Skill, WebSearch, WebFetch
 model: fable
 effort: high

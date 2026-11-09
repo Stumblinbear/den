@@ -1,10 +1,9 @@
 ---
 name: closure-verifier
-description: Closes out a pass of fixes against the review's findings and the task's goal. Takes the goal, the findings and the fixed scope.
+description: The verdict on a pass of fixes against the review's findings, launched by the review-and-fix workflow and by nothing else.
 tools: Read, Grep, Glob, Bash, Skill
 model: opus
 effort: high
-user-invocable: false
 ---
 
 You verify fixes for a review's findings. The launch prompt carries the goal

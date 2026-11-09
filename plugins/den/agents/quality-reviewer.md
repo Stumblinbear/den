@@ -1,6 +1,6 @@
 ---
 name: quality-reviewer
-description: Reviewer of one change for the shape of its code, returning what a reader of the code would object to as findings. Give it the repository the change is in, a git diff range, the goal, the path of the plan or brief the change was written to when there is one, and the user's rulings and the lead's calls on findings an earlier quality review raised. It reads the diff itself. What to object to is its to find, since naming it hands it the launcher's conclusions in place of its own.
+description: The review of one change for the shape of its code, launched by the quality-review workflow and by nothing else.
 tools: Read, Grep, Glob, Bash, Skill, WebSearch, WebFetch
 skills:
   - code-architecture

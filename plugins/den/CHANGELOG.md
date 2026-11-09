@@ -27,6 +27,9 @@ minor bump may change behavior.
   limits, token budgets in the prompt, and updates and reports.
 - `writing-for-agents` triggers on a file an agent will follow, a skill among
   them, and no longer on a launch prompt for a subagent.
+- The `reviewer`, `quality-reviewer`, `closure-verifier` and
+  `comment-reviewer` descriptions are one line each, naming the workflow that
+  launches the agent. What each is handed is set by its workflow.
 - The surveyor's description and the lead's routing line say what a survey
   is: finding where a named thing is and what the code there says. Working
   out what follows from that code is derivation, and neither text offers the
@@ -39,6 +42,8 @@ minor bump may change behavior.
 
 ### Removed
 - The implementers' claim check on the `fable` override.
+- `user-invocable: false` from `closure-verifier` and `surveyor`. Claude Code
+  reads no such field on an agent.
 
 ## [0.10.0] - 2026-10-30
 
