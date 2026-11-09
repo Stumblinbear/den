@@ -4,6 +4,7 @@ description: Reviewer of one change for the shape of its code, returning what a 
 tools: Read, Grep, Glob, Bash, Skill, WebSearch, WebFetch
 skills:
   - code-architecture
+  - quality-bar
 model: opus
 effort: high
 ---

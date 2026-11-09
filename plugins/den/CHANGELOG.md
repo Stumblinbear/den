@@ -12,6 +12,11 @@ minor bump may change behavior.
   is: finding where a named thing is and what the code there says. Working
   out what follows from that code is derivation, and neither text offers the
   surveyor for it any longer.
+- The quality reviewer now preloads `quality-bar`.
+- `quality-bar`'s `when_to_use` now triggers on planning a change only, and
+  its description no longer names leads, implementers and reviewers. The
+  trigger dropped "reviewing a change" and "receiving a change from an
+  agent", which had the bug reviewer loading the skill on each run.
 
 ## [0.10.0] - 2026-10-30
 
