@@ -17,6 +17,9 @@ minor bump may change behavior.
   session.
 
 ### Changed
+- Implementers are told the codebase is theirs and that how it is built is
+  their call. The rules to edit surgically, and to keep adjacent refactoring
+  and unrelated cleanup out of a change, are gone.
 - The surveyor's description and the lead's routing line say what a survey
   is: finding where a named thing is and what the code there says. Working
   out what follows from that code is derivation, and neither text offers the
@@ -26,6 +29,9 @@ minor bump may change behavior.
   its description no longer names leads, implementers and reviewers. The
   trigger dropped "reviewing a change" and "receiving a change from an
   agent", which had the bug reviewer loading the skill on each run.
+
+### Removed
+- The implementers' claim check on the `fable` override.
 
 ## [0.10.0] - 2026-10-30
 
