@@ -17,6 +17,7 @@ minor bump may change behavior.
   session.
 
 ### Changed
+- The reviewer runs at `high` effort, down from `xhigh`.
 - Implementers are told the codebase is theirs and that how it is built is
   their call. The rules to edit surgically, and to keep adjacent refactoring
   and unrelated cleanup out of a change, are gone.
