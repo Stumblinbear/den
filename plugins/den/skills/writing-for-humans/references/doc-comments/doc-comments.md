@@ -1,363 +1,198 @@
 # Doc comments
 
-The reader is a caller who will not read the body. The comment owes them what
-the body would have told them and the signature does not; it owes them nothing
-for what the signature already shows.
+The reader is a caller who will not read the body. A doc comment states the
+item's contract: what a call gives them, what they must do first, and what
+fails. It says nothing about how the body does it.
 
-Rust's form is the general rule below (concise, complete, free of filler), and
-the shape generalizes. Where a language genuinely differs, its delta is a short
-file listed at the end; read that one too before writing.
+Rust's form is the rule below. A language whose form differs has a short file
+at the end; read it too.
+
+## What is contract
+
+A behavior is contract when the body could not change it without breaking a
+caller that uses the public surface correctly. A behavior the body could
+change freely is mechanism, however true it is today, and it is not written.
+A caller, a test or a recorded decision that relies on the behavior is the
+evidence that it is contract; before writing a sentence, name one.
 
 ## The summary
 
-The first unit (the first sentence in Go and Java, the `<summary>` tag in C#,
-the first paragraph elsewhere) is the only text that exists in an index, a
-search result, or an editor tooltip.
-
-That render fact gives the test: **if this were the only text that rendered,
-could the caller tell whether this is the item they want?**
-
-A summary that restates the signature fails it: the reader scanning an index
-has the signature already. It is the commonest doc-comment failure, and the one
-usually traded against padding. Write what the item is for, in the terms the
-index reader has:
+The first sentence is the only text an index, a search result or an editor
+tooltip shows. The test: if this line were all that rendered, could the
+caller tell this is the item they want? Say what the item is for, in the
+caller's terms. A summary that restates the signature fails, since the index
+shows the signature already.
 
 ```rust
-// Vec::push
 /// Appends an element to the back of a collection.
+pub fn push(&mut self, value: T)
 
-// io::Read::read
 /// Pull some bytes from this source into the specified buffer,
 /// returning how many bytes were read.
+fn read(&mut self, buf: &mut [u8]) -> io::Result<usize>;
 ```
 
-Put the blank line where the index entry should stop. A fact that only makes
-sense after the paragraph below it goes below it.
+## The slots
 
-## The contract, not the body
+After the summary, four kinds of sentence, each written only when the summary
+and the signature do not already say it:
 
-The completeness test: the doc gives enough information to write a call to the
-function without reading the function's code.
+- **Obligation.** What the caller must ensure first. *"`buf` must be
+  initialized before calling `read`."*
+- **Guarantee.** What holds on return, on every path. *"`0 <= n <=
+  buf.len()`"*
+- **Failure.** Which condition gives which error or panic, and what is true
+  of the state afterwards. *"If an error is returned, no bytes were read."*
+- **Invariant.** What holds across calls, or what the type promises about
+  every value of it.
 
-A true fact is not a promise. A fact can be true of the body and still not
-belong in the doc, however accurate, since written there it reads as a promise
-the item never made. Before writing one, ask two things. Does the summary
-already say it? A summary that says the method returns the nearest match
-already says the result matches, so a line saying so is not written. Does
-another item own it? What a value's kind means is written on that kind, not on
-every method that returns one. What survives both questions is the item's own
-promise, and that is what is written.
+State the obligation as the bound the caller needs, not as the arithmetic or
+the encoding that derives it.
 
-Four slots. Write a slot only when it tells the reader something the summary
-and the signature do not. If they already make it obvious, leave the slot out:
-writing it repeats the summary in more words. The four:
+A doc is complete when a caller can write a correct call from it without
+reading the body. It is as long as that takes and no longer: each promise is
+stated once, at the level of the caller's question, never as the list of what
+it entails. "The entity is hydrated from the save" is the promise; the
+components, the id and the subtree that hydration inserts are what the word
+means, owned by the types that define them.
 
-- **Obligation.** What the caller must ensure before calling, or must not do.
-  *"It is your responsibility to make sure that `buf` is initialized before
-  calling `read`."*
-- **Guarantee.** What holds on return, that other code may rely on.
-  It holds on every path the item takes, so each is read before it is
-  written; one a later step undoes is not a guarantee.
-  *"implementations must guarantee that `0 <= n <= buf.len()`"*
-- **Failure.** Which condition yields which error, panic, or abort, and what
-  is true of the state afterwards. *"If an error is returned then it must be
-  guaranteed that no bytes were read."*
-- **Invariant.** What holds across calls or across sites: ordering, the scope
-  of a returned guard, what the type promises about itself.
-  *"Implementations must not retain p."*
+A doc states what a caller would not assume, and leaves the default unsaid:
+that an entity handed to a call is not despawned by it, that a lookup that
+finds nothing changes nothing. When a sentence is borderline, cut it. A
+missing sentence costs one caller a read of the body; a redundant one costs
+every reader.
 
-A slot the signature answers needs no line. A non-trivial slot left unwritten
-is the gap that sends the caller into the body, and at that point the doc is
-decoration.
+A doc may say what the item is for and how it is meant to be used, as
+`std::sync::Mutex` says it is "useful for protecting shared data". It does
+not promise what other code does with the item.
 
-State a slot **as the obligation** (what the caller must ensure), not as the
-arithmetic or encoding that derives it. The derivation is the body; the caller
-needs the bound.
+## Not in a doc
 
-Keep the body's mechanism out. A doc says what the item does and what the
-caller can rely on. It does not say how the item does it. There are two
-reasons. A doc that describes the mechanism has to be rewritten every time the
-implementation changes, even when the behavior stays the same. And once the
-mechanism is written down, callers start to depend on it, so it becomes harder
-to change: a doc that names the sorting algorithm pins the algorithm. The same
-holds for constants, encodings and buffer layouts.
+- How the body works: an algorithm, a byte layout, an encoding, a constant,
+  the order of its steps. Leave the mechanism out, because a caller who reads
+  it comes to depend on it, and the sentence goes false when the body
+  changes. Where callers would assume a mechanism, say that it is not
+  guaranteed, as `Vec` does: "Vec does not guarantee any particular growth
+  strategy".
+- A list of the item's own members. rustdoc lists the variants and the
+  fields; the body lists the rest.
+- An obligation or promise that another item or the surface as a whole
+  already states. Link the item once and leave its claim where it is. How a
+  kind of thing comes to exist, for example, is stated where that kind is
+  defined, not on each item that takes one.
+- How the item is registered, wired or configured elsewhere.
+- Sample output, such as a log line.
+- What other code does with the item: the order an app moves through a
+  state's values, the screen that shows in one.
+- History. What changed and what was removed go in the commit, the changelog
+  or `#[deprecated(since = "...", note = "use ... instead")]`.
+- A sentence on a member whose name already says it. `Storage(..)` on an
+  error enum needs no "the storage failed".
 
-The commonest form of it is a list of the item's own members: an enum's
-summary naming its variants, a plugin's doc naming what it registers, a
-teardown's naming what it removes, a system's naming every change it reacts
-to. rustdoc already lists the variants and the body lists the rest, so the
-doc's list is a second copy that goes false the day a member is added or
-changes, and still reads as true. What a caller relies on of those members is
-a guarantee and is written as one: the resources that exist once the plugin is
-added, the side effect they would not guess.
+## One level, one fact
 
-A doc promises what its item upholds, and nothing the rest of the program
-happens to do with it: the order an app moves through a state's values, the
-value it starts in, the screen that shows in one. Those are promises of the
-code that does them, and written on the item they bind it to a use it cannot
-enforce.
+A fact lives at one level, and a fact at the wrong level moves down to the
+item that owns it:
 
-Keep out, too, the implementation that does not exist: "a naive version would
-deadlock here". `references/inline-comments.md` carries that rule for both
-comment kinds, and two exceptions to it; the one that reaches a doc comment is
-the failure a non-obvious rule prevents, stated in one present-tense sentence
-as the reason the rule exists.
+- **Module.** What the module is and is for, then its items by name with a
+  phrase each, as `std::net` does. A crate root or an entry module shows how
+  the module is used, with an example, as `std::collections` and
+  `std::sync::mpsc` do. A fact no item can carry, such as an OS race under
+  every operation, may follow.
+- **Type.** What one of these is, what it is for, and what holds for every
+  value of it.
+- **Function.** What a call does, guarantees and fails.
+- **Field.** What the value means, with its unit or range.
 
-## One level owns a fact
-
-A doc comment sits at one of four levels, and each level answers one
-question. A fact belongs at exactly one of them. A fact found at the wrong
-level moves down to the item that owns it, never up, and how an item works
-has no level at all, since no doc describes a body. The standard library's
-own text is the standard for each:
-
-- **A module doc says what is here.** `std::net`:
-
-  ```rust
-  //! Networking primitives for TCP/UDP communication.
-  //!
-  //! # Organization
-  //!
-  //! * [`TcpListener`] and [`TcpStream`] provide functionality for communication over TCP
-  //! * [`UdpSocket`] provides functionality for communication over UDP
-  //! * [`IpAddr`] represents IP addresses of either IPv4 or IPv6; [`Ipv4Addr`] and
-  //!   [`Ipv6Addr`] are respectively IPv4 and IPv6 addresses
-  ```
-
-- **A type doc says what one of these is, and what holds for every value of it.**
-  `std::fs::File`:
-
-  ```rust
-  /// An object providing access to an open file on the filesystem.
-  ///
-  /// An instance of a `File` can be read and/or written depending on what options
-  /// it was opened with. Files also implement [`Seek`] to alter the logical cursor
-  /// that the file contains internally.
-  ///
-  /// Files are automatically closed when they go out of scope.
-  ```
-
-- **A function doc says what a call does, guarantees and fails.**
-  `Vec::truncate`:
-
-  ```rust
-  /// Shortens the vector, keeping the first `len` elements and dropping
-  /// the rest.
-  ///
-  /// If `len` is greater or equal to the vector's current length, this has
-  /// no effect.
-  ///
-  /// Note that this method has no effect on the allocated capacity
-  /// of the vector.
-  ```
-
-- **A field doc says what the value means.** `Range::start`:
-
-  ```rust
-  /// The lower bound of the range (inclusive).
-  ```
-
-So "a lookup reads the store each time" is what a call does and belongs on
-the function, not in the module doc above it. "Every length is in metres" is
-what each value means and belongs on each field, or in a type that carries
-the unit. "Each row is written by name and read back by name" is how the
-codec works and belongs in no doc; the code that does it shows it.
-
-## The module doc
-
-A module or file doc (`//!`, a package comment, a package `__init__`
-docstring) is the index entry a caller reads to find what they need, and the
-standard library and the mature crates all write it the same way:
-
-- One line saying what the module is: *"Filesystem manipulation
-  operations."*, *"Storage layouts for ECS data."*
-- What it provides, as the items by name with one phrase each, the way
-  `std::net` lists *"`TcpListener` and `TcpStream` provide functionality for
-  communication over TCP"*; and where to start, when there is one way in.
-- A fact that no item can carry, as `std::fs` states TOCTOU races, which
-  are the OS's under every operation, and `std::net` that no socket is
-  inherited by a child process. A fact with an item to live on goes there,
-  however many items it holds for: a unit, a sign or a coordinate frame goes
-  on the fields that carry it, or is a type the code is missing; when a
-  check runs goes on the function that runs it.
-- Links to the specification the module implements, and examples.
-
-That is the whole of it. How the module works is read in the code with the
-inline comments beside it; why it was designed as it was is the decision
-record's; what it leaves out is the explained absence from the skill body.
-
-## Length is layering, not a budget
-
-No standard sets a length limit, and length tracks contract size: a four-line
-doc and a forty-line doc are both right when that is the size of the contract.
-Interface documentation has to be complete: a cap on it just relocates the
-cost to every caller who now reads the body.
-
-Layer instead, so a reader who has what they need can stop: summary, then the
-contract, then failure sections, then an example, then advanced detail.
-
-The one bounded region is the undifferentiated prose between the summary and
-the first heading, because it is the only part a scanning reader cannot skip
-into. Bound it by content, not by lines: anything a section heading owns goes
-under that heading. That prose is legitimately long when every paragraph of it
-is contract that no standard heading covers.
+```rust
+/// Shortens the vector, keeping the first `len` elements and dropping
+/// the rest.
+///
+/// If `len` is greater or equal to the vector's current length, this has
+/// no effect.
+///
+/// Note that this method has no effect on the allocated capacity
+/// of the vector.
+pub fn truncate(&mut self, len: usize)
+```
 
 ## Sections
 
-Fixed names are scan targets. Use the established name exactly; a heading
-called "Failure modes" is invisible to a reader looking for `# Panics`, and
-rustdoc renders these into the sidebar.
+The section names rustdoc readers scan for, used exactly and in this order:
 
-The Rust vocabulary: `# Safety`, `# Panics`, `# Errors`, `# Examples`,
-`# Time complexity`. Async code adds `# Cancel safety`, a tokio convention
-rather than a standard, on a public async fn a caller could race in `select!`.
+- `# Panics`, on a reachable, caller-triggerable panic.
+- `# Errors`, on a public fn returning `Result`.
+- `# Safety`, on an `unsafe fn`.
+- `# Examples`, last, since a caller who has what they need stops reading
+  there.
 
-- `# Errors` on every public fn returning `Result`.
-- `# Panics` on a reachable, caller-triggerable panic.
-- `# Safety` on every `unsafe fn`, stating the caller's obligations.
+## The register
 
-Order: everything the caller needs in order to call correctly comes before
-`# Examples`, because a caller who is satisfied stops reading. Reference
-material they consult after deciding may follow it, as `# Time complexity`
-does.
+Plain declarative sentences, one claim each, in the order the caller needs
+them. The patterns below are the dialect that doc comments drift into; each
+one hides a claim the reader has to reconstruct.
 
-## Examples
-
-Give a public item an example: at least one snippet the caller can copy and
-paste to try it.
-
-Write it as code someone will paste verbatim, because they will. In Rust it is
-also a doctest, which makes it the one part of a doc the compiler keeps
-honest, so use `?` rather than `unwrap`, and mark it `no_run` when running it
-needs live infrastructure.
-
-## History belongs in the markers
-
-Prose states what is. History has a sanctioned home (the markers the toolchain
-parses), and putting it there buys tool behavior that a sentence in prose does
-not: in Rust, `#[deprecated(since = "...", note = "use ... instead")]` for a
-thing on its way out and `#[stable(since = "...")]` for the version one landed
-in. Every toolchain has its own; where the form differs, the language file
-below carries it.
-
-Every one of those markers wants the replacement named, so name it.
-
-## Links
-
-Link the first mention of another item, and only to a target that exists.
-rustdoc warns on an intra-doc link it cannot resolve and the C# compiler warns
-on a `cref` it cannot find, so an invented link costs a build warning rather
-than passing silently.
-
-Link to related items; do not relocate the contract into them. Documentation
-scattered across pages and references costs the caller three hops to learn what
-they must guarantee, which is three chances to stop before they have it.
-
-## When the contract will not fit
-
-An interface comment that has to be very long to be complete is a signal about
-the abstraction, not about the comment. Ask which produced the length:
-
-- **Restatement.** Mechanism, constants, one caller's usage narrated onto a
-  general operation. Cut it; it was never contract.
-- **Contract.** Every paragraph is something the caller must know. Keep all of
-  it, and treat the size as a design finding: the item is probably doing two
-  things, or leaking state its callers have to track.
-
-Truncating a complete contract does not fix the abstraction; it hides the
-measurement.
-
-## Rewriting a doc
-
-The old doc is not a source. A rewrite that starts from its sentences keeps
-its claims, true or not. The item is the source: its signature, its fields,
-its body and its callers.
-
-For every doc in scope:
-
-1. Write a new doc from the item, by the sections above. Write every one,
-   including a doc that looks fine. A doc judged on a read gets passed; a doc
-   written again gets checked.
-2. Compare the new doc with the old one.
-   - They say different things: the new doc goes in. Different things means a
-     different claim, a fact at the wrong level, or a slot added or removed.
-   - They say the same things in different words: the old doc stays. The
-     reader learns nothing from the change and the diff grows.
-3. One kind of line in the old doc cannot come from the item: a statement
-   about something outside this code, such as how an OS or a library behaves
-   or what another program expects. Leave it as written and report it, so
-   whoever has its source can check it.
+- `where` as a condition. Write `if` or `when`: *"If the key is absent, the
+  call returns `None`."*
+- A pointer in place of the claim: *"as `Load` says"*, *"as `insert` does"*.
+  Make the claim, or link the item and stop.
+- A tail that carries a second claim: *"..., the save panics otherwise"*,
+  *"..., which the next save writes again"*. Give the second claim its own
+  sentence.
+- A colon standing in for a verb: *"`root` becomes it: it is given every
+  component..."*.
+- A noun doing a verb's work: *"the load's ending"*, *"the entity the read is
+  of"*. Say who does what: *"the load ends"*, *"the entity the read loads
+  onto"*.
+- `name` as a verb: *"the panic names the statement"*, *"a lookup names
+  what it returns"*. Write what happens: *"the panic message includes the
+  statement"*, *"a lookup's name says what it returns"*.
 
 ```rust
-// Before: the summary copies the variants rustdoc lists under it.
-/// A connection's state: idle, connecting, connected or closed.
-// After:
-/// Where a connection is in its lifetime.
-
-// Before: the build body, retold.
-/// Sets up audio: inserts `Volume`, adds the mixer and fade systems, loads
-/// the sound banks at startup and pauses all sound when the window loses
-/// focus.
-// After: what a caller relies on once it is added, and the side effect they
-// would not guess.
-/// Plays the app's sound.
+// Before
+/// Asks the save to load onto `root` the root of the kind `kind` it keeps
+/// under the key `root` carries.
 ///
-/// It inserts [`Volume`], and pauses all sound while the window is out of
-/// focus.
+/// `kind` is registered with [`register_keyed_persisted_root_kind`], and
+/// `root` carries the kind's key and is not persisted: the save panics
+/// otherwise. Where the save keeps a root under the key, `root` becomes it:
+/// it is given every component the save holds of that root, and the
+/// entities under that root are spawned under it. Where the save keeps
+/// none, `root` is left as it was. The load ends with a `RootLoadFinished`
+/// on `root`, as that event says.
+pub struct LoadRootByKey { pub root: Entity, pub kind: PersistedRootKindId }
 
-// Before: the body's removals, and nothing on why they are these.
-/// Removes the session's name, runtime, assets, mod list and size.
-// After: the counterpart the list has to match, which the body cannot show.
-/// Removes everything [`enter`] inserted.
+// After
+/// Loads a persisted root of kind `kind` from the save onto the `root`
+/// entity, looked up by the key component `root` carries.
+///
+/// `kind` must be a registered persisted root, and the given `root` entity
+/// must not have already been loaded, otherwise it will panic.
+///
+/// The given root entity will have its components and subtree hydrated from
+/// the save if it was found. [`RootLoadFinished`] is fired on the root
+/// entity when loading completes.
+pub struct LoadRootByKey { pub root: Entity, pub kind: PersistedRootKindId }
 ```
 
-## What gets a doc comment
+## Changing an existing doc
 
-Every publicly visible item. Full treatment on the public API surface; for an
-internal item, the summary plus any non-obvious obligation.
+A doc is changed only when it breaks a rule above: a false claim, mechanism,
+another item's contract, a fact at the wrong level, or the dialect. Remove the
+sentence that breaks the rule, or correct it. Add a sentence only for a
+missing obligation, failure or summary that a caller must have. A doc that
+passes stays word for word, since a rewrite the reader learns nothing from
+only grows the diff and puts the dialect back.
 
-Nothing on this page reaches test code: a `#[cfg(test)]` module, a `tests/`
-tree, or a language's equivalent, and every item inside one, a helper as much
-as a test. None of it appears in an index, and its callers are the tests beside
-it, so it answers to the skill body's common rules alone.
+A claim about something outside the code, such as how an OS or a library
+behaves, cannot be checked against the item. Leave it and report it.
 
-A member whose name says all it is may go undocumented, so long as it carries
-no requirement: a variant that holds an invariant while it is current, or a
-field with a unit or a range, owes the doc that states it.
+## What gets a doc
 
-```rust
-// Before: an order of statuses the enum cannot enforce, and a doc on each
-// variant that repeats its name.
-/// An order's status. Every order starts `Placed`, is `Paid` next and ends
-/// `Shipped`.
-pub enum OrderStatus {
-    /// The order is placed.
-    Placed,
-    /// The order is paid.
-    Paid,
-    /// The order is shipped.
-    Shipped,
-}
-
-// After: what the type is, and a doc only where a variant carries a rule.
-/// Where an order is in fulfillment.
-pub enum OrderStatus {
-    Placed,
-
-    /// A payment is recorded against the order.
-    ///
-    /// Its lines are fixed: `Order::add_line` refuses a paid order.
-    Paid,
-
-    Shipped,
-}
-```
-
-A trait impl gets no doc comment. The trait's doc already says what the impl
-does, so a doc on the impl repeats it. The one exception is an impl that does
-something the trait does not promise, such as a `From` that loses precision:
-that impl gets a doc saying what it does differently. The same holds for a
-method that overrides one of its supertype.
+Every public item. An internal item gets a summary, and an obligation if it
+has one. A member whose name says all it is may go undocumented. A trait impl
+gets no doc unless it does something the trait does not promise. Test code
+gets none of this.
 
 ## Other languages
 

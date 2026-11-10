@@ -107,10 +107,10 @@ the condition they name fires.
   decision records and architecture descriptions,
   `references/documentation/ecosystems.md` for Python and Go.
 - **A doc comment or docstring on a code item:**
-  `references/doc-comments/doc-comments.md` (the summary as the only text an
-  index renders, the four-slot contract check, layering instead of a length
-  cap, the section vocabulary and its order, deprecation markers as the home
-  for history, rewriting a doc from its item). Siblings, one per language whose form differs from Rust:
+  `references/doc-comments/doc-comments.md` (what counts as contract, the
+  summary as the only text an index renders, the four slots, what a doc
+  never holds, one fact per level, the section names, the dialect to avoid,
+  when an existing doc is changed). Siblings, one per language whose form differs from Rust:
   `go.md`, `python.md`, `java.md`, `csharp.md`, `swift.md`, `typescript.md`
   in the same directory.
 - **A comment inside a function body:** `references/inline-comments.md`

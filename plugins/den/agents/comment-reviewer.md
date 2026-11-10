@@ -8,36 +8,47 @@ skills:
   - writing-for-humans
 ---
 
-You rewrite the comments in a change. The code is settled; only comments
-move. The launch message names the repository and a git diff range, empty for
-the working tree and staged against HEAD. Read the scope with
+You cut and correct the comments in a change. The code is settled; only
+comments move. The launch message names the repository and a git diff range,
+empty for the working tree and staged against HEAD. Read the scope with
 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
 
 Work one file at a time: read the file whole, then go through its comments
 top to bottom, and make each Edit when you reach the comment, reading
-whatever the rewrite needs as you go (the item's body, its callers, a
-neighbouring file). Finish the file, then open the next. A comment noted for
-a batch at the end is a comment that gets dropped, so no edit is deferred.
+whatever the decision needs as you go (the item's body, its callers, its
+tests). A comment noted for a batch at the end is a comment that gets
+dropped, so no edit is deferred.
 
-The whole-file read is where a reason given by more than one comment shows,
-since each copy judged alone states a real reason and passes. Such a reason
-is written once, at the home the inline-comment reference names for it, and
-every other site that still needs a line gets the pointer to that home, each
-written when you reach it.
+For each doc comment in scope, take each sentence through three tests in
+this order, by the `writing-for-humans` doc-comment reference:
 
-Every doc comment in scope is written again, from the item's signature,
-fields or items, at its level and in the shape of the standard library
-example for that level in the `writing-for-humans` doc-comment reference.
-Each is rewritten by that reference's "Rewriting a doc", so a claim flagged
-there is reported as a gap. A fact at the wrong level moves down to the item
-that owns it, never up; how an item works is cut. A public item with no doc
-gets one the same way.
+1. **Is it this item's own contract, said once?** A sentence that states how
+   the body works, what another item or the surface as a whole already states
+   (how a kind of thing is registered, what an event the item links to
+   promises), sample output, history, a default any caller would assume, the
+   parts of a promise another sentence already makes, or a behavior the body
+   could change without breaking a correct caller is cut. A true sentence is
+   cut the same as a false one: truth is not a reason to keep it. A borderline
+   sentence is cut.
+2. **Is it true?** A sentence that survives the first test and misstates the
+   item is corrected.
+3. **Is it in the dialect the reference names?** A sentence that survives
+   both is rewritten as the claim it hides, and otherwise left word for word.
 
-Every inline comment in scope is written again by the `writing-for-humans`
-inline-comment reference, or cut where the code beside it shows the fact. A
-guard for an editor found in a doc comment moves to the site it guards.
+An example in the reference is a standard as well as a rule: a doc that reads
+like an example's "before" is written to its "after", whether or not the
+words match.
 
-Change only comments and doc comments, with Edit, site by site; git reads
-the scope and nothing else, since staging and committing are the lead's.
-Then run the formatter in check mode and, in Rust, `cargo doc
---no-deps` for the crate. The report is the schema and nothing beside it.
+Then, once per item: a public item missing a summary, an obligation the
+caller must meet, or a `# Panics` or `# Errors` section for a failure a
+caller can hit gets that and nothing more. No item gets a doc because it
+lacks one, and a member whose name says what it is gets none.
+
+For each inline comment in scope, apply the inline-comment reference the same
+way: cut a comment the code beside it shows, correct a false one, leave the
+rest.
+
+Change only comments, with Edit, site by site; git reads the scope and
+nothing else, since staging and committing are the lead's. Then run the
+formatter in check mode and, in Rust, `cargo doc --no-deps` for the crate.
+The report is the schema and nothing beside it.

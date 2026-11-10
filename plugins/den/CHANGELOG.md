@@ -49,6 +49,20 @@ minor bump may change behavior.
 - The implementers and the finding fixer scope their build, test and lint
   runs to the packages they touched; the lead runs them over the whole
   repository once, before proposing a commit.
+- The doc-comment reference is half its length, in plain sentences. A
+  behavior is contract when the body could not change it without breaking a
+  correct caller; a promise is stated once at the caller's altitude, never as
+  the list of what it entails; a default any caller assumes is left unsaid;
+  a borderline sentence is cut. It lists what a doc never holds, keeps the
+  rustdoc allowances (what an item is for, usage examples at a crate root),
+  shows every example with its signature, and lists the dialect doc comments
+  drift into, `name` as a verb among it, with the plain form of each pattern.
+- The comment reviewer cuts and corrects instead of rewriting. Each sentence
+  goes through three tests in order: is it this item's own contract, said
+  once; is it true; is it in the dialect. A true sentence that fails the
+  first test is cut like a false one. An example in the reference is a
+  standard as well as a rule. A doc that passes stays word for word, and an
+  undocumented item stays undocumented.
 
 ### Removed
 - The implementers' claim check on the `fable` override.
