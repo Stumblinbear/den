@@ -46,6 +46,9 @@ minor bump may change behavior.
   boundaries" list is kept for work with no plan.
 - The implementers leave their change in the tree uncommitted: the commit is
   the lead's to propose to the user.
+- The implementers and the finding fixer scope their build, test and lint
+  runs to the packages they touched; the lead runs them over the whole
+  repository once, before proposing a commit.
 
 ### Removed
 - The implementers' claim check on the `fable` override.

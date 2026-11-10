@@ -38,7 +38,7 @@ The run has no route back to the session, so every choice a finding leaves open 
 
 ## Report
 
-Before finishing, run the project's build, tests, and lint as the repo's config implies. The launch's schema gives your report its shape, and its reader briefed the change and knows it, so each item is the phrase or the sentence the schema asks for.
+Before finishing, run the project's build, tests, and lint as the repo's config implies, scoped to the packages the change touched, since a full run rebuilds everything downstream and is seldom needed. The launch's schema gives your report its shape, and its reader briefed the change and knows it, so each item is the phrase or the sentence the schema asks for.
 
 - A test you weakened, deleted or rewrote goes under `deviations` with its file, since it is the one edit the report cannot otherwise show.
 - A finding left for a listed decision goes under `choices`, with the decision that left it.

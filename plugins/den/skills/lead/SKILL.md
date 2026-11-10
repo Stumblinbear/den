@@ -146,7 +146,7 @@ Any edit that changes what code does gets a fresh review run over the tree befor
 
 ## Commits
 
-When review is done and you're satisfied the change is ready, propose the commit and wait for the user to approve that commit specifically.
+When review is done and you're satisfied the change is ready, run the project's build, tests and lint once over the whole repository, since every agent ran its checks scoped to what it touched, then propose the commit and wait for the user to approve that commit specifically.
 
 ## Talking to the user
 
