@@ -68,32 +68,62 @@ pass over machine prose adds machine traits of its own.
 Before you read a draft, run one line over it:
 
 ```sh
-grep -nEi '—| -- |emphasiz|enhanc|highlight|showcas|in (summary|conclusion)|overall,|important to note|worth noting|in this (section|guide|article)|let'?s dive|as of my last update|not just .+ but|serves as|stands as|no longer|not to this |belongs to (its|a) |handled elsewhere' FILE
+grep -nEi '—| -- |\bwhere\b|\bnames?\b|as \S+ (says|does)|see there|stands (in|under)|no longer|belongs to (its|a) |handled elsewhere' FILE
 ```
 
-A hit marks a sentence to look at and settles nothing by itself: `highlight`
-is a real word, and a finding needs several signs sitting together in one
-passage. An em dash, or ` -- `, is the exception, and every one is a sentence
-to rewrite. A tell people were already writing before the register, `utilize`,
-`Note that`, `acts as`, hits too many real sentences to grep for and stays in
-`references/tells.md`, which is read with a hit in hand.
+A hit marks a sentence to look at and settles nothing by itself: `where`
+opens a real relative clause and `name` is a real noun, so a hit is read
+against the list below. An em dash, or ` -- `, is the exception, and every
+one is a sentence to rewrite.
 
-When the text already exists, check the sentences the grep and the catalog
-name, rewrite those, and leave the rest alone: a polish pass over prose that is
+When the text already exists, check the sentences the grep and the list name,
+rewrite those, and leave the rest alone: a polish pass over prose that is
 already fine puts the register back in. Text that is wrong throughout is
 rewritten from scratch in one step. A rewrite that removes only the sign
 leaves the substance where it was; a sourceless claim is still sourceless once
 the word `pivotal` is gone.
+
+## The tells
+
+The patterns below are the ones our own text has drifted into, each with its
+fix. A pattern goes in the day it is seen in our text and comes out when it
+stops appearing: a catalog of every tell ever named is a dictionary nobody
+reads.
+
+- **`where` as a condition.** `Where the key is absent, the call returns
+  None.` Fix: `if` or `when`.
+- **`name` as a verb.** `the panic names the statement`, `a lookup names what
+  it returns`. Fix: write what happens: `the panic message includes the
+  statement`, `a lookup's name says what it returns`.
+- **The pointer in place of the claim.** `as Load says`, `as insert does`,
+  `see there`. Fix: make the claim, or link the item and stop.
+- **The tail carrying a second claim.** `..., the save panics otherwise`,
+  `..., which the next save writes again`, and the same clause after a
+  semicolon. Fix: give the second claim its own sentence.
+- **The colon standing in for a verb.** `root becomes it: it is given every
+  component...`. Fix: write the verb.
+- **The noun doing a verb's work.** `the load's ending`, `the entity the read
+  is of`. Fix: say who does what: `the load ends`, `the entity the read loads
+  onto`.
+- **The relation verb.** `a surface stands in its group`, `the save holds it
+  under its parent`. A prose verb for a relation names nothing the reader can
+  check against the code. Fix: the relation the code has: `belongs to`, `is
+  a child of`.
+- **The participial tail.** `..., ensuring consistency across the codebase`.
+  Fix: cut it, or promote its fact to a sentence with a subject.
+- **The explained absence.** `the limit belongs to the caller, not to this
+  file`, `this no longer takes a timeout`, `that case is handled elsewhere`.
+  A change narration in the grammar of a ruling. Fix: delete it. Where a
+  reader would fill the gap in, a guard at the site of the wrong edit says its
+  consequence.
+- **The em dash.** Every one, and ` -- ` typed in ASCII. Fix: a comma, a full
+  stop or a colon, or the sentence rewritten.
 
 ## References
 
 Each entry file is complete for the common case; its siblings are read when
 the condition they name fires.
 
-- **The register's tells:** `references/tells.md` (every tell with the fix
-  that cures it, grouped by structure, phrasing, vocabulary and framing, the
-  vocabulary banded by date, and a closing list of the signs that do not
-  count).
 - **A README:** `references/readme/readme.md` (router or manual and the
   budget each carries, what the first screen holds, usage before
   installation, what the software does to the reader's machine, purpose and

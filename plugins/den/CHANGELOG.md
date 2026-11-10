@@ -55,16 +55,26 @@ minor bump may change behavior.
   the list of what it entails; a default any caller assumes is left unsaid;
   a borderline sentence is cut. It lists what a doc never holds, keeps the
   rustdoc allowances (what an item is for, usage examples at a crate root),
-  shows every example with its signature, and lists the dialect doc comments
-  drift into, `name` as a verb among it, with the plain form of each pattern.
+  and shows every example with its signature.
+- The tells are a section of `writing-for-humans` itself, and only the ones
+  seen in our own text: `where` as a condition, `name` as a verb, the pointer
+  in place of the claim, the tail carrying a second claim, the colon standing
+  in for a verb, the noun doing a verb's work, the relation verb, the
+  participial tail, the explained absence and the em dash. The grep line
+  matches them. A pattern goes in when it is seen and comes out when it stops
+  appearing.
 - The comment reviewer cuts and corrects instead of rewriting. Each sentence
   goes through three tests in order: is it this item's own contract, said
-  once; is it true; is it in the dialect. A true sentence that fails the
-  first test is cut like a false one. An example in the reference is a
+  once; is it true; is it one of the skill's tells. A true sentence that
+  fails the first test is cut like a false one. An inline comment that is a
+  tell is rewritten as the claim it hides. An example in the reference is a
   standard as well as a rule. A doc that passes stays word for word, and an
   undocumented item stays undocumented.
 
 ### Removed
+- `writing-for-humans/references/tells.md`. Eighteen reads across every
+  session on the machine: a catalog read "with a hit in hand" is read by
+  nobody drafting, and the drafts showed it.
 - The implementers' claim check on the `fable` override.
 - `user-invocable: false` from `closure-verifier` and `surveyor`. Claude Code
   reads no such field on an agent.

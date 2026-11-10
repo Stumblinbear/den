@@ -32,8 +32,8 @@ this order, by the `writing-for-humans` doc-comment reference:
    sentence is cut.
 2. **Is it true?** A sentence that survives the first test and misstates the
    item is corrected.
-3. **Is it in the dialect the reference names?** A sentence that survives
-   both is rewritten as the claim it hides, and otherwise left word for word.
+3. **Is it one of the skill's tells?** A sentence that survives both is
+   rewritten as the claim the tell hides, and otherwise left word for word.
 
 An example in the reference is a standard as well as a rule: a doc that reads
 like an example's "before" is written to its "after", whether or not the
@@ -45,8 +45,8 @@ caller can hit gets that and nothing more. No item gets a doc because it
 lacks one, and a member whose name says what it is gets none.
 
 For each inline comment in scope, apply the inline-comment reference the same
-way: cut a comment the code beside it shows, correct a false one, leave the
-rest.
+way: cut a comment the code beside it shows, correct a false one, and rewrite
+one of the skill's tells as the claim it hides. The rest stay word for word.
 
 Change only comments, with Edit, site by site; git reads the scope and
 nothing else, since staging and committing are the lead's. Then run the

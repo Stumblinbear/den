@@ -129,24 +129,8 @@ The section names rustdoc readers scan for, used exactly and in this order:
 ## The register
 
 Plain declarative sentences, one claim each, in the order the caller needs
-them. The patterns below are the dialect that doc comments drift into; each
-one hides a claim the reader has to reconstruct.
-
-- `where` as a condition. Write `if` or `when`: *"If the key is absent, the
-  call returns `None`."*
-- A pointer in place of the claim: *"as `Load` says"*, *"as `insert` does"*.
-  Make the claim, or link the item and stop.
-- A tail that carries a second claim: *"..., the save panics otherwise"*,
-  *"..., which the next save writes again"*. Give the second claim its own
-  sentence.
-- A colon standing in for a verb: *"`root` becomes it: it is given every
-  component..."*.
-- A noun doing a verb's work: *"the load's ending"*, *"the entity the read is
-  of"*. Say who does what: *"the load ends"*, *"the entity the read loads
-  onto"*.
-- `name` as a verb: *"the panic names the statement"*, *"a lookup names
-  what it returns"*. Write what happens: *"the panic message includes the
-  statement"*, *"a lookup's name says what it returns"*.
+them, read against the tells in the skill as any text is. The example below
+is a doc that has drifted into most of them at once.
 
 ```rust
 // Before
