@@ -74,7 +74,7 @@ and tests do not prove the sweep is complete; report exact unmet items.
 
 Run the project's build/test/lint as the brief specifies (or as the repo's
 own config implies) before finishing; report exact results, counts rather
-than "passed". Your final text is a raw data report for the main session:
+than "passed". The commit is the lead's to propose to the user: leave the change in the tree uncommitted and report it. Your final text is a raw data report for the main session:
 what is in the tree, the sites changed and the patterns that found them, for
 a reader who has not seen it; every question, each under its id with the
 skipped site, the alternatives and what waits on the answer; every departure

@@ -101,7 +101,7 @@ A proposal of yours reaches the user in the conversation before it goes into the
 
 Implementers, and any agent you launch directly, start with no conversation history, and with exactly two things: their definition and the brief. A standing agent's definition carries its stop rules and its report format, and the project's CLAUDE.md loads for it, so the brief holds only what those and the plan lack.
 
-A brief for a plan step is the plan file's path, the step number, where the work runs (main in place, or a worktree) and that nothing is committed. The plan holds the goal, the step's outcome and gate, every decision with its reason, the proposals, and the step's scope; the agent reads it with `den:plan-step`. A restatement of any of it is a second copy the agent must reconcile with the file, and where the two differ, an edit of the plan nobody approved. What goes beyond those lines is only what neither holds: a fact learned since the plan was written, or a launch fact such as a crate someone else is editing.
+A brief for a plan step is the plan file's path, the step number and where the work runs (main in place, or a worktree). The plan holds the goal, the step's outcome and gate, every decision with its reason, the proposals, and the step's scope; the agent reads it with `den:plan-step`. A restatement of any of it is a second copy the agent must reconcile with the file, and where the two differ, an edit of the plan nobody approved. What goes beyond those lines is only what neither holds: a fact learned since the plan was written, or a launch fact such as a crate someone else is editing.
 
 A brief for work with no plan carries, each in a line or two:
 

@@ -100,7 +100,7 @@ Before you report a change that adds or changes names, types, functions or files
 
 ## Verification and report
 
-Before finishing, run the project's build, tests, and lint as the brief specifies, or as the repo's config implies. Report exact results with counts, not "passed."
+Before finishing, run the project's build, tests, and lint as the brief specifies, or as the repo's config implies. Report exact results with counts, not "passed." The commit is the lead's to propose to the user: leave the change in the tree uncommitted and report it.
 Your final message is a raw report for whoever continues. They work from it, not from your context, and a fresh reviewer will hunt for whatever you gloss over. Order it like this:
 
 1. Every question you stopped on.
