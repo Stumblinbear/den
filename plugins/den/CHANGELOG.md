@@ -39,6 +39,11 @@ minor bump may change behavior.
   its description no longer names leads, implementers and reviewers. The
   trigger dropped "reviewing a change" and "receiving a change from an
   agent", which had the bug reviewer loading the skill on each run.
+- The lead's brief for a plan step is the plan's path, the step number, where
+  the work runs and that nothing is committed. The plan holds the goal, the
+  outcome, the decisions and the scope, and a standing agent's definition its
+  stop rules and report format, so the brief restates none of them. The
+  "why, outcome, latitude, boundaries" list is kept for work with no plan.
 
 ### Removed
 - The implementers' claim check on the `fable` override.

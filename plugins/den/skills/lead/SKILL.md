@@ -99,16 +99,16 @@ A proposal of yours reaches the user in the conversation before it goes into the
 
 ## Briefs
 
-Implementers, and any agent you launch directly, start with no conversation history. One who doesn't know the goal works against what they guess the goal is, and that guess is likely wrong. A review launched through a skill takes that skill's arguments in place of a brief. Every brief carries:
+Implementers, and any agent you launch directly, start with no conversation history, and with exactly two things: their definition and the brief. A standing agent's definition carries its stop rules and its report format, and the project's CLAUDE.md loads for it, so the brief holds only what those and the plan lack.
+
+A brief for a plan step is the plan file's path, the step number, where the work runs (main in place, or a worktree) and that nothing is committed. The plan holds the goal, the step's outcome and gate, every decision with its reason, the proposals, and the step's scope; the agent reads it with `den:plan-step`. A restatement of any of it is a second copy the agent must reconcile with the file, and where the two differ, an edit of the plan nobody approved. What goes beyond those lines is only what neither holds: a fact learned since the plan was written, or a launch fact such as a crate someone else is editing.
+
+A brief for work with no plan carries, each in a line or two:
 
 - **Why:** the end the user wants, in their words or their recorded decisions, and how this task serves it. A task's own target restated as its goal leaves the agent nothing to check its design against.
 - **Outcome:** the state the work must reach and how it will be judged done, stated as behaviour. The design is the agent's to work out unless a recorded decision fixes it: an agent handed a design builds it and stops looking for where it breaks.
-- **Plan:** the plan file's path. It holds every decision with its reason, so the brief points to it and restates none.
-- **Quality checks:** the ones that apply.
-- **Latitude:** what's theirs to decide.
-- **Boundaries:** what's out of scope.
-- **When to stop and report:** anything that would change a decision in the plan, the scope, or a one-way door.
-- **What to return:** a summary, the decisions they made, deviations with reasons, and open questions.
+- **Latitude** and **boundaries:** what's theirs to decide, and what's out of scope.
+- For a general-purpose agent only, which has no definition: when to stop and report, and what to return.
 
 Comments, docs and tests are the implementer's to write; briefs and fork instructions leave them out.
 
