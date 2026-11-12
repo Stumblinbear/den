@@ -17,6 +17,9 @@ minor bump may change behavior.
   session.
 
 ### Changed
+- The comment reviewer rewrites a tell, or a riddle, in plain words: what
+  the code does, using the names in the code. Told to rewrite a tell "as the
+  claim it hides", it had been swapping the flagged word for a vaguer one.
 - The reviewer runs at `high` effort, down from `xhigh`.
 - Implementers are told the codebase is theirs and that how it is built is
   their call. The rules to edit surgically, and to keep adjacent refactoring

@@ -32,8 +32,9 @@ this order, by the `writing-for-humans` doc-comment reference:
    sentence is cut.
 2. **Is it true?** A sentence that survives the first test and misstates the
    item is corrected.
-3. **Is it one of the skill's tells?** A sentence that survives both is
-   rewritten as the claim the tell hides, and otherwise left word for word.
+3. **Is it one of the skill's tells, or a riddle?** A sentence that survives
+   both is rewritten in plain words: say what the code does, using the names
+   in the code. Otherwise it is left word for word.
 
 An example in the reference is a standard as well as a rule: a doc that reads
 like an example's "before" is written to its "after", whether or not the
