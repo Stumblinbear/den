@@ -26,6 +26,7 @@ whether to return a borrow or an owned value.
 - 4. Accept the pointee abstraction
 - 5. Model sharing explicitly, but only when it's real
 - 6. Choose builder receivers from terminal ownership
+- 7. Order parameters as std and the widely used crates do
 
 ## 1. Borrow or generalize inputs
 
@@ -152,3 +153,24 @@ fn option(mut self, x: X) -> Self;  fn build(self) -> Product;   // consuming
 `build`/`send`; `clap` combines consuming builders with `impl Into<Id>` and
 `impl IntoIterator`. Neither style is universally better: terminal ownership
 and whether callers build conditionally decide.
+
+## 7. Order parameters as std and the widely used crates do
+
+The question comes up when a function takes two or more parameters. No Rust
+guideline orders them, so the order follows what std and the widely used
+crates do, and past that, the function's siblings:
+
+- The thing operated on is the receiver. Where the receiver is a third
+  party, as a codec is to the value it encodes, the thing operated on is a
+  parameter.
+- Context comes after the value: a registry, an entity mapper, settings, as
+  in Bevy's `ReflectSerializer::new(value, registry)`.
+- A closure comes last, as in `fold(init, f)`, so a closure of several lines
+  ends the call.
+- An I/O stream written to comes before the value
+  (`serde_json::to_writer(writer, value)`), and an in-memory buffer after it
+  (tokio-util's `encode(item, dst)`).
+- Source against destination has no fixed order in std
+  (`ptr::copy(src, dst, count)`, `mem::replace(dest, src)`), so the parameter
+  names say which is which and the order matches the nearest sibling.
+- Functions that play one role take their parameters in one order.

@@ -8,6 +8,9 @@ minor bump may change behavior.
 ## [Unreleased]
 
 ### Added
+- `code-architecture`'s Rust API boundaries reference orders a function's
+  parameters as std and the widely used crates do: the value before its
+  context, a closure last, a written stream before the value.
 - A `finding-fixer` agent that fixes a review's findings inside a
   `review-and-fix` run. The run's fix passes launch it in place of
   `implementer`, and its brief is the goal, the scope, the findings and the

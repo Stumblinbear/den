@@ -389,7 +389,7 @@ unnoticed by a reader who has not read it.
 - `references/rust-semantic-types.md`: newtypes and std types over primitives.
 - `references/rust-errors.md`: typed errors and what their messages say.
 - `references/rust-api-boundaries.md`: borrowing and ownership at boundaries,
-  and returns in place of out-parameters.
+  returns in place of out-parameters, and the order of parameters.
 - `references/rust-iterators.md`: what an iterator holds, lazy and small.
 - `references/rust-conversions.md`: constructors, the conversion traits and
   std's trait for each shared capability.
