@@ -7,6 +7,8 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-13
+
 ### Added
 - `code-architecture`'s Rust API boundaries reference orders a function's
   parameters as std and the widely used crates do: the value before its
@@ -860,7 +862,8 @@ Initial release.
 - The `flag-review` and `comment-review` skills render the review scope
   through a shared `diff-scope.sh` helper and inline the diff when it fits.
 
-[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.10.0...HEAD
+[Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.11.0...HEAD
+[0.11.0]: https://github.com/Stumblinbear/den/compare/den--v0.10.0...den--v0.11.0
 [0.10.0]: https://github.com/Stumblinbear/den/compare/den--v0.9.0...den--v0.10.0
 [0.9.0]: https://github.com/Stumblinbear/den/compare/den--v0.8.0...den--v0.9.0
 [0.8.0]: https://github.com/Stumblinbear/den/compare/den--v0.7.0...den--v0.8.0
