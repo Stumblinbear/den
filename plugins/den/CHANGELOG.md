@@ -78,6 +78,14 @@ minor bump may change behavior.
   tell is rewritten as the claim it hides. An example in the reference is a
   standard as well as a rule. A doc that passes stays word for word, and an
   undocumented item stays undocumented.
+- `triage` traces a problem before ruling on it. It establishes the input or
+  the sequence of events that reaches the problem, and a rare path counts.
+  It finds out why the decision behind the misbehaving piece was made, and a
+  decision that still holds, or that cannot be changed, is where the search
+  goes on from, beside the piece as well as above it. It reads the call
+  sites when the choice between fixes turns on them. When no path reaches
+  the problem, its answer is to leave the code as it is. Its body is set in
+  paragraphs, one per step.
 
 ### Removed
 - `writing-for-humans/references/tells.md`. Eighteen reads across every
