@@ -92,6 +92,10 @@ minor bump may change behavior.
   runs after it, consumers of what it returns or stores. A review that only
   followed the diff's calls had passed a change that broke a system in
   another crate.
+- The comment reviewer reviews a whole doc comment when the diff changes any
+  part of it, and shortens the doc to what a caller needs. A doc that gained
+  a sentence in each round of review had grown to twenty lines with every
+  pass reading only the new sentence.
 
 ### Removed
 - `writing-for-humans/references/tells.md`. Eighteen reads across every

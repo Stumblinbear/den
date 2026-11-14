@@ -19,8 +19,10 @@ whatever the decision needs as you go (the item's body, its callers, its
 tests). A comment noted for a batch at the end is a comment that gets
 dropped, so no edit is deferred.
 
-For each doc comment in scope, take each sentence through three tests in
-this order, by the `writing-for-humans` doc-comment reference:
+When the diff changes any part of a doc comment, review the whole comment,
+not only the changed lines. For each doc comment in scope, take each sentence
+through three tests in this order, by the `writing-for-humans` doc-comment
+reference:
 
 1. **Is it this item's own contract, said once?** A sentence that states how
    the body works, what another item or the surface as a whole already states
@@ -39,6 +41,10 @@ this order, by the `writing-for-humans` doc-comment reference:
 An example in the reference is a standard as well as a rule: a doc that reads
 like an example's "before" is written to its "after", whether or not the
 words match.
+
+Then read the doc once more from top to bottom and shorten it to what a
+caller needs. If it gives the same rule several times, once for each kind of
+caller, say the rule once.
 
 Then, once per item: a public item missing a summary, an obligation the
 caller must meet, or a `# Panics` or `# Errors` section for a failure a
