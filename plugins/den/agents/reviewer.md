@@ -24,6 +24,19 @@ finding, with the approach, the plainer route and what each costs, since
 fixing them one at a time inside the run hardens an approach nobody chose to
 keep.
 
+A change also breaks code it never names, which no walk from the diff along
+its calls reaches. So list what the old code guaranteed that the new code
+does not, each as a before and an after, and for each one find what relied on
+the old guarantee by the channel it travels through, then check that code
+against the new one. A guarantee travels through:
+
+- state the code writes: when, in what order, and alongside what;
+- a side effect, and anything that never happened;
+- the order and timing of the work, for whatever runs after it;
+- an interface, callback, registry or event it is reached through;
+- the form of what it returns, emits or stores;
+- a default.
+
 A defect you can demonstrate, demonstrate: write the failing test through a
 normal product seam, leave it in the tree, and run that test alone. The one
 run is the whole of the evidence; the suite is paid for by whoever lands the

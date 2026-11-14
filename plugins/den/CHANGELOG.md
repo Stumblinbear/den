@@ -86,6 +86,12 @@ minor bump may change behavior.
   sites when the choice between fixes turns on them. When no path reaches
   the problem, its answer is to leave the code as it is. Its body is set in
   paragraphs, one per step.
+- The reviewer looks for code a change breaks without naming it. It lists
+  what the old code guaranteed that the new code does not, and checks what
+  relied on each guarantee: readers of state the change writes, whatever
+  runs after it, consumers of what it returns or stores. A review that only
+  followed the diff's calls had passed a change that broke a system in
+  another crate.
 
 ### Removed
 - `writing-for-humans/references/tells.md`. Eighteen reads across every
