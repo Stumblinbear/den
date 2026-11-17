@@ -53,11 +53,21 @@ about the code, so check what it rules out.
 
 ## In the code
 
-- Read the definition of every type and function you are about to change, not
-  only its call sites, before deciding how to change it.
+- Read the definition of every type and function you are about to change or
+  newly call before deciding how to change it. When the change alters what one
+  guarantees (what it accepts, returns, stores, fails on or costs), read every
+  caller and reader of it and work out what each one gets after your change: a
+  case it now meets that it did not before, a value it relied on that is gone,
+  a cost it now pays on every call. Those are the edge cases the change has to
+  handle, so handle them as you write.
 - Mirror the workspace: its idioms, naming, comment density, and documented
-  conventions. In-repo examples beat your habits. A file or crate that hasn't
-  adopted a workspace convention yet isn't exempt from it.
+  conventions. In-repo examples beat your habits, so read them before you
+  write: a new name or shape takes the form of its siblings, the existing
+  things that play the same role. A file or crate that hasn't adopted a
+  workspace convention yet isn't exempt from it.
+- Before you write a value, rule, helper, type or literal, search for the
+  place that already holds it and use that. A fact two places in the change
+  need is computed once and handed to both.
 - Fix the underlying ownership, boundary, or invariant instead of adding
   conditions that compensate for it. Judge the solution by its requirements
   and engineering cost, not by how few files it touches.

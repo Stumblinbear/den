@@ -31,8 +31,13 @@ The change is as wide as the findings. What you notice beside them goes in
 your report, since a fix pass is verified against its findings and an edit
 outside them is one nobody reads.
 
-- Read the definition of every type and function you are about to change, not
-  only its call sites.
+- Read the definition of every type and function you are about to change or
+  newly call before deciding how to change it. When the change alters what one
+  guarantees (what it accepts, returns, stores, fails on or costs), read every
+  caller and reader of it and work out what each one gets after your change: a
+  case it now meets that it did not before, a value it relied on that is gone,
+  a cost it now pays on every call. Those are the edge cases the change has to
+  handle, so handle them as you write.
 - Mirror the workspace: its idioms, naming, comment density, and documented
   conventions.
 

@@ -7,6 +7,19 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Changed
+- `reviewing-own-work` searches the finished change for what its edits left
+  behind: the old term of each rename, removal, merge or changed guarantee,
+  and what stands beside each hit. Its one line, to review against
+  `quality-bar` and `code-architecture`, prompted no search, and leftovers
+  of a rename came back in review after review.
+- Implementers and the finding fixer read the definition of everything they
+  newly call, and when a change alters what a type or function guarantees,
+  every caller and reader of it, and handle what each one now gets as they
+  write.
+- Implementers read a new name's or shape's siblings before writing it, and
+  search for the place that already holds a value, rule, helper or type.
+
 ## [0.11.0] - 2026-11-13
 
 ### Added
