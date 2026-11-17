@@ -103,6 +103,11 @@ diff-page; the rest are hidden from the `/` menu:
   leaves to the code and its doc comments, and the length that keeps it read
   and true. Claude loads it when it creates, edits or reviews one.
 - `unsafety-author`: Rust `# Safety` contracts and unsafe documentation.
+- `writing-localizable-messages`: how a user-visible message is written in
+  source so every language can translate it naturally, including when one
+  translated value may be inserted into another message, with references for
+  ICU MessageFormat and Fluent. The localizer and the localization reviewer
+  preload it.
 
 Agents, launched as `den:<name>` through the Agent tool or by a workflow:
 

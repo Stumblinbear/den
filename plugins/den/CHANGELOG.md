@@ -7,6 +7,15 @@ minor bump may change behavior.
 
 ## [Unreleased]
 
+### Added
+- A `writing-localizable-messages` skill for the source messages translators
+  work from: complete messages, role-named arguments, CLDR plurals, `select`
+  with a default, translator context, locale formatters, movable markup, text
+  expansion and bidi isolation, and the conditions under which a separately
+  translated value may be inserted into another message. References under it
+  give the rules in ICU MessageFormat and Fluent syntax, with each system's
+  own checks.
+
 ### Changed
 - `reviewing-own-work` searches the finished change for what its edits left
   behind: the old term of each rename, removal, merge or changed guarantee,
@@ -19,6 +28,11 @@ minor bump may change behavior.
   write.
 - Implementers read a new name's or shape's siblings before writing it, and
   search for the place that already holds a value, rule, helper or type.
+- `localizer` and `localization-reviewer` preload `writing-localizable-messages`
+  in place of their own copies of its rules, and read its reference for the
+  project's message system in place of a built-in Fluent section.
+- `localizer` translates every message it can and reports each one it could
+  not translate naturally, in place of stopping at the first.
 
 ## [0.11.0] - 2026-11-13
 
