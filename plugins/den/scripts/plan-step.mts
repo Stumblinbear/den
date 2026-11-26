@@ -1,21 +1,17 @@
-// Prints one step of a plan as markdown, for the plan-step skill's preamble,
-// whose output is the skill's text an agent works from.
+// Prints steps of a plan as markdown, for the plan-step skill's preamble.
 //
-// The argument string is `<plan path> [step number]`: a last word of digits
-// after the path is the step's number, counted from 1, so a path holding
-// spaces arrives whole. Without a number the output covers the step in
-// progress, or every step where not exactly one is in progress. It opens on
-// one line with the plan's title, the steps it covers, every problem in the
-// plan and every source that could not be read, whose path and lines below
-// may be wrong, so an agent meets them before the work. The plan's frame and
-// those steps in full follow.
+// The argument string is `<plan path> [step ID]`: a last word in a step ID's
+// shape is the step's ID, so a path holding spaces arrives whole. Without
+// a step the output covers the steps in progress, or every step when none
+// is. It opens on one line with the plan's title, the steps it covers, every
+// problem in the plan and every source that could not be read. The plan's
+// frame and those steps in full follow.
 //
 // No argument, a plan that cannot be loaded or a step the plan lacks prints
 // the reason alone. The exit is 0 either way, so a preamble shows the reason
-// rather than an error the session cannot read. The plan file is only ever
-// read.
+// rather than an error the session cannot read.
 import process from "node:process";
-import { count, planLine } from "../lib/plan/line.mts";
+import { planLine } from "../lib/plan/line.mts";
 import { loadPlan } from "../lib/plan/load.mts";
 import { renderStepMarkdown } from "../lib/plan/step-markdown.mts";
 import { fieldsOf } from "../lib/shared/fields.mts";
@@ -24,40 +20,41 @@ import { fieldsOf } from "../lib/shared/fields.mts";
 interface StepChoice {
 	/** Indices into the plan's steps, from 0, in the order the output gives them. */
 	readonly indices: readonly number[];
-	/** The line's words for the steps: `step 2 of 3: Title`. */
+	/** The line's words for the steps: `step loader_seam: Title`. */
 	readonly described: string;
 }
 
 /**
- * Chooses the steps the output covers: step `number`, counted from 1, where one
- * is given, else the one step in progress, else all of them.
+ * Chooses the steps the output covers: if `step` is given, the step with that
+ * ID; else the steps in progress; else all of them.
  *
  * @remarks
- * Fails, with the reason, where the plan has no step `number`.
+ * Fails, with the reason, if the plan has no step `step`.
  */
 function chooseSteps(
 	steps: unknown[],
-	number: number | undefined,
+	step: string | undefined,
 ): StepChoice | { readonly failure: string } {
-	const titled = (i: number): string =>
-		`step ${i + 1} of ${steps.length}: ${fieldsOf(steps[i])["title"] ?? ""}`;
+	const titled = (i: number): string => {
+		const { id, title } = fieldsOf(steps[i]);
 
-	if (number !== undefined) {
-		if (number < 1 || number > steps.length) {
-			return {
-				failure: `The plan has no step ${number}: it has ${count(steps.length, "step")}.`,
-			};
+		return `step ${id ?? ""}: ${title ?? ""}`;
+	};
+
+	if (step !== undefined) {
+		const i = steps.findIndex((s) => fieldsOf(s)["id"] === step);
+
+		if (i < 0) {
+			return { failure: `The plan has no step ${step}.` };
 		}
 
-		return {
-			indices: [number - 1],
-			described: titled(number - 1),
-		};
+		return { indices: [i], described: titled(i) };
 	}
 
-	const inProgress = steps.flatMap((step, i) =>
-		fieldsOf(step)["status"] === "inProgress" ? [i] : [],
+	const inProgress = steps.flatMap((s, i) =>
+		fieldsOf(s)["status"] === "inProgress" ? [i] : [],
 	);
+
 	const [only] = inProgress;
 
 	if (only !== undefined && inProgress.length === 1) {
@@ -67,9 +64,16 @@ function chooseSteps(
 		};
 	}
 
+	if (inProgress.length > 1) {
+		return {
+			indices: inProgress,
+			described: `the ${inProgress.length} steps in progress`,
+		};
+	}
+
 	return {
 		indices: steps.map((_, i) => i),
-		described: `every step of ${steps.length}, as ${inProgress.length === 0 ? "none is" : `${inProgress.length} are`} in progress`,
+		described: `every step of ${steps.length}, as none is in progress`,
 	};
 }
 
@@ -81,11 +85,12 @@ function main(): string {
 	const argument = process.argv.slice(2).join(" ").trim();
 
 	if (argument === "") {
-		return "No plan given: the argument is the plan file's path, then optionally a step number.";
+		return "No plan given: the argument is the plan file's path, then optionally a step's ID.";
 	}
 
-	const numbered = argument.match(/^(.*\S)\s+(\d+)$/);
-	const file = numbered?.[1] ?? argument;
+	// A step ID's shape, which a path ending in a file name never has.
+	const stepped = argument.match(/^(.*\S)\s+([a-z][a-z0-9]*(?:_[a-z0-9]+)*)$/);
+	const file = stepped?.[1] ?? argument;
 	const loaded = loadPlan(file);
 
 	if ("failure" in loaded) {
@@ -93,10 +98,7 @@ function main(): string {
 	}
 
 	const steps = loaded.plan["steps"];
-	const choice = chooseSteps(
-		Array.isArray(steps) ? steps : [],
-		numbered?.[2] === undefined ? undefined : Number(numbered[2]),
-	);
+	const choice = chooseSteps(Array.isArray(steps) ? steps : [], stepped?.[2]);
 
 	if ("failure" in choice) {
 		return choice.failure;

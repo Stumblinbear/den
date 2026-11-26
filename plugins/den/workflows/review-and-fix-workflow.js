@@ -10,7 +10,7 @@ export const meta = {
 }
 
 const input = args && typeof args === 'object' && !Array.isArray(args) ? args : {}
-const { repo, goal, plan, rulings, leadCalls, reviewer, since } = input
+const { repo, goal, plan, step, rulings, leadCalls, reviewer, since } = input
 
 // Each path goes to the agents as one line; see the comment on `isLine` in
 // `quality-review-workflow.js`.
@@ -28,6 +28,11 @@ if (typeof goal !== 'string' || goal.trim() === '') {
 }
 if (plan !== undefined && (!isLine(plan) || !isAbsolute(plan))) {
   throw new Error('`plan` is the absolute path of the plan the change belongs to, as one line')
+}
+// See the comment on `isStepId` in `quality-review-workflow.js`.
+const isStepId = (value) => typeof value === 'string' && /^[a-z][a-z0-9]*(_[a-z0-9]+)*$/.test(value)
+if (step !== undefined && (plan === undefined || !isStepId(step))) {
+  throw new Error('`step` is the ID of the step of `plan` the change is, and is given only with `plan`')
 }
 // Sized for one decision and its reason: the reviewer, the fixer and the
 // verifier each read the whole list. The message asks for 400 and the check
@@ -53,8 +58,8 @@ if (since !== undefined && (typeof since !== 'string' || !/^([0-9a-f]{40}|[0-9a-
   throw new Error('`since` is the full tree id `git write-tree` printed for the last clean run')
 }
 // A key from outside this list is a misspelling of one in it.
-if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'rulings', 'leadCalls', 'reviewer', 'since'].includes(key))) {
-  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `rulings`, `leadCalls`, `reviewer` and `since` and nothing else')
+if (Object.keys(input).some((key) => !['repo', 'goal', 'plan', 'step', 'rulings', 'leadCalls', 'reviewer', 'since'].includes(key))) {
+  throw new Error('review-and-fix-workflow takes `repo`, `goal`, `plan`, `step`, `rulings`, `leadCalls`, `reviewer` and `since` and nothing else')
 }
 
 // The finding kinds the run fixes on its own. A P3 goes back to the lead, who
@@ -220,8 +225,8 @@ Every command runs there and every search names a path under it: the directory
 you start in may be another tree.`
 
 // Against HEAD the range is the whole step, since the lead commits each step
-// before briefing the next. Against `since`, the snapshot of the last clean
-// run, it is only what changed after that run.
+// before starting any step that comes after it. Against `since`, the snapshot
+// of the last clean run, it is only what changed after that run.
 const SCOPE = scopeOf(since ?? 'HEAD')
 
 // `since` narrows only the range read first. A fix can break what it sits
@@ -234,7 +239,10 @@ change as a whole, HEAD against the working tree, is there to read for context.`
 const FOCUS = since ? `${CONTEXT} A defect you come
 across elsewhere in the change is a finding of the change, not pre-existing.` : ''
 
-const PLANNED = plan ? `\n\nThe plan this change belongs to is at ${plan}.` : ''
+// Without a step, plan-step covers every step in progress, and a step running
+// beside this one would read as this change's work left undone.
+const STEPPED = step === undefined ? '' : `, and the change is its step ${step}`
+const PLANNED = plan ? `\n\nThe plan this change belongs to is at ${plan}${STEPPED}.` : ''
 
 // Every agent reads these same lists. What it does with a finding that
 // contradicts an entry is in its definition, or else in a sentence placed
@@ -252,7 +260,7 @@ const RULED = [
 // A reviewer handed an account of the change reviews the account instead of the
 // change, so the scope, the goal and the plan are the whole message.
 function reviewScope() {
-  const written = plan ? `\n\nPlan: ${plan}` : ''
+  const written = plan ? `\n\nPlan: ${plan}${step === undefined ? '' : `\nStep: ${step}`}` : ''
   const settled = RULED ? `\n\n${RULED}` : ''
 
   return `${SCOPE}${FOCUS}\n\nGoal: ${goal}${written}${settled}`

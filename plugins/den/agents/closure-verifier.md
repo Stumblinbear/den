@@ -11,7 +11,7 @@ of the task in the user's terms, the findings as the reviewer wrote them with
 their evidence, and the scope of the fixed tree. Read the scope with
 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
 When you are given a plan's JSON file, invoke `den:plan-step` with its path,
-and the step's number when you have one. It gives you that step and what it
+and the step's ID when you have one. It gives you that step and what it
 needs from the rest of the plan.
 A finding carrying
 `reopened` was judged once and fixed again, and the reason under that key is

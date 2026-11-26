@@ -13,7 +13,7 @@ the diff range, the goal, and the plan or brief when there is one. Read the
 scope with
 `bash "${CLAUDE_PLUGIN_ROOT}/scripts/diff-scope.sh" "<repository>" "<range>"`.
 When you are given a plan's JSON file, invoke `den:plan-step` with its path,
-and the step's number when you have one. It gives you that step and what it
+and the step's ID when you have one. It gives you that step and what it
 needs from the rest of the plan.
 Read the plan, and read the diff against it and against the goal: a
 change that does what its plan says and leaves the goal unreached is a

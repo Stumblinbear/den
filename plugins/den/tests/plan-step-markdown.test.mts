@@ -1,6 +1,6 @@
 // Tests for the step markdown plan-step prints, which an agent reads, not the
-// user: the user's decisions in it are named as the user's, and a sketch's
-// code keeps its lines whole.
+// user: the user's decisions in it are named as the user's, a sketch's code
+// keeps its lines whole, and a step lists the steps it comes after.
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -9,8 +9,11 @@ import { fixtureDir } from "../../../tests/harness.mts";
 import { loadPlan } from "../lib/plan/load.mts";
 import { renderStepMarkdown } from "../lib/plan/step-markdown.mts";
 
-/** Writes `plan` into `dir` and returns step 1 as plan-step prints it. */
-function stepMarkdown(plan: object, dir: string): string {
+/**
+ * Writes `plan` into `dir` and returns its step at index `step`, from 0, as
+ * plan-step prints it.
+ */
+function stepMarkdown(plan: object, dir: string, step = 0): string {
 	const file = join(dir, "plan.json");
 
 	writeFileSync(file, JSON.stringify(plan));
@@ -19,7 +22,7 @@ function stepMarkdown(plan: object, dir: string): string {
 
 	assert.ok(!("failure" in loaded), JSON.stringify(loaded));
 
-	return renderStepMarkdown(loaded, [0]);
+	return renderStepMarkdown(loaded, [step]);
 }
 
 test("the step heads the user's decisions as the user's, not the reading agent's", () => {
@@ -62,4 +65,25 @@ test("a sketched decision's code keeps its lines whole however long", () => {
 	);
 
 	assert.ok(written.includes(code), written);
+});
+
+test("a step names each step it comes after by its ID", () => {
+	const step = (id: string, after: string[]) => ({
+		id,
+		title: id,
+		status: "pending",
+		summary: "s",
+		gate: [],
+		after,
+	});
+	const written = stepMarkdown(
+		{
+			title: "A plan",
+			steps: [step("earlier", []), step("later", ["earlier"])],
+		},
+		fixtureDir("plan-step-markdown"),
+		1,
+	);
+
+	assert.ok(written.includes("`earlier`"), written);
 });

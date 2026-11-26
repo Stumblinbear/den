@@ -310,9 +310,10 @@ for (const runtime of runtimes()) {
 		const text = JSON.stringify({
 			title: "Cache wake",
 			steps: [
-				{ title: "One", status: "committed" },
-				{ title: "Two", status: "inProgress" },
+				{ id: "one", title: "One", status: "committed" },
+				{ id: "two", title: "Two", status: "inProgress" },
 				{
+					id: "three",
 					title: "Three",
 					status: "pending",
 					reliesOn: [{ ...codeAt(source, [1, 1]), caption: "why" }],

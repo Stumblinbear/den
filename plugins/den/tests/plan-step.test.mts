@@ -29,8 +29,12 @@ function run(argument: string, data: string): string {
 	return result.stdout;
 }
 
-/** A step titled `title` with `status`, relying on survey fact F1. */
+/**
+ * A step titled `title` with `status`, its ID the title in snake case,
+ * relying on survey fact F1.
+ */
 const step = (title: string, status: string) => ({
+	id: title.toLowerCase().replaceAll(" ", "_"),
 	title,
 	status,
 	summary: "s",
@@ -70,12 +74,12 @@ function writePlan(...steps: object[]): string {
 }
 
 for (const runtime of runtimes()) {
-	test(`[${runtime}] a step number picks that step, the line ahead of it names the sources left unread, and a fact it relies on gives where its evidence sits and none of the file's text`, () => {
+	test(`[${runtime}] a step ID picks that step, the line ahead of it names the sources left unread, and a fact it relies on gives where its evidence sits and none of the file's text`, () => {
 		const file = writePlan(
 			step("First step", "committed"),
 			step("Second step", "pending"),
 		);
-		const out = run(`${file} 2`, dataDir(runtime));
+		const out = run(`${file} second_step`, dataDir(runtime));
 		const [line = "", ...rest] = out.split("\n");
 		const markdown = rest.join("\n");
 		const unread = `${join(file, "..", "missing.txt")}:1–1`;
@@ -93,7 +97,7 @@ for (const runtime of runtimes()) {
 		}
 	});
 
-	test(`[${runtime}] without a number, the step in progress is picked, and every step where none is`, () => {
+	test(`[${runtime}] without a step, the step in progress is picked, and every step where none is`, () => {
 		const picked = run(
 			writePlan(
 				step("First step", "committed"),
@@ -119,9 +123,23 @@ for (const runtime of runtimes()) {
 		);
 	});
 
+	test(`[${runtime}] without a step, every step in progress is picked where several are`, () => {
+		const out = run(
+			writePlan(
+				step("First step", "inProgress"),
+				step("Second step", "committed"),
+				step("Third step", "inProgress"),
+			),
+			dataDir(runtime),
+		);
+
+		assert.ok(out.includes("First step") && out.includes("Third step"), out);
+		assert.ok(!out.includes("Second step"), out);
+	});
+
 	test(`[${runtime}] a step the plan lacks prints the reason alone`, () => {
 		const out = run(
-			`${writePlan(step("Only step", "pending"))} 2`,
+			`${writePlan(step("Only step", "pending"))} missing_step`,
 			dataDir(runtime),
 		);
 

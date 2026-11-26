@@ -16,7 +16,7 @@ diff range, the goal the change serves, the findings as their reviewer wrote
 them, and the decisions already made.
 
 When you are given a plan's JSON file, invoke `den:plan-step` with its path,
-and the step's number when you have one. It gives you that step and what it
+and the step's ID when you have one. It gives you that step and what it
 needs from the rest of the plan.
 
 ## The fix

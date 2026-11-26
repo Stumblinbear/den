@@ -62,7 +62,9 @@ diff-page; the rest are hidden from the `/` menu:
   `planning/references/plan.schema.json` defines, as one self-contained page
   file and sends it to you, for reading a plan from a phone or away from the
   terminal. The page has an overview, the survey, a tab per step, and your
-  decisions and the agent's proposals each with its reason. The code and
+  decisions and the agent's proposals each with its reason. The overview
+  draws the steps as a graph of which come after which, and marks the steps
+  ready to start. The code and
   images a plan points at are read into the page as it is written, and the
   plan file is left as it was. The line naming the page also names any
   problem in the plan, such as an ID used twice or a fact a step relies on
@@ -71,16 +73,18 @@ diff-page; the rest are hidden from the `/` menu:
 - `plan-step`: gives an agent one step of a plan as the skill's text:
   the plan's goal, done criteria and non-goals, the risk the step resolves,
   its decisions and proposals, the facts it relies on as claim and `path:lines`, its proposed
-  change and its gate. Without a step number it covers the step in progress,
-  or every step when not exactly one is. The implementers, the reviewers and
+  change and its gate. It takes the step's ID; without one it
+  covers the steps in progress, or every step when none is. The implementers, the reviewers and
   the closure verifier run it when handed a plan's JSON file. It is not in
   the `/` menu.
 - `planning`: the procedure the lead runs for a task's plan, one JSON file at
   `.local/plans/<task>.json`. It writes the goal and the survey, settles each
   choice with `scoping`, cuts the change into steps a reviewer holds in one
-  read, ordered by risk and interrogated before you see them, and puts the
-  plan to you with `plan-page`. It marks each step in progress as it starts
-  and rewrites the next after it lands. It is not in the `/` menu.
+  read, each naming the steps it comes after so that steps needing nothing
+  from each other run in parallel, ordered by risk and interrogated before
+  you see them, and puts the plan to you with `plan-page`. It marks each
+  step in progress as it starts and rewrites the steps after it once it
+  lands. It is not in the `/` menu.
 - `quality-bar`: what a good change looks like, for the lead planning one, the
   implementer building it and the reviewer reading it. A good change fits
   existing patterns, lives in the module that owns its concept, keeps one

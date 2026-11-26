@@ -22,7 +22,7 @@ review is for.
 ```
 Workflow({
   name: "den:quality-review-workflow",
-  args: { repo, range, goal, plan, rulings, leadCalls },
+  args: { repo, range, goal, plan, step, rulings, leadCalls },
 })
 ```
 
@@ -32,6 +32,7 @@ Workflow({
 | `range` | Required. The git diff range the change spans, on one line: `--cached HEAD` for a staged working tree, `HEAD~1..HEAD` for the last commit. |
 | `goal` | Required. The end the change serves, in the user's terms: the plan's `goal`, quoted, when the change serves it, and otherwise the recorded decisions it does serve. |
 | `plan` | The plan's absolute path, when the change is a step of one. |
+| `step` | With `plan`, the ID of the step the change is. Without it the reviewer reads every step in progress, and a step running in parallel reads as part of this change. |
 | `rulings` | The user's rulings on findings an earlier quality review of this change raised, one per item in one sentence of at most 400 characters naming the shape the finding flagged, what was ruled, and why. An item clarifies a finding and is never an account of the change, since the reviewer takes what an item says as settled and reads past the shapes it describes. The reviewer does not raise a ruled finding again. |
 | `leadCalls` | The same, for this session's own calls on those findings. |
 

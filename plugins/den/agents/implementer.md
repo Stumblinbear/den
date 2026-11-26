@@ -18,7 +18,7 @@ you are about to. What you find there can show that the proposal is wrong, and
 finding that is part of the job.
 
 When you are given a plan's JSON file, invoke `den:plan-step` with its path,
-and the step's number when you have one. It gives you that step and what it
+and the step's ID when you have one. It gives you that step and what it
 needs from the rest of the plan.
 
 ## Reading the brief

@@ -307,15 +307,17 @@ function proposalLines(holder: unknown): string[] {
 		});
 }
 
-/** Writes step `i` of `steps` in full, in the order an agent works from it. */
-function stepLines(steps: unknown[], i: number, survey: Survey): string[] {
-	const step = fieldsOf(steps[i]);
+/** Writes `entry`, one of a plan's steps, in full, in the order an agent works from it. */
+function stepLines(entry: unknown, survey: Survey): string[] {
+	const step = fieldsOf(entry);
 	const status = String(step["status"] ?? "");
+	const after = elements(step["after"]).map((id) => `\`${id}\``);
 
 	return [
-		`# Step ${i + 1} of ${steps.length}: ${step["title"] ?? ""}`,
+		`# Step \`${step["id"] ?? ""}\`: ${step["title"] ?? ""}`,
 		"",
 		`Status: ${STEP_STATUS_WORDS[status] ?? status}.`,
+		...(after.length > 0 ? [`Comes after: ${after.join(", ")}.`] : []),
 		"",
 		...section("## Summary", prose(step["summary"])),
 		...section("## Risk it resolves", prose(step["resolvesRisk"])),
@@ -359,7 +361,7 @@ export function renderStepMarkdown(
 		...section("## Constraints", bullets(plan["constraints"])),
 		...section("## Plan-wide decisions", decisionLines(plan)),
 		...section("## Plan-wide proposals", proposalLines(plan)),
-		...steps.flatMap((i) => stepLines(all, i, survey)),
+		...steps.flatMap((i) => stepLines(all[i], survey)),
 	];
 
 	return lines.join("\n").replace(/\n+$/, "");

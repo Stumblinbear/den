@@ -61,7 +61,7 @@
 			"items": {
 				"$ref": "#/$defs/step"
 			},
-			"description": "In landing order. A step's number is its position; steps have no IDs."
+			"description": "Each step after every step its after names. A step is named by its id."
 		}
 	},
 	"$defs": {
@@ -94,6 +94,11 @@
 			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
 			"description": "A short snake_case name the agent chooses for the choice, e.g. opening_drawing."
 		},
+		"stepId": {
+			"type": "string",
+			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+			"description": "A short snake_case name the agent chooses for the step, e.g. door_rendering."
+		},
 		"factId": {
 			"type": "string",
 			"pattern": "^F[0-9]+$"
@@ -101,10 +106,22 @@
 		"step": {
 			"type": "object",
 			"additionalProperties": false,
-			"required": ["title", "status", "summary", "gate"],
+			"required": ["id", "title", "status", "summary", "gate"],
 			"properties": {
+				"id": {
+					"$ref": "#/$defs/stepId",
+					"description": "Unique across the plan's steps, survey facts, open questions and proposals."
+				},
 				"title": {
 					"type": "string"
+				},
+				"after": {
+					"type": "array",
+					"uniqueItems": true,
+					"items": {
+						"$ref": "#/$defs/stepId"
+					},
+					"description": "The steps that land before this one starts, each earlier in the plan. A step with none can start at once, alongside every other step with none."
 				},
 				"status": {
 					"enum": ["pending", "inProgress", "committed"]
@@ -113,11 +130,11 @@
 					"type": "object",
 					"additionalProperties": false,
 					"required": ["reason"],
-					"description": "Why this step is a separate step.",
+					"description": "Why this step is separate from the steps it comes after. A step with no after has none.",
 					"properties": {
 						"test": {
 							"enum": ["teaches", "oneRead"],
-							"description": "teaches: landing the previous step teaches what this one should be. oneRead: this step and the previous one together exceed one read. Leave it out only if no test applies; the page flags that on every step after the first."
+							"description": "teaches: landing a step this one comes after teaches what this one should be. oneRead: this step and a step it comes after together exceed one read."
 						},
 						"reason": {
 							"$ref": "#/$defs/markdown"

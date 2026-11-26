@@ -8,24 +8,32 @@ const elements = (value: unknown): unknown[] =>
 	Array.isArray(value) ? value : [];
 
 /**
+ * Names `step` in a problem: by its ID, or by its title where it has no ID.
+ */
+const stepName = (step: Record<string, unknown>): string =>
+	step["id"]
+		? `Step ${step["id"]}`
+		: `The step titled “${step["title"] ?? ""}”`;
+
+/**
  * Lists the problems in `plan`, one sentence for each fault.
  *
  * @remarks
  * A problem is any of these rules broken; an ID used more than once is one
  * fault however many times it repeats:
- * - every survey fact, open question and proposal has an ID, and no ID is
- *   used twice among them;
+ * - every step, survey fact, open question and proposal has an ID, and no ID
+ *   is used twice among them;
+ * - each ID in a step's `after` is the ID of a step earlier in the plan;
  * - a block in a step is about open questions the plan has, and a fact block
- *   in one names a survey fact;
+ *   in one has a survey fact's ID;
  * - a diff block in a step changes one file;
  * - every block at the top of a step's `reliesOn`, a fact aside, has a
  *   caption saying why.
  *
  * `plan` may be any parsed JSON. A step, survey fact, open question or
- * proposal that is not an object is a problem of its own, since none of its
- * checks can run. A block that is not an object is passed over, except at the
- * top of `reliesOn`, where any truthy one counts as a block without a caption.
- * `plan` is only read.
+ * proposal that is not an object is a problem of its own. A block that is not
+ * an object is passed over, except at the top of `reliesOn`, where any truthy
+ * one counts as a block without a caption.
  */
 export function planProblems(plan: Record<string, unknown>): string[] {
 	const problems: string[] = [];
@@ -56,6 +64,16 @@ export function planProblems(plan: Record<string, unknown>): string[] {
 		claimed.set(id, times);
 	};
 
+	// A step is reported by its own name, which `claim` cannot give. One that
+	// is not an object is reported by the step checks below.
+	for (const step of steps.filter(isTable)) {
+		if (step["id"]) {
+			claim(step, "step");
+		} else {
+			problems.push(`${stepName(step)} has no ID.`);
+		}
+	}
+
 	for (const fact of survey) {
 		claim(fact, "survey fact");
 	}
@@ -72,18 +90,34 @@ export function planProblems(plan: Record<string, unknown>): string[] {
 	const openIds = new Set(
 		openQuestions.map((question) => fieldsOf(question)["id"]),
 	);
+	const stepIds = new Set(steps.map((step) => fieldsOf(step)["id"]));
+	const earlierStepIds = new Set<unknown>();
 
-	for (const [i, step] of steps.entries()) {
+	for (const step of steps) {
 		if (!isTable(step)) {
-			problems.push(`Step ${i + 1} is not an object.`);
+			problems.push("A step is not an object.");
 			continue;
 		}
+
+		const name = stepName(step);
+
+		for (const id of elements(step["after"])) {
+			if (!stepIds.has(id)) {
+				problems.push(`${name} comes after “${id}”, which isn’t a step.`);
+			} else if (!earlierStepIds.has(id)) {
+				problems.push(
+					`${name} comes after “${id}”, which isn’t earlier in the plan.`,
+				);
+			}
+		}
+
+		earlierStepIds.add(step["id"]);
 
 		for (const block of blocksIn(step)) {
 			for (const id of elements(block["about"])) {
 				if (!openIds.has(id)) {
 					problems.push(
-						`Step ${i + 1} has a block about “${id}”, which isn’t an open question.`,
+						`${name} has a block about “${id}”, which isn’t an open question.`,
 					);
 				}
 			}
@@ -93,14 +127,14 @@ export function planProblems(plan: Record<string, unknown>): string[] {
 
 				if (files > 1) {
 					problems.push(
-						`Step ${i + 1} has a diff covering ${files} files. Give each file its own block.`,
+						`${name} has a diff covering ${files} files. Give each file its own block.`,
 					);
 				}
 			}
 
 			if (block["kind"] === "fact" && !factIds.has(block["id"])) {
 				problems.push(
-					`Step ${i + 1} relies on ${block["id"]}, which isn’t in the survey.`,
+					`${name} relies on ${block["id"]}, which isn’t in the survey.`,
 				);
 			}
 		}
@@ -110,7 +144,7 @@ export function planProblems(plan: Record<string, unknown>): string[] {
 
 			if (block && fields["kind"] !== "fact" && !fields["caption"]) {
 				problems.push(
-					`Step ${i + 1} relies on a ${fields["kind"] || "block"} block without a caption saying why.`,
+					`${name} relies on a ${fields["kind"] || "block"} block without a caption saying why.`,
 				);
 			}
 		}

@@ -7,7 +7,7 @@ export const meta = {
 }
 
 const input = args && typeof args === 'object' && !Array.isArray(args) ? args : {}
-const { repo, range, goal, plan, rulings, leadCalls } = input
+const { repo, range, goal, plan, step, rulings, leadCalls } = input
 
 // Each path and the range go to the reviewer as one line: the scope script
 // takes `git diff` arguments from the range's first line alone, and a path
@@ -32,6 +32,13 @@ if (typeof goal !== 'string' || goal.trim() === '') {
 if (plan !== undefined && (!isLine(plan) || !isAbsolute(plan))) {
   throw new Error('`plan` is the absolute path of the plan or brief the change was written to, as one line')
 }
+// A step's ID in the shape the plan schema gives one: plan-step reads a last
+// word of that shape as the step, and any other word as the end of the plan's
+// path.
+const isStepId = (value) => typeof value === 'string' && /^[a-z][a-z0-9]*(_[a-z0-9]+)*$/.test(value)
+if (step !== undefined && (plan === undefined || !isStepId(step))) {
+  throw new Error('`step` is the ID of the step of `plan` the change is, and is given only with `plan`')
+}
 // Sized as review-and-fix's are; see the comment on its `RULING_LIMIT`.
 const RULING_LIMIT = 400
 const RULING_CAP = 512
@@ -44,8 +51,8 @@ if (!isRulingList(leadCalls)) {
   throw new Error(`\`leadCalls\` lists the lead's calls on findings an earlier quality review raised, one per item with its reason, each nonempty and at most ${RULING_LIMIT} characters`)
 }
 // A key from outside this list is a misspelling of one in it.
-if (Object.keys(input).some((key) => !['repo', 'range', 'goal', 'plan', 'rulings', 'leadCalls'].includes(key))) {
-  throw new Error('quality-review-workflow takes `repo`, `range`, `goal`, `plan`, `rulings` and `leadCalls` and nothing else')
+if (Object.keys(input).some((key) => !['repo', 'range', 'goal', 'plan', 'step', 'rulings', 'leadCalls'].includes(key))) {
+  throw new Error('quality-review-workflow takes `repo`, `range`, `goal`, `plan`, `step`, `rulings` and `leadCalls` and nothing else')
 }
 
 // The host shows about this much of a workflow result and cuts the tail; the
@@ -71,8 +78,10 @@ you start in may be another tree.`,
     `Goal: ${goal}`,
   ]
 
+  // Without a step, plan-step covers every step in progress, and a step
+  // running beside this one would read as part of this change.
   if (plan) {
-    parts.push(`Plan: ${plan}`)
+    parts.push(step === undefined ? `Plan: ${plan}` : `Plan: ${plan}\nStep: ${step}`)
   }
 
   parts.push(

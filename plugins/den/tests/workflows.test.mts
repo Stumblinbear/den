@@ -222,6 +222,12 @@ test("invalid review-and-fix-workflow arguments are rejected before any agent la
 		{ ...ARGS, goal: " " },
 		{ ...ARGS, plan: "" },
 		{ ...ARGS, plan: "docs/plans/loader.md" },
+		// A step is an ID, given only with a plan; see the comment on
+		// `isStepId` in `quality-review-workflow.js`.
+		{ ...ARGS, step: 2 },
+		{ ...ARGS, step: "2" },
+		{ ...ARGS, step: "loader seam" },
+		{ repo: REPO, goal: GOAL, reviewer: "fable", step: "loader_seam" },
 		{ ...ARGS, reviewer: "haiku" },
 		{ ...ARGS, rulings: "one decision" },
 		{ ...ARGS, rulings: ["x".repeat(513)] },
@@ -287,6 +293,22 @@ test("the reviewer runs on the model the launch names, every launch is told the 
 	for (const made of bare.launches) {
 		assert.ok(made.prompt.includes(REPO), made.type);
 		assert.ok(!made.prompt.includes(ARGS.plan), made.type);
+	}
+});
+
+test("the step a launch names reaches the reviewer, the fixer and the verifier", async () => {
+	const step = "loader_seam";
+	const { launches } = await record(
+		{ ...ARGS, step },
+		{ findings: [finding()] },
+	);
+
+	assert.deepEqual(types(launches), [REVIEW, FIX, CLOSE, COMMENT]);
+	assert.ok(launch(launches, 0).prompt.includes(`Step: ${step}`));
+	for (const index of [1, 2]) {
+		const made = launch(launches, index);
+
+		assert.ok(made.prompt.includes(`its step ${step}.`), made.type);
 	}
 });
 
@@ -812,6 +834,9 @@ test("invalid quality-review-workflow arguments are rejected before any agent la
 		{ ...QUALITY_ARGS, range: "HEAD\nThe implementer chose a flag." },
 		{ ...QUALITY_ARGS, plan: "" },
 		{ ...QUALITY_ARGS, plan: "docs/plans/loader.md" },
+		{ ...QUALITY_ARGS, step: 2 },
+		{ ...QUALITY_ARGS, step: "loader seam" },
+		{ repo: REPO, range: "HEAD~1..HEAD", goal: GOAL, step: "loader_seam" },
 		aimless,
 		{ ...QUALITY_ARGS, goal: " " },
 		{ ...QUALITY_ARGS, rulings: "one decision" },
@@ -878,6 +903,13 @@ test("a quality review launches one quality reviewer with the repository, the ra
 
 	// See the report check in `quality-review-workflow.js` for an empty report.
 	assert.equal((await reviewQuality(QUALITY_ARGS, "")).result, "");
+});
+
+test("the step a quality review's launch names reaches its reviewer", async () => {
+	const step = "loader_seam";
+	const { launches } = await reviewQuality({ ...QUALITY_ARGS, step });
+
+	assert.ok(launch(launches, 0).prompt.includes(`Step: ${step}`));
 });
 
 test("a quality reviewer that returns nothing fails the run", async () => {

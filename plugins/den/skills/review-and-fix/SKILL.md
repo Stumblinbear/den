@@ -11,14 +11,15 @@ allowed-tools: Workflow
 Run the workflow once the change is in the working tree, the report of
 whatever built it is triaged, and, where the change adds names, types or
 mechanisms, the findings of its quality review (`den:quality-review`) are
-ruled and fixed. It reviews the working tree against HEAD, so the
-step before is committed first. Stage the tree with `git -C <repo> add -A`
-before every launch.
+ruled and fixed. It reviews the working tree against HEAD, so every step
+this one comes after is committed first, and the working tree holds this
+step's change alone. Stage the tree with `git -C <repo> add -A` before every
+launch.
 
 ```
 Workflow({
   name: "den:review-and-fix-workflow",
-  args: { repo, goal, plan, rulings, leadCalls, reviewer, since },
+  args: { repo, goal, plan, step, rulings, leadCalls, reviewer, since },
 })
 ```
 
@@ -27,6 +28,7 @@ Workflow({
 | `repo` | Required. The absolute path of the repository whose working tree is reviewed. |
 | `goal` | Required. The end the change serves, in the user's terms: the plan's `goal`, quoted, when the change serves it, and otherwise the recorded decisions it does serve. |
 | `plan` | The plan's absolute path, when the change is a step of one. |
+| `step` | With `plan`, the ID of the step the change is. Without it the agents read every step in progress, and a step running in parallel reads as this change's work left undone. |
 | `rulings` | The user's rulings on an earlier run's findings and questions: each skip, and each answer to a decision finding, one per item in one sentence of at most 400 characters naming the behaviour the finding flagged, what was ruled, and why. The reviewer, the fixer and the verifier take every item as settled, so an item that describes code without ruling on it ends the checking its claim needed. An item: `A missing config key reads as its default rather than failing, since every caller handles the default and a hard failure would stop startup on an optional key.` A design statement, `Writes go through the queue and reads hit the store directly`, is the plan's and stays out. |
 | `leadCalls` | The same, for this session's own calls on an earlier run's findings and questions. |
 | `reviewer` | Required. The reviewer's model: `opus`, or `fable` when the change outruns its checks, below. A model the user names for the task wins. |

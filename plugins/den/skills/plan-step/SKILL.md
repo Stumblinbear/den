@@ -1,7 +1,7 @@
 ---
 name: plan-step
-description: Reads one step of a plan; the argument is the plan's JSON path, then the step's number.
-argument-hint: "[path to the plan's JSON file] [step number, or none for the step in progress]"
+description: Reads one step of a plan; the argument is the plan's JSON path, then the step's ID.
+argument-hint: "[path to the plan's JSON file] [step ID, or none for the steps in progress, or every step when none is]"
 user-invocable: false
 ---
 

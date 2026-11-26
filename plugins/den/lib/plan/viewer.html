@@ -11,7 +11,7 @@
   --bg:#F4F4F1;--panel:#FFFFFF;--ink:#16171A;--ink2:#2B2D31;--ink3:#45484E;--mute:#686C73;--num:#767A81;
   --rule:#E2E2DD;--rule2:#EDEDE9;--soft:#FAFAF8;--group:#F8F8F6;--chip:#EFEFEB;--chip2:#F1F1EE;--line:#9A9DA3;--line2:#C9C9C2;
   --blue:#2B57D6;--blue-ink:#1F3F9E;--blue-bg:#E6EDFF;
-  --orange:#C2510F;--orange-ink:#8F3507;--orange-bg:#FFEBD9;--orange-bg2:#FFE1C7;--orange-soft:#FFF6EE;--orange-line:#F6D2B4;--orange-dash:#E9A774;--flag:#9A3A08;--about-ink:#3D1E09;--warn-bg:#FFF8F2;
+  --orange:#C2510F;--orange-ink:#8F3507;--orange-bg:#FFEBD9;--orange-bg2:#FFE1C7;--orange-soft:#FFF6EE;--orange-line:#F6D2B4;--orange-dash:#E9A774;--flag:#9A3A08;--about-ink:#3D1E09;
   --add-bg:#E5F4EA;--add-ink:#17602F;--del-bg:#FCE9E7;--del-ink:#9E241A;
   --err-bg:#FDECEA;--err-line:#F2B8B2;--err-ink:#8E1F16;
   --sans:'Instrument Sans','Helvetica Neue',Helvetica,system-ui,sans-serif;
@@ -41,15 +41,13 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;gap:20px}
 .tab{display:flex;align-items:flex-start;gap:10px;min-height:40px;padding:9px 12px;border-radius:8px;color:var(--ink2);font-size:14px;line-height:1.35}
 .tab:hover{background:var(--group);color:var(--ink);text-decoration:none}
 .tab[aria-current="page"]{background:var(--ink);color:#fff;font-weight:600}
-.tab .num{flex:0 0 auto;font:400 12px/1.6 var(--mono);color:var(--mute)}
 .tab .name{flex:1;min-width:0}
 .tab .st{flex:0 0 auto;display:inline-flex;align-self:center;color:var(--mute)}
 .tab .st.ip{color:var(--blue)}
+.tab .st.rd{color:var(--add-ink)}
 .count{flex:0 0 auto;min-width:20px;text-align:center;font:600 11px/1.6 var(--mono);color:var(--orange-ink);background:var(--orange-bg);border-radius:999px;padding:0 6px}
 .tab .total{flex:0 0 auto;font:400 11.5px/1.6 var(--mono);color:var(--mute)}
-.stephead .num{font:15px var(--mono);color:var(--mute)}
-.pager .num{font:12px var(--mono);color:var(--mute)}
-.tab[aria-current="page"] .num,.tab[aria-current="page"] .total,.tab[aria-current="page"] .st{color:#B9BCC2}
+.tab[aria-current="page"] .total,.tab[aria-current="page"] .st{color:#B9BCC2}
 .tab[aria-current="page"] .count{color:#fff;background:var(--orange)}
 .tabs .sep,.mnav .sep{padding:14px 12px 4px;font:400 10.5px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
 
@@ -94,21 +92,22 @@ table.cut th{text-align:left;font:500 10.5px var(--mono);letter-spacing:.07em;te
 table.cut td{padding:14px 16px;border-bottom:1px solid var(--rule2);vertical-align:top}
 table.tbl td{padding:9px 14px;border-bottom:1px solid var(--rule2);vertical-align:top}
 table.cut tr:last-child td{border-bottom:0}
-table.cut th:first-child,table.cut td:first-child{padding-left:var(--gut);width:44px}
-table.cut th:nth-child(2){width:28%}
+/* every box is border-box, so the gutter's width takes in its padding */
+table.cut th.g,table.cut td.g{padding-left:var(--gut);padding-right:0;width:calc(var(--gut) + var(--lanes));min-width:calc(var(--gut) + var(--lanes))}
+table.cut th.t{width:28%}
 table.cut th:last-child,table.cut td:last-child{padding-right:var(--gut)}
-table.cut td.n{font:13px/1.6 var(--mono);color:var(--mute)}
 .claim a{position:relative;z-index:1}
 .pager a{display:flex;align-items:center;gap:8px;min-height:44px;color:var(--ink2)}
 .srow .used a{font:12px/1.6 var(--mono);padding:0 7px;border-radius:4px;background:var(--chip2);color:var(--ink)}
 table.cut td.t a{font-weight:600;color:var(--ink)}
-table.cut tr.warn td.r{background:var(--warn-bg)}
 table.cut td.r .resolves.after{margin-top:8px}
 .test{display:inline-block;font:600 10px/1.7 var(--mono);letter-spacing:.06em;text-transform:uppercase;border-radius:4px;padding:0 7px;margin-right:8px;vertical-align:1px}
 .test.risk{color:var(--ink);background:#E9E9E4}
 .test.teaches{color:#1B6436;background:#E5F4EA}
 .test.oneRead{color:var(--blue-ink);background:var(--blue-bg)}
-.test.none{color:var(--orange-ink);border:1px dashed var(--orange-dash);padding:0 6px}
+.test.ready{color:var(--add-ink);background:var(--add-bg);margin:0 0 0 8px}
+.tablewrap.graph{position:relative}
+svg.lanes{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
 
 /* ---------- decision rows ---------- */
 .olist{display:grid;grid-template-columns:max-content minmax(0,1fr) auto;column-gap:16px}
@@ -118,6 +117,9 @@ table.cut td.r .resolves.after{margin-top:8px}
 .copy{justify-self:start;display:inline-flex;max-width:260px;min-width:0;margin:0;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:copy;border-radius:6px}
 .key{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 12px/1.7 var(--mono);color:var(--orange-ink);background:var(--orange-bg);border-radius:4px;padding:0 6px}
 .key.trial{background:#fff;border:1px dashed var(--orange-dash);padding:0 5px}
+.stephead .copy{align-self:center}
+.key.step{color:var(--ink3);background:var(--chip)}
+.cutid{margin-top:2px}
 .key.agent{color:var(--ink3);background:#fff;border:1px solid var(--line2);padding:0 5px}
 .about .key{background:var(--orange-bg2)}
 .copy:hover .key{filter:brightness(.95)}
@@ -163,6 +165,7 @@ dl.user dt .kind{margin-left:6px;vertical-align:1px}
 .status{display:inline-flex;align-items:center;gap:6px;align-self:center;font-size:12.5px;font-weight:600;border-radius:999px;padding:2px 10px 2px 7px}
 .status.inProgress{color:var(--blue-ink);background:var(--blue-bg)}
 .status.committed{color:#fff;background:var(--ink)}
+.status.ready{color:var(--add-ink);background:var(--add-bg)}
 .stephead .status{margin-left:auto}
 .summary{max-width:76ch;font-size:15.5px;line-height:1.6;color:var(--ink2)}
 .part{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--rule2)}
@@ -225,6 +228,9 @@ details.evcode summary{display:inline-flex;align-items:center;gap:5px;min-height
 details.evcode>.blocks{margin-top:8px}
 
 .pager{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:0 4px;font-size:14px}
+.pager .deps{display:flex;flex-direction:column;min-width:0}
+.pager .deps .lbl{padding-top:6px}
+.pager .deps.unblocks{margin-left:auto;align-items:flex-end;text-align:right}
 .problems{background:var(--err-bg);border:1px solid var(--err-line);border-radius:12px;padding:14px 20px;color:var(--err-ink);font-size:14px}
 .problems ul{margin:6px 0 0;padding-left:18px}
 .toast{position:fixed;left:50%;bottom:24px;z-index:60;transform:translate(-50%,8px);max-width:calc(100vw - 32px);background:var(--ink);color:#fff;font:13px/1.4 var(--sans);padding:8px 14px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
@@ -245,8 +251,6 @@ details.evcode>.blocks{margin-top:8px}
   .mbar-btn .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
   .mbar-btn .plan,.msheet-head .plan{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mbar-btn .here{font-size:16px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .stephead .num{font-size:13px}
-  .mbar-btn .here .num{font:400 13px var(--mono);color:var(--mute);margin-right:6px}
   .mbar-btn .chev{transform:rotate(180deg)}
   .mback{display:block;position:fixed;inset:0;z-index:40;background:rgba(22,23,26,.38)}
   .msheet{display:flex;flex-direction:column;position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:80vh;background:var(--panel);border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(22,23,26,.18);padding-bottom:env(safe-area-inset-bottom)}
@@ -267,10 +271,9 @@ details.evcode>.blocks{margin-top:8px}
   table.cut,table.cut tbody{display:block}
   table.cut thead{display:none}
   table.cut tr{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;padding:12px 16px;border-top:1px solid var(--rule2)}
-  table.cut tr.warn{background:var(--warn-bg)}
-  table.cut td,table.cut th:first-child,table.cut td:first-child,table.cut td:last-child{display:block;width:auto;padding:0;border:0}
-  table.cut td.r{grid-column:1/-1;padding-top:6px}
-  table.cut tr.warn td.r{background:none}
+  table.cut td,table.cut td.g{display:block;padding:0;border:0}
+  table.cut td.g{grid-row:1/span 2;width:var(--lanes);min-width:var(--lanes)}
+  table.cut td.r{grid-column:2/-1;padding-top:6px}
 
   /* decision rows stack */
   .olist{display:block}
@@ -302,7 +305,6 @@ details.evcode>.blocks{margin-top:8px}
   /* a 40px tap area around each ID, without changing how it looks */
   .copy{padding:10px 8px;margin:-10px -8px}
   .about .copy{margin:-10px 0 -10px -8px}
-  .pager a:last-child{margin-left:auto;text-align:right}
 }
 </style>
 </head>
@@ -355,12 +357,12 @@ details.evcode>.blocks{margin-top:8px}
   function arr(x) { return Array.isArray(x) ? x : []; }
   // Paths break after a slash rather than mid-name.
   function escPath(p) { return esc(p).replace(/\//g, '/<wbr>'); }
-  function pad2(i) { return String(i + 1).padStart(2, '0'); }
   function chev(color) {
     return `<svg class="chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="${color || 'currentColor'}" stroke-width="1.6" stroke-linecap="round"/></svg>`;
   }
   const halfIcon = '<svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.8" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M9 4a5 5 0 0 1 0 10z" fill="currentColor"/></svg>';
   const checkIcon = '<svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4l3 3L11.5 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const readyIcon = '<svg width="12" height="12" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.2" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
   const testLabels = { teaches: 'Teaches', oneRead: 'One read' };
   const statusLabels = { notRaised: 'not raised', noObjection: 'no objection', leftToAgent: 'left to the implementer', approved: 'approved', objected: 'objected' };
 
@@ -390,6 +392,37 @@ details.evcode>.blocks{margin-top:8px}
       }
     }
   });
+
+  // Each step's `after`, as the indices of the earlier steps it lists. The
+  // checks report an ID that is no earlier step's, so it is left out here.
+  var stepIndexById = new Map();
+  steps.forEach((s, i) => { if (s?.id != null && !stepIndexById.has(s.id)) stepIndexById.set(s.id, i); });
+  // A step's place in the page's links is its ID. A step without one, which
+  // the checks report, is linked by its position, so the page still reaches it.
+  function stepKey(i) { return typeof steps[i]?.id === 'string' && steps[i].id !== '' ? steps[i].id : String(i + 1); }
+  function stepHref(i) { return `#step-${encodeURIComponent(stepKey(i))}`; }
+  function stepIdKey(i) { return typeof steps[i]?.id === 'string' && steps[i].id !== '' ? keyBtn(steps[i].id, 'step') : ''; }
+  var afterOf = steps.map((s, i) => arr(s?.after).map((id) => stepIndexById.get(id)).filter((j) => j != null && j < i));
+  var unblocksOf = steps.map(() => []);
+  afterOf.forEach((js, i) => { js.forEach((j) => { unblocksOf[j].push(i); }); });
+  var ready = steps.map((s, i) => s?.status === 'pending' && afterOf[i].every((j) => steps[j].status === 'committed'));
+
+  // Each step's lane in the cut's graph. A lane is held from a step's row to
+  // its last dependent's, so no other step's dot lands on a line passing
+  // through. A step takes the lane of a step whose hold ends at it, or else
+  // the lowest free one.
+  var heldUntil = steps.map((_, j) => Math.max(j, ...unblocksOf[j]));
+  var laneOf = [];
+  var laneHeldUntil = [];
+  steps.forEach((_, i) => {
+    var inherited = afterOf[i].find((j) => heldUntil[j] === i);
+    var lane = inherited != null ? laneOf[inherited] : 0;
+    if (inherited == null) while (laneHeldUntil[lane] != null && laneHeldUntil[lane] >= i) lane++;
+    laneOf[i] = lane;
+    laneHeldUntil[lane] = heldUntil[i];
+  });
+  var laneCount = laneHeldUntil.length;
+  const laneWidth = 16;
 
   function needs(d) { return d.open.length + d.proposals.filter((a) => a.status === 'notRaised').length; }
   var stepNeeds = stepDec.map(needs);
@@ -552,8 +585,8 @@ details.evcode>.blocks{margin-top:8px}
     var e = openById.get(o.id);
     var href = '';
     if (e && e.step != null) {
-      if (attached.has(o.id)) href = `#step-${e.step + 1}:${o.id}`;
-      else if (currentRoute.step == null) href = `#step-${e.step + 1}`;
+      if (attached.has(o.id)) href = `${stepHref(e.step)}:${o.id}`;
+      else if (currentRoute.step == null) href = stepHref(e.step);
     }
     var meta;
     if (o.gitPath) meta = `<span class="meta path" title="${esc(o.gitPath)}">${esc(baseName(o.gitPath))}</span>`;
@@ -589,7 +622,7 @@ details.evcode>.blocks{margin-top:8px}
     if (!agentHtml) return '';
     return `<section class="box"><h2>Agent proposals</h2><div class="olist">${agentHtml}</div></section>`;
   }
-  function stepGroup(i) { return `<a class="group" href="#step-${i + 1}">${pad2(i)} · ${esc(steps[i].title)}</a>`; }
+  function stepGroup(i) { return `<a class="group" href="${stepHref(i)}">${esc(steps[i].title)}</a>`; }
 
   // ---- tabs ----------------------------------------------------------------
   function renderOverview() {
@@ -604,14 +637,16 @@ details.evcode>.blocks{margin-top:8px}
       (cons.length ? `<div class="field"><h3 class="lbl">Constraints</h3>${bullets(cons)}</div>` : '') +
       '</div></section>';
 
-    // A one-step plan has no boundary to justify, and the first step has none before it.
-    var cut = steps.length < 2 ? '' : '<section class="box"><h2>The cut</h2><div class="tablewrap"><table class="cut"><thead><tr><th>#</th><th>Step</th><th>Why the boundary is here</th></tr></thead><tbody>' +
+    // A one-step plan has no boundary to justify.
+    var gutter = `style="--lanes:${laneCount * laneWidth}px"`;
+    var cut = steps.length < 2 ? '' : `<section class="box"><h2>The cut</h2><div class="tablewrap graph"><table class="cut"><thead><tr><th class="g" ${gutter}></th><th class="t">Step</th><th>Why the boundary is here</th></tr></thead><tbody>` +
       steps.map((s, i) => {
-        var c = s.cut, named = c && testLabels[c.test], flagged = !named && i > 0;
-        var chip = named ? `<span class="test ${c.test}">${testLabels[c.test]}</span>` : flagged ? '<span class="test none">No test named</span>' : '';
+        var c = s.cut, named = c && testLabels[c.test];
+        var chip = named ? `<span class="test ${c.test}">${testLabels[c.test]}</span>` : '';
         var reason = c?.reason ? mdi(c.reason) : '';
         var risk = s.resolvesRisk ? `<div class="resolves${chip || reason ? ' after' : ''}"><span class="test risk">Risk</span>${mdi(s.resolvesRisk)}</div>` : '';
-        return `<tr${flagged ? ' class="warn"' : ''}><td class="n">${pad2(i)}</td><td class="t"><a href="#step-${i + 1}">${esc(s.title)}</a></td><td class="r">${chip}${reason}${risk}</td></tr>`;
+        var readyChip = ready[i] ? '<span class="test ready">Ready</span>' : '';
+        return `<tr data-step="${i}"><td class="g" ${gutter}></td><td class="t"><a href="${stepHref(i)}">${esc(s.title)}</a>${readyChip}${stepIdKey(i) ? `<div class="cutid">${stepIdKey(i)}</div>` : ''}</td><td class="r">${chip}${reason}${risk}</td></tr>`;
       }).join('') + '</tbody></table></div></section>';
 
     var openHtml = '';
@@ -634,7 +669,7 @@ details.evcode>.blocks{margin-top:8px}
       var shown = ev.filter((e) => e && e.kind === 'code' && (e.error || (e.resolved && e.resolved.text != null) || (e.from && e.from.text != null)));
       var other = ev.filter((e) => e && e.kind !== 'code');
       var usedHtml = used.length
-        ? `<span class="used"><span class="ul">Relied on by</span>${used.map((i) => `<a href="#step-${i + 1}">${pad2(i)}</a>`).join('')}</span>`
+        ? `<span class="used"><span class="ul">Relied on by</span>${used.map((i) => `<a href="${stepHref(i)}">${esc(stepKey(i))}</a>`).join('')}</span>`
         : '';
       return '<div class="srow" id="fact-' + esc(f.id) + '"><span class="id id-fact">' + esc(f.id) + '</span>' +
         '<div class="claim"><div class="md">' + md(f.claim) + '</div>' + refsHtml(refsOf(f)) +
@@ -649,9 +684,10 @@ details.evcode>.blocks{margin-top:8px}
     var s = steps[i], d = stepDec[i];
     var lands = arr(s.afterItLands), gate = arr(s.gate), change = arr(s.proposedChange), relies = arr(s.reliesOn);
     var status = s.status === 'inProgress' ? `<span class="status inProgress">${halfIcon}In progress</span>`
-      : s.status === 'committed' ? `<span class="status committed">${checkIcon}Committed</span>` : '';
+      : s.status === 'committed' ? `<span class="status committed">${checkIcon}Committed</span>`
+      : ready[i] ? `<span class="status ready">${readyIcon}Ready</span>` : '';
     var top = '<section class="box stepbox">' +
-      '<div class="stephead"><span class="num">' + pad2(i) + '</span><h2>' + esc(s.title) + '</h2>' + status + '</div>' +
+      '<div class="stephead">' + stepIdKey(i) + '<h2>' + esc(s.title) + '</h2>' + status + '</div>' +
       '<div class="md summary">' + md(s.summary) + '</div>' +
       (lands.length ? `<div class="part"><h3 class="lbl">Once it lands</h3><div class="blocks">${lands.map(renderBlock).join('')}</div></div>` : '') +
       (gate.length ? `<div class="part"><h3 class="lbl">Gate</h3><ul class="dlist grid">${gate.map((g) => `<li><span>${mdi(g)}</span></li>`).join('')}</ul></div>` : '') +
@@ -659,9 +695,14 @@ details.evcode>.blocks{margin-top:8px}
     var changeBox = change.length ? `<section class="box"><h2>The change</h2><div class="pad"><div class="blocks">${change.map(renderBlock).join('')}</div></div></section>` : '';
     var reliesBox = relies.length ? `<section class="box"><h2>Rests on</h2><div class="pad"><div class="blocks ruled">${relies.map(renderRelied).join('')}</div></div></section>` : '';
     var dec = decisionsBox(d.open.map(openRow).join(''), d.user) + proposalsBox(d.proposals.map(agentRow).join(''));
-    var prev = i > 0 ? `<a href="#step-${i}"><span aria-hidden="true">←</span><span class="num">${pad2(i - 1)}</span>${esc(steps[i - 1].title)}</a>` : '<span></span>';
-    var next = i < steps.length - 1 ? `<a href="#step-${i + 2}"><span class="num">${pad2(i + 1)}</span>${esc(steps[i + 1].title)}<span aria-hidden="true">→</span></a>` : '<span></span>';
-    return `${top + changeBox + reliesBox + dec}<nav class="pager" aria-label="Neighbouring steps">${prev}${next}</nav>`;
+    function links(cls, label, js, before, after) {
+      if (!js.length) return '';
+      return `<div class="deps ${cls}"><span class="lbl quiet">${label}</span>` +
+        js.map((j) => `<a href="${stepHref(j)}">${before}${esc(steps[j].title)}${after}</a>`).join('') + '</div>';
+    }
+    var nav = links('after', 'Comes after', afterOf[i], '<span aria-hidden="true">←</span>', '') +
+      links('unblocks', 'Unblocks', unblocksOf[i], '', '<span aria-hidden="true">→</span>');
+    return `${top + changeBox + reliesBox + dec}${nav ? `<nav class="pager" aria-label="Linked steps">${nav}</nav>` : ''}`;
   }
 
   function tabItems(route) {
@@ -671,15 +712,16 @@ details.evcode>.blocks{margin-top:8px}
     h += '<span class="sep">Steps</span>';
     steps.forEach((s, i) => {
       var st = s.status === 'committed' ? `<span class="st" title="Committed">${checkIcon}</span>`
-        : s.status === 'inProgress' ? `<span class="st ip" title="In progress">${halfIcon}</span>` : '';
-      h += '<a class="tab" href="#step-' + (i + 1) + '"' + cur(`step-${i}`) + '><span class="num">' + pad2(i) + '</span><span class="name">' + esc(s.title) + '</span>' + st +
+        : s.status === 'inProgress' ? `<span class="st ip" title="In progress">${halfIcon}</span>`
+        : ready[i] ? `<span class="st rd" title="Ready">${readyIcon}</span>` : '';
+      h += '<a class="tab" href="' + stepHref(i) + '"' + cur(`step-${i}`) + '><span class="name">' + esc(s.title) + '</span>' + st +
         (stepNeeds[i] ? `<span class="count">${stepNeeds[i]}</span>` : '') + '</a>';
     });
     return h;
   }
   function renderBar(route) {
     var here, count;
-    if (route.step != null) { here = `<span class="num">${pad2(route.step)}</span>${esc(steps[route.step].title)}`; count = stepNeeds[route.step]; }
+    if (route.step != null) { here = esc(steps[route.step].title); count = stepNeeds[route.step]; }
     else if (route.tab === 'survey') { here = 'Survey'; count = 0; }
     else { here = 'Overview'; count = totalNeeds; }
     var close = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
@@ -695,10 +737,10 @@ details.evcode>.blocks{margin-top:8px}
   // ---- routing -------------------------------------------------------------
   function parseRoute() {
     var h = decodeURIComponent(location.hash.slice(1));
-    var m = h.match(/^step-(\d+)(?::(.+))?$/);
+    var m = h.match(/^step-([^:]+)(?::(.+))?$/);
     if (m) {
-      const i = +m[1] - 1;
-      if (i >= 0 && i < steps.length) return { tab: `step-${i}`, step: i, focus: m[2] || null };
+      const i = steps.findIndex((_, j) => stepKey(j) === m[1]);
+      if (i >= 0) return { tab: `step-${i}`, step: i, focus: m[2] || null };
     }
     if (h === 'survey' && survey.length) return { tab: 'survey' };
     if (factById.has(h)) return { tab: 'survey', focus: `fact-${h}` };
@@ -716,11 +758,56 @@ details.evcode>.blocks{margin-top:8px}
       if (cur) { cur.scrollIntoView({ block: 'nearest' }); cur.focus({ preventScroll: true }); }
     } else btn.focus({ preventScroll: true });
   }
+  // Draws the cut's graph over its gutter cells: a dot beside each step's title,
+  // and a line from each step to every step it comes after, branching off
+  // just above the later step's dot.
+  function drawGraph() {
+    var wrap = app.querySelector('.tablewrap.graph');
+    if (!wrap) return;
+    wrap.querySelector('svg.lanes')?.remove();
+    var box = wrap.getBoundingClientRect();
+    var at = [];
+    wrap.querySelectorAll('tr[data-step]').forEach((tr) => {
+      var i = +tr.getAttribute('data-step');
+      var cell = tr.querySelector('td.g');
+      var g = cell.getBoundingClientRect();
+      var line = tr.querySelector('td.t a').getClientRects()[0];
+      at[i] = {
+        x: g.left - box.left + parseFloat(getComputedStyle(cell).paddingLeft) + 6 + laneOf[i] * laneWidth,
+        y: line.top - box.top + line.height / 2
+      };
+    });
+    var paths = '';
+    afterOf.forEach((js, i) => {
+      js.forEach((j) => {
+        var a = at[j], b = at[i];
+        if (!a || !b) return;
+        var bend = Math.min(16, (b.y - a.y) / 2);
+        paths += a.x === b.x
+          ? `<path d="M${a.x} ${a.y}V${b.y}"/>`
+          : `<path d="M${a.x} ${a.y}V${b.y - bend * 2}C${a.x} ${b.y - bend} ${b.x} ${b.y - bend} ${b.x} ${b.y}"/>`;
+      });
+    });
+    var dots = steps.map((s, i) => {
+      var p = at[i];
+      if (!p) return '';
+      if (s.status === 'committed') return `<circle cx="${p.x}" cy="${p.y}" r="4.5" fill="var(--ink)"/>`;
+      if (s.status === 'inProgress') return `<circle cx="${p.x}" cy="${p.y}" r="4.5" fill="var(--blue)"/>`;
+      if (ready[i]) return `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--add-bg)" stroke="var(--add-ink)" stroke-width="1.8"/>`;
+      return `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--panel)" stroke="var(--line)" stroke-width="1.6"/>`;
+    }).join('');
+    wrap.insertAdjacentHTML('beforeend', `<svg class="lanes" width="${box.width}" height="${box.height}" aria-hidden="true"><g fill="none" stroke="var(--line2)" stroke-width="1.6">${paths}</g>${dots}</svg>`);
+  }
+  // The dots sit on the rows' laid-out text, so the graph is drawn again
+  // whenever the table's size changes: on a window resize, and when the web
+  // font swaps in and rewraps the rows.
+  var cutTableObserver = new ResizeObserver(drawGraph);
+
   var lastTab = null;
   function render() {
     var route = parseRoute();
     currentRoute = route;
-    document.title = (plan.title || 'Plan') + (route.step != null ? ` · ${pad2(route.step)} ${steps[route.step].title}` : '');
+    document.title = (plan.title || 'Plan') + (route.step != null ? ` · ${steps[route.step].title}` : '');
     var body = route.step != null ? renderStep(route.step) : route.tab === 'survey' ? renderSurvey() : renderOverview();
     var probs = problems.length ? `<div class="problems" role="alert"><b>This plan’s JSON has problems.</b><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
     app.innerHTML = '<header class="top"><div class="in"><h1>' + esc(plan.title || 'Untitled plan') + '</h1></div></header>' +
@@ -736,6 +823,10 @@ details.evcode>.blocks{margin-top:8px}
         ? (app.querySelector(`[data-about="${CSS.escape(route.focus)}"]`) || document.getElementById(`open-${route.focus}`))
         : document.getElementById(route.focus);
     }
+    cutTableObserver.disconnect();
+    var cutTable = app.querySelector('.tablewrap.graph table');
+    if (cutTable) cutTableObserver.observe(cutTable);
+    drawGraph();
     if (target) { target.scrollIntoView({ block: 'center' }); target.classList.add('flash'); }
     else if (lastTab !== route.tab) window.scrollTo(0, 0);
     lastTab = route.tab;

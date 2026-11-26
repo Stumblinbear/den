@@ -16,6 +16,7 @@ const plan = (...steps: unknown[]): Record<string, unknown> => ({
 
 /** A step whose change is `change`, relying on survey fact F1. */
 const step = (...change: unknown[]) => ({
+	id: "the_step",
 	title: "The step",
 	status: "pending",
 	proposedChange: change,
@@ -93,6 +94,35 @@ const cases: [string, Record<string, unknown>, number][] = [
 		1,
 	],
 	["a step that is not an object", plan(step(), null), 1],
+	["a step with no ID", plan({ ...step(), id: undefined }), 1],
+	[
+		"a step ID a proposal also uses",
+		plan({ ...step(), proposals: [{ id: "the_step" }] }),
+		1,
+	],
+	[
+		"steps that come after earlier steps, two of them alongside each other",
+		plan(
+			step(),
+			{ ...step(), id: "second", after: ["the_step"] },
+			{ ...step(), id: "third", after: ["the_step"] },
+			{ ...step(), id: "fourth", after: ["second", "third"] },
+		),
+		0,
+	],
+	[
+		"a step that comes after a step the plan lacks",
+		plan({ ...step(), after: ["missing"] }),
+		1,
+	],
+	[
+		"a step that comes after a later step, and one after itself",
+		plan(
+			{ ...step(), after: ["second"] },
+			{ ...step(), id: "second", after: ["second"] },
+		),
+		2,
+	],
 	[
 		"a proposal that is not an object",
 		{ ...plan(step()), proposals: [null] },
