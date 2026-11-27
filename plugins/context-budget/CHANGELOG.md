@@ -2,8 +2,8 @@
 
 All notable changes to the context-budget plugin are recorded here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions
-follow [Semantic Versioning](https://semver.org/). While the major version is
-0, a minor bump may change behavior.
+follow [Semantic Versioning](https://semver.org/). While the major version is 0,
+a minor bump may change behavior.
 
 ## [Unreleased]
 
@@ -11,42 +11,42 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 - A session can be turned quiet while nobody is watching it. While
   `<os temp dir>/claude-context-budget/<session id>.unattended` exists, the
-  session gets no context notice and no watcher run, and deleting the file
-  turns both back on.
+  session gets no context notice and no watcher run, and deleting the file turns
+  both back on.
 
 ### Changed
-- The configure skill says what each feature does rather than how it works,
-  and warns that a `denied` message with no "Resume" option leaves no way to
-  approve a resume.
+- The configure skill says what each feature does rather than how it works, and
+  warns that a `denied` message with no "Resume" option leaves no way to approve
+  a resume.
 
 - The example `denied` message of the resume guard tells the agent to launch a
   fresh agent instead, and to ask you only when the old agent holds something
-  its transcript and report cannot give. Copy it into your own `config.toml`
-  to match: a copy that still has the old wording asks you on every refusal.
+  its transcript and report cannot give. Copy it into your own `config.toml` to
+  match: a copy that still has the old wording asks you on every refusal.
 - The agent mentions compaction only when `/compact` is the next command you
-  should run, and then in one sentence. The watcher's advice had it answer
-  every verdict and raise a delayed cut again at each later pause, and the
-  default `notice` asked for `/compact` at every arc's end, which left it
-  narrating the budget and writing `/compact` while work was still in flight.
+  should run, and then in one sentence. The watcher's advice had it answer every
+  verdict and raise a delayed cut again at each later pause, and the default
+  `notice` asked for `/compact` at every arc's end, which left it narrating the
+  budget and writing `/compact` while work was still in flight.
 
 ### Fixed
 
-- The resume guard applies to a message that names the agent by its name.
-  Claude Code takes a name in `to` as readily as an id, and a skill forked into
-  the background is usually messaged by name, but the guard looked for a
-  transcript called after whatever `to` said, found none, and allowed the
-  resume unmeasured. It now looks the name up in the metadata files beside the
+- The resume guard applies to a message that names the agent by its name. Claude
+  Code takes a name in `to` as readily as an id, and a skill forked into the
+  background is usually messaged by name, but the guard looked for a transcript
+  called after whatever `to` said, found none, and allowed the resume
+  unmeasured. It now looks the name up in the metadata files beside the
   transcripts, and where several agents carry one name it measures the one the
   session started last, which is where Claude Code has been seen to deliver.
 
-- The resume guard allows a message to an agent still running in the
-  background, whatever its context and however long since its last turn. The
-  guard prices a restart, and such a message restarts nothing: the agent takes
-  it on its next turn, which re-reads the context with or without it. A guard
-  that refused it blocked steering a long agent and, once you answered
-  "Resume", spent that answer on a message that resumed nothing. An agent is
-  running while its launch or resume carries neither a task notification nor a
-  stop after it, read through compactions, which end no agent.
+- The resume guard allows a message to an agent still running in the background,
+  whatever its context and however long since its last turn. The guard prices a
+  restart, and such a message restarts nothing: the agent takes it on its next
+  turn, which re-reads the context with or without it. A guard that refused it
+  blocked steering a long agent and, once you answered "Resume", spent that
+  answer on a message that resumed nothing. An agent is running while its launch
+  or resume carries neither a task notification nor a stop after it, read
+  through compactions, which end no agent.
 
 ## [0.6.0] - 2026-09-17
 
@@ -59,26 +59,26 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   and its context is read back at the cached rate for another lifetime. It runs
   in the main session alone, and only while a launch carries neither a task
   notification nor a stop of that task after it: an agent sent to the
-  background, a skill forked into one, a Bash command started there, a
-  workflow, or a finished agent resumed with a message. `[wake]` carries the
-  switch, a row per cache lifetime with `times` and `before`, and
-  `[wake.messages] wake` for the body of the message; every key has a default
-  and the whole table may be left out, so a configuration written before this
-  release gains the wake as it stands. A wake is never one of your prompts
-  anywhere the plugin counts them: it arrives stamped as a message from another
-  session, which every reader of your prompts here already skips.
+  background, a skill forked into one, a Bash command started there, a workflow,
+  or a finished agent resumed with a message. `[wake]` carries the switch, a row
+  per cache lifetime with `times` and `before`, and `[wake.messages] wake` for
+  the body of the message; every key has a default and the whole table may be
+  left out, so a configuration written before this release gains the wake as it
+  stands. A wake is never one of your prompts anywhere the plugin counts them:
+  it arrives stamped as a message from another session, which every reader of
+  your prompts here already skips.
 
 ### Changed
 
 - The watcher's advice and both `[messages]` ask the agent to recommend
   `/compact` directly, with no skill to load first and no focus line to write.
   The watcher's advice asks the agent to judge whether the ended arc is a good
-  point to compact and to put `/compact` on a line of its own where it is.
-  Edit `notice` and `urgent` in your own `config.toml` to match: a copy that
-  still names the `cut-point` skill sends the agent to a skill that is gone.
-- The example's Fable row moves to notice 300K and urgent 500K, from 400K
-  and 700K: a compaction at 300K pays for itself in about 19 requests to the
-  model, a tool call being one, so a turn or two of agent work.
+  point to compact and to put `/compact` on a line of its own where it is. Edit
+  `notice` and `urgent` in your own `config.toml` to match: a copy that still
+  names the `cut-point` skill sends the agent to a skill that is gone.
+- The example's Fable row moves to notice 300K and urgent 500K, from 400K and
+  700K: a compaction at 300K pays for itself in about 19 requests to the model,
+  a tool call being one, so a turn or two of agent work.
 - The session record no longer holds the transcript path, and the measurement
   hook writes the record only when the level changes.
 
@@ -87,26 +87,26 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - The `cut-point` skill and `scripts/cut-point.mts`, with the rewind
   recommendations it made and the payback it priced every cut at.
 - The `context-budget` skill.
-- `lib/pricing.toml`, and the `pricing.toml` override file under the plugin
-  data directory, which nothing reads now.
+- `lib/pricing.toml`, and the `pricing.toml` override file under the plugin data
+  directory, which nothing reads now.
 
 ## [0.5.0] - 2026-09-12
 
 ### Changed
 
-- The `notice` and `urgent` messages no longer state the measured context.
-  The count was read only by the model, and the `cut-point` skill prices the
-  choice from the transcript when it is raised.
+- The `notice` and `urgent` messages no longer state the measured context. The
+  count was read only by the model, and the `cut-point` skill prices the choice
+  from the transcript when it is raised.
 - The watcher's judge answers one thing: whether the session's arc has ended,
-  `{"good": true, "reason": "..."}`. It no longer names a compact or a rewind,
-  a focus line or a prompt; the advice the session receives says the arc looked
+  `{"good": true, "reason": "..."}`. It no longer names a compact or a rewind, a
+  focus line or a prompt; the advice the session receives says the arc looked
   over and why, and sends the session to the `cut-point` skill to price the cut
   itself. The judge is shown the recent conversation alone: the priced reading
   it used to read beside it was the one part of its prompt that argued for a
   cut, and the Stop hook no longer walks the transcript a second time to build
   one. A judge that still writes `option` and `focus` is read for its reason
-  alone. The session record's verdict keeps the rung only. The `cut-point`
-  skill carries the focus-line rule itself rather than pointing at the
+  alone. The session record's verdict keeps the rung only. The `cut-point` skill
+  carries the focus-line rule itself rather than pointing at the
   `context-budget` skill for it.
 
 ### Added
@@ -118,14 +118,13 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   expressions and the first row written wins, as under `[models]`. A resume is
   measured against the first agent row matching its agent type, then the first
   model row matching the model its newest turn names, then the section's own
-  numbers; the agent type comes first because it is the more specific fact
-  about a resume. Agent-type keys match with the plugin prefix in place, so
-  the shipped row is keyed `'den:reviewer'`. Both tables may be left out, so
-  a configuration written before this release keeps the guard it already had,
-  and `[resume-guard] enabled = false` still switches the whole guard off, rows
-  included.
-  One resume can be worth taking at 600K and another worth refusing at 150K,
-  which one pair of numbers could not say.
+  numbers; the agent type comes first because it is the more specific fact about
+  a resume. Agent-type keys match with the plugin prefix in place, so the
+  shipped row is keyed `'den:reviewer'`. Both tables may be left out, so a
+  configuration written before this release keeps the guard it already had, and
+  `[resume-guard] enabled = false` still switches the whole guard off, rows
+  included. One resume can be worth taking at 600K and another worth refusing at
+  150K, which one pair of numbers could not say.
 - The judge is asked under a JSON Schema of the two shapes its answer may take,
   which the default `[watcher] command` carries as `--json-schema`. The CLI
   samples the model against it, validates what comes back and returns the object
@@ -136,17 +135,16 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   reading of the text stays behind it, because a `command` written out in full
   replaces the default list schema and all, and a judge that is not `claude` is
   handed no schema to answer under.
-- `{model}` in the resume guard's two messages, the model the resumed
-  subagent's newest turn names, or "no recorded model" where it names none.
-  `{large}` and `{cold}` now fill from whichever row or section governed that
-  resume.
+- `{model}` in the resume guard's two messages, the model the resumed subagent's
+  newest turn names, or "no recorded model" where it names none. `{large}` and
+  `{cold}` now fill from whichever row or section governed that resume.
 ### Changed
 
 - The focus line is what the compaction keeps, and nothing else: written only
-  when something in the conversation has to survive the cut and is not on
-  disk, one short sentence, and omitted otherwise. It was described as a
-  clause for the arc plus a task pointer, which produced summaries written
-  in advance. The reading's row is `/compact [focus]` to say the same.
+  when something in the conversation has to survive the cut and is not on disk,
+  one short sentence, and omitted otherwise. It was described as a clause for
+  the arc plus a task pointer, which produced summaries written in advance. The
+  reading's row is `/compact [focus]` to say the same.
 
 - A fault that stops the hooks goes to the agent, in the field Claude Code hands
   it, carrying an instruction to put the line to you, and arrives again on every
@@ -169,10 +167,10 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   which Claude Code folds away as a hook error.
 - The watcher's advice tells the agent to put the recommended command to the
   user in its next reply, in a fenced block on its own line, to add its own
-  caveat where the work in hand should finish first, and to raise a delayed
-  cut again at each later pause until the user runs one or says they want
-  none. The `context-budget` skill's section on answering a verdict is gone,
-  since the line carries its own instructions.
+  caveat where the work in hand should finish first, and to raise a delayed cut
+  again at each later pause until the user runs one or says they want none. The
+  `context-budget` skill's section on answering a verdict is gone, since the
+  line carries its own instructions.
 - The default `[watcher] command` carries `--tools ""`, which is what keeps the
   judge from acting: it is a Claude Code session of its own, and a sentence of
   advice is the whole of what it is asked for.
@@ -180,11 +178,11 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   plugin's own, which the default `[watcher] command` carries as `--safe-mode`
   and `--system-prompt`. No CLAUDE.md, plugin, skill, hook or MCP server of
   yours or of the project loads inside it, this plugin's own entries included,
-  and nothing of your project reaches it beyond what the prompt carries:
-  Claude Code's default system prompt, which told the judge the directory it
-  was started in, its git branch, the files changed there and the recent
-  commit subjects, is gone with it, and with both a call loads little beyond
-  the prompt. The judge's own working directory and the `CONTEXT_BUDGET_JUDGE`
+  and nothing of your project reaches it beyond what the prompt carries: Claude
+  Code's default system prompt, which told the judge the directory it was
+  started in, its git branch, the files changed there and the recent commit
+  subjects, is gone with it, and with both a call loads little beyond the
+  prompt. The judge's own working directory and the `CONTEXT_BUDGET_JUDGE`
   marker are gone; it is spawned where the hook stands and with the hook's
   environment.
 - An `internal error` line names only the hook that met it: "The context notice
@@ -205,9 +203,9 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   about 450K tokens more fresh than resumed to finish the same pass, an
   implementer about 230K and den's former red-green fixer about 70K, and
   refusing a resume worth taking costs that whole rediscovery. den's reviewer
-  now holds the red tests the fixer held, so its row carries the fixer's
-  numbers until measured on its own. The old numbers refused resumes on Fable
-  that were still the cheaper of the two by a wide margin.
+  now holds the red tests the fixer held, so its row carries the fixer's numbers
+  until measured on its own. The old numbers refused resumes on Fable that were
+  still the cheaper of the two by a wide margin.
 - The example configuration's `[default]` thresholds sit at 250K `notice` and
   450K `urgent` rather than 150K and 250K. Every current model carries a 1M
   window, so the old pair fired while the session still held most of its room.
@@ -222,24 +220,23 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   failure and the sentence the call came back with. That sentence is the
   envelope's `result`, or its `errors` where there is no `result`: a call that
   ran out of turns, died inside its own execution, spent its budget or gave up
-  re-asking for structured output writes what went wrong there and nowhere
-  else. A failed `claude -p` call
-  writes its whole envelope on stdout, so it read as a judge that answered
-  nothing: the watcher booked a wait, said nothing, and went on failing every
-  call in silence. `is_error` on that envelope is what the reading turns on,
-  rather than the exit status or `subtype`, which a failed call leaves at
-  "success". A `command` of your own is handed no schema and writes no such
-  field, so an answer of its own that nothing can read is still silence rather
-  than a fault.
+  re-asking for structured output writes what went wrong there and nowhere else.
+  A failed `claude -p` call writes its whole envelope on stdout, so it read as a
+  judge that answered nothing: the watcher booked a wait, said nothing, and went
+  on failing every call in silence. `is_error` on that envelope is what the
+  reading turns on, rather than the exit status or `subtype`, which a failed
+  call leaves at "success". A `command` of your own is handed no schema and
+  writes no such field, so an answer of its own that nothing can read is still
+  silence rather than a fault.
 - The fix those two lines end in says to change `[watcher] command` rather than
   to fix it, since a judge whose model refused the call is not one you put right
   by editing the key.
 - The resume guard says nothing at all on a SendMessage a subagent made. Its
   deny asks Claude to put the choice to you before it retries, and its report of
   a broken config file asks whoever reads it to pass the line on; a subagent
-  answers the session that launched it rather than you, so both reached a
-  reader who could do nothing with either. A resume you set off is guarded as it was, and your own
-  turns report the same config file.
+  answers the session that launched it rather than you, so both reached a reader
+  who could do nothing with either. A resume you set off is guarded as it was,
+  and your own turns report the same config file.
 
 ## [0.4.0] - 2026-09-06
 
@@ -265,12 +262,12 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 ### Changed
 
 - A fault that stops the hooks is said again on every tenth prompt it stands
-  through, ending in how many prompts that is, where before it was said once
-  for the whole session. A line said once is easily missed, and one that
-  arrives mid-session leaves the context growing behind a plugin you believe is
-  watching it. Prompts are counted and tool calls are not, so a turn heavy with
-  them carries the fault no further. The prompt says the line again whichever
-  hook first met the fault, since what it repeats is the session's record. That
+  through, ending in how many prompts that is, where before it was said once for
+  the whole session. A line said once is easily missed, and one that arrives
+  mid-session leaves the context growing behind a plugin you believe is watching
+  it. Prompts are counted and tool calls are not, so a turn heavy with them
+  carries the fault no further. The prompt says the line again whichever hook
+  first met the fault, since what it repeats is the session's record. That
   record lists every fault the session has been told about, each with the line
   it was said in and the prompts it has stood through: a fault of the same kind
   in different words is a report of its own, so fixing the key a report named
@@ -279,9 +276,9 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - The first prompt that works again says the fault is gone, in the field Claude
   Code shows you rather than as a failed hook, and drops it from the session's
   record, so the same fault later is a first report rather than the middle of a
-  count. Only a prompt of the measurement hook clears one: a tool call reaches the
-  hooks too and is no evidence of anything. It clears only what its own run got
-  through, too: both hooks read one file through one parser, so a config or
+  count. Only a prompt of the measurement hook clears one: a tool call reaches
+  the hooks too and is no evidence of anything. It clears only what its own run
+  got through, too: both hooks read one file through one parser, so a config or
   parser error goes whichever of them met it, while an internal error only the
   resume guard can meet stays listed, and repeating, rather than being called
   over by a run that never did the guard's work. A prompt that ends before its
@@ -294,21 +291,20 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   auto-compact in this session left behind where there has been one and from a
   typical 15K where there has not, and the row says which. A rewind summarize
   writes the same kind of boundary but kept the stretch the user chose, so it
-  measures no tail, and a session whose only boundary came from the picker
-  takes the 15K too. Carrying on comes last, as what one more turn costs at the
-  size the context is now, which is what every payback is measured against. A
-  reading with no cut point to offer prices those two on their own, whether the
-  cache behind every prompt ran out or a compaction kept none of them verbatim,
-  so a session with no rewind on offer still has two figures to choose between.
+  measures no tail, and a session whose only boundary came from the picker takes
+  the 15K too. Carrying on comes last, as what one more turn costs at the size
+  the context is now, which is what every payback is measured against. A reading
+  with no cut point to offer prices those two on their own, whether the cache
+  behind every prompt ran out or a compaction kept none of them verbatim, so a
+  session with no rewind on offer still has two figures to choose between.
 - The `cut-point` skill chooses between the three in that order: the arc rules
   on what may be summarized away before any figure is read, price picks among
   what is left with `/compact` taking a tie, and carrying on wins where every
   payback is longer than the work the arc has left.
-- The `context-budget` skill is hidden from the `/` menu (`user-invocable:
-  false`): it fires on the context notice, not on a command.
-- The three skills carry a `when_to_use` directive and a description that
-  says what each skill is, so the model routes to them rather than acting on
-  its own.
+- The `context-budget` skill is hidden from the `/` menu
+  (`user-invocable: false`): it fires on the context notice, not on a command.
+- The three skills carry a `when_to_use` directive and a description that says
+  what each skill is, so the model routes to them rather than acting on its own.
 - The example `denied` message of the resume guard puts the resume-or-fresh
   choice to the user as theirs and acts on the answer. The old wording ended
   with "otherwise launch fresh or stop", which an agent read as leave to launch
@@ -325,19 +321,18 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - A priced reading of the prompt cache: the cut points still cached, three of
   them spread across the context (oldest, middle, newest), with each one's
   expiry, what a cut there summarizes away and what it keeps, and what a
-  compaction kept verbatim. A prompt no turn has answered yet is not among
-  them: a cut there keeps nothing verbatim, which is `/compact` by another
-  name.
+  compaction kept verbatim. A prompt no turn has answered yet is not among them:
+  a cut there keeps nothing verbatim, which is `/compact` by another name.
 - Skill `cut-point` (`/context-budget:cut-point`) and `scripts/cut-point.mts`,
   which print that reading on demand. The script finds the transcript through
-  the session record, or takes `--transcript <path>`, and takes `--pricing`
-  and `--pricing-overrides` for the rate it prices at.
-- A payback on every listed cut point: the turns before the rewind's write
-  back to the cache is earned out of what it saves per turn.
-- `lib/pricing.toml`, what a cached input token costs against a fresh one
-  per model and the rate the payback is priced at: 0.1 by default, 0.025 on
-  `fable`. Not configuration; a `pricing.toml` under the plugin data directory
-  corrects a rate row by row.
+  the session record, or takes `--transcript <path>`, and takes `--pricing` and
+  `--pricing-overrides` for the rate it prices at.
+- A payback on every listed cut point: the turns before the rewind's write back
+  to the cache is earned out of what it saves per turn.
+- `lib/pricing.toml`, what a cached input token costs against a fresh one per
+  model and the rate the payback is priced at: 0.1 by default, 0.025 on `fable`.
+  Not configuration; a `pricing.toml` under the plugin data directory corrects a
+  rate row by row.
 
 ### Changed
 
@@ -352,66 +347,64 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   urgent: Fable's cache reads cost a quarter of other models', so a compaction
   at 150K takes about 35 turns to pay back.
 - One file per session, `<os temp dir>/claude-context-budget/<session id>.json`,
-  and everything about the session in it: the level it has been told about,
-  the resume answers it has spent, the fault classes it has already been told
-  about, and the transcript the last measuring run read. The measurement hook
-  writes that path on every run, so the `cut-point` skill can find the
-  transcript from the session's first tool call onwards. A spent answer is no
-  longer recorded as an empty file named after it, and a reported fault class
-  no longer as a marker file beside the record. Every write of the record is
-  made under a lock directory beside it, which the next run takes over when
-  the run holding it is gone: the lock names that run's pid, and the OS
-  answering that there is no such process is the proof. A lock whose holder is
-  still running is left standing, so a run killed mid-write costs the next one
-  a probe rather than costing the session every update after it.
-- The resume guard reads the cache lifetime from the subagent's newest turn
-  that wrote to the cache, so a turn served from cache no longer makes it
-  look cold.
+  and everything about the session in it: the level it has been told about, the
+  resume answers it has spent, the fault classes it has already been told about,
+  and the transcript the last measuring run read. The measurement hook writes
+  that path on every run, so the `cut-point` skill can find the transcript from
+  the session's first tool call onwards. A spent answer is no longer recorded as
+  an empty file named after it, and a reported fault class no longer as a marker
+  file beside the record. Every write of the record is made under a lock
+  directory beside it, which the next run takes over when the run holding it is
+  gone: the lock names that run's pid, and the OS answering that there is no
+  such process is the proof. A lock whose holder is still running is left
+  standing, so a run killed mid-write costs the next one a probe rather than
+  costing the session every update after it.
+- The resume guard reads the cache lifetime from the subagent's newest turn that
+  wrote to the cache, so a turn served from cache no longer makes it look cold.
 - Skill `context-budget` presents only "Summarize up to here"; "Summarize from
   here" is no longer offered.
-- Both hooks read one configuration file,
-  `${CLAUDE_PLUGIN_DATA}/config.toml`, and nothing else. No file there is the
-  unconfigured state: the context notice and the resume guard are both off and
-  say nothing about it. Every key the hooks read has to be in that file, and a
-  missing section or key is a config error naming it; `enabled` and the whole
-  `[models]` table may still be left out.
+- Both hooks read one configuration file, `${CLAUDE_PLUGIN_DATA}/config.toml`,
+  and nothing else. No file there is the unconfigured state: the context notice
+  and the resume guard are both off and say nothing about it. Every key the
+  hooks read has to be in that file, and a missing section or key is a config
+  error naming it; `enabled` and the whole `[models]` table may still be left
+  out.
 - `hooks/config.toml` is now `hooks/config.example.toml`, a documented file to
-  copy into the data directory. Neither hook reads it, so a plugin update
-  cannot change what a configured session runs on.
-- The hooks need Node 22.6 or newer. Under bun a dependency the plugin lacks
-  is reported, never fetched on the fly.
+  copy into the data directory. Neither hook reads it, so a plugin update cannot
+  change what a configured session runs on.
+- The hooks need Node 22.6 or newer. Under bun a dependency the plugin lacks is
+  reported, never fetched on the fly.
 
 ### Fixed
 
 - A compaction now resets the level whatever governs the model, so the notice
   speaks again on the context rebuilt after it. Switching `[default]` off and
-  writing a per-model row is the documented way to measure one model only.
-  Under it, the compaction was read as a model with no row, `[default]`'s
-  "off" answered for it, and the record kept the level the discarded context
-  was at.
+  writing a per-model row is the documented way to measure one model only. Under
+  it, the compaction was read as a model with no row, `[default]`'s "off"
+  answered for it, and the record kept the level the discarded context was at.
 
 ### Removed
 
-- The shipped configuration and the key-by-key merge of a user's file over it.
-  A file that only carried the keys it changed now has to carry the rest.
+- The shipped configuration and the key-by-key merge of a user's file over it. A
+  file that only carried the keys it changed now has to carry the rest.
 
 ## [0.2.0] - 2026-09-04
 
 ### Added
 
-- `PostToolUse` and `UserPromptSubmit` hook measuring the session's context
-  from the transcript's newest non-sidechain assistant turn and injecting a
-  notice, then an urgent message, as it crosses per-model thresholds. Each
-  level injects once and re-arms if the context falls back below it.
+- `PostToolUse` and `UserPromptSubmit` hook measuring the session's context from
+  the transcript's newest non-sidechain assistant turn and injecting a notice,
+  then an urgent message, as it crosses per-model thresholds. Each level injects
+  once and re-arms if the context falls back below it.
 - `hooks/config.toml`: absolute `notice`/`urgent` token thresholds, per-model
-  rows keyed by a regex on the model id (`enabled = false` switches a model
-  off; Haiku ships that way), and both injected messages, all overridable from
+  rows keyed by a regex on the model id (`enabled = false` switches a model off;
+  Haiku ships that way), and both injected messages, all overridable from
   `${CLAUDE_PLUGIN_DATA}/config.toml`.
-- Skill `context-budget`: the two rewind summarize directions, `/compact` with
-  a focus line, picking and describing a cut point, and judging a stopping
-  point by task.
-- Skill `configure`: how the hook measures, why a notice did or did not
-  appear, where overrides go and how they merge, and how to check an edit.
+- Skill `context-budget`: the two rewind summarize directions, `/compact` with a
+  focus line, picking and describing a cut point, and judging a stopping point
+  by task.
+- Skill `configure`: how the hook measures, why a notice did or did not appear,
+  where overrides go and how they merge, and how to check an edit.
 - `PreToolUse` resume guard on `SendMessage`, moved from den: denies resuming a
   subagent whose context is above 150K tokens, or above 50K with an expired
   prompt cache, until the user picks "Resume" in an AskUserQuestion prompt. Its
@@ -420,9 +413,9 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 - `smol-toml` as the plugin's one dependency, installed by Claude Code's
   `npm ci --ignore-scripts` when it caches the plugin.
 - No stand-in values anywhere: a parser that will not import, or a config file
-  that cannot be read, parsed, or used, gets one stderr line from the first
-  hook run of the session that meets it, naming what is wrong, which file and
-  the fix. Both hooks are then silent and inert for the rest of that session.
+  that cannot be read, parsed, or used, gets one stderr line from the first hook
+  run of the session that meets it, naming what is wrong, which file and the
+  fix. Both hooks are then silent and inert for the rest of that session.
 
 ### Changed
 

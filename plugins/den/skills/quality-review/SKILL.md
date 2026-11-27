@@ -9,18 +9,16 @@ allowed-tools: Workflow
 # Quality review
 
 Run the quality review before review-and-fix. It finds a wrong shape or a
-performance problem while the code is still cheap to change, and
-review-and-fix then reviews the code in the shape it will ship in. Rule on
-the quality review's findings and get the ones you take fixed, then run
-review-and-fix.
+performance problem while the code is still cheap to change, and review-and-fix
+then reviews the code in the shape it will ship in. Rule on the quality review's
+findings and get the ones you take fixed, then run review-and-fix.
 
-The workflow launches one `den:quality-reviewer` on a git diff range and
-returns its report. The reviewer is given the arguments below and nothing
-else from you. Give each argument only what its row asks for, with no account
-of the change in it, such as the choices the implementer declared. The
-reviewer reads the diff and the plan on its own, and it takes an account of
-the change as already decided, so it reads past the very shapes it is there
-to judge.
+The workflow launches one `den:quality-reviewer` on a git diff range and returns
+its report. The reviewer is given the arguments below and nothing else from you.
+Give each argument only what its row asks for, with no account of the change in
+it, such as the choices the implementer declared. The reviewer reads the diff
+and the plan on its own, and it takes an account of the change as already
+decided, so it reads past the very shapes it is there to judge.
 
 ```
 Workflow({
@@ -44,24 +42,23 @@ A key that isn't in this table fails the launch.
 ## The return
 
 When the run throws, the review didn't happen or didn't finish, and the error
-message names the cause. Otherwise the run returns the reviewer's report
-exactly as the reviewer wrote it. Each finding starts with a `[quality]` or
-`[decision]` line that gives its id, its title and a `path:line`, and the
-costliest findings come first. An empty return means the reviewer found
-nothing.
+message names the cause. Otherwise the run returns the reviewer's report exactly
+as the reviewer wrote it. Each finding starts with a `[quality]` or `[decision]`
+line that gives its id, its title and a `path:line`, and the costliest findings
+come first. An empty return means the reviewer found nothing.
 
-The host shows only the first 8,000 characters of the return inline. A
-longer report starts with a line giving its length, and the findings past
-that point don't show. Read them in the run's output file, which the
-completion notice names.
+The host shows only the first 8,000 characters of the return inline. A longer
+report starts with a line giving its length, and the findings past that point
+don't show. Read them in the run's output file, which the completion notice
+names.
 
-A finding is the reviewer's reading of the code's shape, not a defect. Work
-out for yourself the shape the code should have, and take the finding only
-where that shape differs from the code in the tree in a way that would cost
-the next reader of the code. Otherwise leave the code as it is.
+A finding is the reviewer's reading of the code's shape, not a defect. Work out
+for yourself the shape the code should have, and take the finding only where
+that shape differs from the code in the tree in a way that would cost the next
+reader of the code. Otherwise leave the code as it is.
 
-Rule on each finding with the findings of this change's earlier quality
-reviews and your calls on them in view, not on its own. When a finding would
-undo what an earlier round changed, or reopens a finding an earlier round
-settled, decide whether to defer it, rather than taking it as one more round
-of fixes to the same change.
+Rule on each finding with the findings of this change's earlier quality reviews
+and your calls on them in view, not on its own. When a finding would undo what
+an earlier round changed, or reopens a finding an earlier round settled, decide
+whether to defer it, rather than taking it as one more round of fixes to the
+same change.

@@ -8,14 +8,14 @@ project, and this is how it follows the model.
 ## What it provides
 
 - A hook on session start and on a model switch. It works out which model the
-  main session is now on, and writes the text of every configured row whose
-  key matches that model id into the agent's context. Nothing is printed when
-  no row matches.
+  main session is now on, and writes the text of every configured row whose key
+  matches that model id into the agent's context. Nothing is printed when no row
+  matches.
 - The `configure` skill (`/model-prompts:configure`): the guided path through
   the configuration and through "why did it not appear".
 
-The text goes to the agent, not to you. Nothing is shown on screen, and no
-tool call is ever blocked.
+The text goes to the agent, not to you. Nothing is shown on screen, and no tool
+call is ever blocked.
 
 ## Requirements and what it does on your machine
 
@@ -30,22 +30,21 @@ this plugin. It holds one word, `bun` or `node`:
 echo node > ~/.claude/plugins/data/model-prompts-den/.runtime
 ```
 
-No file is the default above. Anything else shows you one line naming the
-file, and the hook run does nothing.
+No file is the default above. Anything else shows you one line naming the file,
+and the hook run does nothing.
 
 TOML has no parser in Node, so the hook depends on `smol-toml`. Claude Code
-installs it when it caches the plugin. There is nothing to build and nothing
-to run by hand.
+installs it when it caches the plugin. There is nothing to build and nothing to
+run by hand.
 
-What the hook reads: your configuration file in the data directory and any
-file a row points at. It never reads your settings, your source or your
-transcript.
+What the hook reads: your configuration file in the data directory and any file
+a row points at. It never reads your settings, your source or your transcript.
 
-What the hook writes: one JSON file per session under `claude-model-prompts/`
-in the OS temp directory, holding which rows are already in this context, the
-model an input last named, plus a lock directory beside it while it is
-writing, and a second one for the moment a run spends taking over a lock left
-by a run that died. Nothing is written to your project.
+What the hook writes: one JSON file per session under `claude-model-prompts/` in
+the OS temp directory, holding which rows are already in this context, the model
+an input last named, plus a lock directory beside it while it is writing, and a
+second one for the moment a run spends taking over a lock left by a run that
+died. Nothing is written to your project.
 
 What the hook can do to a session: add text to the main session's context at
 session start and on a model switch.
@@ -72,8 +71,8 @@ cp <plugin root>/hooks/config.example.toml \
 ```
 
 It carries one row, a writing rule for Opus 5. Start a session on Opus 5, or
-switch to it, and the rule is in the agent's context from that moment. Edit
-the row, or add your own, and the next session start or switch picks it up.
+switch to it, and the rule is in the agent's context from that moment. Edit the
+row, or add your own, and the next session start or switch picks it up.
 
 ## Configuration
 
@@ -82,12 +81,11 @@ The hook reads one file and only one:
     ~/.claude/plugins/data/model-prompts-den/config.toml
 
 `hooks/config.example.toml` is the starting point, documented key by key. The
-hook never reads it, so a plugin update cannot change what a configured
-session runs on. `/model-prompts:configure` is the guided path through an
-edit.
+hook never reads it, so a plugin update cannot change what a configured session
+runs on. `/model-prompts:configure` is the guided path through an edit.
 
-The file is read on every hook run, so an edit takes effect on the next
-session start or model switch with no reload.
+The file is read on every hook run, so an edit takes effect on the next session
+start or model switch with no reload.
 
 Each row is `[models.'<regex>']`. Single quotes make the key a TOML literal
 string, so regex backslashes need no escaping. The key is matched against the
@@ -120,37 +118,37 @@ The model on a switch is exact. At session start it sometimes is not. Claude
 Code carries the model id on a session start only sometimes, so a run without
 one falls back to the model the session's last input named. A session no input
 has ever named a model for has nothing to go on, and nothing is injected. The
-`model` in `~/.claude/settings.json` is not a third source: it names what a
-new session starts on rather than what this one is running, and rules injected
-under the wrong model's name are worse than no rules.
+`model` in `~/.claude/settings.json` is not a third source: it names what a new
+session starts on rather than what this one is running, and rules injected under
+the wrong model's name are worse than no rules.
 
 A clear is where that shows. Claude Code sends no model id with one and gives
 the session a new id, so the record that could have answered belongs to the id
 before it. Rules come back on the next start or switch that names a model.
 
 Headless sessions get nothing at all. A `-p` or SDK start carries no model id
-either, and its record is empty, so nothing establishes the model. For those
-the `model` in settings.json was sometimes the right answer: a headless run
-with no `--model` and no `ANTHROPIC_MODEL` takes its model from that file. It
-was the wrong answer whenever the model came from anywhere else, which is why
-it is gone rather than kept for this one case.
+either, and its record is empty, so nothing establishes the model. For those the
+`model` in settings.json was sometimes the right answer: a headless run with no
+`--model` and no `ANTHROPIC_MODEL` takes its model from that file. It was the
+wrong answer whenever the model came from anywhere else, which is why it is gone
+rather than kept for this one case.
 
-Subagents get nothing. Session start does not fire for them, and a rule
-written for the model the main session is driving is not automatically a rule
-for an agent that happens to share it.
+Subagents get nothing. Session start does not fire for them, and a rule written
+for the model the main session is driving is not automatically a rule for an
+agent that happens to share it.
 
 ## Troubleshooting
 
 A configuration the hook cannot use injects nothing while it stands, and puts
 one line starting `model-prompts:` into Claude's context, asking it to pass the
-line on to you. `config error` names the file and what is wrong with it, down
-to the row; `parser error` means `smol-toml` is missing from the plugin's cache
+line on to you. `config error` names the file and what is wrong with it, down to
+the row; `parser error` means `smol-toml` is missing from the plugin's cache
 directory. Every run still reads the file, so a fix takes effect on the next
 session start or switch, and the lines stop with it.
 
-`internal error` is the third of them and is not yours to fix: the run
-stopped on something the hook does not account for, and the line ends in where
-to report it.
+`internal error` is the third of them and is not yours to fix: the run stopped
+on something the hook does not account for, and the line ends in where to report
+it.
 
 Every run that meets the fault says the line, which for this hook is every
 session start and every model switch. Nothing is written down between runs.
@@ -158,19 +156,19 @@ session start and every model switch. Nothing is written down between runs.
 On Node older than 22.6 with no bun on `PATH`, the hook shows you one line
 naming the floor and the version it found, and injects nothing.
 
-Deleting the session's record, `<session id>.json` under
-`claude-model-prompts/` in the OS temp directory, is how you make a `once` row
-inject again without restarting.
+Deleting the session's record, `<session id>.json` under `claude-model-prompts/`
+in the OS temp directory, is how you make a `once` row inject again without
+restarting.
 
-A run killed while it held the record's lock leaves the directory `<session
-id>.lock` beside the record, and the next run of the session takes it over:
-the lock names the run that made it, and a process the OS no longer knows is
-the proof that nobody is coming back for it. A lock whose holder is still a
-running process is never taken over, whether the run is hung rather than dead
-or the machine has since handed its pid to something else. While it stands,
-every later run of the session skips its own update of the file without a
-word: a `once` row says its text again, and a session start carrying no model
-id falls back to the model the record held before the lock stuck. Deleting
+A run killed while it held the record's lock leaves the directory
+`<session id>.lock` beside the record, and the next run of the session takes it
+over: the lock names the run that made it, and a process the OS no longer knows
+is the proof that nobody is coming back for it. A lock whose holder is still a
+running process is never taken over, whether the run is hung rather than dead or
+the machine has since handed its pid to something else. While it stands, every
+later run of the session skips its own update of the file without a word: a
+`once` row says its text again, and a session start carrying no model id falls
+back to the model the record held before the lock stuck. Deleting
 `<session id>.lock` is what clears it.
 
 ## Contributing

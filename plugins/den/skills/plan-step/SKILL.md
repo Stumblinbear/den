@@ -12,7 +12,7 @@ constraints, then each step the first line names, in full, with what it relies
 on. If the plan or the step could not be read, only the reason is below.
 
 The first line also lists every problem found in the plan, such as a step with
-no ID, and every file the plan points to that could not be read. Report each
-one to whoever gave you the plan, since the plan is theirs to fix.
+no ID, and every file the plan points to that could not be read. Report each one
+to whoever gave you the plan, since the plan is theirs to fix.
 
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/plan-step "$ARGUMENTS"`

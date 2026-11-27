@@ -10,32 +10,32 @@ allowed-tools: SendUserFile
 
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/diff-page "$ARGUMENTS"`
 
-The line above is what the diff-page script printed. When it names a file,
-send that file with SendUserFile, with `display` set to `render`, `status` set
-to `normal`, and a one-line caption giving the range and the counts from that
-line. The file is what this skill delivers, so publish it as an artifact only
-when the user asks for a link. When the line says instead that the diff is
-empty, or why no page was rendered, give the user that line as it stands.
+The line above is what the diff-page script printed. When it names a file, send
+that file with SendUserFile, with `display` set to `render`, `status` set to
+`normal`, and a one-line caption giving the range and the counts from that line.
+The file is what this skill delivers, so publish it as an artifact only when the
+user asks for a link. When the line says instead that the diff is empty, or why
+no page was rendered, give the user that line as it stands.
 
-The page ignores changes to whitespace, as `git diff -w` does. When the
-argument carries one of git's whitespace options, that option replaces the
-default. To show whitespace changes, pass `--ignore-cr-at-eol`, which replaces
-the default and hides only a carriage return at the end of a line.
+The page ignores changes to whitespace, as `git diff -w` does. When the argument
+carries one of git's whitespace options, that option replaces the default. To
+show whitespace changes, pass `--ignore-cr-at-eol`, which replaces the default
+and hides only a carriage return at the end of a line.
 
 Write an option's value in the same word as the option, as in `-U5` or
 `--diff-filter=M`. Before `--`, a word that doesn't start with `-` is read as a
 revision, so the `5` in `-U 5` would be taken for one. Write a pathspec as git
 takes it, such as `:(exclude)docs`, without shell escapes. No shell reads the
-argument, so quotes around a word are removed, but a backslash stays in the
-word and reaches git.
+argument, so quotes around a word are removed, but a backslash stays in the word
+and reaches git.
 
 When `difft` (difftastic) is on PATH, a changed code file is diffed by syntax.
 These keep the line diff:
 
 - a file added or deleted whole;
 - a file difftastic can't parse;
-- every file, when the argument carries an option that changes how the line
-  diff compares lines or groups them into hunks, such as a whitespace option,
-  `-W` or a diff algorithm, since difftastic has nothing that matches it.
+- every file, when the argument carries an option that changes how the line diff
+  compares lines or groups them into hunks, such as a whitespace option, `-W` or
+  a diff algorithm, since difftastic has nothing that matches it.
 
 `-U` sets the number of context lines in both kinds of diff.

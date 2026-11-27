@@ -8,12 +8,12 @@ when_to_use: ALWAYS invoke this skill when the user asks for autonomy to stop, a
 
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/autonomy stop "${CLAUDE_SESSION_ID}"`
 
-Open your reply by telling the user that autonomy is off. If a line above
-says autonomy was not changed, tell them it is still on, and why. If a line
-above is about context-budget's switch, pass that line on.
+Open your reply by telling the user that autonomy is off. If a line above says
+autonomy was not changed, tell them it is still on, and why. If a line above is
+about context-budget's switch, pass that line on.
 
-Then report what was done while autonomy was on, from
-`.local/autonomy-log.md` and the plan's proposals with status `notRaised`:
+Then report what was done while autonomy was on, from `.local/autonomy-log.md`
+and the plan's proposals with status `notRaised`:
 
 - each decision made on the user's behalf, with what it was chosen over;
 - what was downloaded or installed;

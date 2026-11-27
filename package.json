@@ -10,7 +10,7 @@
 	"scripts": {
 		"prepare": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/prepare.mts",
 		"check": "biome ci . && tsc --noEmit && node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/plugin-lib.mts --check && node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/agent-variants.mts --check",
-		"fix": "biome check --write .",
+		"fix": "biome check --write . && node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/wrap-markdown.mts",
 		"typecheck": "tsc --noEmit",
 		"plugin-lib": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/plugin-lib.mts",
 		"agent-variants": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/agent-variants.mts",

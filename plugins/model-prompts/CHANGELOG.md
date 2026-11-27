@@ -2,8 +2,8 @@
 
 All notable changes to the model-prompts plugin are recorded here. The format
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions
-follow [Semantic Versioning](https://semver.org/). While the major version is
-0, a minor bump may change behavior.
+follow [Semantic Versioning](https://semver.org/). While the major version is 0,
+a minor bump may change behavior.
 
 ## [Unreleased]
 
@@ -13,26 +13,26 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 ### Fixed
 
 - The example config's Opus 5 row matches only `claude-opus-5`. Its key,
-  `opus-5\b`, also matched `claude-opus-5-5` and every later Opus 5.x, so
-  those models were handed Opus 5's rules.
+  `opus-5\b`, also matched `claude-opus-5-5` and every later Opus 5.x, so those
+  models were handed Opus 5's rules.
 
 ## [0.4.0] - 2026-09-12
 
 ### Changed
 
-- The example config carries a Fable 5.1 row that asks for independent
-  reads to be requested together rather than one file per turn, and its Opus 5
-  row asks for focused, brief answers with corrections flagged only where
-  they change the code or a conclusion.
+- The example config carries a Fable 5.1 row that asks for independent reads to
+  be requested together rather than one file per turn, and its Opus 5 row asks
+  for focused, brief answers with corrections flagged only where they change the
+  code or a conclusion.
 - A session start that does not say which model it is for injects nothing. It
-  used to fall back to the `model` in `~/.claude/settings.json`, which names
-  the model a new session starts on rather than the one the session is
-  running: a session switched away from that default was told the wrong
-  model's rules, under a header naming the wrong model. A clear is where it
-  showed, because Claude Code sends no model id with one and gives the session
-  a new id, leaving the guess as the only thing left to answer with. Headless
-  sessions lose the other side of it: a `-p` or SDK start names no model
-  either, so they are now silent even where the file happened to be right.
+  used to fall back to the `model` in `~/.claude/settings.json`, which names the
+  model a new session starts on rather than the one the session is running: a
+  session switched away from that default was told the wrong model's rules,
+  under a header naming the wrong model. A clear is where it showed, because
+  Claude Code sends no model id with one and gives the session a new id, leaving
+  the guess as the only thing left to answer with. Headless sessions lose the
+  other side of it: a `-p` or SDK start names no model either, so they are now
+  silent even where the file happened to be right.
 - A fault that stops the hook goes to the agent, in the field Claude Code hands
   it, carrying an instruction to put the line to you, and every run that meets
   the fault says it: every session start and every model switch. It went to
@@ -50,8 +50,8 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ### Changed
 
-- The `configure` skill carries a `when_to_use` directive and a description
-  that says what it is, so the model routes to it rather than editing the
+- The `configure` skill carries a `when_to_use` directive and a description that
+  says what it is, so the model routes to it rather than editing the
   configuration on its own.
 
 ## [0.2.0] - 2026-09-05
@@ -62,37 +62,37 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   configured row whose key matches the active model id into the main session's
   context, in configuration order. Subagents and unknown events are ignored.
 - `${CLAUDE_PLUGIN_DATA}/config.toml`, the one file the hook reads: rows keyed
-  by a regular expression on the model id, each carrying `prompt` or `file`,
-  and `enabled`, `on_start` and `on_switch` to say when it speaks. No file is
-  the unconfigured state and injects nothing.
+  by a regular expression on the model id, each carrying `prompt` or `file`, and
+  `enabled`, `on_start` and `on_switch` to say when it speaks. No file is the
+  unconfigured state and injects nothing.
 - `hooks/config.example.toml` to copy into place, carrying the Opus 5 writing
   rule that moved here from the `den` plugin. It injects on every switch into
   Opus 5, since the habits come back with the model.
 - `on_switch = "once"` per session per row, recorded in the session's one
   record, `<os temp dir>/claude-model-prompts/<session id>.json`, which every
-  session start clears before injecting into the context it rebuilds. The
-  model a hook input last named for the session (`to_model` on a switch,
-  `model` at session start) is kept there too, and read back by a run whose
-  own input carries none, along with the fault classes the session has already
-  been told about.
-- Every write of that record is made under a lock directory beside it, which
-  the next run takes over when the run holding it is gone: the lock names that
-  run's pid, and the OS answering that there is no such process is the proof.
-  A lock whose holder is still running is left standing, so a run killed
-  mid-write costs the next one a probe rather than costing the session every
-  injection after it.
+  session start clears before injecting into the context it rebuilds. The model
+  a hook input last named for the session (`to_model` on a switch, `model` at
+  session start) is kept there too, and read back by a run whose own input
+  carries none, along with the fault classes the session has already been told
+  about.
+- Every write of that record is made under a lock directory beside it, which the
+  next run takes over when the run holding it is gone: the lock names that run's
+  pid, and the OS answering that there is no such process is the proof. A lock
+  whose holder is still running is left standing, so a run killed mid-write
+  costs the next one a probe rather than costing the session every injection
+  after it.
 - Skill `configure`: what fires and when, where the configuration lives, how
   rows compose, and how to check an edit by hand.
 - `smol-toml` as the plugin's one dependency, installed by Claude Code's
   `npm ci --ignore-scripts` when it caches the plugin.
 - No stand-in values anywhere: a parser that will not import, or a config file
-  that cannot be read, parsed, or used, gets one stderr line from the first
-  hook run of the session that meets it, naming what is wrong, which file and
-  the fix, and injects nothing while the problem stands. The report is
-  silenced for the rest of that session; every run still reads the file, so a
-  fix takes effect on the next one.
-- The hook is TypeScript, run by `lib/shared/launch.mjs` under bun when it is
-  on `PATH` and otherwise under Node 22.6+, with a `.runtime` file in the data
+  that cannot be read, parsed, or used, gets one stderr line from the first hook
+  run of the session that meets it, naming what is wrong, which file and the
+  fix, and injects nothing while the problem stands. The report is silenced for
+  the rest of that session; every run still reads the file, so a fix takes
+  effect on the next one.
+- The hook is TypeScript, run by `lib/shared/launch.mjs` under bun when it is on
+  `PATH` and otherwise under Node 22.6+, with a `.runtime` file in the data
   directory to force one. Under bun a dependency the plugin lacks is reported,
   never fetched on the fly.
 

@@ -21,65 +21,65 @@ kind first; the word follows.
 
 A method that returns something the receiver holds, or derives cheaply and
 without failing, is named for the value: `len()`, `capacity()`, `first()`,
-`depth()`, `parent()`. The API Guidelines keep `get_` off these:
-"with a few exceptions, the `get_` prefix is not used for getters in Rust
-code." The exception is a type with one thing to get, `Cell::get`,
-`RefCell::get_mut`, where the bare name would have nothing to say.
+`depth()`, `parent()`. The API Guidelines keep `get_` off these: "with a few
+exceptions, the `get_` prefix is not used for getters in Rust code." The
+exception is a type with one thing to get, `Cell::get`, `RefCell::get_mut`,
+where the bare name would have nothing to say.
 
-The noun says what comes back, not what state it is in, and it has to make
-sense after any variable name: `loaded_components()`, not `loaded()`;
-`saved_place()`, not `place()`, when the type could give more than one kind
-of place. `len`, `parent` and `first` are one word because the type has one
-thing each of them could mean.
+The noun says what comes back, not what state it is in, and it has to make sense
+after any variable name: `loaded_components()`, not `loaded()`; `saved_place()`,
+not `place()`, when the type could give more than one kind of place. `len`,
+`parent` and `first` are one word because the type has one thing each of them
+could mean.
 
-A property's cost is not in its name. Where a reader should see that a value
-is computed over many items, return an iterator (section 6) or name it as a
-count (section 5) rather than inventing a verb.
+A property's cost is not in its name. Where a reader should see that a value is
+computed over many items, return an iterator (section 6) or name it as a count
+(section 5) rather than inventing a verb.
 
 ## 2. A lookup by key that can miss: `get`
 
 A method that takes a key and may find nothing returns `Option` (or `Result`
 where the miss has a reason) and is named `get`: `HashMap::get(&key)`,
-`slice::get(index)`, `BTreeMap::get`, `Vec::get`. On a type that is not
-itself the collection, the key's noun joins it: `get_user(id)`,
-`get_entity(id)`. The word tells the caller two things the bare noun would
-not: that a key is involved, and that the answer may be absent.
+`slice::get(index)`, `BTreeMap::get`, `Vec::get`. On a type that is not itself
+the collection, the key's noun joins it: `get_user(id)`, `get_entity(id)`. The
+word tells the caller two things the bare noun would not: that a key is
+involved, and that the answer may be absent.
 
-A lookup named as a property, `user(id) -> Option<User>`, reads at the call
-site as a value that is always there, and the `Option` surprises the reader
-at the next line.
+A lookup named as a property, `user(id) -> Option<User>`, reads at the call site
+as a value that is always there, and the `Option` surprises the reader at the
+next line.
 
 ## 3. A search by condition: `find`, `position`
 
 A method that scans for the first thing meeting a condition or matching a
 pattern is `find`: `Iterator::find(|x| ..)`, `str::find(pattern)`,
-`Path::ancestors().find(..)`. `position` is the same search returning the
-index. The condition may be fixed by the method rather than passed:
-`find_expired()` scans for the first expired entry and says so.
-`search` and `lookup` are not std's words; `find` is.
+`Path::ancestors().find(..)`. `position` is the same search returning the index.
+The condition may be fixed by the method rather than passed: `find_expired()`
+scans for the first expired entry and says so. `search` and `lookup` are not
+std's words; `find` is.
 
 ## 4. A yes-or-no answer: `is_`, `has_`, `contains`
 
 A `bool` reads as a claim about its subject: `is_empty()`, `is_some()`,
 `has_children()`, `contains(&x)`, `starts_with(..)`. A bare adjective or
-participle, `empty()`, `drawn()`, `enabled()`, names no subject and reads as
-an action.
+participle, `empty()`, `drawn()`, `enabled()`, names no subject and reads as an
+action.
 
 ## 5. A count: `len`, `count`, `_count`
 
-The number of items a collection holds is `len()`. The number an iterator
-yields is `count()`, consuming it. A number computed over something else,
-such as the open handles of one connection, is named as the count it is,
+The number of items a collection holds is `len()`. The number an iterator yields
+is `count()`, consuming it. A number computed over something else, such as the
+open handles of one connection, is named as the count it is,
 `open_handle_count(connection)`, so the reader does not expect the handles
 themselves.
 
 ## 6. A view over many: `iter`, the plural noun
 
-A method returning the items is `iter()`, `iter_mut()`, `into_iter()`, or
-the plural noun when the type has several kinds of item to offer: `keys()`,
+A method returning the items is `iter()`, `iter_mut()`, `into_iter()`, or the
+plural noun when the type has several kinds of item to offer: `keys()`,
 `values()`, `lines()`, `ancestors()`. Returning an iterator is how std shows
-that a method walks many items; a `Vec` return is for when the caller needs
-the whole collection owned.
+that a method walks many items; a `Vec` return is for when the caller needs the
+whole collection owned.
 
 ## 7. A conversion: `as_`, `to_`, `into_`
 
@@ -97,22 +97,22 @@ Enforced by clippy's `wrong_self_convention`:
 
 ## 8. The panicking and the optional pair
 
-Where a value is usually there and a caller wants to say so, std offers a
-pair: indexing panics on absence and `get` returns `Option`. `slice[i]`
-beside `slice.get(i)`, `map[&key]` beside `map.get(&key)`. A type of your own
-takes the same pair where callers need both, the bare name panicking and the
-`get_` form returning `Option`. A test harness or any code that knows the value exists
-takes the panicking form and keeps its assertions where the value is read; a
-wait or a check that may run before the value exists takes the `get_` form.
+Where a value is usually there and a caller wants to say so, std offers a pair:
+indexing panics on absence and `get` returns `Option`. `slice[i]` beside
+`slice.get(i)`, `map[&key]` beside `map.get(&key)`. A type of your own takes the
+same pair where callers need both, the bare name panicking and the `get_` form
+returning `Option`. A test harness or any code that knows the value exists takes
+the panicking form and keeps its assertions where the value is read; a wait or a
+check that may run before the value exists takes the `get_` form.
 
 ## 9. A variant: std's word for the case
 
 A variant is UpperCamelCase and names the case it is, read after its type's
 name. Where std or the ecosystem has a word for the case, it is the word:
-`Shutdown::Both`, `Option::None`, `ErrorKind::NotFound`,
-`Ordering::Less`, termcolor's `ColorChoice::Always`, and `All` for the whole
-of something, as regex's `MatchKind::All`. A synonym for one of these,
-`Missing` for `NotFound`, `Neither` for `None`, gives the reader a second
-word for a case they already have one for. A case none of them names is a
-noun or adjective for the state or kind it is, `Hidden`, `Pending`, `Whole`,
-never an adverb or a determiner read as a modifier of the type's noun.
+`Shutdown::Both`, `Option::None`, `ErrorKind::NotFound`, `Ordering::Less`,
+termcolor's `ColorChoice::Always`, and `All` for the whole of something, as
+regex's `MatchKind::All`. A synonym for one of these, `Missing` for `NotFound`,
+`Neither` for `None`, gives the reader a second word for a case they already
+have one for. A case none of them names is a noun or adjective for the state or
+kind it is, `Hidden`, `Pending`, `Whole`, never an adverb or a determiner read
+as a modifier of the type's noun.

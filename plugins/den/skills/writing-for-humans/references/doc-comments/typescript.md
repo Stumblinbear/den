@@ -1,19 +1,19 @@
 # Doc comments: TypeScript (TSDoc)
 
-This file covers where TSDoc differs from `doc-comments.md`. The four slots,
-the summary test, and the rule that a doc states the contract and not how the
-body works all still apply.
+This file covers where TSDoc differs from `doc-comments.md`. The four slots, the
+summary test, and the rule that a doc states the contract and not how the body
+works all still apply.
 
 ## The summary ends at `@remarks`
 
 TSDoc splits an item's main description into a short summary and a detailed
-remarks section. The `@remarks` tag is the boundary between them, so the
-summary is everything before that tag. Index pages that list many API items
-show only the summary.
+remarks section. The `@remarks` tag is the boundary between them, so the summary
+is everything before that tag. Index pages that list many API items show only
+the summary.
 
-So put any contract that goes past the first paragraph under `@remarks`.
-Text above the tag is part of the summary, and it appears in every index that
-lists the item.
+So put any contract that goes past the first paragraph under `@remarks`. Text
+above the tag is part of the summary, and it appears in every index that lists
+the item.
 
 ```ts
 /**
