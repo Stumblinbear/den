@@ -11,7 +11,11 @@
 // that could not be written, states that cause. Anything else is den's bug and
 // reported as one.
 import process from "node:process";
-import { autonomyPrompt, startAutonomy } from "../lib/autonomy.mts";
+import {
+	autonomyPrompt,
+	autonomyState,
+	startAutonomy,
+} from "../lib/autonomy.mts";
 import { faults } from "../lib/shared/fault.mts";
 import {
 	errorCode,
@@ -24,6 +28,18 @@ import { hookInput } from "../lib/shared/hook-input.mts";
 const COMMAND = "den:autonomy-start";
 
 const START_FAULTS = faults("den", "Autonomy did not start");
+
+const RESTART_FAULTS = faults(
+	"den",
+	"Autonomy did not restart and is still on",
+);
+
+/**
+ * Added after the rules on a start only, so the user hears that autonomy is on
+ * when they start it and not again after each compaction.
+ */
+const START_CONFIRMATION =
+	"\nAutonomy has just started. Open your reply with one sentence telling the user it is on.\n";
 
 /** A start refused for a cause the user can fix, with that cause as its message. */
 class StartRefusedError extends Error {}
@@ -53,14 +69,34 @@ function start(input: Record<string, unknown>, project: string): string {
 		throw error;
 	}
 
-	return prompt;
+	return prompt + START_CONFIRMATION;
 }
 
-/** The reason the command is blocked for, when starting threw `error`. */
-const blockReason = (error: unknown): string =>
-	error instanceof StartRefusedError
-		? `den: autonomy did not start: ${error.message}.`
-		: START_FAULTS.internalFault(error).message;
+/** Whether the session's autonomy reads as on, false where it cannot be read. */
+function isOn(session: string): boolean {
+	try {
+		return autonomyState(session) === "on";
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * The reason the command is blocked for, when starting threw `error`. A start
+ * that fails leaves the state as it was, so a session already on stays on and
+ * the reason says so.
+ */
+function blockReason(error: unknown, session: string): string {
+	const stillOn = isOn(session);
+
+	if (error instanceof StartRefusedError) {
+		return stillOn
+			? `den: autonomy did not restart and is still on: ${error.message}.`
+			: `den: autonomy did not start: ${error.message}.`;
+	}
+
+	return (stillOn ? RESTART_FAULTS : START_FAULTS).internalFault(error).message;
+}
 
 const input = fieldsOf(await hookInput());
 
@@ -77,7 +113,7 @@ if (input["command_name"] === COMMAND) {
 	} catch (error) {
 		output = {
 			decision: "block",
-			reason: blockReason(error),
+			reason: blockReason(error, String(input["session_id"] ?? "")),
 		};
 	}
 

@@ -115,7 +115,7 @@ for (const runtime of runtimes()) {
 	const switchFile = (temp: string) =>
 		join(temp, "claude-context-budget", `${SESSION}.unattended`);
 
-	test(`[${runtime}] typing the start command adds the rules, writes the switch and removes the earlier log`, () => {
+	test(`[${runtime}] typing the start command adds the rules and a confirmation, writes the switch and removes the earlier log`, () => {
 		const temp = fixtureDir("autonomy-temp");
 		const project = fixtureDir("autonomy-project");
 		const log = join(project, ".local", "autonomy-log.md");
@@ -123,13 +123,14 @@ for (const runtime of runtimes()) {
 		mkdirSync(join(project, ".local"));
 		writeFileSync(log, "an earlier run\n");
 
-		assert.equal(
-			context(
-				start(temp, project, expansion("den:autonomy-start")),
-				"UserPromptExpansion",
-			),
-			PROMPT,
+		const started = context(
+			start(temp, project, expansion("den:autonomy-start")),
+			"UserPromptExpansion",
 		);
+
+		// The rules, then a line that only the start adds.
+		assert.ok(started.startsWith(PROMPT), started);
+		assert.ok(started.length > PROMPT.length, started);
 		assert.ok(existsSync(switchFile(temp)));
 		assert.ok(!existsSync(log));
 
@@ -300,7 +301,7 @@ for (const runtime of runtimes()) {
 		);
 	});
 
-	test(`[${runtime}] after a compaction the rules come back while autonomy is on, a different line while it is off, and nothing in a session that never used it`, () => {
+	test(`[${runtime}] after a compaction the rules come back without the confirmation while autonomy is on, a different line while it is off, and nothing in a session that never used it`, () => {
 		const temp = fixtureDir("autonomy-temp");
 
 		silent(afterCompact(temp));

@@ -187,7 +187,9 @@ Hooks, registered while the plugin is enabled:
 - Autonomy start: `/den:autonomy-start` records autonomy as on for the
   session, writes context-budget's unattended switch, deletes the project's
   `.local/autonomy-log.md`, and adds autonomy's rules to the context beside
-  the command. A start that fails blocks the command, with a line saying why.
+  the command, with a line asking Claude to tell you it is on. A start that
+  fails blocks the command, with a line saying why and whether autonomy is
+  still on from an earlier start.
 - Autonomy after a compaction: in a session that has used autonomy, each
   compaction adds the rules again while it is on, or one line saying it is
   off. A session that never used it gets nothing.
