@@ -13,6 +13,15 @@ the rule.
 
 ## The core, in any language
 
+**Decide a file's module before you create it.** Ask which concept the file
+belongs to, and put it in that concept's module. When no module exists for
+that concept yet, and this file makes two or more of a kind, or more are
+coming, create the module now and move the existing files of that kind into
+it. The move is part of adding this file, not work outside the change's
+scope: this change is what makes those files a group. Leaving them loose to
+match the layout you found is how a project fills up with loose files, each
+one added by a writer keeping to the layout the last writer left.
+
 **One concept per file.** The question comes up when you add a type or
 function to an existing file, write a banner comment (`// ---- helpers ----`)
 to divide one, or scroll past unrelated code to reach the code you came to
@@ -222,9 +231,7 @@ one copy and not the other, and one that decides an outcome but lives in no
 setting has no home a reader can find. Two values that merely match, such as
 two timeouts that happen to be thirty seconds, are two pieces of state. A
 computation holds none: a hypotenuse written at two sites can never disagree
-with itself. Where copies of one piece of state sit in different files or
-languages and nothing would notice them disagree, a small mechanism hands the
-value across.
+with itself.
 
 **Siblings share one shape and one path.** The question comes up when you add
 a peer to things that play one role, write a type that keeps the invariants
