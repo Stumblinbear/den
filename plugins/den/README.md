@@ -105,6 +105,9 @@ project-direction, scoping and diff-page; the rest are hidden from the `/` menu:
   loaded.
 - `code-architecture`: where a type, function, or module belongs, and whether
   a type can represent states that should not exist.
+- `using-a-database`: how a relational database is designed and used, from
+  what a table, a row and a column stand for to migrations, transactions and
+  copies of a live database, with SQLite's specifics in a reference.
 - `writing-for-agents`: principles for writing instructions an agent will
   follow.
 - `writing-a-skill`: how a Claude Code skill is written, from the listing

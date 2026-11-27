@@ -23,6 +23,23 @@ alone, so read the one for the text in hand.
 - **Cut to what the reader acts on.** Short sentences, concrete nouns, claims
   a reader can check. A sentence the reader does nothing with still costs them
   the time to read it.
+- **Write it in plain language.** Say what you mean in the words you would
+  use to explain it out loud, even when that takes more of them. Cutting drops
+  what the reader doesn't need; it never compresses what they do. A dense
+  sentence saves the writer a line and leaves the reader guessing what it
+  means, and a reader who guesses wrong acts on the wrong thing. A riddle,
+  then the same point in plain language:
+  - `Order is data.` → `Order is data with meaning. If someone chooses the
+    order of a list, store it in a position column and sort by that column.
+    The database doesn't keep rows in any order you can rely on: without an
+    ORDER BY, it can return them in any order. Even if it did keep insertion
+    order, reordering would mean deleting and re-inserting every row after
+    the one that moved.`
+  - `A NULL means one thing.` → `If an empty value could mean either "none" or
+    "not recorded", add a column for the second meaning.`
+  - `A level re-arms whenever the context falls back below it.` → `Once the
+    context drops back below a level, that level's message can appear
+    again.`
 - **Write what is, not what changed.** The reader never saw the change, and
   history has homes that stay accurate: version control, a changelog, a
   deprecation marker, a decision record. Rewrite a change narration into the

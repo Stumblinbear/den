@@ -24,6 +24,7 @@ minor bump may change behavior.
   term it has no translation for is put in ordinary words of the language
   rather than the borrowed English. `localizer` gains web search to look
   those terms up.
+- A `using-a-database` skill, which helps Claude use databases properly.
 
 ### Changed
 - `lead` checks prior art before choosing a mechanism that has been solved

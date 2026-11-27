@@ -26,6 +26,24 @@ tutorials, and behavior the model already gets right unprompted.
   is a default the model keeps returning to: when a general instruction only
   trades one default for the next, a list naming the specific patterns seen
   in its output steers where the general line did not.
+- **Write it in plain language.** Say what you mean in the words you would
+  use to explain it to a colleague, even when that takes more of them. A
+  compressed sentence leaves the reader to work out what it means, and an
+  agent that works it out wrong follows the wrong rule with full confidence.
+  Clarity beats density whenever density leaves room for a second reading,
+  which is nearly always. A riddle, then the same rule in plain language:
+  - `A value is atomic when no part of it changes on its own.` → `Split a
+    value into columns or rows when part of it changes on its own, or when
+    you need to constrain, reference or join on part of it.`
+  - `A transaction is short.` → `Don't keep a transaction that writes open
+    while waiting on something slow, such as a network call or a person.
+    Every other writer waits until it ends, and the database can't clean up
+    behind it, so it grows. Do the slow work first, then open a short
+    transaction to write the result. Holding the transaction is fine when
+    nothing else uses the database, as in a migration at startup.`
+  - `An identifier inside a document is a reference no foreign key can see.`
+    → `Store a reference to another row in a foreign-key column, so the
+    database rejects one that points at nothing.`
 - **Give the reason, not only the rule.** The model generalizes from the why;
   a bare NEVER doesn't transfer to adjacent cases it wasn't written for. A
   rule carries its reason once: a reason hung on every sentence turns each
