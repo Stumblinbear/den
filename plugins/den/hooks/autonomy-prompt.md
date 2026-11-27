@@ -8,10 +8,7 @@ does not end on a report that announces the next step, an offer to carry on, or
 a list of decisions that block nothing: take the step, make the decision, and
 keep going.
 
-Use subagents to keep your own context small, but let the context window run:
-compaction runs on its own, and the plan file and the autonomy log carry the
-work across it. When a resume of a subagent is refused, launch a fresh agent
-instead.
+When a resume of a subagent is refused, launch a fresh agent instead.
 
 ## Standing approval
 

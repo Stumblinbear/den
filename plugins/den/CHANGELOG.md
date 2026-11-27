@@ -54,6 +54,11 @@ minor bump may change behavior.
   last review used.
 - `planning` deletes the plan file, and the task's temporary files and
   worktrees, when the last step lands.
+- `triage` checks a fix against `code-architecture`, and checks prior art for a
+  problem other software has already solved, before choosing it.
+- A decision that later steps of a plan must follow is kept with the whole plan,
+  not on the step where it was made.
+- Autonomy no longer reminds Claude about its context window.
 - `project-direction` follows `direction-docs` for everything it records.
 - `lead` checks prior art before choosing a mechanism that has been solved many
   times, a rule that had lived in a user's CLAUDE.md.

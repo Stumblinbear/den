@@ -178,7 +178,8 @@
 					"description": "What the step relies on, in reading order: survey facts, each with the evidence this step needs, and any other block, with a caption saying why the step relies on it."
 				},
 				"decisions": {
-					"$ref": "#/$defs/decisions"
+					"$ref": "#/$defs/decisions",
+					"description": "Decisions only this step relies on. A decision that a later step must also follow goes in the plan's decisions."
 				},
 				"proposals": {
 					"$ref": "#/$defs/proposals"

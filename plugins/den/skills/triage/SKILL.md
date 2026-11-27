@@ -12,9 +12,13 @@ should believe.
 
 A proper fix and a dirty hack look nearly the same on the surface. The
 difference shows only when you examine them against the goal, the codebase and
-good design practice. So work out the right fix yourself, from the goal and good
-design practice, as though no choice or recommendation had been made, and judge
-each one against your answer. Your answer may be the same fix, and it may be
+good design practice. So work out the right fix yourself, as though no choice or
+recommendation had been made, from the goal and from good design practice. For a
+fix that changes code, that practice is `den:code-architecture`: invoke it. When
+the problem is one other software has already solved, it is also how that
+software solves it: launch `den:prior-art-check` before you settle the fix's
+shape. A well-known technique used in the usual way needs no check. Then judge
+each choice against your answer. Your answer may be the same fix, and it may be
 that nothing needs to change.
 
 Start by establishing how the problem is reached: the input, or the sequence of
