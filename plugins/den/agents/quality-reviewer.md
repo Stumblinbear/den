@@ -36,6 +36,12 @@ for what that skill does not hold:
   collection, a synchronisation point added for nothing;
 - a pattern the language's or framework's own guidance warns against, where
   its ecosystem has settled on another idiom.
+- a mechanism the change builds from scratch for a problem other software
+  has already solved, such as undo, caching or sync, with its own state,
+  bookkeeping or rules for edge cases where an established method exists. Its
+  repair is a `den:prior-art-check` before the shape is kept. Whether the
+  shape is right depends on how other systems solve the problem, and reading
+  the code won't tell you that.
 
 These are where to look first; anything else a reader would object to is a
 finding too.

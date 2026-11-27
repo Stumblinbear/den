@@ -28,6 +28,8 @@ minor bump may change behavior.
 - `writing-for-humans` has a reference for changelog entries.
 
 ### Changed
+- The quality reviewer flags a mechanism built from scratch for a problem
+  that's already solved, and recommends a prior-art check.
 - `writing-a-skill` asks a configure skill for what each feature does, not
   how it works.
 - `code-architecture` has Claude decide which module a file belongs in before
