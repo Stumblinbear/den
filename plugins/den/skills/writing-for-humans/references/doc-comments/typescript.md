@@ -1,18 +1,19 @@
 # Doc comments: TypeScript (TSDoc)
 
-Deltas from `doc-comments.md`. The four slots, the contract-not-body rule, and
-the summary test all still apply.
+This file covers where TSDoc differs from `doc-comments.md`. The four slots,
+the summary test, and the rule that a doc states the contract and not how the
+body works all still apply.
 
-## `@remarks` is where the summary ends
+## The summary ends at `@remarks`
 
-TSDoc splits the main description into a brief summary section and a detailed
-remarks section, and the boundary is the `@remarks` tag: the summary is
-everything before it. Index pages listing many API items show the summary
-alone.
+TSDoc splits an item's main description into a short summary and a detailed
+remarks section. The `@remarks` tag is the boundary between them, so the
+summary is everything before that tag. Index pages that list many API items
+show only the summary.
 
-So the contract past the first paragraph goes **under `@remarks`**, not
-trailing the summary. Prose that stays above the tag is prose that ships into
-every index entry.
+So put any contract that goes past the first paragraph under `@remarks`.
+Text above the tag is part of the summary, and it appears in every index that
+lists the item.
 
 ```ts
 /**
@@ -30,7 +31,8 @@ every index entry.
 
 ## Tags
 
-`@param`, `@returns`, `@throws` for the slots; `@example` for examples;
-`@deprecated` followed by a sentence naming the recommended alternative;
-`@privateRemarks` for commentary that should not reach the published docs.
-`{@link}` for cross-references.
+- `@param`, `@returns` and `@throws` for the slots.
+- `@example` for examples.
+- `@deprecated`, followed by a sentence saying what to use instead.
+- `@privateRemarks` for notes that must stay out of the published docs.
+- `{@link}` for links to other items.

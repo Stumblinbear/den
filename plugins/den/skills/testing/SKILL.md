@@ -9,68 +9,96 @@ user-invocable: false
 
 ## What gets a test
 
-A test is written for a defect that was observed, red before the fix with the
-red run reported, for the rule a change introduces, at the boundary the
-change promises across, and for a promise the change rests on that no test
-pins.
-
-A test pins a promise: what the code guarantees to whatever uses it, which is
+A test pins a promise, which is what the code guarantees to whatever uses it:
 other code that calls it, another program, or a person using the program. A
-promise covers what comes back for what goes in, a rejection among them, the
-state the code leaves for its users to read, and a format another program
-reads. A detail nobody was promised is free to change, so a test on it fails
-on every legitimate edit and catches nothing. A message's wording is such a
-detail.
+promise covers:
 
-A brief says what to build, and what gets a test is what the code promises.
-Logs, metrics and traces are details whoever reads them, a brief that asks for
-one included: a test on one restates the line that emits it, so it fails on
-every edit to that line and catches only what reading the line shows. One is
-tested only when the user asks for that test. Where a catch exists so a
-failure does not escape, the test asserts that nothing escaped.
+- what comes back for what goes in, including a rejection;
+- the state the code leaves for its users to read;
+- a format another program reads.
+
+A detail nobody was promised, such as the wording of a message, is free to
+change. A test on it fails on every legitimate edit and catches nothing.
+
+Write a test:
+
+- For a defect that was observed. Run the test and see it go red before the
+  fix goes in, and give that red run in the report.
+- For the rule a change introduces, at the boundary where the change makes
+  its promise.
+- For a promise the change relies on that no existing test pins.
+
+A new test has to fail for a reason that no test already in the file fails
+for.
+
+Logs, metrics and traces are details nobody was promised, whoever or whatever
+reads them, and even when a brief asks for one. A brief says what to build,
+but what gets a test is what the code promises. A test on a log line, a
+metric or a trace only restates the line that emits it, so it fails on every
+edit to that line and catches only what reading the line already shows. Test
+one only when the user asks for that test.
+
+When code catches a failure to keep it from escaping, the test checks that
+nothing escaped, not the log line the catch may write.
 
 ## What an assertion compares against
 
-An assertion compares against a value the test states outright or reads back
-from outside the code under test. A value the test recomputes by the code's
-own path is the code agreeing with itself, and the test passes whatever the
-code does.
+An assertion compares against a value that the test either spells out or
+reads back from somewhere outside the code under test. When the test computes
+that value the same way the code does, the code is only agreeing with itself,
+and the test passes whatever the code does.
 
-A new test fails for a reason no test in the file already fails for.
+When the input a test needs is what another module produces, take it from one
+of these:
 
-Where the input a test needs is another module's output, the test uses that
-module, a helper its owner keeps, or its output written out as data; where the
-promise is to take whatever that module may send, the test sends each form the
-contract allows. A copy of the producer's steps in the test is the producer
-agreeing with itself, and drifts from it unseen.
+- that module itself;
+- a helper that the module's owner maintains;
+- the module's output, saved as data.
+
+A copy of that module's steps written into the test matches the module only as
+it was when copied, and drifts from it as the module changes, without anyone
+seeing.
+
+When the code promises to accept whatever that module may send, the test
+sends each form the module's contract allows.
 
 ## Which tests stay
 
-A test that showed a defect red has done its first job when it goes green: it
-proved the fix. It stays in the tree only where it earns its upkeep, which is
-where the mistake it catches would be hard to see by reading the code:
+A test that went red on a defect has done its first job once it goes green:
+it proved the fix. Keep it in the tree only when it earns its upkeep, which is
+when the mistake it catches would be hard to see by reading the code, such as:
 
 - a race;
-- an ordering between steps;
+- the order of steps;
 - bookkeeping across calls;
 - arithmetic.
 
-A race test controls the schedule it tests; one that sleeps and hopes is not a
-test.
+A test for a race controls the order the threads or tasks run in, so the
+interleaving it tests happens on every run. A test that sleeps and hopes for
+that interleaving is not a test.
 
-Where the fix is plain in the code, a forwarded value or a one-line guard a
-reviewer takes in at a glance, the test comes out after its green run, and the
-report gives both runs and says it was removed.
+When the fix is plain in the code, such as a value passed through or a
+one-line guard that a reviewer takes in at a glance, remove the test after its
+green run. The report gives both runs, red and green, and says the test was
+removed.
 
-A later change that touches a test's code rules on it again. One that
-removes the mechanism the test guards, as making an optional field required
-does, leaves it checking what a reader sees at a glance, so it comes out in
-that change. One that splits or copies code rules each test before carrying
-it, since a copy in every piece multiplies the upkeep and catches nothing
-more.
+When a later change touches the code a test covers, rule again on whether the
+test stays:
+
+- When the change removes the mechanism the test guards, the test is left
+  checking what a reader sees at a glance, so remove it in that same change.
+  Making an optional field required is such a change: it removes the handling
+  of a missing value.
+- When the change splits code into pieces or copies it, rule on each test
+  before carrying it into the new code. A copy of the test in every piece
+  multiplies the upkeep and catches nothing more.
 
 ## Ruling on a proposed test
 
-A test someone else proposes or leaves in the tree is ruled by the same two
-questions. It is kept when it pins a promise and earns its upkeep, rewritten
-where it could pin one and does not, and skipped otherwise, whoever wrote it.
+Rule on a test that someone else proposes or leaves in the tree with the same
+two questions: does it pin a promise, and does it earn its upkeep? Who wrote
+it doesn't change the ruling.
+
+- Keep it when it does both.
+- Rewrite it when it could pin a promise and doesn't.
+- Otherwise leave it out of the tree, removing it if it is already there.

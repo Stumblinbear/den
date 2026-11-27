@@ -10,21 +10,32 @@ allowed-tools: SendUserFile
 
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/diff-page "$ARGUMENTS"`
 
-Send the file the line above names with SendUserFile: `display` render,
-`status` normal, and a one-line caption carrying the range and the counts from
-that line. The file is the deliverable; an artifact link is made only when the
-user asks for one. A line saying the diff is empty, or why nothing was
-rendered, goes to the user as it stands.
+The line above is what the diff-page script printed. When it names a file,
+send that file with SendUserFile, with `display` set to `render`, `status` set
+to `normal`, and a one-line caption giving the range and the counts from that
+line. The file is what this skill delivers, so publish it as an artifact only
+when the user asks for a link. When the line says instead that the diff is
+empty, or why no page was rendered, give the user that line as it stands.
 
-The page leaves out whitespace-only changes, as `git diff -w` does. Any of
-git's whitespace options in the argument replaces that default; to see
-whitespace changes, pass `--ignore-cr-at-eol`, which hides only a carriage
-return ending a line. An option's value is written into it (`-U5`,
-`--diff-filter=M`), since a separate word before `--` is read as a revision.
-A pathspec is written as git takes it, `:(exclude)docs`; no shell reads the
-argument, so quotes around a word are dropped and escapes are not.
+The page ignores changes to whitespace, as `git diff -w` does. When the
+argument carries one of git's whitespace options, that option replaces the
+default. To show whitespace changes, pass `--ignore-cr-at-eol`, which replaces
+the default and hides only a carriage return at the end of a line.
 
-Where `difft` (difftastic) is on PATH, a changed code file is diffed by
-syntax. A file added or deleted whole, a file difftastic cannot parse, and
-every file when the argument carries a whitespace, `-W` or diff-algorithm
-option keep the line diff; `-U` sets the context of both.
+Write an option's value in the same word as the option, as in `-U5` or
+`--diff-filter=M`. Before `--`, a word that doesn't start with `-` is read as a
+revision, so the `5` in `-U 5` would be taken for one. Write a pathspec as git
+takes it, such as `:(exclude)docs`, without shell escapes. No shell reads the
+argument, so quotes around a word are removed, but a backslash stays in the
+word and reaches git.
+
+When `difft` (difftastic) is on PATH, a changed code file is diffed by syntax.
+These keep the line diff:
+
+- a file added or deleted whole;
+- a file difftastic can't parse;
+- every file, when the argument carries an option that changes how the line
+  diff compares lines or groups them into hunks, such as a whitespace option,
+  `-W` or a diff algorithm, since difftastic has nothing that matches it.
+
+`-U` sets the number of context lines in both kinds of diff.

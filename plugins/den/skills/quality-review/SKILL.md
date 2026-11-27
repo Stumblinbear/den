@@ -8,16 +8,19 @@ allowed-tools: Workflow
 
 # Quality review
 
-The quality review runs before review-and-fix: it catches a wrong shape or a
-performance problem while it is still cheap to change, so the bug review reads
-the shape that will ship. Its findings are ruled and fixed first, and
-review-and-fix follows.
+Run the quality review before review-and-fix. It finds a wrong shape or a
+performance problem while the code is still cheap to change, and
+review-and-fix then reviews the code in the shape it will ship in. Rule on
+the quality review's findings and get the ones you take fixed, then run
+review-and-fix.
 
-The workflow runs one `den:quality-reviewer` over a diff range and returns its
-report. Its arguments are the whole launch: the reviewer reads the diff and
-the plan itself, and an account of the change, such as the implementer's
-declared choices, reads to it as settled, so it reads past the shapes the
-review is for.
+The workflow launches one `den:quality-reviewer` on a git diff range and
+returns its report. The reviewer is given the arguments below and nothing
+else from you. Give each argument only what its row asks for, with no account
+of the change in it, such as the choices the implementer declared. The
+reviewer reads the diff and the plan on its own, and it takes an account of
+the change as already decided, so it reads past the very shapes it is there
+to judge.
 
 ```
 Workflow({
@@ -29,28 +32,36 @@ Workflow({
 | Argument | Value |
 | --- | --- |
 | `repo` | Required. The absolute path of the repository the change is in. |
-| `range` | Required. The git diff range the change spans, on one line: `--cached HEAD` for a staged working tree, `HEAD~1..HEAD` for the last commit. |
-| `goal` | Required. The end the change serves, in the user's terms: the plan's `goal`, quoted, when the change serves it, and otherwise the recorded decisions it does serve. |
-| `plan` | The plan's absolute path, when the change is a step of one. |
-| `step` | With `plan`, the ID of the step the change is. Without it the reviewer reads every step in progress, and a step running in parallel reads as part of this change. |
-| `rulings` | The user's rulings on findings an earlier quality review of this change raised, one per item in one sentence of at most 400 characters naming the shape the finding flagged, what was ruled, and why. An item clarifies a finding and is never an account of the change, since the reviewer takes what an item says as settled and reads past the shapes it describes. The reviewer does not raise a ruled finding again. |
-| `leadCalls` | The same, for this session's own calls on those findings. |
+| `range` | Required. The git diff range the change spans, on one line: `--cached HEAD` for the working tree once its changes are staged, `HEAD~1..HEAD` for the last commit. |
+| `goal` | Required. What the change is for, in the user's words. When the change serves the plan's `goal`, quote it. Otherwise give the recorded decisions the change serves. |
+| `plan` | The plan's absolute path, when the change is a step of a plan. |
+| `step` | The ID of the step of the plan that the change is, given only with `plan`. Without it, the reviewer reads every step in progress, so a step running in parallel with this one reads to it as part of this change. |
+| `rulings` | The user's rulings on findings that an earlier quality review of this change raised, so that the reviewer doesn't raise them again. Each item is one sentence of at most 400 characters that names the shape the finding flagged, what the user ruled, and why. An item is about its finding only, never an account of the change: the reviewer takes whatever an item says as settled, and reads past the shapes it describes. |
+| `leadCalls` | The same as `rulings`, for the calls this session made itself on those findings. |
 
-Any other key fails the launch.
+A key that isn't in this table fails the launch.
 
 ## The return
 
-A run that throws is incomplete: its message names the cause. Otherwise the
-return is the reviewer's report as it wrote it, each finding opened by a
-`[quality]` or `[decision]` line with its id, title and `path:line`, the
-costliest first. An empty return is a review that found nothing. A report
-longer than the 8,000 characters the host shows inline opens with a line
-giving its length; the findings past that are in the run's output file, which
-the completion notice names, so the rest is read there.
+When the run throws, the review didn't happen or didn't finish, and the error
+message names the cause. Otherwise the run returns the reviewer's report
+exactly as the reviewer wrote it. Each finding starts with a `[quality]` or
+`[decision]` line that gives its id, its title and a `path:line`, and the
+costliest findings come first. An empty return means the reviewer found
+nothing.
 
-A finding is the reviewer's reading of the shape, not a defect: take it only
-where the shape you work out yourself differs from the tree's in a way a
-reader would pay for, and leave the tree as it is otherwise. Read each finding
-against the earlier rounds' findings and your calls on them, not on its own: a
-finding that undoes or reopens an earlier round's is a judgement call on
-whether to defer it, never another round of the same change.
+The host shows only the first 8,000 characters of the return inline. A
+longer report starts with a line giving its length, and the findings past
+that point don't show. Read them in the run's output file, which the
+completion notice names.
+
+A finding is the reviewer's reading of the code's shape, not a defect. Work
+out for yourself the shape the code should have, and take the finding only
+where that shape differs from the code in the tree in a way that would cost
+the next reader of the code. Otherwise leave the code as it is.
+
+Rule on each finding with the findings of this change's earlier quality
+reviews and your calls on them in view, not on its own. When a finding would
+undo what an earlier round changed, or reopens a finding an earlier round
+settled, decide whether to defer it, rather than taking it as one more round
+of fixes to the same change.

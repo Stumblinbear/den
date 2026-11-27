@@ -1,39 +1,44 @@
 # Doc comments: Python
 
-Deltas from `doc-comments.md`. The four slots, the contract-not-body rule, and
-the summary test all still apply.
+This file covers where Python differs from `doc-comments.md`. The four slots,
+the summary test, and the rule that a doc states the contract and not how the
+body works all still apply.
 
-## The summary is imperative
+## The summary is a command
 
-A docstring, not a comment: the first statement in the body, triple-quoted. Its
-first line is a phrase ending in a period that prescribes the effect as a
-command: `Return that`, not `Returns the pathname`.
+Python documents an item with a docstring rather than a comment. A docstring
+is a string literal that is the first statement in the body, written in
+triple double quotes by convention. Its first
+line is a phrase that ends in a period and states the effect as a command:
+`Return the pathname.`, not `Returns the pathname.`
 
-Descriptive (`Fetches rows from a table.`) is equally accepted as long as a
-codebase is consistent, so match the file you are in rather than switching
-mid-module.
+The descriptive form, such as `Fetches rows from a table.`, is just as
+accepted as long as a codebase uses one form consistently. So follow the form
+the file already uses, and keep to it for the whole module.
 
-The summary fits on one line and is followed by a blank line before anything
-else; automatic indexing tools take that line alone.
+Keep the summary to one line, and follow it with a blank line before anything
+else. Indexing tools take that one line as the summary.
 
 ## Sections
 
-Google format puts the obligation, guarantee, and failure slots in `Args:`,
-`Returns:` (or `Yields:`), and `Raises:`. Describe every argument; the type may
-be left out where an annotation already gives it. `Returns:` is omitted only
-when the function returns `None`.
+The Google format puts the obligation slot in `Args:`, the guarantee in
+`Returns:` (or `Yields:` for a generator), and the failure slot in `Raises:`.
+Describe every argument. You can leave out an argument's type when a type
+annotation already gives it. Leave out `Returns:` only when the function
+returns `None`.
 
 ## numpydoc projects
 
-Where a project follows numpydoc rather than the Google format, three things
-change:
+When a project uses the numpydoc format instead of the Google format, three
+things change:
 
-- The short summary uses neither the function name nor variable names.
-- Sections follow a fixed order: short summary, deprecation warning, extended
-  summary, Parameters, Returns, Yields, Receives, Other Parameters, Raises,
-  Warns, Warnings, See Also, Notes, References, Examples.
-- The extended summary clarifies functionality only. Implementation detail and
-  background theory go to `Notes`, which keeps them off the contract.
+- The short summary doesn't use the function's name or any variable names.
+- The sections come in a fixed order: short summary, deprecation warning,
+  extended summary, Parameters, Returns, Yields, Receives, Other Parameters,
+  Raises, Warns, Warnings, See Also, Notes, References, Examples.
+- The extended summary explains only what the function does. Put
+  implementation details and background theory in `Notes`, to keep them out
+  of the contract.
 
-Its deprecation section names the version deprecated, the version of removal,
-the reason, and the recommended replacement.
+The deprecation warning gives the version in which the item was deprecated,
+the version in which it will be removed, the reason, and what to use instead.

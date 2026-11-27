@@ -1,12 +1,13 @@
 # Doc comments: Go
 
-Deltas from `doc-comments.md`. The four slots, the contract-not-body rule, and
-the summary test all still apply.
+This file covers where Go differs from `doc-comments.md`. The four slots,
+the summary test, and the rule that a doc states the contract and not how the
+body works all still apply.
 
-## The summary names the item
+## The summary starts with the item's name
 
-The summary is the **first sentence**, and it begins with the name of the thing
-being described, as a complete sentence ending in a period.
+The summary is the first sentence. It is a complete sentence that starts with
+the name of the item and ends with a period.
 
 ```go
 // Quote returns a double-quoted Go string literal representing s.
@@ -14,26 +15,31 @@ being described, as a complete sentence ending in a period.
 // Write writes len(p) bytes from p to the underlying data stream.
 ```
 
-Go's rationale is search, not style: the synopsis is extracted into package
-indexes and `go doc` output, where an explicit subject is what makes the line
-findable on a page or a command line.
+The reason is search, not style. Go copies this sentence into package indexes
+and into `go doc` output. When a reader searches a page or a command's output
+for the item's name, the line that starts with that name is the one they
+find.
 
-Say what the function returns; for one called for its side effects, say what it
-does.
+Say what the function returns. For a function called for its side effects,
+say what it does.
 
 ## The package comment
 
-Every package gets one, on the `package` clause, and its first sentence begins
-with `Package `. It carries what is relevant to the package as a whole and sets
-expectations for it, and in a large package a brief overview of the most
-important parts of the API, linking on to other doc comments. That is why a
-Go package's orientation belongs here rather than in a document beside it.
+Every package has a package comment, directly above the `package` clause, and
+its first sentence starts with `Package` followed by the package's name. A
+command's package comment, on `package main`, starts with the program's name
+instead. It
+says what applies to the package as a whole and what a reader can expect from
+it. In a large package, it also gives a short overview of the most important
+parts of the API, with links to their doc comments. So the introduction to a
+Go package goes in its package comment, not in a separate document next to
+the code.
 
-## No headings on a function
+## No headings in a function's doc
 
-Go's doc format has headings, but the standard library states a function's
-whole contract in prose. `io.Reader.Read` uses none, and carries every slot in
-plain sentences:
+Go's doc format supports headings, but the standard library writes a
+function's whole contract as prose. The doc for `io.Reader.Read` has no
+headings, and it fills every slot with plain sentences:
 
 - Guarantee: "It returns the number of bytes read (0 <= n <= len(p))"
 - Obligation: "Callers should always process the n > 0 bytes returned before
@@ -42,18 +48,20 @@ plain sentences:
   error (and n == 0) from a subsequent call."
 - Invariant: "Implementations must not retain p."
 
-Write the directive as a directive, addressed to whoever can breach it:
-`Callers should...` for the caller, `Implementations must...` for an
-implementor of the interface. That is the whole of Go's section vocabulary.
+Write a function's contract in prose the same way. Write each requirement as
+an instruction to whoever could break it: `Callers should ...` for the
+caller, and `Implementations must ...` for whoever implements the interface.
+Go uses these two openings in place of the sections other languages have.
 
 ## Deprecation
 
-A paragraph starting `Deprecated:`, holding the reason and a recommendation of
-what to use instead. It is machine-parsed (tools warn on use of the identifier
-and pkg.go.dev hides the docs by default), so the marker earns behavior that a
-prose sentence does not. It need not be the last paragraph.
+Mark a deprecated item with a paragraph that starts with `Deprecated:`, gives
+the reason, and says what to use instead. Tools read this marker. They warn
+when code uses the identifier, and pkg.go.dev hides the item's docs by
+default. An ordinary sentence saying the item is deprecated gets none of
+that. The paragraph doesn't have to be the last one.
 
-## Coverage
+## What gets a doc
 
-Every exported (capitalized) name has a doc comment, as does a non-trivial
-unexported type or function.
+Every exported name, meaning one that starts with a capital letter, gets a
+doc comment. So does every unexported type or function that isn't trivial.

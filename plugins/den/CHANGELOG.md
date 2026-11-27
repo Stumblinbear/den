@@ -35,9 +35,24 @@ minor bump may change behavior.
   are two, instead of leaving them loose beside each other.
 - `code-architecture` no longer asks for a mechanism to keep two copies of a
   value in step across files or languages.
-- `writing-for-agents`, `writing-for-humans` and `writing-a-skill` are
-  written in plain language, and the first two tell Claude to write that
-  way too.
+- Every skill is written in plain language, and `writing-for-agents` and
+  `writing-for-humans` tell Claude to write that way too.
+- `lead` fixes a defect without asking when the fix stays within the
+  decisions already made for the plan, and makes a reversal itself when only
+  one option is left, telling you in a line.
+- `lead` keeps working on steps your question doesn't affect while it answers
+  you.
+- `lead` tells you how many more tasks still have questions for you, and says
+  so when it's launching before its next question.
+- `lead` and `quality-bar` no longer treat a value both sides of an interface
+  share, such as a route, as a copy to keep in sync.
+- `lead` checks prior art only for a mechanism it would otherwise design
+  itself, not for a well-known technique.
+- `lead` picks each review's model for the change at hand, not the model the
+  last review used.
+- `planning` deletes the plan file, and the task's temporary files and
+  worktrees, when the last step lands.
+- `project-direction` follows `direction-docs` for everything it records.
 - `lead` checks prior art before choosing a mechanism that has been solved
   many times, a rule that had lived in a user's CLAUDE.md.
 - `lead` consults the advisor, where the tool is available, before taking a
@@ -62,6 +77,16 @@ minor bump may change behavior.
 - `localizer`, `localization-reviewer` and `translating-messages` no longer
   mention a native reviewer. Writing for one turned a run's ordinary
   judgement calls into a list for a human to check.
+
+### Removed
+- `scoping`. `lead` settles a task's open choices with you itself, and now
+  holds the rules on what's yours to decide.
+
+### Fixed
+- `review-and-fix` describes what its run returns correctly.
+- `unsafety-author` quotes std's `Box::from_raw` docs correctly.
+- `writing-for-humans`' Go and README references: what a command's package
+  comment starts with, and what rustdoc's `ignore` does.
 
 ## [0.11.0] - 2026-11-13
 

@@ -10,12 +10,17 @@ user-invocable: false
 
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/plan-page "$ARGUMENTS"`
 
-Send the file the line above names with SendUserFile: `display` render,
-`status` normal, and a one-line caption carrying the title and the step counts
-from that line. The file is the deliverable; an artifact link is made only
-when the user asks for one.
+The line above is what the plan-page script printed. Act on it by what it
+reports:
 
-When the line names a problem in a plan this session wrote, such as JSON that
-does not parse or sources that could not be read, fix the plan and invoke this
-skill again before sending anything. Any other line goes to the user as it
-stands.
+- **A problem in a plan this session wrote,** such as JSON that doesn't parse
+  or a source that couldn't be read: fix the plan and invoke this skill again
+  before you send the user anything.
+- **A page with no problem:** send the page with SendUserFile, with `display`
+  set to `render`, `status` set to `normal`, and a one-line caption giving the
+  title and the step counts from the line.
+- **Any other line:** give the user the line as it stands, and when it names a
+  page, send that page as above.
+
+The page is what this skill delivers, so publish it as an artifact only when
+the user asks for a link.

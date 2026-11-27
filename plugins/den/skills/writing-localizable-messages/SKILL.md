@@ -7,174 +7,226 @@ user-invocable: false
 
 # Writing localizable messages
 
-A translator can change only the text inside a message. Wording that code
-decides, by joining strings, testing a count, or inserting text formatted or
-translated somewhere else, follows the source language's grammar in every
-language, and no translator can correct it. The rules below move each of
-those choices into the message.
+A translator can change only the text inside a message. Code can also decide
+wording, by:
 
-The rules hold in any message system. Examples write an argument's slot as
-`{name}` and a selection as its branches; the references give each system's
-own syntax.
+- joining strings;
+- testing a count;
+- inserting text that was formatted or translated somewhere else.
+
+Wording that code decides follows the source language's grammar in every
+language, and no translator can correct it. Each rule below moves one of
+those choices out of the code and into the message.
+
+The rules hold in any message system. The examples write an argument's slot
+as `{name}`, and show a select as a list of its branches. The references give
+each system's own syntax.
 
 ## Whole messages
 
-Text a user reads as one unit is one message. A sentence never spans
-messages, and a paragraph whose sentences refer to each other is one message,
-so a translator can reorder or merge them. Punctuation and spacing belong
-inside it. `"Delete " + fileName + "?"` fixes English word order, where
-Japanese needs `{fileName}を削除しますか？`.
+Put text that a user reads as one unit in one message. Keep each sentence
+inside one message. When the sentences of a paragraph refer to each other,
+make the paragraph one message, so a translator can reorder or merge them.
+Put punctuation and spacing inside the message too. `"Delete " + fileName +
+"?"` fixes the English word order, where Japanese needs
+`{fileName}を削除しますか？`.
 
-A key is one meaning in one role. "Open" on a button and "Open" on a status
-badge are two keys, because German writes `Öffnen` for one and `Offen` for
-the other.
+Give each meaning in each role its own key. "Open" on a button and "Open" on
+a status badge need two keys, because German writes `Öffnen` on the button
+and `Offen` on the badge.
 
 ## Arguments
 
-An argument is named for what fills it, `{playerName}` rather than `{0}` or
-`{value}`, because translators move arguments and need to know what each one
-is. It carries the raw value, a number or a date rather than a formatted
-string, so the message can select a plural and format for its locale. It
-carries only facts the user reads or the grammar needs; a value that is stored
-or sent elsewhere is an identifier, and the words for it come from a message.
+Name an argument for what fills it, such as `{playerName}`, not `{0}` or
+`{value}`. Translators move arguments around, so they need to know what each
+one is.
+
+Pass the raw value, such as a number or a date, not a string formatted in
+code, so the message can select a plural and format the value for its
+locale.
+
+Pass only what the user reads in the message or what its grammar needs. A
+value that is also stored or sent somewhere else is an identifier, not text
+to show: the words the user sees for it come from a message.
 
 ## Plurals
 
-A message showing a count selects on the locale's CLDR plural category, with
-the whole sentence in each branch. A plural on `remaining`:
+When a message shows a count, select on the count's plural category, as
+CLDR defines it for the locale, and write the whole sentence in each branch.
+A plural on `remaining`:
 
 - `one`: `{remaining} match left`
 - `other`: `{remaining} matches left`
 
-Russian fills `one`, `few` and `many` here (`Остался 21 матч`, `Осталось 5
-матчей`), its verb changing with the noun, and 21 falls in `one`, which
-`count == 1` gets wrong. A branch for an exact value such as 0 is for wording
-that differs in meaning ("No matches left"); the `zero` category exists only
-in a few languages, so a `zero` branch never renders in English. Ordinals
-select on CLDR's ordinal categories rather than a suffix chosen in code. A
-message whose wording depends on a count takes the count even when it does
-not show it.
+Russian needs `one`, `few` and `many` branches here: `Остался 21 матч`,
+`Осталось 5 матчей`. Its verb changes with the noun, which is why each
+branch holds the whole sentence. And 21 falls in `one`, which a `count == 1`
+test in code gets wrong.
+
+When the wording at one exact value differs in meaning, such as "No matches
+left" at 0, write it in a branch for that exact value, not in the `zero`
+category. Only a few languages have a `zero` category, so in English a
+`zero` branch never renders.
+
+For an ordinal, such as 1st, 2nd or 3rd, select on CLDR's ordinal categories
+instead of choosing the suffix in code.
+
+Pass the count to a message whose wording depends on it even when the
+message doesn't show it, as in "Delete this file?" and "Delete these
+files?".
 
 ## Grammatical selection
 
-When wording can depend on a property of an argument, the message takes the
-property as its own argument and selects on it, with a default branch. A
-select on `playerGender`:
+When the wording can depend on a property of an argument, pass that property
+as an argument of its own, select on it, and give the select a default
+branch. A select on `playerGender`:
 
 - `feminine`: `{playerName} joined your party`
 - `masculine`: `{playerName} joined your party`
 - default: `{playerName} joined your party`
 
-The branches match in English, and Russian writes `присоединилась` and
-`присоединился` in them. The select stays in the source anyway, since a
-translator can usually fill only the branches the source offers. The reader
-counts too: "You won" is Polish `Wygrałeś` or `Wygrałaś`. The property comes
-from data, a gender the person chose or a noun class a translator recorded,
-never from a name. The default branch renders for unknown and new values, so
-it holds a correct, neutral sentence.
+The branches are the same in English, but Russian writes `присоединилась` in
+the feminine branch and `присоединился` in the masculine one. Keep the
+select in the source anyway: in most message systems a translator can fill
+only the branches the source provides.
+
+The reader can matter too: "You won" is Polish `Wygrałeś` or `Wygrałaś`,
+depending on the reader's gender, so pass the reader's gender to a message
+like it.
+
+Take the property from data, such as a gender the person chose or a noun
+class a translator recorded. Never guess it from a name, which tells you
+neither.
+
+The default branch renders for unknown values and for values added later, so
+write a correct, neutral sentence in it.
 
 ## Inserting one translated value into another message
 
-A value translated on its own, such as an item name, a rank or a status, goes
-into every host in the one form its translator gave it. CLDR keeps two forms
-of each month name for this reason: Russian `май` alone, `5 мая` in a date. A
-slot may hold such a value only if, in every language:
+A nested value is a value translated on its own, such as an item name, a
+rank or a status, and inserted into a slot in another message, the host. Its
+translator gives it one form, and every host gets that form, even where the
+host's grammar needs another. CLDR keeps two forms of each month name for
+this reason: Russian writes `май` on its own and `мая` in a date, as in `5
+мая`.
+
+Give a slot a nested value only if all of these hold in every language:
 
 1. **Nothing governs it.** No preposition, verb, numeral or possessive takes
    it as an object. "Win with {itemName}" needs Russian `мечом` and Finnish
-   `miekalla`, not the standalone `меч` and `miekka`.
+   `miekalla`, not the standalone forms `меч` and `miekka`.
 2. **Nothing agrees with it.** No article, adjective or participle takes its
-   gender or number: French `Épée débloquée` but `Bouclier débloqué`.
-3. **Nothing attaches to it.** French elides (`l'Épée`), Korean picks a
-   particle by the last sound (`검을`, `방패를`), Turkish suffixes follow its
-   vowels (`kılıca`, `değneğe`), Romanian and Swedish suffix the article
-   (`svärdet`), and Hebrew and Arabic prefix articles and prepositions
-   (`بالسيف`).
-4. **It isn't counted.** "3 {itemName}" needs Russian `3 меча` and `5 мечей`.
+   gender or number: French writes `Épée débloquée` but `Bouclier débloqué`.
+3. **Nothing attaches to it.** Many languages join something to the word
+   itself:
+   - French elides an article onto it: `l'Épée`.
+   - Korean picks a particle by its last sound: `검을`, `방패를`.
+   - Turkish suffixes follow its vowels: `kılıca`, `değneğe`.
+   - Romanian and Swedish add the article as a suffix: `svärdet`.
+   - Hebrew and Arabic add articles and prepositions as prefixes: `بالسيف`.
+4. **It isn't counted.** "3 {itemName}" needs Russian `3 меча`, and "5
+   {itemName}" needs `5 мечей`.
 5. **Its form doesn't depend on its position.** A label's capitalization is
-   wrong mid-sentence, even in English: "Last seen {status}" renders `Last
-   seen Online`.
-6. **Its key has one role everywhere.** The translator writes one form for
-   it, so a second role is a second key.
+   wrong in the middle of a sentence, even in English: "Last seen {status}"
+   renders as `Last seen Online`.
+6. **Its key has one role everywhere.** Its translator writes one form for
+   it, so a second role needs a second key.
 
-Three shapes keep a slot outside the host's grammar:
+These three shapes keep a slot outside the host's grammar:
 
 - A label set apart by punctuation or layout: `{itemName} ({matchCount}
   matches)`, `{statName}: {value}`.
-- A locale-aware list join, with the list itself set apart: `Equipped:
-  {items}`.
-- Apposition after a classifier noun the host owns: "with the item
-  {itemName}" is Russian `с предметом «{itemName}»`, the host's noun taking
-  the case.
+- A list joined by the locale's list formatter, with the whole list set
+  apart: `Equipped: {items}`.
+- Apposition, where the host names the kind of thing with a noun of its own
+  and the value follows that noun. "with the item {itemName}" is Russian `с
+  предметом «{itemName}»`, and the host's noun takes the case.
 
-For a small closed set, the host selects on the value's identifier, so every
-translator writes each sentence whole. A select on `rank`:
+When the value comes from a small, fixed set, have the host select on the
+value's identifier instead of nesting it, so each translator writes every
+sentence whole. A select on `rank`:
 
 - `gold`: `Promoted to Gold`
 - `silver`: `Promoted to Silver`
 - default: `Promoted`
 
-Russian writes `до Золота` there, a form a nested `Золото` never takes.
-Nesting is for a large or open set, or a value shared by so many hosts that a
-select in each would repeat the set. Each nested slot says beside its code
-which shape it uses, and the host's translator note says the slot is a
-standalone label that stays set apart.
+Russian writes `до Золота` in the gold branch, a form a nested `Золото` never
+takes.
 
-A name a user typed is a nested value nobody translates. The same shapes
-apply, and a name standing as a sentence's subject gets its verb agreement
-from a gender select.
+Nest a value only when its set is large or open, or when so many hosts use
+it that a select in each would repeat the whole set. For each nested slot,
+write a comment beside the code that fills it, naming the shape the slot
+uses. In the host's translator note, say that the slot holds a standalone
+label that stays set apart.
 
-When a value must inflect and no shape fits the host, the established
-mechanism is a per-locale term that carries its grammatical forms and
-properties, which the host asks for by case and selects on by gender: Fluent's
-terms with variants and attributes. A system without terms needs per-locale
-grammatical data passed as arguments, a design to raise with whoever owns the
-localization setup.
+A name a user typed is a nested value that nobody translates. The same
+shapes apply to it. When the name is the subject of a sentence, the verb gets
+its agreement from a select on the person's gender.
+
+When a value has to change form in the host and none of the shapes fits, the
+established mechanism is a per-locale term. Each locale defines the term
+with its grammatical forms and properties, and the host asks for the case it
+needs and selects on the term's gender. Fluent provides this as terms with
+variants and attributes. A system without terms needs each locale's
+grammatical data passed in as arguments, which is a design change: raise it
+with whoever owns the project's localization setup.
 
 ## Formatting values
 
-Numbers, dates, durations, currencies, units and lists are formatted by the
-locale's formatters, inside the message where the system allows: `1,234.5` is
-`1.234,5` in German, `03/04` is 3 April outside the United States, and `A, B,
-and C` is `A, B et C` in French. Formatting inside the message lets the
-formatter choose the form the context needs, the genitive month in `5 мая`,
-and use the locale the message resolved to.
+Format numbers, dates, durations, currencies, units and lists with the
+locale's formatters, and do it inside the message where the message system
+allows. Formats differ by locale:
+
+- `1,234.5` is `1.234,5` in German.
+- `03/04` is 3 April outside the United States.
+- `A, B, and C` is `A, B et C` in French.
+
+Formatting inside the message lets the formatter choose the form the context
+needs, such as the genitive month in `5 мая`. It also makes the formatter use
+the same locale as the message's text, which is a fallback locale when the
+translation is missing.
 
 ## Markup
 
-Rich text is one message with tags named by role, which a translator moves
-with the words: `Read the <terms>terms of service</terms> before you
-continue.` What a tag renders, whether a URL, a style or a widget, is bound
-in code, and an inline icon is an empty tag the translator places like a
-word. Argument values are inserted as text and never parsed as markup.
+Write rich text as one message, with tags named for their role, so a
+translator moves each tag along with its words: `Read the <terms>terms of
+service</terms> before you continue.` Bind what a tag renders, whether a URL,
+a style or a widget, in code. Write an inline icon as an empty tag, which the
+translator places like a word. Insert argument values as text, and never
+parse them as markup, so a value can't add or break tags.
 
 ## Translator notes
 
-A message's note says what the text alone cannot:
+In a message's translator note, say what the text alone can't:
 
-- what fills each argument, with an example
-- where the text appears, and whether an ambiguous word is a verb or a noun
-- the space the text must fit, where that is tight
-- for a nested slot, that it stays a standalone label
+- what fills each argument, with an example;
+- where the text appears, and whether an ambiguous word is a verb or a noun;
+- the space the text must fit, where that space is tight;
+- for a nested slot, that it stays a standalone label.
 
-It explains meaning and limits, and leaves the wording to the translator.
+Explain meaning and limits in the note, and leave the wording to the
+translator.
 
 ## Length and direction
 
-Translations run longer, about a third in German running text and double or
-triple for short strings (`Edit`, `Bearbeiten`), so the layout wraps or grows
-and a tight limit goes in the translator note. In right-to-left text,
-arguments are wrapped in Unicode directional isolates (FSI and PDI), by the
-message system or by the caller, so a Latin name or a number does not reorder
-the text around it.
+Translations run longer than the source: German running text by about a
+third, and short strings by double or triple (`Edit` is `Bearbeiten`). Let
+the layout wrap or grow, and put a tight limit in the translator note.
+
+In right-to-left text, wrap each argument in Unicode directional isolates,
+FSI before it and PDI after it, so a Latin name or a number doesn't reorder
+the text around it. Either the message system or the caller does the
+wrapping.
 
 ## References
 
-Read the reference for the project's message system, in
-`${CLAUDE_PLUGIN_ROOT}/skills/writing-localizable-messages/references/`; for a
-system with none, map these shapes onto its syntax.
+Before writing or reviewing messages, read the reference for the project's
+message system. The references are in
+`${CLAUDE_PLUGIN_ROOT}/skills/writing-localizable-messages/references/`:
 
-- `references/icu.md`: these rules in ICU MessageFormat syntax, its quoting,
-  and the checks it needs.
-- `references/fluent.md`: these rules in Fluent syntax, its terms, and the
-  checks Fluent's syntax and runtime need.
+- `references/icu.md`: when the project uses ICU MessageFormat, FormatJS
+  included.
+- `references/fluent.md`: when the project uses Fluent.
+
+For a message system with no reference here, write these shapes in that
+system's own syntax.

@@ -1,12 +1,13 @@
 # Doc comments: Swift
 
-Deltas from `doc-comments.md`. The four slots, the contract-not-body rule, and
-the summary test all still apply.
+This file covers where Swift differs from `doc-comments.md`. The four slots,
+the summary test, and the rule that a doc states the contract and not how the
+body works all still apply.
 
 ## The summary is a fragment
 
-Begin with a summary describing the entity being declared. Use a single
-sentence fragment where possible, ending with a period, not a complete
+Start with a summary of the item being declared. When you can, write it as a
+single sentence fragment that ends with a period, rather than a complete
 sentence.
 
 ```swift
@@ -14,13 +15,13 @@ sentence.
 /// Inserts `newElement` at `i`.
 ```
 
-Many excellent doc comments consist of nothing more than a great summary. That
-is the bar for adding more: a slot that is genuinely non-trivial, not ceremony.
-Continue with paragraphs and bullet items when the summary is not enough.
+Many good doc comments are nothing more than a good summary. So add more only
+for a slot that has something non-obvious to say, not as a formality. When the
+summary isn't enough, continue with paragraphs and bullet items.
 
 ## Callouts
 
-Use the recognized symbol commands as the homes for the slots:
+Put the slots in the callouts that Swift's documentation tools recognize:
 
 ```swift
 /// - Parameter i: A valid index of the collection.
@@ -30,5 +31,5 @@ Use the recognized symbol commands as the homes for the slots:
 /// - Complexity: O(*n*), where *n* is the length of the collection.
 ```
 
-`Precondition` carries the obligation slot and `Complexity` the reference
-material that Rust puts under `# Time complexity`.
+`Precondition` holds the obligation slot. `Complexity` holds the cost
+information that a Rust doc puts under a `# Time complexity` heading.

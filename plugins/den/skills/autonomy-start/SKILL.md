@@ -4,8 +4,10 @@ description: Runs the rest of the session without the user, deciding, committing
 disable-model-invocation: true
 ---
 
-# Autonomy
+# Starting autonomy
 
-Typing this command starts autonomy: a den hook records it and adds its rules
-to the conversation. Whether autonomy is on is said by den's hooks, never by
-this text.
+This skill is a stub with no instructions of its own. den's hooks add
+autonomy's rules, and say whether autonomy is on.
+
+If autonomy's rules don't follow this text, autonomy is not on: work as you
+would without it.

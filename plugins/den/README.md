@@ -8,7 +8,7 @@ agents; every launch is authorized on its own.
 
 Skills, applied by Claude when their trigger fires. The ones a person can
 also run as `/den:<name>` are lead, autonomy-start, autonomy-stop,
-project-direction, scoping and diff-page; the rest are hidden from the `/` menu:
+project-direction and diff-page; the rest are hidden from the `/` menu:
 
 - `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
@@ -40,12 +40,6 @@ project-direction, scoping and diff-page; the rest are hidden from the `/` menu:
   established goals and agreed changes. It owns document structure, links,
   sources and uncertainty; discovery uses it while recording answers, and it
   records direction you clarify during a task.
-- `scoping`: settles your consequential decisions one question at a time,
-  each with a recommended answer, what it buys and costs, and the alternative
-  it beat. What the code, the docs or a written rule already answers is looked
-  up, not asked. `planning` runs it for every plan, and you can start it with
-  "scope this", "grill me" or "interview me". Unanswered decisions remain
-  open.
 - `review-and-fix`: runs the `review-and-fix-workflow` workflow on the working
   tree in one pass: a review against the task's goal, one Opus fixer over every
   finding at P2 and above, a closure pass that gives a reopened finding one
@@ -90,7 +84,7 @@ project-direction, scoping and diff-page; the rest are hidden from the `/` menu:
   the `/` menu.
 - `planning`: the procedure the lead runs for a task's plan, one JSON file at
   `.local/plans/<task>.json`. It writes the goal and the survey, settles each
-  choice with `scoping`, cuts the change into steps a reviewer holds in one
+  choice with you, cuts the change into steps a reviewer holds in one
   read, each naming the steps it comes after so that steps needing nothing
   from each other run in parallel, ordered by risk and interrogated before
   you see them, and puts the plan to you with `plan-page`. It marks each
@@ -232,9 +226,9 @@ available where the session runs. A working-tree scope includes untracked files 
 ignored, rendered as the new files they would become; a range between two
 revisions does not.
 
-The lead stages the working tree with `git add -A` before each
-`review-and-fix` run, and after a clean run writes the index as a tree with
-`git write-tree`: the snapshot the next run reviews against. Nothing
+After a clean `review-and-fix` run, the lead stages the working tree with
+`git add -A` and writes the index as a tree with `git write-tree`: the
+snapshot the next run reviews against. Nothing
 references that tree, and `git gc` prunes it once it is two weeks old.
 
 What the hooks read: the path of the file an edit is about to change, the

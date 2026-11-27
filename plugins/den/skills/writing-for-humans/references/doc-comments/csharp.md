@@ -1,40 +1,47 @@
 # Doc comments: C#
 
-Deltas from `doc-comments.md`. The four slots, the contract-not-body rule, and
-the summary test all still apply.
+This file covers where C# differs from `doc-comments.md`. The four slots,
+the summary test, and the rule that a doc states the contract and not how the
+body works all still apply.
 
-## Tags delimit the summary
+## The `<summary>` tag sets the summary
 
-The summary is not the first sentence or paragraph: it is whatever `<summary>`
-contains, and that is the text IntelliSense and the Object Browser show. So the
-index boundary is explicit here; put the layered detail in `<remarks>` rather
-than letting it swell the tooltip.
+In C#, the summary isn't the first sentence or the first paragraph. It is
+whatever the `<summary>` tag contains, and that is the text IntelliSense and
+the Object Browser show. Because the tag sets exactly where the summary ends,
+put the detail that follows it in `<remarks>`, and keep `<summary>` short
+enough for a tooltip.
 
-Documentation text is written as complete sentences ending in full stops.
+Write documentation text as complete sentences that end in full stops.
 
 ## The compiler checks two things
 
-- `<param>`: using it at all commits you to all of them. The compiler verifies
-  that each named parameter exists and that every parameter is described, and
-  warns when either fails. Documenting one parameter and skipping the rest is a
-  build warning, not a style choice.
-- `cref`: the compiler verifies the referenced code element exists and warns
-  when it does not, respecting `using` directives. An invented link fails loudly
-  rather than silently.
+- **`<param>`.** Once you document one parameter, document all of them. The
+  compiler checks that each parameter a `<param>` tag refers to exists, and
+  that every parameter has a tag. It warns when either check fails, so
+  documenting one parameter and skipping the rest is a build warning, not a
+  matter of style.
+- **`cref`.** The compiler checks that the code element a `cref` refers to
+  exists, and it applies `using` directives when it looks the element up. It
+  warns when the element doesn't exist, so a link to something made up shows
+  up as a warning instead of going unnoticed.
 
-## Homes for the slots
+## Where each slot goes
 
-`<returns>` for the guarantee, `<exception cref="...">` for each failure the
-member can raise, `<param>` for a per-argument obligation, `<value>` for what a
-property represents, `<remarks>` for the contract that outgrows the summary.
+- `<returns>`: the guarantee.
+- `<exception cref="...">`: each failure the member can raise.
+- `<param>`: an obligation on one argument.
+- `<value>`: what a property represents.
+- `<remarks>`: the part of the contract that doesn't fit in the summary.
 
-For an `unsafe`, caller-unsafe member, `<safety>` is the intended home for the
-caller's obligation. Treat it as convention: it is preview in C# 15 / .NET 11,
-the compiler neither processes nor enforces it, and it is copied verbatim to
-the output XML like any custom tag.
+For a member that is `unsafe` for the caller, the `<safety>` tag is meant to
+hold the caller's obligation. Treat it as a convention only. It is a preview
+feature in C# 15 and .NET 11, and the compiler doesn't process or check it.
+The compiler copies it unchanged into the output XML, as it does any custom
+tag.
 
-## Coverage
+## What gets a doc
 
-A `<summary>` is the bare minimum on a publicly visible type or member.
-Documenting a private one publishes the internals to the output XML, so an
-ordinary comment is the better home there.
+Every publicly visible type or member gets at least a `<summary>`. For a
+private one, use an ordinary comment instead, because a doc comment there
+puts the internals into the output XML.
