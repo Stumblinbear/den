@@ -15,6 +15,9 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
   turns both back on.
 
 ### Changed
+- The configure skill says what each feature does rather than how it works,
+  and warns that a `denied` message with no "Resume" option leaves no way to
+  approve a resume.
 
 - The example `denied` message of the resume guard tells the agent to launch a
   fresh agent instead, and to ask you only when the old agent holds something

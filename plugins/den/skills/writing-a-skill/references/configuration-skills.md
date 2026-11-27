@@ -35,15 +35,18 @@ settings are.
 
 ## What is worth its lines
 
-Three sections that existing setup skills lack, and that answer
-the questions users actually ask:
-
-- **How it works:** what runs, on which event, what it reads, and the
-  consequences that answer "why did it" and "why didn't it".
+- **What each feature does,** described by its effect: what the user or
+  Claude sees, and when. Leave out how the plugin does it, such as what it
+  reads or which event it runs on. The agent needs the effect to answer a
+  question or choose a setting, and a description of the mechanism goes out
+  of date with each change to the code. Point to the plugin's README for the
+  details a "why did it" question needs.
 - **Exact commands to run by hand** that show what a change does before the
   session runs with it, so an edit is checked rather than trusted.
 - **What is deliberately not configuration,** and which file holds it, so the
   reader doesn't edit the wrong thing.
+- **The traps in an edit,** such as a message whose wording a feature depends
+  on.
 
 ## Where a setting lives decides what the skill says
 
@@ -54,8 +57,10 @@ the user's settings, and passes them to hook processes as
 `CLAUDE_PLUGIN_OPTION_<KEY>`. Use it for a fact about the installation.
 
 Settings with rows, per-row overrides or messages go in a file the plugin
-parses, with a commented example to copy. The skill documents that file. A
-setting Claude Code already asked for needs no walkthrough.
+parses, with a commented example to copy. The skill says where that file is
+and how to start one. The README lists its keys, so the skill points there
+instead of repeating them. A setting Claude Code already asked for needs no
+walkthrough.
 
 ## Every line costs for the rest of the session
 

@@ -28,6 +28,8 @@ minor bump may change behavior.
 - `writing-for-humans` has a reference for changelog entries.
 
 ### Changed
+- `writing-a-skill` asks a configure skill for what each feature does, not
+  how it works.
 - `code-architecture` has Claude decide which module a file belongs in before
   creating it, and group files of one kind into a module as soon as there
   are two, instead of leaving them loose beside each other.
