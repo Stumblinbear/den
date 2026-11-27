@@ -7,6 +7,9 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Changed
+- The configure skill says what the plugin does rather than how it works.
+
 ### Fixed
 
 - The example config's Opus 5 row matches only `claude-opus-5`. Its key,
