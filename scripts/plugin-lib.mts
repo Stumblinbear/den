@@ -24,7 +24,9 @@ const PLUGIN_DIR = join(ROOT, "plugins");
 // through another shared source: every write of a session record takes a lock,
 // so `file-lock.mts` comes with `session-state.mts`. den takes `fault.mts`
 // without `entry.mts`: it words its faults there and writes them to the user
-// from its own hooks.
+// from its own hooks. den takes `session-state.mts` for `sessionFilePath`,
+// which builds the paths of its autonomy state file and of context-budget's
+// unattended switch.
 const EVERY_PLUGIN: readonly string[] = [
 	"fields.mts",
 	"hook-input.mts",
@@ -50,7 +52,7 @@ interface Plugin {
 
 const PLUGINS: readonly Plugin[] = [
 	{ name: "context-budget", files: CONFIGURED },
-	{ name: "den", files: [...EVERY_PLUGIN, "fault.mts"] },
+	{ name: "den", files: [...EVERY_PLUGIN, ...SESSION_RECORD, "fault.mts"] },
 	{ name: "model-prompts", files: CONFIGURED },
 ];
 

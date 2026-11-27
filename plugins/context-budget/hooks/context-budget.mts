@@ -2,6 +2,8 @@
 // session's context is and, when it rises past a per-model threshold, injects
 // the message configured for that level.
 //
+// A session under the unattended switch is measured and told nothing.
+//
 // Subagents are out of scope, as they are short-lived and cannot compact.
 import process from "node:process";
 import { type Crossing, crossing, type Level } from "../lib/level.mts";
@@ -17,6 +19,7 @@ import {
 	thresholdsFor,
 } from "../lib/settings.mts";
 import { injected, runEntry } from "../lib/shared/entry.mts";
+import { isUnattended } from "../lib/unattended.mts";
 
 /**
  * The user's own turn, which `hooks.json` registers this entry on alongside
@@ -58,9 +61,20 @@ async function outcome(
 	}
 
 	const limits = thresholdsFor(settings, reading.model);
-	const notice = recorded(sessionId, (told) =>
-		limits === null ? null : crossing(told, reading, limits),
-	);
+	const unattended = isUnattended(sessionId);
+	const notice = recorded(sessionId, (told) => {
+		if (limits === null) {
+			return null;
+		}
+
+		const now = crossing(told, reading, limits);
+
+		// A session nobody is watching is told nothing, and a rise it was not
+		// told is left out of the record, so the level it stands at is announced
+		// on the first run after the switch is gone. A fall is still recorded,
+		// as an auto-compaction meanwhile leaves every level armed again.
+		return unattended && now.notice !== null ? null : now;
+	});
 
 	return limits === null || notice === null
 		? null

@@ -8,6 +8,9 @@ minor bump may change behavior.
 ## [Unreleased]
 
 ### Added
+- Autonomy mode: `/den:autonomy-start` lets the session carry on without you,
+  making its own decisions, launches and commits and recording each for your
+  review, until `/den:autonomy-stop` hands them back with a report of the run.
 - A `writing-localizable-messages` skill for the source messages translators
   work from: complete messages, role-named arguments, CLDR plurals, `select`
   with a default, translator context, locale formatters, movable markup, text

@@ -14,6 +14,7 @@ import {
 	mkdirSync,
 	readdirSync,
 	readFileSync,
+	rmSync,
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
@@ -293,23 +294,36 @@ export function announced(session: string, result: Result): string | null {
 		: null;
 }
 
-/** The session's record, as the file on disk spells it. */
-export function record(session: string): Record<string, unknown> {
-	const file = join(
+/** The plugin's temp directory, as a run of `session` is given it. */
+const stateDir = (session: string): string =>
+	join(
 		childTemp("context-budget", { session_id: session }),
 		"claude-context-budget",
-		`${session}.json`,
 	);
+
+/** The session's record, as the file on disk spells it. */
+export function record(session: string): Record<string, unknown> {
+	const file = join(stateDir(session), `${session}.json`);
 
 	return JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
 }
 
+/**
+ * Puts the session under the unattended switch, at the path the README gives
+ * the plugin that writes it.
+ */
+export function writeUnattended(session: string): void {
+	mkdirSync(stateDir(session), { recursive: true });
+	writeFileSync(join(stateDir(session), `${session}.unattended`), "");
+}
+
+/** Takes the session out from under the unattended switch. */
+export const removeUnattended = (session: string): void =>
+	rmSync(join(stateDir(session), `${session}.unattended`));
+
 /** Everything the session has left in the plugin's temp directory. */
 export function stateFiles(session: string): readonly string[] {
-	const dir = join(
-		childTemp("context-budget", { session_id: session }),
-		"claude-context-budget",
-	);
+	const dir = stateDir(session);
 
 	try {
 		return readdirSync(dir).sort();

@@ -7,13 +7,24 @@ agents; every launch is authorized on its own.
 ## What it provides
 
 Skills, applied by Claude when their trigger fires. The ones a person can
-also run as `/den:<name>` are lead, project-direction, scoping and
-diff-page; the rest are hidden from the `/` menu:
+also run as `/den:<name>` are lead, autonomy-start, autonomy-stop,
+project-direction, scoping and diff-page; the rest are hidden from the `/` menu:
 
 - `lead`: the rules the main session runs under. Delegation, agent
   routing, launch authorization, review and commit gates, how to talk to you.
   Invoke it yourself; it is never loaded automatically, and it never reaches a
   subagent.
+- `autonomy-start` and `autonomy-stop`: run the rest of a session without you.
+  You type `/den:autonomy-start`; from then on the lead decides, launches,
+  commits and installs dependencies without asking, and records each call
+  for your review, in the plan or in `.local/autonomy-log.md`. Pushes and
+  pull requests still wait for you. It also silences context-budget's
+  notices for the session. `autonomy-stop` ends it and reports what was done.
+  Claude invokes it when you ask or when the task is finished, and you can
+  invoke it too. A den hook gives Claude autonomy's rules when you start it,
+  and again after each compaction while it is on. Once it has ended, the
+  hook says after each compaction that the rules no longer apply, so a
+  summary that quotes them does not bring them back.
 - `triage`: how the lead chooses a fix, working out the right one from the
   goal and good design before weighing the fix a report or a reviewer
   proposed. The triage hooks tell the lead to load it.
@@ -173,9 +184,18 @@ Hooks, registered while the plugin is enabled:
   the `writing-for-agents` standard and to verify the change by running the
   agent it steers. Every other path passes in silence, and no edit is ever
   blocked.
+- Autonomy start: `/den:autonomy-start` records autonomy as on for the
+  session, writes context-budget's unattended switch, deletes the project's
+  `.local/autonomy-log.md`, and adds autonomy's rules to the context beside
+  the command. A start that fails blocks the command, with a line saying why.
+- Autonomy after a compaction: in a session that has used autonomy, each
+  compaction adds the rules again while it is on, or one line saying it is
+  off. A session that never used it gets nothing.
 
-No hook denies a tool call, reads your source, or changes a file in your
-project. Each adds text to the main session's context, or nothing.
+No hook denies a tool call or reads your source. Each adds text to the main
+session's context, or nothing, except the autonomy start: it deletes
+`.local/autonomy-log.md` from your project, and a start that fails blocks its
+command.
 
 ## Requirements and what it does on your machine
 
@@ -214,9 +234,10 @@ references that tree, and `git gc` prunes it once it is two weeks old.
 
 What the hooks read: the path of the file an edit is about to change, the
 text of every prompt submitted, including the reports subagents hand back and
-the notices of finished background tasks, and den's own two workflow
-files. A prompt is examined for who sent it and which workflow it
-reports, and none of it is stored. Nothing in your project is opened.
+the notices of finished background tasks, den's own two workflow files and
+its autonomy rules, and the session's autonomy state file below. A prompt is
+examined for who sent it and which workflow it reports, and none of it is
+stored. Nothing in your project is opened.
 
 What the hooks write: one small JSON file per agent report, under
 `claude-review-triage/` and `claude-implementer-triage/` in the OS temp
@@ -224,11 +245,22 @@ directory, inside a subdirectory named for the session so that one session
 never hears another's agents. The file is deleted as its reminder is injected;
 the session's subdirectory stays.
 
+For autonomy, the start hook and `autonomy-stop` write `<session id>.autonomy`
+under `claude-den/` in the OS temp directory, holding `on` or `off`, and it
+stays after the session ends. The start writes context-budget's unattended
+switch, `<session id>.unattended` under `claude-context-budget/`, and the stop
+removes it. Every start deletes `.local/autonomy-log.md` from your project,
+whether or not the last run's log was read.
+
 What the hooks can do to a session: add one reminder for each agent report or
-workflow return to the context of the turn it arrives on, and one line before
-an edit to a skill, an agent definition, a hook or a rules file. You see a
-line only when a workflow's return or an agent's hand-back cannot be read, and
-no tool call is ever blocked.
+workflow return to the context of the turn it arrives on, one line before an
+edit to a skill, an agent definition, a hook or a rules file, autonomy's rules
+when it starts and after each compaction while it is on, and one line after a
+compaction once it has ended. A failed start blocks `/den:autonomy-start`. You
+see a line only when a workflow's return or an agent's hand-back cannot be
+read, when autonomy does not start, or when the hook after a compaction
+cannot tell the session whether autonomy is on, and no tool call is ever
+blocked.
 
 ## Installation
 

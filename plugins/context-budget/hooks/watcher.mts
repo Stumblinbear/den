@@ -26,6 +26,7 @@ import {
 } from "../lib/settings.mts";
 import { injected, runEntry } from "../lib/shared/entry.mts";
 import { ifPresent } from "../lib/transcript.mts";
+import { isUnattended } from "../lib/unattended.mts";
 import {
 	consults,
 	type Judged,
@@ -219,8 +220,14 @@ await runEntry(
 
 		const settings = await loadSettings(args);
 
-		// A subagent, which its input names, is short-lived and cannot compact.
-		if (settings === null || !settings.watcher.enabled || input["agent_id"]) {
+		// A subagent is short-lived and cannot compact, and a session under the
+		// unattended switch has nobody to run `/compact`.
+		if (
+			settings === null ||
+			!settings.watcher.enabled ||
+			input["agent_id"] ||
+			isUnattended(session)
+		) {
 			return null;
 		}
 

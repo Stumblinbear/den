@@ -51,15 +51,20 @@ Consequences that answer most "why did it" questions:
   sits below the 450K urgent threshold and auto-compact would always win.
 - Auto-compact is Claude Code's own mechanism and runs regardless of this
   plugin; the plugin only tries to get a recommendation made before it does.
-- The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`,
-  the only file a session leaves there beside the wake's lock directory while
-  an idle stretch is waited out. It holds the level the session stands at, the
+- The per-session record is `<os temp dir>/claude-context-budget/<session id>.json`.
+  It holds the level the session stands at, the
   resume answers it has spent, and where the watcher's pace stands, each
   written by the hook that changes it, so a session that never crosses a
   threshold may have none. That level falls again with the context, so each
   level can fire on the next climb. No history. Deleting it makes the current
   level fire again, which is the quickest way to see a message after editing
   it.
+- A file `<os temp dir>/claude-context-budget/<session id>.unattended`, which
+  another plugin writes for a session nobody is watching, turns that session's
+  notice and watcher off while it exists; the resume guard and the cache wake
+  are unaffected. Only its presence counts, and it is read on every run, so
+  deleting it turns both back on from the next one, and the notice then announces
+  whatever level the context stands at. It is not a config key.
 - One line starting `context-budget:` goes into the agent's context, with an
   instruction to put it to the user, and says what is off and why: `parser
   error` is a missing `smol-toml` in the plugin's cache directory and `config
@@ -97,9 +102,11 @@ next turn re-reads its context with or without it. The guard reads that from
 the session transcript, through compactions, where the newest record naming the
 agent is a launch or a resume (running) or a task notification or a `TaskStop`
 (stopped). The resume is refused when the context is above `large`, or above
-`cold` with that cache lifetime already elapsed, and the refusal tells the
-agent to put the numbers to the user through AskUserQuestion with an option
-labeled "Resume". The retry is allowed only when the user's newest answer in
+`cold` with that cache lifetime already elapsed. The example's `denied`
+message then tells the agent to launch a fresh agent instead, and to put the
+numbers to the user through AskUserQuestion, with an option labeled "Resume",
+only when the old agent holds something its transcript and report cannot
+give. The retry is allowed only when the user's newest answer in
 the session transcript picked that option: the guard reads the answer itself,
 so nothing the agent claims can stand in for it. One answer approves one
 resume, whose uuid is then in the session record above; a second retry on the

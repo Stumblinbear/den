@@ -258,12 +258,12 @@ enabled = false
 #   {cold}     the cold limit that governed it, e.g. "200K"
 [resume-guard.messages]
 
-# The message sent to the agent when it attempts a resume the guard catches. It
-# must prompt the agent to use AskUserQuestion with an approval option
-# containing the text "Resume", which is what the guard recognizes the user's
-# consent by.
+# The message sent to the agent when it attempts a resume the guard catches. If
+# it lets the agent ask the user, it must prompt AskUserQuestion with an
+# approval option whose label starts with "Resume". The guard takes the user
+# picking that option as consent.
 denied = """
-Resume of {type} {agent}: {reasons}. Whether to resume at that price or launch fresh is the user's choice, since a resume keeps what this agent holds and a fresh launch loses it. Put the numbers to them with AskUserQuestion, naming the agent, with an option labeled "Resume" and an option "Fresh launch", and act on their answer: retry this call when they pick Resume."""
+Resume of {type} {agent}: {reasons}. Launch a fresh agent instead, briefed with what it needs. Resume only when this agent holds something you need that neither its transcript nor its report can give you: then put the numbers to the user with AskUserQuestion, naming the agent, with an option labeled "Resume" and an option "Fresh launch", and retry this call when they pick Resume."""
 
 # The message sent to the agent if it attempts to resume an agent a second time.
 # The user is required to approve each resume attempt, not just the first one.

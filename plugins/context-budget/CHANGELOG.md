@@ -7,8 +7,19 @@ follow [Semantic Versioning](https://semver.org/). While the major version is
 
 ## [Unreleased]
 
+### Added
+
+- A session can be turned quiet while nobody is watching it. While
+  `<os temp dir>/claude-context-budget/<session id>.unattended` exists, the
+  session gets no context notice and no watcher run, and deleting the file
+  turns both back on.
+
 ### Changed
 
+- The example `denied` message of the resume guard tells the agent to launch a
+  fresh agent instead, and to ask you only when the old agent holds something
+  its transcript and report cannot give. Copy it into your own `config.toml`
+  to match: a copy that still has the old wording asks you on every refusal.
 - The agent mentions compaction only when `/compact` is the next command you
   should run, and then in one sentence. The watcher's advice had it answer
   every verdict and raise a delayed cut again at each later pause, and the

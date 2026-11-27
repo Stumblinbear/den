@@ -2,6 +2,7 @@
 // report opens with, the temp directory its per-session files go in, and what
 // each kind of fault costs the session while it stands.
 //
+// * `STATE_DIRECTORY` is the temp directory every per-session file goes in
 // * `SESSION_STATE` is the record this plugin keeps per session
 // * `CONFIG_FAULTS` is what a fault of the configuration costs
 // * `NOTICE_FAULTS`, `GUARD_FAULTS`, `WATCHER_FAULTS` and `WAKE_FAULTS` are
@@ -9,7 +10,16 @@
 import { faults } from "./shared/fault.mts";
 import { sessionState } from "./shared/session-state.mts";
 
-export const SESSION_STATE = sessionState("claude-context-budget");
+/**
+ * The name of this plugin's directory under the OS temp directory.
+ *
+ * @remarks
+ * Another plugin writes the unattended switch into this directory, so the name
+ * is part of the plugin's public surface.
+ */
+export const STATE_DIRECTORY = "claude-context-budget";
+
+export const SESSION_STATE = sessionState(STATE_DIRECTORY);
 
 /** One failure policy of this plugin, worded by what the fault costs. */
 const policy = (consequence: string) => faults("context-budget", consequence);

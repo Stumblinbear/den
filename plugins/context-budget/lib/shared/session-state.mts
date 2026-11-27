@@ -14,9 +14,12 @@
 // between its read and itself. A run that has to be the only one of its kind
 // the session has takes a lock of its own beside the record, through `hold`,
 // and keeps it for as long as its work lasts.
+//
+// A session's other files, such as a switch one plugin writes and another
+// reads, sit beside the record at the path `sessionFilePath` builds.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { isTable } from "./fields.mts";
 import { type Locked, underLock, underLockAsync } from "./file-lock.mts";
 
@@ -78,16 +81,33 @@ export interface SessionState {
 	): Promise<Locked<T>>;
 }
 
+/**
+ * The path of session `key`'s file with the extension `suffix`, in the temp
+ * directory named `directory`.
+ *
+ * @remarks
+ * {@link sessionState} uses the suffix `json` and every suffix ending in
+ * `lock`, so a file of any other kind must use another suffix. `key` may be
+ * read off a run's input, since it is sanitized before it becomes part of the
+ * path.
+ *
+ * `suffix` reaches the filesystem as written, so pass a constant and never
+ * anything read off a run's input.
+ */
+export const sessionFilePath = (
+	directory: string,
+	key: string,
+	suffix: string,
+): string =>
+	join(
+		tmpdir(),
+		directory,
+		`${key.replace(/[^A-Za-z0-9._-]/g, "_")}.${suffix}`,
+	);
+
 export function sessionState(directory: string): SessionState {
-	const dir = join(tmpdir(), directory);
-	/**
-	 * Where one of a session's files sits: the record, the lock it is written
-	 * under, or a lock held beside it. A key is a session id off a run's input,
-	 * so it is sanitized rather than trusted as a path component, and building
-	 * all three names here keeps them from drifting apart.
-	 */
 	const file = (key: string, suffix: string): string =>
-		join(dir, `${key.replace(/[^A-Za-z0-9._-]/g, "_")}.${suffix}`);
+		sessionFilePath(directory, key, suffix);
 	const read = (key: string): Record<string, unknown> => {
 		try {
 			const parsed: unknown = JSON.parse(
@@ -103,8 +123,10 @@ export function sessionState(directory: string): SessionState {
 		try {
 			const record = { ...read(key), ...fields };
 
-			mkdirSync(dir, { recursive: true });
-			writeFileSync(file(key, "json"), JSON.stringify(record));
+			const path = file(key, "json");
+
+			mkdirSync(dirname(path), { recursive: true });
+			writeFileSync(path, JSON.stringify(record));
 		} catch {
 			// The record stands as it was, and the caller is told nothing it
 			// would have done anything about.

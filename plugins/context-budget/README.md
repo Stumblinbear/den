@@ -24,7 +24,9 @@ auto-compact choose one for you.
   `[watcher] enabled = false` switches it off.
 - A resume guard. Before a message is sent to a subagent, a hook denies
   resuming one whose context is large, or whose prompt cache has expired, and
-  tells the agent to put the numbers to you first. A fresh launch is never
+  tells the agent to launch a fresh one instead, putting the numbers to you
+  only when it needs something the old agent holds that its transcript cannot
+  give. A fresh launch is never
   blocked, and neither is a message to an agent still running.
 - A cache wake. A session idle on background work stops reading its prompt
   cache, and once the lifetime runs out the next turn rewrites the whole
@@ -107,8 +109,9 @@ and a count of your prompts behind it; only when it is about to ask the judge
 does it read the last sixteen turns. The wake reads the transcript backward to
 the last compaction at the end of every turn in the main session, for the
 background work still running and the newest turn's time and cache lifetime,
-and reads it again at every check while it waits out an idle stretch. Nothing
-here reads your source.
+and reads it again at every check while it waits out an idle stretch. The
+notice hook and the watcher check whether the session's unattended switch below
+exists on every run. Nothing here reads your source.
 
 What is written: one JSON file per session under `claude-context-budget/` in the
 OS temp directory, holding the level this session has been told about, the
@@ -378,6 +381,31 @@ already in, rather than taking a turn on it. It takes a run left waiting by an
 earlier turn's Stop to reach that far, since the hook starts on Stop and
 nowhere else. The hour lifetime has the same shape at 57 minutes.
 
+## Unattended sessions
+
+A session that runs with nobody watching it can be turned quiet: while the file
+
+```
+<os temp dir>/claude-context-budget/<session id>.unattended
+```
+
+exists, that session gets no context notice at either level and no watcher
+run. Nobody is there to run `/compact`, and Claude Code's own auto-compact
+manages the context instead. The resume guard and the cache wake work as
+before.
+
+The file is for another plugin to write, and it is part of this plugin's public
+surface. Its contents are ignored and only its presence counts. The directory
+is the one the session record lives in, which does not exist before this
+plugin's first write, so the writer creates it. `<session id>` is the
+`session_id` Claude Code hands every hook. Each hook run checks the file
+afresh, so deleting it restores the notice and the watcher from the next run.
+
+The context is still measured while the switch is on. A level crossed under it
+is not counted as told, so the first notice run after the file is deleted
+announces the level the context stands at then. A compaction under the switch
+re-arms the levels as it always does.
+
 ## Troubleshooting
 
 A configuration the hooks cannot use switches the notice, the watcher, the
@@ -413,6 +441,11 @@ could not judge.
 Fix what the line named, leave a second mistake behind it, and the next run
 says the new line. A `config error` in other words is another fault rather than
 the one you have already dealt with.
+
+No notice and no watcher advice in a session that is past a threshold, with a
+usable configuration, is a `<session id>.unattended` file beside its record:
+the [unattended switch](#unattended-sessions) is on. Deleting it turns both
+back on.
 
 Deleting the session's record, `<session id>.json` under
 `claude-context-budget/` in the OS temp directory, is how you make the current
