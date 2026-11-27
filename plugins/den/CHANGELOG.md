@@ -28,8 +28,9 @@ minor bump may change behavior.
 - `writing-for-humans` has a reference for changelog entries.
 
 ### Changed
-- `writing-for-agents` and `writing-for-humans` are written in plain
-  language, and tell Claude to write that way too.
+- `writing-for-agents`, `writing-for-humans` and `writing-a-skill` are
+  written in plain language, and the first two tell Claude to write that
+  way too.
 - `lead` checks prior art before choosing a mechanism that has been solved
   many times, a rule that had lived in a user's CLAUDE.md.
 - `lead` consults the advisor, where the tool is available, before taking a

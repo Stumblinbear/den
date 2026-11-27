@@ -2,53 +2,65 @@
 
 ## Prerequisites first
 
-The reader who cannot run the plugin finds out in the first screen: the
-runtime floor, the one-line failure it prints, and any install step. A
-prerequisite that arrives after the walkthrough is one the reader has
-already tripped over. A task-shaped skill restates it before the flow
-starts.
+A reader who can't run the plugin should find out on the first screen: the
+minimum runtime version, the one-line error the plugin prints when it is
+missing, and any install step. A prerequisite that comes after the
+walkthrough has already tripped the reader up. A task-shaped skill repeats it
+before its steps begin.
 
-## One shape, promised by the description
+## One shape, and the description says which
 
-A task-shaped configure skill is the procedure in this order: read what is
-configured now, ask with the current value shown in each option, write,
-confirm what changed, and end with the hand-edit fallback for when a step
-cannot run, with the tools those steps run pre-approved in `allowed-tools`.
-A description that promises "change it" over a body that only explains it
-mixes the two kinds, and a write step grafted onto prose is the usual result.
-Pick one; a second, task-shaped skill is how the other is added.
+A configure skill either explains the configuration or changes it. Pick one:
+to offer the other, add a second skill.
+
+A configure skill that changes the configuration is a procedure, in this
+order:
+
+1. Read what is configured now.
+2. Ask, showing the current value in each option.
+3. Write the change.
+4. Confirm what changed.
+5. End with how to edit the file by hand, for when a step can't run.
+
+Pre-approve the tools those steps run in `allowed-tools`.
+
+A description that promises to change the configuration, over a body that
+only explains it, mixes the two kinds. The usual result is a write step bolted
+onto prose.
 
 ## Arrive knowing the state
 
 The preamble reports whether the configuration file exists and what the
-settings hold.
+settings are.
 
-## What earns its lines
+## What is worth its lines
 
-Three sections the shipped setup skills lack and that answer the questions
-users actually bring:
+Three sections that existing setup skills lack, and that answer
+the questions users actually ask:
 
-- A causal model: what fires, on which event, reading what, and the
+- **How it works:** what runs, on which event, what it reads, and the
   consequences that answer "why did it" and "why didn't it".
-- Exact hand-run commands that show what a change does before the session
-  does, so an edit is checked rather than trusted.
-- The line at what is deliberately not configuration, naming the file that
-  holds it, so the reader does not edit the wrong thing.
+- **Exact commands to run by hand** that show what a change does before the
+  session runs with it, so an edit is checked rather than trusted.
+- **What is deliberately not configuration,** and which file holds it, so the
+  reader doesn't edit the wrong thing.
 
 ## Where a setting lives decides what the skill says
 
-`userConfig` in `plugin.json` declares a flat set of scalars (string, number,
-boolean, directory, file; no enumerations, no tables) that Claude Code
-prompts for when the plugin is enabled, stores in the user's settings, and
-exports to hook processes as `CLAUDE_PLUGIN_OPTION_<KEY>`. It fits a fact
-about the installation. Behavior with rows, per-row overrides or messages
-lives in a file the plugin parses, with a commented example to copy. The
-skill documents the file; a prompt the host already made needs no
-walkthrough.
+`userConfig` in `plugin.json` declares a flat set of simple values: a string,
+a number, a boolean, a directory or a file, with no lists of choices and no
+tables. Claude Code asks for them when the plugin is enabled, stores them in
+the user's settings, and passes them to hook processes as
+`CLAUDE_PLUGIN_OPTION_<KEY>`. Use it for a fact about the installation.
 
-## Every line is a standing cost
+Settings with rows, per-row overrides or messages go in a file the plugin
+parses, with a commented example to copy. The skill documents that file. A
+setting Claude Code already asked for needs no walkthrough.
 
-The rendered skill enters the conversation once and is never re-read, and
-compaction keeps only its first five thousand tokens within a shared budget.
-A configure skill is loaded when something is wrong, in a session that is
-often already large; what it says has to be worth carrying to the end.
+## Every line costs for the rest of the session
+
+The skill's text enters the conversation once and is never read again, and
+compaction keeps only its first five thousand tokens, within a budget shared
+with other skills. A configure skill is loaded when something is wrong, often
+in a session that is already large, so everything it says has to be worth
+carrying to the end.

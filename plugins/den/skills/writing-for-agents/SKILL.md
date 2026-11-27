@@ -83,11 +83,14 @@ being told.
 - **Start minimal, and add only against failures you saw.** Start with the
   least instruction that could work, and add only what fixes a failure you
   actually saw, not one you imagined. If you can, build the test before you
-  write the instructions. When you see a failure, first treat it as a case of
-  a rule you already have, and change that rule until it covers the case. Add
-  a new sentence only when no existing rule covers the failure. Adding an
-  example for every incident turns a rule back into the list of cases it
-  replaced.
+  write the instructions. When you see a failure, first work out why it
+  happened: the incident is one case of a failure that will come back in
+  other forms. Then treat it as a case of a rule you already have, and change
+  that rule until it covers the case. Add a new sentence only when no
+  existing rule covers the failure, and write it so it holds in any project.
+  A sentence about one project's code, or about the incident itself, fixes
+  nothing anywhere else. Adding an example for every incident turns a rule
+  back into the list of cases it replaced.
 - **Keep references one level deep.** Agents read a file linked from a linked
   file partly or not at all, so anything two links away might as well not
   exist.
