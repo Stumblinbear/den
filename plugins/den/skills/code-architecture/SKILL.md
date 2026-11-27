@@ -7,420 +7,224 @@ user-invocable: false
 
 # Code architecture
 
-Apply each rule by its reason: where the reason reaches the case in hand, the
-rule holds whatever the case is called, and where it does not, neither does
-the rule.
+Each rule comes with its reason. Follow the reason, not the rule's name: a rule
+applies wherever its reason does, and not where it doesn't.
 
-## The core, in any language
+## Organizing code
 
-**Decide a file's module before you create it.** Ask which concept the file
-belongs to, and put it in that concept's module. When no module exists for
-that concept yet, and this file makes two or more of a kind, or more are
-coming, create the module now and move the existing files of that kind into
-it. The move is part of adding this file, not work outside the change's
-scope: this change is what makes those files a group. Leaving them loose to
-match the layout you found is how a project fills up with loose files, each
-one added by a writer keeping to the layout the last writer left.
+**Decide a file's module before you create it.** When a new file makes two or
+more of a kind, put them all in a module for that kind, moving the existing
+ones. The move is part of this change.
 
-**One concept per file.** The question comes up when you add a type or
-function to an existing file, write a banner comment (`// ---- helpers ----`)
-to divide one, or scroll past unrelated code to reach the code you came to
-change. Ask what the file is about. A concept is the thing you would name in
-answer, and an answer of "X and Y" is two files. To tell whether two pieces
-are one concept, look at what binds them. A concept is the smallest unit that
-would lose coherence if you broke it apart, and two things hold a unit
-together. One is private state: fields one piece keeps for the other, or an
-invariant the two uphold together. The other is a change that always reaches
-both: a piece with no reason to change but the other's, as the code that
-writes an error enum's messages matches each variant and changes whenever a
-variant is added, or two phases of one pass. Two pieces bound by neither are
-two concepts however closely their subjects are related. A type and the
-iterator that walks its private buffer are one concept, and so are an error
-enum and the code that writes its messages, though that code reads nothing
-private. A parser and a formatter for the same syntax both use the public tree
-and nothing private of each other's, and each changes for reasons of its own,
-error recovery in one and line layout in the other, so they are two, even
-though a node added to the tree reaches both. A banner comment is a file
-naming its own concepts.
+**One concept per file.** Two pieces of code are one concept when one keeps
+private state for the other, when they uphold an invariant together, or when a
+change to one always reaches the other, as with an error enum and the code that
+writes its messages. Pieces bound by none of these are separate concepts,
+however related their subjects: a parser and a formatter for the same syntax go
+in two files. A banner comment dividing a file (`// ---- helpers ----`) is the
+file listing its own concepts.
 
-The question comes up again when a split reaches for a name the other file
-keeps private, by keyword or by convention. Where that name is state, the
-reach shows the two pieces share it, so the cut ran through a concept.
-Widening it, or reaching past the convention, keeps the invariant in two
-files, and nothing beside the field shows the second. Move one side instead,
-the code reaching in beside the field or the field beside the code that
-keeps it. A type or helper that keeps its own invariant is not shared state
-but the interface the other side calls.
+**Split a file where two concepts meet, not by its length.** Cut between a data
+structure and the algorithm that uses it, between serialization and validation,
+or between top-level types that share no private state. A cut through one
+concept leaves each half reaching into the other. One concept stays in one file
+at any length. When a split needs a name the other file keeps private, the cut
+went through a concept: move the code that needs the name next to it, rather
+than making the name wider. A type that keeps its own invariant isn't shared
+state; it is an interface to call.
 
-The question comes up again when a file joins a directory, and when you find a
-file by reading a directory's listing through. A directory groups the files of
-one larger concept under its name, so a reader goes to the group and a writer
-knows where new code goes. The bonds that hold a file together hold a group:
-its files change together, a change to the concept reaching all of them and
-nothing outside, or they share machinery nothing else uses, as a map and a set
-share their tree's nodes. Files that could be grouped two ways, by the role
-each plays or by the feature it serves, are grouped by the more common change:
-one feature altered across its roles argues for the feature, one role's
-contract altered across features argues for the role. A file whose concept
-grows children becomes a directory with its root file as the table of
-contents. Name the group for its concept. A word several file names share
-suggests a group and does not decide it, and a word repeating the package's
-name names nothing.
+**Group files by the same bonds.** A directory holds the files of one larger
+concept: files that change together, or that share machinery nothing else uses.
+When files could be grouped by role or by feature, group them by the change that
+happens more often. A file whose concept grows children becomes a directory,
+with its root file as the table of contents. Name a group for its concept.
 
-**Find the seam, not the line count.** When a file needs splitting, or is
-large enough to prompt the question, count its concepts: the count decides,
-not the length. Cut where two concepts meet:
+**A module's root is its table of contents.** The root declares the module's
+children and its public surface, so a reader learns what the module offers
+without reading an implementation. Code that "doesn't fit anywhere else" is a
+concept with no file yet: name it and give it one. A few lines of glue wiring
+the children together can stay in the root.
 
-- a distinct mechanism, such as a data structure beside the algorithm that
-  uses it;
-- a separate concern axis, such as serialization beside validation;
-- independent top-level types that share no private state.
+## Naming
 
-A cut there leaves each side keeping its own invariants whole. A cut through
-a concept's shared invariants leaves neither half able to keep them alone, so
-one half reaches into the other: the coupling the split was meant to remove,
-now across a file boundary. Two halves of equal length are not a seam, and
-one concept stays in one file at whatever size: one trait's impls for a dozen
-tuple arities run long and are one concept, where a file of the same length
-holding a cache and the HTTP client that fills it is two.
+**Name a thing for what it is.** Use the domain's words, and the words its
+siblings already use. Use the word the language or framework already has for
+that kind of thing, since a synonym is a second word to learn. Put the thing's
+role in its name: an identifier's name says it is an id.
 
-**Module roots are tables of contents.** The question comes up when you are
-about to put code in a module's root file because it fits nowhere else. The
-root declares the module's children and re-exports its public surface, so a
-reader who opens it learns what the module offers without reading an
-implementation. Code that "doesn't fit anywhere else" is a concept that has
-no file yet, and left in the root it makes the root the module's dumping
-ground. Ask what the code is, name it, and give it a file under that name. A
-few lines of glue wiring the children together stay; a helper the children
-share is a concept of its own.
+Name a function by what it does:
 
-**Name a thing for what it is.** You decide a name when you create a module,
-type, field or function, and again when a review asks whether a name still
-fits. Ask what the thing is, specifically, and answer:
+- one that acts takes the verb its language gives it (`insert`, `remove`,
+  `open`);
+- one that returns a value it holds, or works out cheaply, is named for the
+  value (`len`, `parent`);
+- a lookup by key that may find nothing returns the absence the way its language
+  does (`get(key)`), and a search by condition says so (`find`);
+- a count is named as a count;
+- one that answers yes or no reads as a claim about its subject (`is_empty`,
+  `contains`);
+- a constructor takes the name its language gives one.
 
-- in the domain's terms and the vocabulary its siblings already use;
-- with the word its language or framework already uses for a thing of
-  that kind, an operation's verb and an enum variant's case alike, since a
-  synonym for a word the reader already holds for one meaning is a second
-  word to learn and a difference to look for; a thing the language has no
-  word for is named afresh, as a noun for what it is;
-- with its role in the name: an identifier's name says it is an id, cased as
-  its language cases the abbreviation;
-- for a function, by what it is: one that acts takes the verb its language or
-  framework already gives it (`insert`, `remove`, `open`); one that returns a
-  value it holds or derives cheaply is named for the value (`len`, `parent`);
-  one that looks a value up by a key and may find none says so in the way its
-  language does, returning the absence rather than failing (`get(key)`); one
-  that searches by a condition says so too (`find`); a count is named as a
-  count; one that answers yes or no reads as a claim about its subject
-  (`is_empty`, `contains`); a constructor takes the name its language gives
-  one, the plain constructor for the common case and the language's own words
-  for the others, and a rule that derives one of its fields from another value
-  is a method on that value, not a constructor named for the rule. These are
-  different things, so one of the shapes applied to all of them misnames the
-  rest: a keyed lookup called `user(id)` reads as a property that is always
-  there. A bare state word, `drawing`, `covered`, `enabled`, names no action,
-  no value and no subject, so it is none of these. The language's references
-  name its words.
+A bare state word such as `drawing` or `enabled` is none of these. A keyed
+lookup named like a property, `user(id)`, reads as a value that is always there.
 
-Name the thing, not the category it belongs to or what it resembles: `tree`,
-not `data_structures`. A generic name is the reader's first guess made
-permanent and the next writer's dumping ground, since anything fits under it.
-Then check the name against how it will be read:
+Then check the name:
 
-- **At the call site.** Most readers meet a name where it is called, with the
-  body unseen, so check it there: does the call tell them what it does?
-  `cleanup(jobs)` sends the reader into the body; `drop_expired(jobs)` does
-  not. A method is called on a variable whose name you did not choose, so
-  the method's own name has to say what it returns: `entity.loaded()` says a
-  state, and the reader has to ask what is loaded; `entity.loaded_components()`
-  says it. A one-word name like `len` or `parent` is enough only when the
-  type has one thing that word could mean.
-- **Without its doc.** Read the name with its doc comment and body hidden,
-  as a reader who has never opened the file. If they would have to look
-  either up to know what the thing is, the name is shorthand: `finish`,
-  `placement` and `rank_best_first` each need their doc, where
-  `local_player_match_result`, `free_for_all_place` and `sort_highest_first`
-  do not.
-  A longer name that says what the thing is beats a short one that only
-  hints, and length is not a cost a name pays.
-- **Where it is imported.** A public item is read in an importer's file, away
-  from its siblings. `ParseError` reads plainly in a config module and names
-  nothing among an importer's imports, where `ConfigParseError` does.
-- **By the claim it makes.** A name that makes a claim, `default`, `common`,
-  `simple`, holds only while the claim is true, and the name does not change
-  when the code does. Ask whether the code will keep the claim true:
-  `simple_layout` stops being simple the day it gains a second mode.
-- **Against its siblings.** A qualifier names what sets the thing apart from
-  its siblings. Where every config is read from a file, `FileConfig` tells
-  none of them apart; the qualifier is what this one has that the others
-  lack.
-- **As a mechanism.** A mechanism module carries no domain knowledge, and a
-  mechanism is named for what it does, not for the feature that first needed
-  it. A queue that retries failed jobs, written for uploads, is
-  `retry_queue`, not `upload_retries`, since its next user will not be
-  uploading. A mechanism that needs domain types is part of that domain.
-- **Within its context.** A word is distinct within its context, not across
-  the codebase. Where the call site tells two meanings apart, one word serves
-  both, and a synonym only gives the reader a second word to learn. Where a
-  map's `entry` and a log's `entry` are both a bare `entry` in one body and a
-  line no longer says which, one of them wants another word.
-- **Within its family.** A rename keeps the pattern its siblings share. Where
-  `ReadError`, `WriteError` and `SeekError` sit together, renaming one to
-  `SeekFailure` to dodge a clash breaks the family, and the reader looks for
-  a difference that is not there.
+- **Where it is used, with its body and doc hidden.** The call should say what
+  it does: `cleanup(jobs)` sends the reader into the body, and
+  `drop_expired(jobs)` doesn't. A method is called on a variable someone else
+  named, so its own name says what it returns: `entity.loaded_components()`, not
+  `entity.loaded()`. A public item is read among an importer's imports:
+  `ConfigParseError`, not `ParseError`. A longer name that says what the thing
+  is beats a short one that only hints.
+- **By the claim it makes.** A name like `default`, `common` or `simple` is true
+  only while the code keeps it true, and the name doesn't change when the code
+  does.
+- **Against its siblings.** A qualifier says what sets this one apart: when
+  every config comes from a file, `FileConfig` tells none of them apart.
+- **As a mechanism.** A mechanism is named for what it does, not for the feature
+  that first needed it: `retry_queue`, not `upload_retries`.
+- **In its context and its family.** One word can serve two meanings when the
+  call site tells them apart. A rename keeps the pattern its siblings share:
+  beside `ReadError` and `WriteError`, not `SeekFailure`.
 
-**Make invalid states unrepresentable.** Organization decides where code
-lives; type design decides which states can exist at all. The question comes
-up when you define or extend a type, and whenever you write a check that a
-value is valid. Ask whether every value the type can hold is a state the
-domain allows. Each value it can hold that the domain does not is a check
-some caller must remember, and the caller that forgets meets the bad state far
-from where it was made. So shape the type until the set of constructible
-values approximates the set of valid domain states.
+For a language with a reference below, its naming reference has the words that
+language uses for each of these.
 
-A classification the code branches on is an enum or a constructor, an error
-included, never a string, a flag, a bool parameter that picks a kind, or a
-field that is "not yet". A match over an enum is checked for every case, and
-a new kind breaks each match that misses it; nothing checks a string.
-`render(doc, true)` tells the reader of the call nothing and leaves no room
-for a third kind, where `render(doc, Layout::Print)` does both. A value
-re-checked at each use, or ranged by its encoding rather than its domain,
-becomes a refined type checked once where the data enters, and the
-language's invalid-states reference teaches how.
+## Types and state
 
-The case the other way is a condition the type cannot carry: one the type's
-own operations can break, such as a queue that must be non-empty and is then
-popped, or one that holds only relative to something outside the value, such
-as an index valid for one particular list. Check that where it is used.
+**Make invalid states unrepresentable.** Shape a type so that every value it can
+hold is a state the domain allows. Every other value is a check some caller has
+to remember, and the caller that forgets meets the bad state far from where it
+was made. Make a classification the code branches on an enum, not a string, a
+flag or a bool parameter: a match is checked for every case, and
+`render(doc, Layout::Print)` says what `render(doc, true)` doesn't. A value
+checked again at each use becomes a type checked once, where the data enters.
+Leave a condition to a check at the point of use only when the type can't carry
+it: one the type's own operations can break, or one that holds only relative to
+something outside the value.
 
-The states a value passes through in time count as much as the combinations
-of its fields. That question comes up when a method needs to know what has
-happened to its object: a field that is "not yet", a flag recording which
-constructor ran or which method has been called, an error saying the object
-is not ready. A value exists only once what it needs has happened, so a
-method fails on its arguments and never on the object's history. A connection
-with a `connect()` method and a `send()` that fails before it becomes a
-constructor that connects and returns the connection, and a `send` that can
-never meet an unconnected one; the phase before belongs to whatever drives it.
+The states a value passes through over time count too. A method fails on its
+arguments, never on the object's history. Instead of a `connect()` method and a
+`send()` that fails before it, a constructor connects and returns the
+connection.
 
-**An operation does what its name says, or fails.** The question comes up
-when a `create`, an `add` or a `remove` meets a case its name does not cover:
-the thing already exists, or is absent. Ask what the caller asked for, and the
-name is the answer. A success that quietly did something else, a create that
-returns the existing one or a remove of nothing, guesses what the caller
-meant and hides the caller's mistake, which then surfaces further from its
-cause. So the caller gets an error and decides. Input the code does not act on
-is refused for the same reason: accepting an option the code ignores promises
-the caller a meaning the option does not have. The refusal covers what the
-code does not act on, never what is merely awkward, and a refusal of a
-legitimate input is a defect. A caller that wants either outcome picks an
-operation whose name says so, `get_or_insert` or `ensure_dir`. An operation
-that must tolerate retries, such as a handler fed by a queue that redelivers,
-says so in its contract, and its remove of nothing is then what the contract
-promises.
+**An operation does what its name says, or fails.** A `create` that finds the
+thing already there, or a `remove` with nothing to remove, returns an error
+instead of quietly doing something else, which would hide the caller's mistake.
+Refuse an input the code doesn't act on, since accepting it promises a meaning
+it doesn't have, but never refuse an input that is merely awkward. A caller that
+wants either outcome uses an operation named for it, such as `get_or_insert`. An
+operation that has to tolerate retries says so in its contract.
 
-**One fact, one home.** Each piece of state lives in one place, and every
-other site derives it or is handed it. A second copy is state that can
-disagree with the first. The code that keeps the two in step exists only
-because the copy does: a check that two values agree, a guard against an
-early read going stale, a parameter beside the value it came from as in
-`draw(rows, rows.len())`, a setting copied into each record it produced. A
-decision written as a constant is state too. Written twice, an edit can reach
-one copy and not the other, and one that decides an outcome but lives in no
-setting has no home a reader can find. Two values that merely match, such as
-two timeouts that happen to be thirty seconds, are two pieces of state. A
-computation holds none: a hypotenuse written at two sites can never disagree
-with itself.
+**One fact, one home.** Each piece of state lives in one place, and every other
+place works it out or is handed it. A second copy can disagree with the first,
+and the code that keeps them in step, such as a check that two values agree or
+`draw(rows, rows.len())`, exists only because of the copy. A decision written as
+a constant is state too, so give it one home a reader can find. Two values that
+only happen to match, such as two thirty-second timeouts, are separate state,
+and a computation written twice holds none.
 
-**Siblings share one shape and one path.** The question comes up when you add
-a peer to things that play one role, write a type that keeps the invariants
-and operations of one that exists, or write a second way to reach a state the
-code already reaches. Things that play the same role are represented the same
-way and reached by the same code. One handler registered in a table and
-another special-cased in a `match` are two peers stored as different kinds; a
-`reset` that rebuilds, field by field, what the constructor builds is a second
-path to one state. Each is one thing twice, and the second must mirror the
-first forever. The second handler goes in the table, and `reset` replaces the
-value with a newly constructed one.
+**Siblings share one shape and one path.** Things that play the same role are
+represented the same way and reached by the same code. A second handler goes in
+the table the first is in, not in a special case. A `reset` that rebuilds what
+the constructor builds replaces the value with a new one instead.
 
-**A type not yet written.** The question comes up when you pass the same few
-values from one function to the next, when you write a function that takes
-four or five arguments that always travel together, when you write a check or
-a lookup again at each call, and when you fix something by adding one more
-function beside the last. Ask what the values are together, and the answer is
-a type: the values its fields, the functions its methods, the check its
-invariant kept in one place. A parser's input, position and errors handed to
-every parse function are the parser; a request's id, its selection and what
-later events took from it, threaded through send, narrow and reply, are the
-pending request. Adding a function beside the others leaves the invariant in
-every caller, where the type keeps it once and each call reads as what it
-asks for. To find the type, inline the functions and look at what they share:
-what is shared is the type, named for what the group is, never for the
-functions.
+**Spot a type not yet written.** When the same few values travel together from
+function to function, or the same check is written at each call, they are a
+type: the values its fields, the functions its methods, the check its invariant.
+A parser's input, position and errors handed to every parse function are the
+parser. Name the type for what the group is.
 
-## Interfaces
+## Abstractions
 
-Every abstraction gives its callers an interface: everything a caller must
-know to use it correctly, its name and signature and also the invariants,
-ordering constraints, error modes and configuration that come with them. A
-module, a trait, a shared type, a generic and a helper function are all
-abstractions, and making one is a trade: each caller stops holding what the
-body does and starts holding the interface. Whether one earns its place is
-the same question wherever it is decided:
+An abstraction (a module, trait, shared type, generic or helper) trades what a
+caller has to know about the body for what it has to know about the interface.
+It earns its place when a reader of each caller needs to know less afterwards,
+which happens when its interface is much smaller than what it hides.
 
-**After this, does a reader of each caller need to know less to understand
-and change that code correctly?**
+**Read the call with the body hidden.** If the name and arguments tell the
+reader what this caller gets, what it changes and how it can fail, the
+abstraction works. If they have to open the body to find out, the abstraction
+hides something its caller needs: `merge(base, overrides)` leaves them asking
+which side wins, and `overrides.apply_to(base)` answers it. Two functions that
+keep sending you into each other are one piece of reasoning cut in two.
 
-That is the measure because it is what complexity costs: how many places one
-change has to touch, how much a reader must know to make it, and what they
-need to know but cannot see from where they stand. An abstraction lowers all
-three when its interface is much smaller than what it hides, which is what
-makes it deep, and raises them when its interface is nearly as large as its
-body or the body still has to be read.
+**Delete it and see what comes back.** Inline the abstraction into each caller.
+When what comes back is a decision every caller now has to get right, such as a
+rule, an order of steps, a shared value, a way to fail or a likely change, the
+abstraction stays: `with_retry` comes back as a backoff schedule every caller
+must agree on. When what comes back is plain lines each caller reads easily, it
+goes, like a wrapper whose methods each forward one call. A wrapper that adds a
+meaning stays however thin it is: delete `UserId(Uuid)`, and any `Uuid` can
+stand in for a user's id.
 
-**Read the call with the body unseen.** The question comes up when you write
-a call to something new, and when you catch yourself opening a function to
-understand the line that calls it. Write the call as it will appear and read
-it as someone who has never opened the body. If the name and arguments tell
-them what this caller gets, what it changes and how it can fail, they can
-trust it and read on: the abstraction has replaced a body with something
-smaller. If they must open the body to know what this caller does, what
-exists afterward, which value wins, what order things happen in, the
-abstraction hides something its caller needs: the reader still needs all of
-it, one jump away, under a name that told them to skip it. `merge(base,
-overrides)` leaves the reader asking which side wins a conflict;
-`overrides.apply_to(base)` answers it. A body that says no more than its name
-adds the jump and nothing else. The same holds between any two functions:
-when following one keeps sending you into the other, they are one piece of
-reasoning cut in two.
+**Join code only when it changes for the same reason.** Code that reads alike is
+one thing only when changing one copy without the other would be wrong. A log
+line's date format and the one another program parses may match today and differ
+tomorrow. When a shared helper keeps gaining parameters or branches so that one
+caller can differ, put its body back into each caller, and keep only what they
+really share. Cut a helper at the general case its callers share, and name it
+for that, not for its first caller's case. A helper several callers need goes
+where they will find it, such as a method on the type they already hold.
 
-**The deletion test: imagine deleting it and ask what comes back.** An
-abstraction pays for itself by hiding a decision: a rule that must hold, an
-order steps must run in, a value several places must agree on, a way the work
-can fail, a choice likely to change. Inline its body into each caller. If
-what comes back is that decision, held now by every caller and each one a
-place to get it wrong, the abstraction was earning its keep. If what comes
-back is lines each caller reads plainly on its own, nothing was hidden, and
-each caller reads better whole. A `with_retry` helper comes back as the
-backoff schedule and the attempt limit in every caller, a decision they must
-agree on, so it stays. A wrapper type whose methods each forward to one call
-on a field, with no invariant of its own to keep and no meaning beyond its
-field's type, comes back as those calls, so it goes. A wrapper that adds a
-meaning hides that distinction: delete `UserId(Uuid)` and what comes back is
-IDs any `Uuid` can stand in for, so it stays however thin its methods are.
+**Make a boundary before its second caller only for a reason that exists now.**
+A trait with one implementation, an injected dependency or a generic costs every
+reader today. It is worth that when something already varies across it, such as
+two implementations or a test that needs a stand-in for an external system, or
+when the project has already settled on the second case. An imagined future
+caller is not a reason. A generic is for types that share one concept's
+invariants and operations, not for types that only look alike. Judge a library's
+exported item by what it does for callers outside the tree, even when only tests
+use it inside.
 
-**Ask whether the callers want the same thing for the same reason.** The
-question comes up when you join two pieces of code because they read alike,
-and when you add a parameter, or a branch on which caller called, to a shared
-function so one caller can behave differently from the rest. Code that reads
-alike is one thing only when it changes together: when changing one copy and
-not the other would make the program wrong. A date formatter for log lines
-and one for a file another program parses can read identically today and
-answer to different readers tomorrow. Joining code that answers to different
-reasons ties together callers that had no reason to know of each other, and
-each change one of them needs arrives as a parameter or a branch in the
-shared body that keeps the others as they were, moving that caller's
-behaviour to a place none of them shows. The branches belong in the callers,
-and the helper holds what is the same for all of them; when a helper keeps
-gaining parameters whose only purpose is to let one caller differ, put its
-body back into each caller, keep what that caller uses, and look again at
-what they share.
+**Use the standard library's interface first.** For a conversion, an order,
+iteration, display or parsing, use the form the language's standard library
+already has. Every reader and every library already knows it, and an interface
+of your own is one more to learn. When an existing library already does the job,
+adding it is the user's decision: name the library, what it buys and what it
+costs.
 
-A helper is cut at the general case its callers share and named for it, not
-at the first caller's case. A wait for "the first job finished", written for
-one test, is a wait for the job with an id, with that test choosing its id;
-promoted as written, it is a general-sounding name over one caller's accident,
-and the next caller either misuses it or writes another. A helper one caller
-needs stays in that caller. One that several need lives where they find it:
-as a method on the type the callers already hold, found by typing a dot after
-it, rather than a free function beside one of the callers, which is found only
-by reading that caller.
+**Tests are callers.** A test that has to build a module's private parts, or
+check its internal state, to reach a behavior shows that the interface is the
+wrong shape: change the abstraction, not the test. When shallow pieces merge
+behind one deeper interface, delete their tests once tests exist at the new
+interface.
 
-**A boundary made before its second caller needs a reason that exists now.**
-The question comes up when you add a trait whose only implementor is the
-production type, an injected dependency, or a generic parameter. Each pays
-its cost today for flexibility used later. Something already varying across
-it is that reason: two implementations, or a test that needs a stand-in for
-an external system. A requirement already settled for the project is too,
-before the second implementation exists. Name the obligation, what the
-boundary costs now, and whether something simpler meets it; an imagined
-future caller alone is not a reason. A clock trait whose test implementation
-stands in for real time meets an obligation today. A storage trait with one
-implementation, which the tests also use, costs every reader an indirection
-and meets none, unless a second backend is already settled. A generic over
-types that only look alike is judged the same way: types that share one
-concept's invariants and operations make a good generic, types that share a
-shape do not, and its signature is one more thing every reader parses. A
-library's callers are outside the tree, so an exported item only the tests
-exercise is the product, judged on its depth and the obligation it meets,
-not on how many in-tree callers it has.
+## Language references
 
-**Before an interface of your own, the one the standard library already
-has.** The question comes up when you need a capability across types: a
-conversion, an order, an iteration, a display or a parse. The standard
-library already says each one, in whatever form the language gives it: an
-interface or trait a type implements, a member every object carries, or a
-naming convention the library's own types keep. That form is one every
-reader already knows and every other library already speaks. An interface
-of your own is one more name and contract each reader has to learn, and it
-earns that only by naming something the standard library does not: one
-whose single method reads a value as another type is the standard
-conversion under a second name. The language's conversions reference names
-the standard form for each capability. Where a library already does the
-job, adding it is a trade-off the user decides: name the library, what it
-buys and what it costs, and ask.
+Before writing or judging code in Rust or Dart, read each of that language's
+references whose topic the change touches. Read them before you start, not when
+a question comes up: the moment a reference would have answered passes unnoticed
+by someone who hasn't read it.
 
-**Tests are callers.** Tests cross the same interface callers do. The
-question comes up when a test needs to build a module's private parts, or
-assert on its internal state, to reach behaviour the interface does not
-expose. That test is a reader who needs something the interface hides: the
-abstraction is the wrong shape, and the change belongs in the abstraction,
-not the test. When shallow pieces merge behind one deeper interface, the
-tests of the pieces test interfaces that no longer have callers; once tests
-exist at the new interface, delete the old ones.
-
-## Language-specific guidance
-
-The references below hold a language's concrete thresholds, idioms and
-mechanisms, which the rules above leave out so they hold in any language.
-Before writing or judging code in that language, read every reference whose
-topic the change touches, as part of applying the rules rather than when a
-question comes up, since the moment a reference would have answered passes
-unnoticed by a reader who has not read it.
-
-### Rust
+Rust:
 
 - `references/rust-organization.md`: files, modules and where to cut them.
 - `references/rust-invalid-states.md`: refined types, enums and typestate.
 - `references/rust-semantic-types.md`: newtypes and std types over primitives.
 - `references/rust-errors.md`: typed errors and what their messages say.
 - `references/rust-api-boundaries.md`: borrowing and ownership at boundaries,
-  returns in place of out-parameters, and the order of parameters.
-- `references/rust-iterators.md`: what an iterator holds, lazy and small.
+  returning values instead of out-parameters, and the order of parameters.
+- `references/rust-iterators.md`: what an iterator holds.
 - `references/rust-conversions.md`: constructors, the conversion traits and
   std's trait for each shared capability.
 - `references/rust-naming.md`: the words for getters, lookups, searches,
-  predicates, conversions and variants, from the API guidelines and std.
+  predicates, conversions and variants.
 
-### Dart
+Dart:
 
 - `references/dart-organization.md`: libraries, privacy and where to cut them.
 - `references/dart-invalid-states.md`: class modifiers, sealed families,
   exhaustive switches and fields set too late.
-- `references/dart-semantic-types.md`: extension types, wrapper classes and
-  core types over primitives.
+- `references/dart-semantic-types.md`: extension types, wrapper classes and core
+  types over primitives.
 - `references/dart-errors.md`: exceptions, errors and what they carry.
 - `references/dart-api-boundaries.md`: parameters, copies and views at
-  boundaries, and records in place of out-parameters.
-- `references/dart-iterators.md`: lazy iterables that run again on each
-  pass, and streams.
-- `references/dart-conversions.md`: constructors, parsing and the core
-  library's interfaces.
+  boundaries, and records instead of out-parameters.
+- `references/dart-iterators.md`: lazy iterables that run again on each pass,
+  and streams.
+- `references/dart-conversions.md`: constructors, parsing and the core library's
+  interfaces.
 - `references/dart-naming.md`: the words for getters, lookups, searches,
-  predicates, conversions and variants, from Effective Dart and the core
-  libraries.
-
-The sources behind both languages' references are listed per file in
-`references/sources.md`, for revising a reference rather than for applying
-it.
+  predicates, conversions and variants.
