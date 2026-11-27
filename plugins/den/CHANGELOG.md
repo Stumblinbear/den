@@ -25,8 +25,11 @@ minor bump may change behavior.
   rather than the borrowed English. `localizer` gains web search to look
   those terms up.
 - A `using-a-database` skill, which helps Claude use databases properly.
+- `writing-for-humans` has a reference for changelog entries.
 
 ### Changed
+- `writing-for-agents` and `writing-for-humans` are written in plain
+  language, and tell Claude to write that way too.
 - `lead` checks prior art before choosing a mechanism that has been solved
   many times, a rule that had lived in a user's CLAUDE.md.
 - `lead` consults the advisor, where the tool is available, before taking a

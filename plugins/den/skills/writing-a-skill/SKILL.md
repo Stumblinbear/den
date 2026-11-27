@@ -73,7 +73,11 @@ steps, with the tools its steps run pre-approved for the invoking turn in
 `allowed-tools`. One skill is one kind, and the description promises which.
 A skill is as long as it needs to be and no longer: shorter is preferred,
 never at the cost of clarity. Every reference is named in SKILL.md with
-what it holds. A `!`
+when to read it; what it holds is the reference's own business. A skill holds
+only what the agent needs to do its task. Notes on keeping the skill up to
+date, such as when to add or remove an entry, go in the commit message or the
+project's own docs: the agent reads every line of a skill as an instruction
+for the task in front of it. A `!`
 preamble runs before the body reaches the model, so a skill that should
 arrive knowing the state reads it there rather than telling the agent to
 look. A plugin skill writes its paths as `${CLAUDE_PLUGIN_ROOT}` and
