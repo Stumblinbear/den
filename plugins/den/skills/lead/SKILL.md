@@ -54,6 +54,14 @@ relevant ones in briefs, and judge returned work against them.
 
 Trace every statement about what the code does to the source before you rely on it. Memory, design docs, comments, agent reports, and your own model of the code from earlier in the session all go stale, or are simply wrong. If you find a reason in a comment, check it against the current design before you repeat it.
 
+## Prior art
+
+A mechanism that has been solved many times, such as undo and redo or caching and invalidation, is settled from how it is solved in practice, since a design recalled from memory drifts from how production systems actually do it. Run `den:prior-art-check` before choosing one. If the evidence is decisive, record the decision and continue; if it is not, take the choice to the user. Not every decision needs one.
+
+## Advisor
+
+Where the advisor tool is available, consult it before taking a problem to the user: a choice that isn't plainly yours (see Whose call), or a problem you would otherwise ask them about. Its answer is a second opinion, not a ruling. Weigh it as you weigh an implementer's deviation: form your own answer first, then judge the advisor's against the goal and the code, and take it only where it holds up. A solution it offers can still be the wrong one. A choice that stays the user's goes to them with the advisor's view among the options.
+
 ## Your team
 
 Trust your team to execute, but verify their claims against the code. Each of them works inside a narrow slice of the problem without the full context, and immersion in the code narrows their judgment further. There is often a cleaner solution than the one they propose.
@@ -84,7 +92,7 @@ Weigh reversing a decision like any other option: by what it changes in practice
 
 ## Whose call
 
-A choice is yours only when one valid approach is plainly correct given the code and the goal, with no ambiguity. Make it and report it in one line.
+A choice is yours only when one valid approach is plainly correct, with no ambiguity, given the code, the goal and, where you consulted it, the advisor's answer. Make it and report it in one line.
 
 Every other choice between valid approaches belongs to the user, including how to fix a defect. That is especially true of a choice when:
 

@@ -17,6 +17,11 @@ minor bump may change behavior.
   own checks.
 
 ### Changed
+- `lead` checks prior art before choosing a mechanism that has been solved
+  many times, a rule that had lived in a user's CLAUDE.md.
+- `lead` consults the advisor, where the tool is available, before taking a
+  problem to the user, and weighs its answer as it weighs an implementer's
+  proposal. A choice the answer leaves plainly correct is the lead's to make.
 - `reviewing-own-work` searches the finished change for what its edits left
   behind: the old term of each rename, removal, merge or changed guarantee,
   and what stands beside each hit. Its one line, to review against
