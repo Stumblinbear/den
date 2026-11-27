@@ -13,12 +13,12 @@ Run the workflow once all of these hold:
 - the change is in the working tree;
 - you have triaged the report of whatever built the change;
 - when the change adds names, types or mechanisms, its quality review
-  (`den:quality-review`) has run, and you have ruled on its findings and had
-  the ones you took fixed.
+  (`den:quality-review`) has run, and you have ruled on its findings and had the
+  ones you took fixed.
 
 The workflow reviews the working tree against HEAD, so before you launch it,
-commit every step that this one comes after. The working tree then holds
-this step's change and nothing else.
+commit every step that this one comes after. The working tree then holds this
+step's change and nothing else.
 
 ```
 Workflow({
@@ -42,13 +42,12 @@ A key that isn't in this table fails the launch.
 
 Pass `fable` when a wrong result in the change would still pass its checks
 green. That is the case when the argument that the change is correct is a
-derivation, an algorithm, a numeric method, a concurrency or memory
-invariant, a parser or a protocol, since a test covers only the cases its
-author thought of. Pass `opus` when a test or a reader would catch the
-change's defects, as in control flow, a schema, prose or the shape of a
-return value, however many files the change spans. Fable draws on a scarcer
-allowance, so a review sent to Fable that Opus could have done uses up
-allowance that later reviews need.
+derivation, an algorithm, a numeric method, a concurrency or memory invariant, a
+parser or a protocol, since a test covers only the cases its author thought of.
+Pass `opus` when a test or a reader would catch the change's defects, as in
+control flow, a schema, prose or the shape of a return value, however many files
+the change spans. Fable draws on a scarcer allowance, so a review sent to Fable
+that Opus could have done uses up allowance that later reviews need.
 
 ## The return
 
@@ -56,52 +55,52 @@ When the run throws, it didn't finish, which is a different outcome from an
 `open` return. The error message names the cause.
 
 `status` is `clean` when the verifier closed every finding the run set out to
-fix and the fixes introduced no finding at P0, P1 or P2. Otherwise it is
-`open`. `status`, `carried` and `passes` are always in the return, and a
-`clean` return also carries `snapshot`, the command whose output `since`
-takes. Every other key appears only when it holds something:
+fix and the fixes introduced no finding at P0, P1 or P2. Otherwise it is `open`.
+`status`, `carried` and `passes` are always in the return, and a `clean` return
+also carries `snapshot`, the command whose output `since` takes. Every other key
+appears only when it holds something:
 
-- `open`: the findings the run couldn't close, each in full, with its
-  `verdict` and the verifier's `reason`. The verdict is one of these:
-  - REOPENED: the second fix pass didn't close the finding, or the run
-    stopped after the first pass on a finding the fixes introduced.
-  - NEEDS-DECISION: only a ruling can settle the finding, including what
-    becomes of any fix for it that is already in the tree.
-- `introduced`: the findings at P0, P1 or P2 that the fixes introduced, each
-  in full. The run stopped as soon as they were found.
-- `decisions`: the decision findings of the reviewer and of the verifier,
-  each in full, for the user to decide.
-- `deferred`: the P3 findings, each in full. When the reviewer wrote a
-  failing test for one, the test is still in the tree, and the finding's
-  evidence names it.
-- `comment`, on a `clean` run only: the comment pass's `counts` and its
-  `gaps`. A gap is a comment the pass kept although no code it read shows
-  that the comment's claim holds.
+- `open`: the findings the run couldn't close, each in full, with its `verdict`
+  and the verifier's `reason`. The verdict is one of these:
+  - REOPENED: the second fix pass didn't close the finding, or the run stopped
+    after the first pass on a finding the fixes introduced.
+  - NEEDS-DECISION: only a ruling can settle the finding, including what becomes
+    of any fix for it that is already in the tree.
+- `introduced`: the findings at P0, P1 or P2 that the fixes introduced, each in
+  full. The run stopped as soon as they were found.
+- `decisions`: the decision findings of the reviewer and of the verifier, each
+  in full, for the user to decide.
+- `deferred`: the P3 findings, each in full. When the reviewer wrote a failing
+  test for one, the test is still in the tree, and the finding's evidence names
+  it.
+- `comment`, on a `clean` run only: the comment pass's `counts` and its `gaps`.
+  A gap is a comment the pass kept although no code it read shows that the
+  comment's claim holds.
 - `carried`: what the fixers declared, which is their `deviations`, their
-  `choices` (each giving what the fixer `chose` and what it chose that
-  `over`) and their `unsure` items, along with the `preExisting` findings.
-  Triage it the way you triage an implementer's report.
-- `passes`: the run's own account of what it did, one record per fix pass.
-  Each record lists the pass's findings with their verdicts, and the
-  verifier's reason for every verdict other than CLOSED.
+  `choices` (each giving what the fixer `chose` and what it chose that `over`)
+  and their `unsure` items, along with the `preExisting` findings. Triage it the
+  way you triage an implementer's report.
+- `passes`: the run's own account of what it did, one record per fix pass. Each
+  record lists the pass's findings with their verdicts, and the verifier's
+  reason for every verdict other than CLOSED.
 
-Read what the run did from `passes`, and leave the agents' transcripts and
-the run's journal closed. The return holds every item exactly as its writer
-wrote it, and a ruling or a triage turns on those exact words, so the
-transcripts have nothing to add.
+Read what the run did from `passes`, and leave the agents' transcripts and the
+run's journal closed. The return holds every item exactly as its writer wrote
+it, and a ruling or a triage turns on those exact words, so the transcripts have
+nothing to add.
 
 ## Ruling the return
 
 Triage the return as one list, and make your own call on each item in it. A
 finding the run fixed and the verifier closed needs no call.
 
-Send every call that changes the tree to one fixer in one brief: a finding
-left open, a decision finding ruled to be fixed, and the `deferred` findings
-you choose to fix. A problem one finding names is often written in more
-places than the line it cites, and the items came from one read of the
-change. A fixer given the items one at a time fixes each cited line and
-leaves the other copies of the problem in place.
+Send every call that changes the tree to one fixer in one brief: a finding left
+open, a decision finding ruled to be fixed, and the `deferred` findings you
+choose to fix. A problem one finding names is often written in more places than
+the line it cites, and the items came from one read of the change. A fixer given
+the items one at a time fixes each cited line and leaves the other copies of the
+problem in place.
 
 Defer a finding when it lies outside what the change depends on, or when no
-input that can reach the code triggers it. How long the defect has been in
-the code is no reason to defer it.
+input that can reach the code triggers it. How long the defect has been in the
+code is no reason to defer it.

@@ -14,10 +14,10 @@ With no `config.toml`, nothing is injected.
 
 ## Running it
 
-The hook needs Node 22.6 or newer, or bun on `PATH`, which it prefers when it
-is there. On an older Node with no bun, the user sees one line naming the
-version needed and the version found, and nothing is injected. To force one
-runtime, write `node` or `bun` into a `.runtime` file in the data directory:
+The hook needs Node 22.6 or newer, or bun on `PATH`, which it prefers when it is
+there. On an older Node with no bun, the user sees one line naming the version
+needed and the version found, and nothing is injected. To force one runtime,
+write `node` or `bun` into a `.runtime` file in the data directory:
 
 ```sh
 echo node > "${CLAUDE_PLUGIN_DATA}/.runtime"
@@ -25,20 +25,19 @@ echo node > "${CLAUDE_PLUGIN_DATA}/.runtime"
 
 ## What it does
 
-When a session starts, resumes, is cleared, compacts or forks, and when the
-user switches model, the plugin adds to Claude's context the text of every
+When a session starts, resumes, is cleared, compacts or forks, and when the user
+switches model, the plugin adds to Claude's context the text of every
 configuration row whose key matches the model the session is now on. Every
 matching row is added, in the order the rows are written in the file, so a
-general row and a model-specific row both land. Subagents never get any of
-it.
+general row and a model-specific row both land. Subagents never get any of it.
 
 A row's `on_switch` decides whether it comes back on a model switch: `every`
 adds it on each switch into a matching model, `once` only if it hasn't been
 added in this session yet, and `never` not at all.
 
-When the plugin can't tell which model the session is on, which happens
-right after a clear, it adds nothing until the next start or switch that names
-the model.
+When the plugin can't tell which model the session is on, which happens right
+after a clear, it adds nothing until the next start or switch that names the
+model.
 
 For a "why did it" or "why didn't it" question this doesn't answer, read the
 Operation and limitations and Troubleshooting sections of
@@ -50,17 +49,16 @@ The hook reads one file:
 
     ${CLAUDE_PLUGIN_DATA}/config.toml
 
-That directory survives plugin updates. When the file doesn't exist yet,
-copy the example, which documents every key:
+That directory survives plugin updates. When the file doesn't exist yet, copy
+the example, which documents every key:
 
     cp -n "${CLAUDE_PLUGIN_ROOT}/hooks/config.example.toml" \
       "${CLAUDE_PLUGIN_DATA}/config.toml"
 
-Edit the copy, never the example: a plugin update replaces the example. An
-edit takes effect on the next session start or model switch, with no reload.
-Read the Configuration section of `${CLAUDE_PLUGIN_ROOT}/README.md` before
-writing a row: it lists every key, its type and its default, and how a row
-key is matched.
+Edit the copy, never the example: a plugin update replaces the example. An edit
+takes effect on the next session start or model switch, with no reload. Read the
+Configuration section of `${CLAUDE_PLUGIN_ROOT}/README.md` before writing a row:
+it lists every key, its type and its default, and how a row key is matched.
 
 When you write a row:
 
@@ -72,17 +70,16 @@ When you write a row:
 
 ## When something is wrong
 
-A line starting `model-prompts:` reaches Claude, with an instruction to pass
-it to the user, and nothing is injected while it stands:
+A line starting `model-prompts:` reaches Claude, with an instruction to pass it
+to the user, and nothing is injected while it stands:
 
-- `parser error`: the TOML parser is missing from the plugin's cache
-  directory.
+- `parser error`: the TOML parser is missing from the plugin's cache directory.
 - `config error`: the line names a file that can't be read, parsed or used.
 - `internal error`: a fault in the plugin itself, with nothing in the
   configuration to fix.
 
-The line comes back on every session start and model switch until the fault
-is fixed.
+The line comes back on every session start and model switch until the fault is
+fixed.
 
 ## Checking a change
 
@@ -97,8 +94,8 @@ For a model switch, use this input instead:
 
     {"session_id":"check","hook_event_name":"PostModelSwitch","to_model":"claude-opus-5"}
 
-It prints the text it would add, the error line, or nothing when no row
-matches. Both checks share the session `check`, so a `once` row the first
-check added is left out of the second, as it would be in a real session.
-Delete `claude-model-prompts/check.json` from the OS temp directory between
-checks to see each on its own, and afterwards.
+It prints the text it would add, the error line, or nothing when no row matches.
+Both checks share the session `check`, so a `once` row the first check added is
+left out of the second, as it would be in a real session. Delete
+`claude-model-prompts/check.json` from the OS temp directory between checks to
+see each on its own, and afterwards.

@@ -14,22 +14,23 @@
   https://doc.rust-lang.org/std/ffi/struct.CStr.html#method.to_string_lossy
 - Return-position `impl Trait`:
   https://doc.rust-lang.org/reference/types/impl-trait.html#abstract-return-types
-- clippy: `ptr_arg`, `needless_pass_by_value`, `redundant_clone`, `borrowed_box`:
+- clippy: `ptr_arg`, `needless_pass_by_value`, `redundant_clone`,
+  `borrowed_box`:
   https://rust-lang.github.io/rust-clippy/master/index.html#ptr_arg
 - The Rust Book on `Rc`, `RefCell`, and shared-state concurrency:
   https://doc.rust-lang.org/book/ch15-04-rc.html
 
 ## rust-conversions.md
 
-- Rust API Guidelines, checklist (C-CTOR, C-CONV, C-CONV-TRAITS, C-COMMON-TRAITS,
-  C-DEREF): https://rust-lang.github.io/api-guidelines/checklist.html
+- Rust API Guidelines, checklist (C-CTOR, C-CONV, C-CONV-TRAITS,
+  C-COMMON-TRAITS, C-DEREF):
+  https://rust-lang.github.io/api-guidelines/checklist.html
 - C-CTOR (constructors are static inherent methods):
   https://rust-lang.github.io/api-guidelines/predictability.html#constructors-are-static-inherent-methods-c-ctor
 - `From` (when to implement; reflexive; `?`):
   https://doc.rust-lang.org/std/convert/trait.From.html
 - `TryFrom`: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
-- `FromStr` / `str::parse`:
-  https://doc.rust-lang.org/std/str/trait.FromStr.html
+- `FromStr` / `str::parse`: https://doc.rust-lang.org/std/str/trait.FromStr.html
 - `Default`: https://doc.rust-lang.org/std/default/trait.Default.html
 - `AsRef` / `Borrow` / `ToOwned` / `Cow`:
   https://doc.rust-lang.org/std/convert/trait.AsRef.html
@@ -47,7 +48,8 @@
 - The error-handling project group on `source()` versus `Display`, and
   maintainers' reports of causes lost at `{}` print sites:
   https://github.com/rust-lang/project-error-handling/issues/27
-- Rust API Guidelines, C-GOOD-ERR (public errors implement `Error + Send + Sync`):
+- Rust API Guidelines, C-GOOD-ERR (public errors implement
+  `Error + Send + Sync`):
   https://rust-lang.github.io/api-guidelines/interoperability.html
 - `#[non_exhaustive]` (RFC 2008):
   https://rust-lang.github.io/rfcs/2008-non-exhaustive.html
@@ -65,7 +67,8 @@
 - Rust API Guidelines, type safety (C-NEWTYPE, C-CUSTOM-TYPE):
   https://rust-lang.github.io/api-guidelines/type-safety.html
 - Rust API Guidelines, future-proofing (C-SEALED, C-NEWTYPE-HIDE,
-  C-STRUCT-PRIVATE): https://rust-lang.github.io/api-guidelines/future-proofing.html
+  C-STRUCT-PRIVATE):
+  https://rust-lang.github.io/api-guidelines/future-proofing.html
 - `std::num::NonZero`: https://doc.rust-lang.org/std/num/struct.NonZero.html
 - Embedded Rust Book, GPIO typestate:
   https://doc.rust-lang.org/stable/embedded-book/design-patterns/hal/gpio.html
@@ -83,8 +86,8 @@
 
 ## rust-organization.md
 
-- The Rust Reference, visibility and privacy (a private item is visible in
-  its module and that module's descendants):
+- The Rust Reference, visibility and privacy (a private item is visible in its
+  module and that module's descendants):
   https://doc.rust-lang.org/reference/visibility-and-privacy.html
 - The Rust Reference, module source filenames (`mod.rs` and the named-file
   layout):
@@ -100,11 +103,14 @@
   https://doc.rust-lang.org/book/ch20-03-advanced-types.html
 - Rust Book, Advanced Traits (orphan rule, newtype workaround):
   https://doc.rust-lang.org/book/ch20-02-advanced-traits.html
-- `Duration` / `Instant`: https://doc.rust-lang.org/std/time/struct.Duration.html
-- `Path` / `IpAddr` / `char`: https://doc.rust-lang.org/std/path/struct.Path.html
+- `Duration` / `Instant`:
+  https://doc.rust-lang.org/std/time/struct.Duration.html
+- `Path` / `IpAddr` / `char`:
+  https://doc.rust-lang.org/std/path/struct.Path.html
 - `derive_more`: https://docs.rs/derive_more/latest/derive_more/
 - `nutype`: https://docs.rs/nutype/latest/nutype/
-- Serde container attributes (`transparent`): https://serde.rs/container-attrs.html
+- Serde container attributes (`transparent`):
+  https://serde.rs/container-attrs.html
 - `uuid::Uuid`: https://docs.rs/uuid/latest/uuid/struct.Uuid.html
 
 ## dart-api-boundaries.md
@@ -147,10 +153,8 @@
   https://dart.dev/effective-dart/design
 - Effective Dart, Usage (`List.from` against `toList`):
   https://dart.dev/effective-dart/usage
-- `int.parse` / `int.tryParse`:
-  https://api.dart.dev/dart-core/int/parse.html
-- `FormatException`:
-  https://api.dart.dev/dart-core/FormatException-class.html
+- `int.parse` / `int.tryParse`: https://api.dart.dev/dart-core/int/parse.html
+- `FormatException`: https://api.dart.dev/dart-core/FormatException-class.html
 - `Object.toString`, `Object.==`, `Object.hashCode`, `Object.hash`:
   https://api.dart.dev/dart-core/Object-class.html
 - `Comparable`: https://api.dart.dev/dart-core/Comparable-class.html
@@ -159,10 +163,8 @@
 - dart:core tour (iteration, building hash codes):
   https://dart.dev/libraries/dart-core
 - `Iterable`: https://api.dart.dev/dart-core/Iterable-class.html
-- `Converter` / `Codec`:
-  https://api.dart.dev/dart-convert/Converter-class.html
-- `jsonEncode` and `toJson`:
-  https://api.dart.dev/dart-convert/jsonEncode.html
+- `Converter` / `Codec`: https://api.dart.dev/dart-convert/Converter-class.html
+- `jsonEncode` and `toJson`: https://api.dart.dev/dart-convert/jsonEncode.html
 - Flutter documentation, JSON serialization (`fromJson`, `toJson`):
   https://docs.flutter.dev/data-and-backend/serialization/json
 - `Socket.connect` (static asynchronous construction):
@@ -184,8 +186,7 @@
   https://dart.dev/effective-dart/documentation
 - Language, error handling (unchecked exceptions, `on`, `rethrow`, `assert`):
   https://dart.dev/language/error-handling
-- dart:core tour, exceptions:
-  https://dart.dev/libraries/dart-core#exceptions
+- dart:core tour, exceptions: https://dart.dev/libraries/dart-core#exceptions
 - `Exception`: https://api.dart.dev/dart-core/Exception-class.html
 - `Error`, `Error.throwWithStackTrace`:
   https://api.dart.dev/dart-core/Error-class.html
@@ -199,15 +200,14 @@
   https://docs.flutter.dev/app-architecture/design-patterns/result
 - Linter rules (`avoid_catches_without_on_clauses`, `avoid_catching_errors`,
   `only_throw_errors`, `use_rethrow_when_possible`, `empty_catches`,
-  `avoid_void_async`, `unawaited_futures`):
-  https://dart.dev/tools/linter-rules
+  `avoid_void_async`, `unawaited_futures`): https://dart.dev/tools/linter-rules
 
 ## dart-invalid-states.md
 
 - Language, class modifiers (`sealed`, `final`, `base`):
   https://dart.dev/language/class-modifiers
-- Class modifiers for API maintainers (no transitive restriction, sealed
-  against final): https://dart.dev/language/class-modifiers-for-apis
+- Class modifiers for API maintainers (no transitive restriction, sealed against
+  final): https://dart.dev/language/class-modifiers-for-apis
 - Class modifiers specification (guaranteed initialization):
   https://github.com/dart-lang/language/blob/main/accepted/3.0/class-modifiers/feature-specification.md
 - Language, branches (exhaustiveness checking):
@@ -229,8 +229,7 @@
   https://dart.dev/effective-dart/usage
 - Language, extension types (an unsafe abstraction):
   https://dart.dev/language/extension-types#type-considerations
-- Language, records (structural typing):
-  https://dart.dev/language/records
+- Language, records (structural typing): https://dart.dev/language/records
 - Dart language specification (constant constructors' initializer lists):
   https://github.com/dart-lang/language/blob/main/specification/dartLangSpec.tex
 - Diagnostic `invalid_modifier_on_constructor` (asynchronous construction):
@@ -259,8 +258,8 @@
   https://github.com/dart-lang/language/blob/main/specification/dartLangSpec.tex
 - Iterables tutorial (`toList` once, `elementAt`, `last`):
   https://dart.dev/libraries/collections/iterables
-- Effective Dart, Usage (`isEmpty`, `forEach`, `List.from`, `whereType`,
-  `cast`, collection literals): https://dart.dev/effective-dart/usage
+- Effective Dart, Usage (`isEmpty`, `forEach`, `List.from`, `whereType`, `cast`,
+  collection literals): https://dart.dev/effective-dart/usage
 - Effective Dart, Design (O(n) getters, `to___`/`as___`, empty returns):
   https://dart.dev/effective-dart/design
 - Flutter framework repository style guide (generators against returning a
@@ -294,8 +293,7 @@
   `indexed`): https://api.dart.dev/dart-collection/IterableExtensions.html
 - `package:collection` `IterableExtension` (`firstWhereOrNull`, `sorted`):
   https://pub.dev/documentation/collection/latest/collection/IterableExtension.html
-- `int.parse` / `int.tryParse`:
-  https://api.dart.dev/dart-core/int/parse.html
+- `int.parse` / `int.tryParse`: https://api.dart.dev/dart-core/int/parse.html
 - Linter rules (`camel_case_types`, `camel_case_extensions`,
   `non_constant_identifier_names`, `constant_identifier_names`, `file_names`,
   `package_names`, `library_prefixes`, `unnecessary_getters_setters`,
@@ -314,10 +312,11 @@
 - Package layout: https://dart.dev/tools/pub/package-layout
 - Effective Dart, Style (file names, imports):
   https://dart.dev/effective-dart/style
-- Effective Dart, Usage, libraries (`part of`, `src` imports, relative
-  imports): https://dart.dev/effective-dart/usage#libraries
+- Effective Dart, Usage, libraries (`part of`, `src` imports, relative imports):
+  https://dart.dev/effective-dart/usage#libraries
 - Effective Dart, Design, libraries (private declarations, friend classes,
-  static-only classes, library names): https://dart.dev/effective-dart/design#libraries
+  static-only classes, library names):
+  https://dart.dev/effective-dart/design#libraries
 - Language, class modifiers (same-library rules):
   https://dart.dev/language/class-modifiers
 - `package:meta` (`@internal`, `@visibleForTesting`):
@@ -338,8 +337,7 @@
 
 ## dart-semantic-types.md
 
-- Language, extension types:
-  https://dart.dev/language/extension-types
+- Language, extension types: https://dart.dev/language/extension-types
 - Extension types specification (`Object` members, `dynamic` assignability,
   casts that bypass constructors):
   https://github.com/dart-lang/language/blob/main/accepted/3.3/extension-types/feature-specification.md
@@ -357,8 +355,7 @@
 - dart:core tour, dates and times:
   https://dart.dev/libraries/dart-core#dates-and-times
 - `Uri`: https://api.dart.dev/dart-core/Uri-class.html
-- `InternetAddress`:
-  https://api.dart.dev/dart-io/InternetAddress-class.html
+- `InternetAddress`: https://api.dart.dev/dart-io/InternetAddress-class.html
 - `String`: https://api.dart.dev/dart-core/String-class.html
 - `BigInt`: https://api.dart.dev/dart-core/BigInt-class.html
 - `package:path`, why paths are strings: https://pub.dev/packages/path

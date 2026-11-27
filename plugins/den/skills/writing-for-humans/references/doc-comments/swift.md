@@ -1,8 +1,8 @@
 # Doc comments: Swift
 
-This file covers where Swift differs from `doc-comments.md`. The four slots,
-the summary test, and the rule that a doc states the contract and not how the
-body works all still apply.
+This file covers where Swift differs from `doc-comments.md`. The four slots, the
+summary test, and the rule that a doc states the contract and not how the body
+works all still apply.
 
 ## The summary is a fragment
 

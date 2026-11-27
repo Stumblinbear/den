@@ -33,11 +33,11 @@ tests unless the brief explicitly names another surface.
 # Messages that cannot be translated naturally
 
 Localize every message in scope that can be translated naturally. When a
-message's boundary, arguments, selectors or markup contract rules out a
-natural translation, a nested value the target grammar must inflect among
-them, leave that message untranslated and carry on with the rest. Report
-every such message: what blocks it, and the smallest design change that
-would unblock it. Do not redesign the API yourself.
+message's boundary, arguments, selectors or markup contract rules out a natural
+translation, a nested value the target grammar must inflect among them, leave
+that message untranslated and carry on with the rest. Report every such message:
+what blocks it, and the smallest design change that would unblock it. Do not
+redesign the API yourself.
 
 # Verification and report
 

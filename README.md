@@ -1,7 +1,7 @@
 # den
 
-A Claude Code plugin marketplace. Three plugins live under `plugins/`, each
-with its own version, changelog, README and release tag.
+A Claude Code plugin marketplace. Three plugins live under `plugins/`, each with
+its own version, changelog, README and release tag.
 
 - [`den`](plugins/den): a gated agent workflow. Standing agents do the
   production work, every launch is authorized on its own, and two hooks remind
@@ -11,9 +11,9 @@ with its own version, changelog, README and release tag.
   `/compact` before auto-compact picks the moment itself, and guards against
   resuming a large or cold subagent. Needs Node 22.6 or newer, and a
   configuration file before it does anything.
-- [`model-prompts`](plugins/model-prompts): injects the prompts you have
-  written for a model whenever that model becomes the one in use. Needs Node
-  22.6 or newer, and a configuration file before it does anything.
+- [`model-prompts`](plugins/model-prompts): injects the prompts you have written
+  for a model whenever that model becomes the one in use. Needs Node 22.6 or
+  newer, and a configuration file before it does anything.
 
 Each plugin's README covers what it does on your machine, how to configure it,
 and how to troubleshoot it.
@@ -35,15 +35,15 @@ asks for it.
 ## Repository structure
 
 - `plugins/<name>/`: one plugin, with its own manifest, changelog, README,
-  dependencies and tests. `hooks/` holds `hooks.json`, the entry points it
-  runs and the example configuration; `lib/` holds the plugin's own modules,
-  and `lib/shared/` the copy of the sources below. What Claude Code installs
-  imports nothing from outside the plugin directory; only the tests reach
-  out, to the shared harness.
-- `lib/`: the sources every plugin shares, including the launcher that picks
-  an interpreter, the reader for what Claude Code writes on a hook's stdin,
-  and the configuration loader. Each plugin carries a committed copy under its
-  own `lib/shared/`.
+  dependencies and tests. `hooks/` holds `hooks.json`, the entry points it runs
+  and the example configuration; `lib/` holds the plugin's own modules, and
+  `lib/shared/` the copy of the sources below. What Claude Code installs imports
+  nothing from outside the plugin directory; only the tests reach out, to the
+  shared harness.
+- `lib/`: the sources every plugin shares, including the launcher that picks an
+  interpreter, the reader for what Claude Code writes on a hook's stdin, and the
+  configuration loader. Each plugin carries a committed copy under its own
+  `lib/shared/`.
 - `scripts/`: the copy that keeps those in step, the script that writes the
   effort variants of den's implementer, and the root install step that points
   git at the tracked hooks and installs each plugin's dependencies.
@@ -68,13 +68,13 @@ npm run plugin-refresh -- <plugin> # copy the checkout over the installed copy
 ```
 
 An installed plugin is a copy under Claude Code's plugin cache, keyed by
-version, so an edit reaches it only by being copied there: `claude plugin
-update` does nothing while the version stands, and `claude plugin uninstall`
-deletes the plugin's data directory with your configuration in it. Run the
-refresh script, then `/reload-plugins`.
+version, so an edit reaches it only by being copied there:
+`claude plugin update` does nothing while the version stands, and
+`claude plugin uninstall` deletes the plugin's data directory with your
+configuration in it. Run the refresh script, then `/reload-plugins`.
 
-The toolchain wants **Node 22.6 or newer**, and CI runs the tests on that
-floor as well as on the current release, under both bun and Node.
+The toolchain wants **Node 22.6 or newer**, and CI runs the tests on that floor
+as well as on the current release, under both bun and Node.
 
 After editing anything in `lib/`, run `npm run plugin-lib`. `npm run check`
 fails and names any copy that has drifted, and any file in a plugin's
@@ -82,46 +82,45 @@ fails and names any copy that has drifted, and any file in a plugin's
 
 den's `implementer-low` and `implementer-high` agents are
 `plugins/den/agents/implementer.md` with the name, the effort level and the
-description's closing clause changed, since an agent definition sets one
-effort level and can include nothing. After editing `implementer.md`, run
+description's closing clause changed, since an agent definition sets one effort
+level and can include nothing. After editing `implementer.md`, run
 `npm run agent-variants`. `npm run check` fails and names a variant that has
 drifted, and an `implementer-*.md` the script does not write.
 
-`npm install` also points `core.hooksPath` at `.githooks`, so `git commit`
-runs `biome check --staged`, `tsc --noEmit` and the two copy checks before it
-lands. The hook only checks. Fix a failure with `npm run fix`,
-`npm run plugin-lib` or `npm run agent-variants` and stage the result. Two
-things to know about it:
+`npm install` also points `core.hooksPath` at `.githooks`, so `git commit` runs
+`biome check --staged`, `tsc --noEmit` and the two copy checks before it lands.
+The hook only checks. Fix a failure with `npm run fix`, `npm run plugin-lib` or
+`npm run agent-variants` and stage the result. Two things to know about it:
 
 - `--staged` checks the on-disk content of every staged file, so a partially
-  staged file is judged by what is in the working tree, not by what is about
-  to be committed.
-- A GUI git client that runs hooks without `node` on `PATH` fails the hook
-  with a message saying so. Commit from a shell that has it.
+  staged file is judged by what is in the working tree, not by what is about to
+  be committed.
+- A GUI git client that runs hooks without `node` on `PATH` fails the hook with
+  a message saying so. Commit from a shell that has it.
 
 Biome runs its recommended preset plus a few rules chosen one at a time;
 `biome.jsonc` carries the reason for each beside it.
 
 ## Releasing
 
-Releases are cut by the `Release` GitHub Actions workflow. Nothing is bumped
-or tagged by hand. The `version` field in `plugin.json` is the update trigger
-for installed users, so work on `master` freely and release deliberately. The
+Releases are cut by the `Release` GitHub Actions workflow. Nothing is bumped or
+tagged by hand. The `version` field in `plugin.json` is the update trigger for
+installed users, so work on `master` freely and release deliberately. The
 workflow releases one plugin per run.
 
 1. Add each notable change to the `Unreleased` section of that plugin's
-   `plugins/<plugin>/CHANGELOG.md` as you go. The workflow refuses to release
-   an empty section.
+   `plugins/<plugin>/CHANGELOG.md` as you go. The workflow refuses to release an
+   empty section.
 2. Run the workflow from the Actions tab, picking the plugin from the dropdown
    and typing the version to release.
 3. The workflow validates `master`, runs `.github/scripts/prepare-release.mts`
-   to bump that plugin's `plugin.json` and date its changelog section,
-   validates the result again, and only then pushes `Release <plugin> x.y.z`
-   to `master`, pushes the `<plugin>--vx.y.z` tag, and publishes a GitHub
-   release with that section as its notes. A failure at any check leaves
-   `master` and the tags untouched. If a run fails after the push, rerun it
-   with `version` set to that same version: the script recognizes the bump is
-   already in place, and the remaining steps skip whatever already exists.
+   to bump that plugin's `plugin.json` and date its changelog section, validates
+   the result again, and only then pushes `Release <plugin> x.y.z` to `master`,
+   pushes the `<plugin>--vx.y.z` tag, and publishes a GitHub release with that
+   section as its notes. A failure at any check leaves `master` and the tags
+   untouched. If a run fails after the push, rerun it with `version` set to that
+   same version: the script recognizes the bump is already in place, and the
+   remaining steps skip whatever already exists.
 4. On an installed machine, `/plugin marketplace update den` then
    `/plugin update <plugin>@den` picks it up.
 
@@ -132,6 +131,6 @@ added to the `Unreleased` section of the plugin's changelog.
 
 ## License
 
-Licensed under either of the Apache License, Version 2.0 (`LICENSE-APACHE`)
-or the MIT license (`LICENSE-MIT`), at your option. A contribution you submit
-for inclusion is licensed the same way, without further terms.
+Licensed under either of the Apache License, Version 2.0 (`LICENSE-APACHE`) or
+the MIT license (`LICENSE-MIT`), at your option. A contribution you submit for
+inclusion is licensed the same way, without further terms.

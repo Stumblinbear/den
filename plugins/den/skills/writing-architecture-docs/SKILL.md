@@ -9,26 +9,26 @@ user-invocable: false
 # Writing architecture docs
 
 An ARCHITECTURE.md is a map of the codebase. A newcomer reads it once before
-touching the code, and regular contributors come back to it. They keep
-reading it only while it stays short and true. So a line belongs in it only
-when the code can't tell a reader the same thing quickly, and the next
-ordinary commit won't make it false. Everything else goes in the code, its doc
-comments, or a separate document. Write its prose by `den:writing-for-humans`.
+touching the code, and regular contributors come back to it. They keep reading
+it only while it stays short and true. So a line belongs in it only when the
+code can't tell a reader the same thing quickly, and the next ordinary commit
+won't make it false. Everything else goes in the code, its doc comments, or a
+separate document. Write its prose by `den:writing-for-humans`.
 
 ## What it holds
 
 Four parts, in this order:
 
-1. **Bird's eye view.** One or two paragraphs on the problem the project
-   solves, what goes into it and what comes out. Also say anything a reader
-   would otherwise assume wrongly. For example, when a service only reads a
-   data store that another system writes, say so, since a reader would assume
-   the service writes it too.
+1. **Bird's eye view.** One or two paragraphs on the problem the project solves,
+   what goes into it and what comes out. Also say anything a reader would
+   otherwise assume wrongly. For example, when a service only reads a data store
+   that another system writes, say so, since a reader would assume the service
+   writes it too.
 2. **Codemap.** The main modules and how they relate, in one or two lines per
-   module. Those lines answer two questions: where is the thing that does X,
-   and what does the thing I'm looking at do? List only the main modules, not
-   the modules and files inside them. If the code is built in layers, a small
-   text diagram of the layers helps.
+   module. Those lines answer two questions: where is the thing that does X, and
+   what does the thing I'm looking at do? List only the main modules, not the
+   modules and files inside them. If the code is built in layers, a small text
+   diagram of the layers helps.
 3. **Invariants and boundaries.** The rules the structure depends on. The ones
    that matter most here are the ones a reader can't see by reading the code,
    often because they say that something never happens:
@@ -38,15 +38,15 @@ Four parts, in this order:
      together;
    - what fails at startup instead of on each request.
 
-   A boundary belongs here, and the implementations behind it don't, because
-   the boundary constrains every one of them.
+   A boundary belongs here, and the implementations behind it don't, because the
+   boundary constrains every one of them.
 4. **Cross-cutting concerns.** Error handling, configuration, testing and
    observability. Give each a short paragraph on how it works across the
    codebase, and on the one thing a contributor would otherwise get wrong.
 
-For a project small enough that each concern is one module, the document fits
-in 60 to 100 lines. When it needs more than that, split it into separate
-documents by concern instead of growing the one file.
+For a project small enough that each concern is one module, the document fits in
+60 to 100 lines. When it needs more than that, split it into separate documents
+by concern instead of growing the one file.
 
 ## What it leaves out
 
@@ -60,13 +60,12 @@ A sentence that fails either one goes somewhere else:
 
 - How a module works inside, its step-by-step flows and its algorithms go in
   that module's doc comments.
-- Pasted code, full signatures, route tables and lists of config fields stay
-  in the code and its generated docs, which can't fall out of date with the
-  code.
-- Recipes, such as how to add a new endpoint, go in a contributing guide, if
-  the project wants one.
-- Current bugs and lists of defects go in the issue tracker. A line about a
-  bug becomes false as soon as the bug is fixed.
+- Pasted code, full signatures, route tables and lists of config fields stay in
+  the code and its generated docs, which can't fall out of date with the code.
+- Recipes, such as how to add a new endpoint, go in a contributing guide, if the
+  project wants one.
+- Current bugs and lists of defects go in the issue tracker. A line about a bug
+  becomes false as soon as the bug is fixed.
 - History, such as the refactor that gave the code its shape or who decided
   what, goes in commit messages and decision records. The reason behind an
   invariant that holds today stays, written in the present tense.

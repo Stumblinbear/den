@@ -11,78 +11,75 @@ minor bump may change behavior.
 - Autonomy mode: `/den:autonomy-start` lets the session carry on without you,
   making its own decisions, launches and commits and recording each for your
   review, until `/den:autonomy-stop` hands them back with a report of the run.
-- `translating-messages`, loaded by `localizer` and `localization-reviewer`:
-  a message is translated for the job it does where it is shown, read with
-  the messages beside it and those that name the same thing, and to the limits
-  the project states or a check shows, a suspected limit being reported
-  rather than worded around; a message about a domain the project does not own uses
-  that domain's own terms, looked up in its localization and then on the web;
-  and the project glossary is followed, each entry for the thing it describes
-  rather than every use of its English word, with an entry proposed for a
-  term it lacks. Where the domain owner translates the string or a term in it, its
-  text is the one to use, even where the community writes it differently; a
-  term it has no translation for is put in ordinary words of the language
-  rather than the borrowed English. `localizer` gains web search to look
-  those terms up.
+- `translating-messages`, loaded by `localizer` and `localization-reviewer`: a
+  message is translated for the job it does where it is shown, read with the
+  messages beside it and those that name the same thing, and to the limits the
+  project states or a check shows, a suspected limit being reported rather than
+  worded around; a message about a domain the project does not own uses that
+  domain's own terms, looked up in its localization and then on the web; and the
+  project glossary is followed, each entry for the thing it describes rather
+  than every use of its English word, with an entry proposed for a term it
+  lacks. Where the domain owner translates the string or a term in it, its text
+  is the one to use, even where the community writes it differently; a term it
+  has no translation for is put in ordinary words of the language rather than
+  the borrowed English. `localizer` gains web search to look those terms up.
 - A `using-a-database` skill, which helps Claude use databases properly.
 - `writing-for-humans` has a reference for changelog entries.
 
 ### Changed
-- The quality reviewer flags a mechanism built from scratch for a problem
-  that's already solved, and recommends a prior-art check.
-- `writing-a-skill` asks a configure skill for what each feature does, not
-  how it works.
+- The quality reviewer flags a mechanism built from scratch for a problem that's
+  already solved, and recommends a prior-art check.
+- `writing-a-skill` asks a configure skill for what each feature does, not how
+  it works.
 - `code-architecture` has Claude decide which module a file belongs in before
-  creating it, and group files of one kind into a module as soon as there
-  are two, instead of leaving them loose beside each other.
+  creating it, and group files of one kind into a module as soon as there are
+  two, instead of leaving them loose beside each other.
 - `code-architecture` no longer asks for a mechanism to keep two copies of a
   value in step across files or languages.
 - Every skill is written in plain language, and `writing-for-agents` and
   `writing-for-humans` tell Claude to write that way too.
-- `lead` fixes a defect without asking when the fix stays within the
-  decisions already made for the plan, and makes a reversal itself when only
-  one option is left, telling you in a line.
+- `lead` fixes a defect without asking when the fix stays within the decisions
+  already made for the plan, and makes a reversal itself when only one option is
+  left, telling you in a line.
 - `lead` keeps working on steps your question doesn't affect while it answers
   you.
-- `lead` tells you how many more tasks still have questions for you, and says
-  so when it's launching before its next question.
+- `lead` tells you how many more tasks still have questions for you, and says so
+  when it's launching before its next question.
 - `lead` and `quality-bar` no longer treat a value both sides of an interface
   share, such as a route, as a copy to keep in sync.
-- `lead` checks prior art only for a mechanism it would otherwise design
-  itself, not for a well-known technique.
+- `lead` checks prior art only for a mechanism it would otherwise design itself,
+  not for a well-known technique.
 - `lead` picks each review's model for the change at hand, not the model the
   last review used.
 - `planning` deletes the plan file, and the task's temporary files and
   worktrees, when the last step lands.
 - `project-direction` follows `direction-docs` for everything it records.
-- `lead` checks prior art before choosing a mechanism that has been solved
-  many times, a rule that had lived in a user's CLAUDE.md.
+- `lead` checks prior art before choosing a mechanism that has been solved many
+  times, a rule that had lived in a user's CLAUDE.md.
 - `lead` consults the advisor, where the tool is available, before taking a
   problem to the user, and weighs its answer as it weighs an implementer's
   proposal. A choice the answer leaves plainly correct is the lead's to make.
 - `reviewing-own-work` searches the finished change for what its edits left
-  behind: the old term of each rename, removal, merge or changed guarantee,
-  and what stands beside each hit. Its one line, to review against
-  `quality-bar` and `code-architecture`, prompted no search, and leftovers
-  of a rename came back in review after review.
+  behind: the old term of each rename, removal, merge or changed guarantee, and
+  what stands beside each hit. Its one line, to review against `quality-bar` and
+  `code-architecture`, prompted no search, and leftovers of a rename came back
+  in review after review.
 - Implementers and the finding fixer read the definition of everything they
-  newly call, and when a change alters what a type or function guarantees,
-  every caller and reader of it, and handle what each one now gets as they
-  write.
+  newly call, and when a change alters what a type or function guarantees, every
+  caller and reader of it, and handle what each one now gets as they write.
 - Implementers read a new name's or shape's siblings before writing it, and
   search for the place that already holds a value, rule, helper or type.
-- `localization-reviewer` fixes the translated text in place, where it had
-  only reported, and marks each edit sure or unsure. Source, code and design
-  findings are still reported, not edited. Only a choice between wordings with
-  the same meaning is left as taste; a wording that can be taken the wrong way
-  is fixed.
+- `localization-reviewer` fixes the translated text in place, where it had only
+  reported, and marks each edit sure or unsure. Source, code and design findings
+  are still reported, not edited. Only a choice between wordings with the same
+  meaning is left as taste; a wording that can be taken the wrong way is fixed.
 - `localizer`, `localization-reviewer` and `translating-messages` no longer
-  mention a native reviewer. Writing for one turned a run's ordinary
-  judgement calls into a list for a human to check.
+  mention a native reviewer. Writing for one turned a run's ordinary judgement
+  calls into a list for a human to check.
 
 ### Removed
-- `scoping`. `lead` settles a task's open choices with you itself, and now
-  holds the rules on what's yours to decide.
+- `scoping`. `lead` settles a task's open choices with you itself, and now holds
+  the rules on what's yours to decide.
 
 ### Fixed
 - `review-and-fix` describes what its run returns correctly.
@@ -94,96 +91,92 @@ minor bump may change behavior.
 
 ### Added
 - `code-architecture`'s Rust API boundaries reference orders a function's
-  parameters as std and the widely used crates do: the value before its
-  context, a closure last, a written stream before the value.
+  parameters as std and the widely used crates do: the value before its context,
+  a closure last, a written stream before the value.
 - A `finding-fixer` agent that fixes a review's findings inside a
   `review-and-fix` run. The run's fix passes launch it in place of
   `implementer`, and its brief is the goal, the scope, the findings and the
-  decisions already made: what a fixer does with them is in its definition.
-  It keeps its change as wide as the findings, and it makes and declares
-  every choice a finding leaves open, since the run has no route back to the
-  session.
+  decisions already made: what a fixer does with them is in its definition. It
+  keeps its change as wide as the findings, and it makes and declares every
+  choice a finding leaves open, since the run has no route back to the session.
 
 ### Changed
-- The comment reviewer rewrites a tell, or a riddle, in plain words: what
-  the code does, using the names in the code. Told to rewrite a tell "as the
-  claim it hides", it had been swapping the flagged word for a vaguer one.
+- The comment reviewer rewrites a tell, or a riddle, in plain words: what the
+  code does, using the names in the code. Told to rewrite a tell "as the claim
+  it hides", it had been swapping the flagged word for a vaguer one.
 - The reviewer runs at `high` effort, down from `xhigh`.
-- Implementers are told the codebase is theirs and that how it is built is
-  their call. The rules to edit surgically, and to keep adjacent refactoring
-  and unrelated cleanup out of a change, are gone.
-- `writing-for-agents` calibrates for Fable 5.2 in place of Fable 5.1:
-  effort, early stops, approval rules, an exception written into the rule it
-  lifts, cautions that build up, ownership wording, delegation, hard style
-  limits, token budgets in the prompt, and updates and reports.
+- Implementers are told the codebase is theirs and that how it is built is their
+  call. The rules to edit surgically, and to keep adjacent refactoring and
+  unrelated cleanup out of a change, are gone.
+- `writing-for-agents` calibrates for Fable 5.2 in place of Fable 5.1: effort,
+  early stops, approval rules, an exception written into the rule it lifts,
+  cautions that build up, ownership wording, delegation, hard style limits,
+  token budgets in the prompt, and updates and reports.
 - `writing-for-agents` triggers on a file an agent will follow, a skill among
   them, and no longer on a launch prompt for a subagent.
-- The `reviewer`, `quality-reviewer`, `closure-verifier` and
-  `comment-reviewer` descriptions are one line each, naming the workflow that
-  launches the agent. What each is handed is set by its workflow.
-- The surveyor's description and the lead's routing line say what a survey
-  is: finding where a named thing is and what the code there says. Working
-  out what follows from that code is derivation, and neither text offers the
-  surveyor for it any longer.
+- The `reviewer`, `quality-reviewer`, `closure-verifier` and `comment-reviewer`
+  descriptions are one line each, naming the workflow that launches the agent.
+  What each is handed is set by its workflow.
+- The surveyor's description and the lead's routing line say what a survey is:
+  finding where a named thing is and what the code there says. Working out what
+  follows from that code is derivation, and neither text offers the surveyor for
+  it any longer.
 - The quality reviewer now preloads `quality-bar`.
-- `quality-bar`'s `when_to_use` now triggers on planning a change only, and
-  its description no longer names leads, implementers and reviewers. The
-  trigger dropped "reviewing a change" and "receiving a change from an
-  agent", which had the bug reviewer loading the skill on each run.
-- The lead's brief for a plan step is the plan's path, the step number and
-  where the work runs. The plan holds the goal, the outcome, the decisions
-  and the scope, and a standing agent's definition its stop rules and report
-  format, so the brief restates none of them. The "why, outcome, latitude,
-  boundaries" list is kept for work with no plan.
-- The implementers leave their change in the tree uncommitted: the commit is
-  the lead's to propose to the user.
-- The implementers and the finding fixer scope their build, test and lint
-  runs to the packages they touched; the lead runs them over the whole
-  repository once, before proposing a commit.
-- The doc-comment reference is half its length, in plain sentences. A
-  behavior is contract when the body could not change it without breaking a
-  correct caller; a promise is stated once at the caller's altitude, never as
-  the list of what it entails; a default any caller assumes is left unsaid;
-  a borderline sentence is cut. It lists what a doc never holds, keeps the
-  rustdoc allowances (what an item is for, usage examples at a crate root),
-  and shows every example with its signature.
-- The tells are a section of `writing-for-humans` itself, and only the ones
-  seen in our own text: `where` as a condition, `name` as a verb, the pointer
-  in place of the claim, the tail carrying a second claim, the colon standing
-  in for a verb, the noun doing a verb's work, the relation verb, the
-  participial tail, the explained absence and the em dash. The grep line
-  matches them. A pattern goes in when it is seen and comes out when it stops
-  appearing.
+- `quality-bar`'s `when_to_use` now triggers on planning a change only, and its
+  description no longer names leads, implementers and reviewers. The trigger
+  dropped "reviewing a change" and "receiving a change from an agent", which had
+  the bug reviewer loading the skill on each run.
+- The lead's brief for a plan step is the plan's path, the step number and where
+  the work runs. The plan holds the goal, the outcome, the decisions and the
+  scope, and a standing agent's definition its stop rules and report format, so
+  the brief restates none of them. The "why, outcome, latitude, boundaries" list
+  is kept for work with no plan.
+- The implementers leave their change in the tree uncommitted: the commit is the
+  lead's to propose to the user.
+- The implementers and the finding fixer scope their build, test and lint runs
+  to the packages they touched; the lead runs them over the whole repository
+  once, before proposing a commit.
+- The doc-comment reference is half its length, in plain sentences. A behavior
+  is contract when the body could not change it without breaking a correct
+  caller; a promise is stated once at the caller's altitude, never as the list
+  of what it entails; a default any caller assumes is left unsaid; a borderline
+  sentence is cut. It lists what a doc never holds, keeps the rustdoc allowances
+  (what an item is for, usage examples at a crate root), and shows every example
+  with its signature.
+- The tells are a section of `writing-for-humans` itself, and only the ones seen
+  in our own text: `where` as a condition, `name` as a verb, the pointer in
+  place of the claim, the tail carrying a second claim, the colon standing in
+  for a verb, the noun doing a verb's work, the relation verb, the participial
+  tail, the explained absence and the em dash. The grep line matches them. A
+  pattern goes in when it is seen and comes out when it stops appearing.
 - The comment reviewer cuts and corrects instead of rewriting. Each sentence
-  goes through three tests in order: is it this item's own contract, said
-  once; is it true; is it one of the skill's tells. A true sentence that
-  fails the first test is cut like a false one. An inline comment that is a
-  tell is rewritten as the claim it hides. An example in the reference is a
-  standard as well as a rule. A doc that passes stays word for word, and an
-  undocumented item stays undocumented.
-- `triage` traces a problem before ruling on it. It establishes the input or
-  the sequence of events that reaches the problem, and a rare path counts.
-  It finds out why the decision behind the misbehaving piece was made, and a
-  decision that still holds, or that cannot be changed, is where the search
-  goes on from, beside the piece as well as above it. It reads the call
-  sites when the choice between fixes turns on them. When no path reaches
-  the problem, its answer is to leave the code as it is. Its body is set in
-  paragraphs, one per step.
-- The reviewer looks for code a change breaks without naming it. It lists
-  what the old code guaranteed that the new code does not, and checks what
-  relied on each guarantee: readers of state the change writes, whatever
-  runs after it, consumers of what it returns or stores. A review that only
-  followed the diff's calls had passed a change that broke a system in
-  another crate.
+  goes through three tests in order: is it this item's own contract, said once;
+  is it true; is it one of the skill's tells. A true sentence that fails the
+  first test is cut like a false one. An inline comment that is a tell is
+  rewritten as the claim it hides. An example in the reference is a standard as
+  well as a rule. A doc that passes stays word for word, and an undocumented
+  item stays undocumented.
+- `triage` traces a problem before ruling on it. It establishes the input or the
+  sequence of events that reaches the problem, and a rare path counts. It finds
+  out why the decision behind the misbehaving piece was made, and a decision
+  that still holds, or that cannot be changed, is where the search goes on from,
+  beside the piece as well as above it. It reads the call sites when the choice
+  between fixes turns on them. When no path reaches the problem, its answer is
+  to leave the code as it is. Its body is set in paragraphs, one per step.
+- The reviewer looks for code a change breaks without naming it. It lists what
+  the old code guaranteed that the new code does not, and checks what relied on
+  each guarantee: readers of state the change writes, whatever runs after it,
+  consumers of what it returns or stores. A review that only followed the diff's
+  calls had passed a change that broke a system in another crate.
 - The comment reviewer reviews a whole doc comment when the diff changes any
-  part of it, and shortens the doc to what a caller needs. A doc that gained
-  a sentence in each round of review had grown to twenty lines with every
-  pass reading only the new sentence.
+  part of it, and shortens the doc to what a caller needs. A doc that gained a
+  sentence in each round of review had grown to twenty lines with every pass
+  reading only the new sentence.
 
 ### Removed
-- `writing-for-humans/references/tells.md`. Eighteen reads across every
-  session on the machine: a catalog read "with a hit in hand" is read by
-  nobody drafting, and the drafts showed it.
+- `writing-for-humans/references/tells.md`. Eighteen reads across every session
+  on the machine: a catalog read "with a hit in hand" is read by nobody
+  drafting, and the drafts showed it.
 - The implementers' claim check on the `fable` override.
 - `user-invocable: false` from `closure-verifier` and `surveyor`. Claude Code
   reads no such field on an agent.
@@ -191,216 +184,212 @@ minor bump may change behavior.
 ## [0.10.0] - 2026-10-30
 
 ### Added
-- A `reviewing-own-work` skill that implementers run before reporting a
-  change that adds or changes names, types, functions or files: a critical
-  review of their own work against `quality-bar` and `code-architecture`,
-  so what falls short is fixed while they are in the code. It replaces the
-  implementers' "read your diff" step, and implementers no longer preload
-  `quality-bar`.
+- A `reviewing-own-work` skill that implementers run before reporting a change
+  that adds or changes names, types, functions or files: a critical review of
+  their own work against `quality-bar` and `code-architecture`, so what falls
+  short is fixed while they are in the code. It replaces the implementers' "read
+  your diff" step, and implementers no longer preload `quality-bar`.
 
 ### Changed
-- The quality review runs before review-and-fix, and review-and-fix starts
-  once the quality review's findings are ruled and fixed.
-- A quality finding is the reviewer's reading of the shape, not a defect:
-  the lead takes one only where the shape it works out itself differs from
-  the tree's, and reads each finding against earlier rounds, so one that
-  reopens an earlier round's is a call on deferring it, not another round.
-- The code-architecture naming rules check a name without its doc: a name
-  the reader would have to look up is shorthand, and the longer name that
-  says what the thing is wins.
+- The quality review runs before review-and-fix, and review-and-fix starts once
+  the quality review's findings are ruled and fixed.
+- A quality finding is the reviewer's reading of the shape, not a defect: the
+  lead takes one only where the shape it works out itself differs from the
+  tree's, and reads each finding against earlier rounds, so one that reopens an
+  earlier round's is a call on deferring it, not another round.
+- The code-architecture naming rules check a name without its doc: a name the
+  reader would have to look up is shorthand, and the longer name that says what
+  the thing is wins.
 
 ## [0.9.0] - 2026-10-27
 
 ### Added
-- A `quality-review` skill launches the quality reviewer through a workflow
-  that takes the repository, the diff range, the goal, the plan, and the
-  user's rulings and the lead's calls on earlier findings, and nothing else, so an implementer's account
-  of a change no longer reaches the reviewer and steers it past the choices
-  it should be judging. Its return arrives with the triage reminder, and a
-  report longer than the host shows opens with a line giving its length.
+- A `quality-review` skill launches the quality reviewer through a workflow that
+  takes the repository, the diff range, the goal, the plan, and the user's
+  rulings and the lead's calls on earlier findings, and nothing else, so an
+  implementer's account of a change no longer reaches the reviewer and steers it
+  past the choices it should be judging. Its return arrives with the triage
+  reminder, and a report longer than the host shows opens with a line giving its
+  length.
 
 ### Changed
-- `plan-step` gives the agent the step as the skill's text instead of writing
-  it to a file, so the agent reads it without a second call.
-- The lead sends a fix round that adds a type or mechanism back to the
-  quality reviewer, which until now only read a step's first version.
-- The triage reminders say the `den:triage` call is the turn's first tool
-  call and that a copy already in context does not stand in for it.
+- `plan-step` gives the agent the step as the skill's text instead of writing it
+  to a file, so the agent reads it without a second call.
+- The lead sends a fix round that adds a type or mechanism back to the quality
+  reviewer, which until now only read a step's first version.
+- The triage reminders say the `den:triage` call is the turn's first tool call
+  and that a copy already in context does not stand in for it.
 - Implementers put helper scripts and scratch files in the system temp
   directory.
 - The quality reviewer reads for every rule of the code-architecture skill,
   taken by its heading, instead of a short digest of a few of them.
-- The code-architecture naming rule covers constructors: the language's
-  name for one, with a derived field's rule as a method on its source.
+- The code-architecture naming rule covers constructors: the language's name for
+  one, with a derived field's rule as a method on its source.
 
 ## [0.8.0] - 2026-10-19
 
 ### Added
 
-- A quality reviewer, on Opus, reads a change for the shape of its code:
-  names, bookkeeping, types, large performance costs and patterns the
-  language or framework warns against. The lead runs it before the review on
-  changes that warrant it, and its findings are the user's to rule.
-- The Rust API guidance flags a `RefCell` or `Cell` added so a read-only
-  method can write, and points to changing the signature instead.
-- A review after a clean one reads only what changed since, instead of the
-  whole change again; the clean return carries the command that takes the
-  snapshot.
+- A quality reviewer, on Opus, reads a change for the shape of its code: names,
+  bookkeeping, types, large performance costs and patterns the language or
+  framework warns against. The lead runs it before the review on changes that
+  warrant it, and its findings are the user's to rule.
+- The Rust API guidance flags a `RefCell` or `Cell` added so a read-only method
+  can write, and points to changing the signature instead.
+- A review after a clean one reads only what changed since, instead of the whole
+  change again; the clean return carries the command that takes the snapshot.
 - A `quality-bar` skill: what a good change looks like, for the lead planning
   one, the implementer building it and the reviewer reading it. It covers
   fitting existing patterns, code in the module that owns its concept, one
-  source of truth, interfaces small next to what they hide, abstracting at
-  the second real case, one-way doors and designed failure paths, and lists
-  the signs of a first idea shipped unexamined. The implementers start with it
+  source of truth, interfaces small next to what they hide, abstracting at the
+  second real case, one-way doors and designed failure paths, and lists the
+  signs of a first idea shipped unexamined. The implementers start with it
   loaded.
 - A `plan-step` skill, not in the `/` menu, writes one step of a plan to a
   markdown file an agent reads: the plan's goal, done criteria and non-goals,
   the risk the step resolves, its decisions and proposals, the facts it relies
-  on as claim and `path:lines`, its proposed change and its gate. Without a step number it
-  covers the step in progress, or every step when not exactly one is. The
-  implementers, the reviewer, the quality reviewer and the closure verifier
+  on as claim and `path:lines`, its proposed change and its gate. Without a step
+  number it covers the step in progress, or every step when not exactly one is.
+  The implementers, the reviewer, the quality reviewer and the closure verifier
   run it when handed a plan's JSON file.
 - A `planning` skill, which the lead runs by name and which is not in the `/`
-  menu, holds the procedure for a task's plan: write it, settle its choices
-  with `scoping`, cut the change into steps a reviewer holds in one read, put
-  it to the user with `plan-page`, mark each step in progress as it starts,
-  and rewrite the next step as each one lands.
+  menu, holds the procedure for a task's plan: write it, settle its choices with
+  `scoping`, cut the change into steps a reviewer holds in one read, put it to
+  the user with `plan-page`, mark each step in progress as it starts, and
+  rewrite the next step as each one lands.
 
 ### Changed
 
 - A plan is one JSON file per task, `.local/plans/<task>.json`, in the shape
   `planning/references/plan.schema.json` defines, and `plan-page` renders it
-  through a new viewer as one self-contained page. Each of the user's
-  decisions carries its reason and, where one was weighed, the alternative it
-  beat, and the page shows both. The agent's own calls are proposals, listed
-  apart from the decisions with the user's answer as their status. An
-  implementation shape the user suggested is a decision marked as a sketch,
-  which a brief carries as intent. The page carries the code and images the
-  plan points at, read as it is written, and the line naming the page lists
-  any source that could not be read and any problem in the plan, such as an
-  ID used twice or a fact a step relies on that the survey lacks. Claude runs `plan-page` to put a plan to
-  the user; it is no longer in the `/` menu.
+  through a new viewer as one self-contained page. Each of the user's decisions
+  carries its reason and, where one was weighed, the alternative it beat, and
+  the page shows both. The agent's own calls are proposals, listed apart from
+  the decisions with the user's answer as their status. An implementation shape
+  the user suggested is a decision marked as a sketch, which a brief carries as
+  intent. The page carries the code and images the plan points at, read as it is
+  written, and the line naming the page lists any source that could not be read
+  and any problem in the plan, such as an ID used twice or a fact a step relies
+  on that the survey lacks. Claude runs `plan-page` to put a plan to the user;
+  it is no longer in the `/` menu.
 - The code-architecture skill has its language references read as part of
-  applying the rules, every reference whose topic the change touches, instead
-  of offered for a question that may never be asked.
-- The implementer is written as a partner in the code: a stop carries the
-  option it would take and why, and the one question that needs an answer
-  rather than every choice left open.
-- The code-architecture skill teaches the decision behind each rule: the
-  moment the question comes up, the question, what in the code answers it,
-  and a case each way. Its signal lists and calibration sections are folded
-  into the rules they belonged to.
-- The lead still traces every claim about code to its source before relying
-  on it, and no longer cites a path and line on every claim.
-- A ruling or lead call handed to the review-and-fix workflow is one
-  sentence, what was chosen, over what, and why, with nothing of how the
-  code works, so the reviewer still checks the mechanism behind it.
-- A ruling or lead call handed to the review-and-fix workflow is still asked
-  for at 400 characters, but the check refuses it only past 512, since an
-  agent cannot count characters to within a few and a cap at the asked length
-  failed launches at the boundary.
+  applying the rules, every reference whose topic the change touches, instead of
+  offered for a question that may never be asked.
+- The implementer is written as a partner in the code: a stop carries the option
+  it would take and why, and the one question that needs an answer rather than
+  every choice left open.
+- The code-architecture skill teaches the decision behind each rule: the moment
+  the question comes up, the question, what in the code answers it, and a case
+  each way. Its signal lists and calibration sections are folded into the rules
+  they belonged to.
+- The lead still traces every claim about code to its source before relying on
+  it, and no longer cites a path and line on every claim.
+- A ruling or lead call handed to the review-and-fix workflow is one sentence,
+  what was chosen, over what, and why, with nothing of how the code works, so
+  the reviewer still checks the mechanism behind it.
+- A ruling or lead call handed to the review-and-fix workflow is still asked for
+  at 400 characters, but the check refuses it only past 512, since an agent
+  cannot count characters to within a few and a cap at the asked length failed
+  launches at the boundary.
 - A doc comment promises only what its item upholds, not how the rest of the
-  program happens to use it, such as the value a state starts in, and a
-  member whose name says all it is can go without a doc unless it carries a
+  program happens to use it, such as the value a state starts in, and a member
+  whose name says all it is can go without a doc unless it carries a
   requirement.
 - The comment reviewer runs at high effort.
-- A doc comment no longer lists what its item holds or does step by step,
-  such as an enum's variants or what a plugin registers, and a doc being
-  rewritten is drafted from the code rather than reworded from the old one,
-  so a claim the code contradicts is cut instead of kept in new words.
-- Naming asks for the verb a language or framework already gives an
-  operation, so a system that inserts a resource is `insert_..`, not
-  `put_up_..`.
-- A decision waiting on you is labeled with a short name it keeps across
-  the lead's messages, like `retry_limit`, so a reply written against the
-  last list still lines up.
-- Naming judges a word within its context: where a call site tells two
-  meanings apart, one word serves both, and a rename keeps the pattern its
-  siblings share instead of setting one member of a family apart.
-- The lead skill is written as a tech lead's rules. Before work starts, the
-  lead states the goal, its reason, the non-goals and what done looks like,
-  and waits for you to confirm them. It rereads the plan at each stage
-  boundary, before judging what an implementer returns and before taking a
-  choice to you. A brief carries the goal and how the task serves it, the
-  outcome, the plan's path, the quality checks that apply, what the
-  implementer may decide, the boundaries, when to stop and what to return.
-  When the lead explains code, it gives the context behind it and shows the
-  code.
-- When an implementer departs from the design, the lead checks the obstacle
-  in the code, decides whether it breaks the design or only the route taken,
-  and works out its own answer before weighing the implementer's. A
-  departure with no reason given goes back to the same implementer as a
-  question. At each stage boundary, and after each departure, the lead asks
-  whether it would still choose the design, and it raises a problem with the
-  approach as soon as it sees one.
-- Every implementation launch waits for your go-ahead, a change you asked
-  for included, since you may have refinements to give first. The lead has
-  no rule sending a quick change to a fork of the session.
-- The lead proposes a commit once the review is done and it judges the
-  change ready. The proposal no longer lists the comment pass's gaps or the
-  tests a review left red for you to rule on.
+- A doc comment no longer lists what its item holds or does step by step, such
+  as an enum's variants or what a plugin registers, and a doc being rewritten is
+  drafted from the code rather than reworded from the old one, so a claim the
+  code contradicts is cut instead of kept in new words.
+- Naming asks for the verb a language or framework already gives an operation,
+  so a system that inserts a resource is `insert_..`, not `put_up_..`.
+- A decision waiting on you is labeled with a short name it keeps across the
+  lead's messages, like `retry_limit`, so a reply written against the last list
+  still lines up.
+- Naming judges a word within its context: where a call site tells two meanings
+  apart, one word serves both, and a rename keeps the pattern its siblings share
+  instead of setting one member of a family apart.
+- The lead skill is written as a tech lead's rules. Before work starts, the lead
+  states the goal, its reason, the non-goals and what done looks like, and waits
+  for you to confirm them. It rereads the plan at each stage boundary, before
+  judging what an implementer returns and before taking a choice to you. A brief
+  carries the goal and how the task serves it, the outcome, the plan's path, the
+  quality checks that apply, what the implementer may decide, the boundaries,
+  when to stop and what to return. When the lead explains code, it gives the
+  context behind it and shows the code.
+- When an implementer departs from the design, the lead checks the obstacle in
+  the code, decides whether it breaks the design or only the route taken, and
+  works out its own answer before weighing the implementer's. A departure with
+  no reason given goes back to the same implementer as a question. At each stage
+  boundary, and after each departure, the lead asks whether it would still
+  choose the design, and it raises a problem with the approach as soon as it
+  sees one.
+- Every implementation launch waits for your go-ahead, a change you asked for
+  included, since you may have refinements to give first. The lead has no rule
+  sending a quick change to a fork of the session.
+- The lead proposes a commit once the review is done and it judges the change
+  ready. The proposal no longer lists the comment pass's gaps or the tests a
+  review left red for you to rule on.
 - Triage is one rule: a choice or a recommendation is judged on whether it is
   the right fix, worked out from the goal and the code as if it had not been
-  made, never on the reason given for it. Its rules for an implementer's
-  report and for the commit proposal are gone; the lead's rules on an
-  implementer's departures cover the report.
-- The implementers start with `quality-bar` and `code-architecture` loaded,
-  and no longer with `testing`. A report opens on the questions the
-  implementer stopped on, then its departures from the brief, the choices it
-  made, what it is unsure of, the verification counts and the state of the
-  tree.
-- Agent definitions and skills are shorter: narration and rules said twice
-  are gone.
-- A brief pins only what the user decided, and a plan lists the lead's own
-  calls as proposals, which the implementer weighs against the code. Where one
-  of the user's decisions would complicate the code, the implementer asks
-  rather than works around it. A review keeps the lead's calls apart from the
-  user's decisions.
-- `diff-page` shows a prose file (`.md`, `.markdown`, `.txt`, `.rst`,
-  `.adoc`) word by word, with removed and added words marked inside wrapped
-  lines, so a rewrapped paragraph no longer reads as one block removed and
-  one added. It leaves out whitespace-only changes as `git diff -w` does,
-  unless the argument carries one of git's whitespace options, and a file
-  whose only change is whitespace gets a section saying so. A file added or
-  deleted whole starts folded. The argument takes `git diff` options such as
-  `-W` beside the range: an option no longer leaves untracked files out, and
-  an argument naming no revision compares against HEAD.
+  made, never on the reason given for it. Its rules for an implementer's report
+  and for the commit proposal are gone; the lead's rules on an implementer's
+  departures cover the report.
+- The implementers start with `quality-bar` and `code-architecture` loaded, and
+  no longer with `testing`. A report opens on the questions the implementer
+  stopped on, then its departures from the brief, the choices it made, what it
+  is unsure of, the verification counts and the state of the tree.
+- Agent definitions and skills are shorter: narration and rules said twice are
+  gone.
+- A brief pins only what the user decided, and a plan lists the lead's own calls
+  as proposals, which the implementer weighs against the code. Where one of the
+  user's decisions would complicate the code, the implementer asks rather than
+  works around it. A review keeps the lead's calls apart from the user's
+  decisions.
+- `diff-page` shows a prose file (`.md`, `.markdown`, `.txt`, `.rst`, `.adoc`)
+  word by word, with removed and added words marked inside wrapped lines, so a
+  rewrapped paragraph no longer reads as one block removed and one added. It
+  leaves out whitespace-only changes as `git diff -w` does, unless the argument
+  carries one of git's whitespace options, and a file whose only change is
+  whitespace gets a section saying so. A file added or deleted whole starts
+  folded. The argument takes `git diff` options such as `-W` beside the range:
+  an option no longer leaves untracked files out, and an argument naming no
+  revision compares against HEAD.
 
-- The implementer's prompt no longer tells it to expect hard free choices in
-  the brief, which `implementer-low` is picked for the absence of. Its stop
-  rules carry what it does with what the brief left out.
+- The implementer's prompt no longer tells it to expect hard free choices in the
+  brief, which `implementer-low` is picked for the absence of. Its stop rules
+  carry what it does with what the brief left out.
 - Each effort level's description names the brief it is for, one that leaves
   nothing to weigh, leaves routine choices open, or leaves a decision open, so a
   session without the lead skill has something to pick a level by.
-- Code architecture holds that an operation does what its name says or fails:
-  a create that finds the thing already there, or an add of something already
+- Code architecture holds that an operation does what its name says or fails: a
+  create that finds the thing already there, or an add of something already
   held, is an error the caller sees, not a quiet success. The rule that input
-  the code does not act on is refused moves into it, and the signals list
-  gains the success that did nothing.
+  the code does not act on is refused moves into it, and the signals list gains
+  the success that did nothing.
 - The closure verifier in `review-and-fix` runs on the model the run was
-  launched with, the `reviewer` argument, instead of always on Opus, so a
-  Fable review's findings are judged closed by Fable.
+  launched with, the `reviewer` argument, instead of always on Opus, so a Fable
+  review's findings are judged closed by Fable.
 - The Rust errors reference holds that every error is a typed enum, `main`
-  included, with no boundary where erasing to `anyhow` or `Box<dyn Error>`
-  pays. A variant earns its place by changing what the caller does, or at a
-  leaf by stating a different fact; context is a field of the variant rather
-  than a string attached as it propagates.
+  included, with no boundary where erasing to `anyhow` or `Box<dyn Error>` pays.
+  A variant earns its place by changing what the caller does, or at a leaf by
+  stating a different fact; context is a field of the variant rather than a
+  string attached as it propagates.
 - The Rust errors reference puts a wrapping error's cause in its `Display`
   rather than in `source()`, so every `{}` prints the whole line and a print
   site that shows only `Display` loses nothing; `#[from]` goes only on
   transparent variants. Each clause names what it is about, a wrapper the
-  operation and what it acted on, the innermost what was wrong, and a value
-  two clauses share is named once.
+  operation and what it acted on, the innermost what was wrong, and a value two
+  clauses share is named once.
 - A review's `rulings` and `leadCalls` hold decisions only, each what was
-  chosen, over what and why. An item that only says how the code behaves is
-  no longer one, since the reviewer takes every item as settled and would
-  never check the claim.
-- Agents no longer write tests for logs or metrics, including ones a brief
-  asks for, and they now test code whose result is the state it leaves
-  behind, not only a value it returns.
-- `scoping` runs when `planning` settles a plan's choices or when the user
-  says "scope this", "grill me" or "interview me". It leaves the direction
-  record to `project-direction` and `direction-docs`.
+  chosen, over what and why. An item that only says how the code behaves is no
+  longer one, since the reviewer takes every item as settled and would never
+  check the claim.
+- Agents no longer write tests for logs or metrics, including ones a brief asks
+  for, and they now test code whose result is the state it leaves behind, not
+  only a value it returns.
+- `scoping` runs when `planning` settles a plan's choices or when the user says
+  "scope this", "grill me" or "interview me". It leaves the direction record to
+  `project-direction` and `direction-docs`.
 - A brief no longer carries the direction record's path; `planning` reads the
   record when it writes the plan.
 
@@ -408,30 +397,29 @@ minor bump may change behavior.
 
 - The `architectural-foresight`, `design-decisions`, `design-exploration` and
   `diagnosing` skills, which were not working or not helping.
-- The `design-exploration-workflow` and its `design-explorer` and
-  `design-judge` agents, which only the `design-exploration` skill launched.
-- The `slicing` skill, whose rules for cutting a change into steps are part
-  of `planning`.
+- The `design-exploration-workflow` and its `design-explorer` and `design-judge`
+  agents, which only the `design-exploration` skill launched.
+- The `slicing` skill, whose rules for cutting a change into steps are part of
+  `planning`.
 - The `briefing` skill; the lead's own rules for briefs stand.
 
 ### Fixed
 
-- The triage reminder arrives on the turn an implementer's or quality
-  reviewer's report does. It used to arrive part of a turn late, or only with
-  your next message. A `review-and-fix` return carries its own reminder, and
-  an implementer or reviewer inside a run, or a fork of the session, raises
-  none.
+- The triage reminder arrives on the turn an implementer's or quality reviewer's
+  report does. It used to arrive part of a turn late, or only with your next
+  message. A `review-and-fix` return carries its own reminder, and an
+  implementer or reviewer inside a run, or a fork of the session, raises none.
 
 ## [0.7.0] - 2026-09-17
 
 ### Changed
 
-- The implementer comes at three effort levels: `implementer-low`,
-  `implementer` at medium, and `implementer-high`, all on Opus with one body.
-  The lead picks by how much the brief leaves open, since effort buys reading
-  and thinking past what was asked and the lead wrote the brief. `implementer`
-  set no level before and ran at whatever the session was on, so a launch from
-  a session on `high` or above now thinks less than it did.
+- The implementer comes at three effort levels: `implementer-low`, `implementer`
+  at medium, and `implementer-high`, all on Opus with one body. The lead picks
+  by how much the brief leaves open, since effort buys reading and thinking past
+  what was asked and the lead wrote the brief. `implementer` set no level before
+  and ran at whatever the session was on, so a launch from a session on `high`
+  or above now thinks less than it did.
 - Every agent on a model that takes an effort level pins one, in place of
   inheriting the session's: `design-explorer`, `design-judge` and
   `prior-art-check` at `xhigh` beside the `reviewer`; `closure-verifier`,
@@ -440,69 +428,66 @@ minor bump may change behavior.
   no effort level.
 - The `design-exploration-workflow` takes a required `explorer`, `opus` or
   `fable`, the model its three explorers run on, the way the
-  `review-and-fix-workflow` takes `reviewer`. The judge stays on Opus. A
-  design whose correctness rests on an invariant a test cannot see had no way
-  to get Fable explorers, and a launch without the argument fails rather than
-  picking a model the lead never chose.
+  `review-and-fix-workflow` takes `reviewer`. The judge stays on Opus. A design
+  whose correctness rests on an invariant a test cannot see had no way to get
+  Fable explorers, and a launch without the argument fails rather than picking a
+  model the lead never chose.
 - Every prose field in the `review-and-fix-workflow`'s schemas carries a
-  `maxLength`: a finding's title 100 characters, its scenario 300, its
-  evidence and repair 250; a fixer's `chose`, `over` and `what` 150, its
-  `forcedBy` and `why` 250; a verdict's reason 250; a gap's claim 150 and
-  reason 250. The host makes an agent that overruns a cap retry. Naming the
-  reader and a length in each description moved only the fields short enough
-  to hold a phrase, and a finding's scenario still ran to 360 characters at
-  the median.
-- `slicing` treats a change as one step until a boundary earns its place by
-  one of two tests, landing the first piece changes what the second should be
-  or the pieces exceed one read, and the read bound is generous: several
-  hundred lines across a few mechanisms. A risk orders the steps and makes
-  none, and the cutting techniques honour a boundary rather than make one,
-  since plans were splitting simple changes into steps a reviewer could have
-  read together.
-- The comment pass returns `counts` (doc comments in scope, rewritten and
-  added; inline comments in scope, rewritten, added and cut) and `gaps`, one
-  per comment kept although no code the pass read shows its claim, with the
-  path, the line, the claim as a phrase, and the reason in one sentence, in
-  place of one free string. The last run's string was 5,000 characters of
-  sections the lead does not read, and the gaps are what the commit proposal
-  lists.
-- The reviewer's output rule says what each field holds and what it leaves
-  out: a scenario is the input and the outcome that is wrong, evidence is what
-  check shows it and where, a repair is the change, a title states the defect.
-  The title restated, the route the writer took to the finding, the
-  alternatives rejected and the case for caring stay out, since the kind
-  carries what a finding costs. The reviewer names no tier and asks no
-  question: a question it would ask is a decision finding or nothing.
+  `maxLength`: a finding's title 100 characters, its scenario 300, its evidence
+  and repair 250; a fixer's `chose`, `over` and `what` 150, its `forcedBy` and
+  `why` 250; a verdict's reason 250; a gap's claim 150 and reason 250. The host
+  makes an agent that overruns a cap retry. Naming the reader and a length in
+  each description moved only the fields short enough to hold a phrase, and a
+  finding's scenario still ran to 360 characters at the median.
+- `slicing` treats a change as one step until a boundary earns its place by one
+  of two tests, landing the first piece changes what the second should be or the
+  pieces exceed one read, and the read bound is generous: several hundred lines
+  across a few mechanisms. A risk orders the steps and makes none, and the
+  cutting techniques honour a boundary rather than make one, since plans were
+  splitting simple changes into steps a reviewer could have read together.
+- The comment pass returns `counts` (doc comments in scope, rewritten and added;
+  inline comments in scope, rewritten, added and cut) and `gaps`, one per
+  comment kept although no code the pass read shows its claim, with the path,
+  the line, the claim as a phrase, and the reason in one sentence, in place of
+  one free string. The last run's string was 5,000 characters of sections the
+  lead does not read, and the gaps are what the commit proposal lists.
+- The reviewer's output rule says what each field holds and what it leaves out:
+  a scenario is the input and the outcome that is wrong, evidence is what check
+  shows it and where, a repair is the change, a title states the defect. The
+  title restated, the route the writer took to the finding, the alternatives
+  rejected and the case for caring stay out, since the kind carries what a
+  finding costs. The reviewer names no tier and asks no question: a question it
+  would ask is a decision finding or nothing.
 - The closure verifier gives each verdict's reason in one sentence, since a
   REOPENED reason is the next fixer's brief, and reads a reopened finding
-  against that reason. It no longer reads passes against each other for a
-  unit the fixes keep landing in, since a run has at most two passes and
-  never sees the run before it.
+  against that reason. It no longer reads passes against each other for a unit
+  the fixes keep landing in, since a run has at most two passes and never sees
+  the run before it.
 - An explorer's proposal in the `design-exploration-workflow` carries
   `contested`: every settled decision the code challenges, by its number, with
   the reason and the alternative, so a challenge reaches the judge and the user
   as an item rather than inside a question's prose.
-- The `design-exploration-workflow` takes `direction`, the absolute path of
-  the project's direction record, in place of `basis`, which was up to 6000
+- The `design-exploration-workflow` takes `direction`, the absolute path of the
+  project's direction record, in place of `basis`, which was up to 6000
   characters of the lead's restatement of that record. Every explorer and the
   judge get the path under `Direction record:` and read the record themselves,
-  the way the reviewer reads the plan at its path, so what they work from is
-  the record as it stands and not a reading of it that drifts from the day it
-  was written. `decisions` is now a list, one settled decision with its reason
-  each and at most 400 characters, rendered as a numbered list that a proposal
-  or an assessment cites by number, and left out of the launch when it is
-  empty. The `scoping` and `lead` skills carry the record's path and that list
-  into exploration and the brief, and what scoping clarifies about the
-  project's direction goes into the record through `direction-docs` rather
-  than into a basis written for one run.
+  the way the reviewer reads the plan at its path, so what they work from is the
+  record as it stands and not a reading of it that drifts from the day it was
+  written. `decisions` is now a list, one settled decision with its reason each
+  and at most 400 characters, rendered as a numbered list that a proposal or an
+  assessment cites by number, and left out of the launch when it is empty. The
+  `scoping` and `lead` skills carry the record's path and that list into
+  exploration and the brief, and what scoping clarifies about the project's
+  direction goes into the record through `direction-docs` rather than into a
+  basis written for one run.
 
 ### Fixed
 
-- The `review-and-fix` and `design-exploration` skills launch their workflow
-  by name, `den:review-and-fix-workflow` and `den:design-exploration-workflow`,
+- The `review-and-fix` and `design-exploration` skills launch their workflow by
+  name, `den:review-and-fix-workflow` and `den:design-exploration-workflow`,
   instead of by a path under the plugin root. The `Workflow` tool refuses a
-  `scriptPath` outside the session's working directory, so every launch from
-  a project failed until the script was copied into it; the tool registers a
+  `scriptPath` outside the session's working directory, so every launch from a
+  project failed until the script was copied into it; the tool registers a
   plugin's `workflows/` under the plugin's name, which needs no copy.
 
 ### Added
@@ -510,234 +495,227 @@ minor bump may change behavior.
 - A `plan-page` skill, `/den:plan-page <path>`, that renders a plan written in
   the `slicing` shape as one page file: the first screen, a step table, a card
   per step with its state, the code the step rests on under its caption,
-  coloured diff sketches and the decisions picked out, and sends the file to
-  the user for reading a plan away from the terminal. `slicing` now names that
-  shape, and the lead puts each plan to the user as a page. The page is
-  written under the OS temp directory and nothing is published.
-- A `PreToolUse` hook on `Edit` and `Write`: an edit to a file under a
-  `skills`, `agents`, `hooks` or `references` directory, or to a `SKILL.md`
-  or `CLAUDE.md`, carries one line saying to write it under the
-  `writing-for-agents` standard and to verify the change by running the agent
-  it steers. Every other path passes in silence, and no edit is blocked.
+  coloured diff sketches and the decisions picked out, and sends the file to the
+  user for reading a plan away from the terminal. `slicing` now names that
+  shape, and the lead puts each plan to the user as a page. The page is written
+  under the OS temp directory and nothing is published.
+- A `PreToolUse` hook on `Edit` and `Write`: an edit to a file under a `skills`,
+  `agents`, `hooks` or `references` directory, or to a `SKILL.md` or
+  `CLAUDE.md`, carries one line saying to write it under the
+  `writing-for-agents` standard and to verify the change by running the agent it
+  steers. Every other path passes in silence, and no edit is blocked.
 - `code-architecture` preloaded by the opus and fable implementers, since a
   skill that must hold every time is not left to the agent's choice to invoke
   it.
-- A `review-and-fix` skill and workflow: one pass over the working tree
-  that never waits on the session. It takes `repo`, the absolute path of the
+- A `review-and-fix` skill and workflow: one pass over the working tree that
+  never waits on the session. It takes `repo`, the absolute path of the
   repository whose tree is reviewed, so a lead in one repository can review a
   change in another; `goal`, the change's purpose in the user's terms; the
-  plan's path; and the reviewer's model. The reviewer returns findings. One
-  Opus fixer takes every finding at P2 or above as one brief, since a shape
-  one finding names is written in more places than the line it cites and a
-  fixer given one finding at a time leaves the copies; a P3 or quality
-  finding, a decision finding and a pre-existing one return to the lead
-  untouched. The closure verifier judges the fixes; a reopened finding gets
-  one more pass carrying the verifier's reason, and a finding the fixes
-  introduced at P2 or above ends the run, while one below that line returns
-  as the reviewer's would. The comment pass runs over a tree the run left
-  nothing open in. The return holds what the lead acts on first, `open`,
-  `introduced`, `decisions` and `deferred`, each finding whole, then the
-  comment pass's counts and gaps, the fixers' declarations under `carried`,
-  and `passes`,
-  the run's account of itself as each pass's findings with their verdicts.
-  The fix brief asks for a red test before the fix only where what the
-  finding fixes is a promise: what a caller may pass and what comes back, a
-  rejection among them, or a format another program reads; a detail nobody
-  promised takes no test. `rulings`, a list of the decisions the user has
-  settled, at most 400 characters each, reaches the reviewer, the fixer and
-  the verifier: a finding that contradicts one is a decision finding, left
-  unfixed, and a skip the lead rules on a return goes into the next run's
-  list, since a run with no record of a ruling finds and fixes what the user
-  chose to leave. A finding the verifier opens is routed as the reviewer's
-  are, and only one at P2 or above ends the run. Each schema field says the
-  length it takes, a phrase or a sentence, and each agent is told its reader
-  is the lead that briefed the change, since findings written for a stranger
-  ran to 1,100 characters each. A finding the fixes opened under an id the
-  run has already given out takes a suffix, so the lead rules on every item
-  of the return under its own id. Every return is measured against the
-  8,000 characters the host shows of a result, and one past that logs its size
-  per key, since the host cuts the rest from the tail without a sign; each fix
-  pass logs the figures its fixer verified the tree with, which the return has
-  no room for.
+  plan's path; and the reviewer's model. The reviewer returns findings. One Opus
+  fixer takes every finding at P2 or above as one brief, since a shape one
+  finding names is written in more places than the line it cites and a fixer
+  given one finding at a time leaves the copies; a P3 or quality finding, a
+  decision finding and a pre-existing one return to the lead untouched. The
+  closure verifier judges the fixes; a reopened finding gets one more pass
+  carrying the verifier's reason, and a finding the fixes introduced at P2 or
+  above ends the run, while one below that line returns as the reviewer's would.
+  The comment pass runs over a tree the run left nothing open in. The return
+  holds what the lead acts on first, `open`, `introduced`, `decisions` and
+  `deferred`, each finding whole, then the comment pass's counts and gaps, the
+  fixers' declarations under `carried`, and `passes`, the run's account of
+  itself as each pass's findings with their verdicts. The fix brief asks for a
+  red test before the fix only where what the finding fixes is a promise: what a
+  caller may pass and what comes back, a rejection among them, or a format
+  another program reads; a detail nobody promised takes no test. `rulings`, a
+  list of the decisions the user has settled, at most 400 characters each,
+  reaches the reviewer, the fixer and the verifier: a finding that contradicts
+  one is a decision finding, left unfixed, and a skip the lead rules on a return
+  goes into the next run's list, since a run with no record of a ruling finds
+  and fixes what the user chose to leave. A finding the verifier opens is routed
+  as the reviewer's are, and only one at P2 or above ends the run. Each schema
+  field says the length it takes, a phrase or a sentence, and each agent is told
+  its reader is the lead that briefed the change, since findings written for a
+  stranger ran to 1,100 characters each. A finding the fixes opened under an id
+  the run has already given out takes a suffix, so the lead rules on every item
+  of the return under its own id. Every return is measured against the 8,000
+  characters the host shows of a result, and one past that logs its size per
+  key, since the host cuts the rest from the tail without a sign; each fix pass
+  logs the figures its fixer verified the tree with, which the return has no
+  room for.
 
 ### Changed
 
 - The `lead` skill reviews every change through `review-and-fix`.
-- A `slicing` plan states its goal on a `Goal:` line, which `plan-page`
-  picks out.
+- A `slicing` plan states its goal on a `Goal:` line, which `plan-page` picks
+  out.
 - The workflows are named `design-exploration-workflow` and
-  `review-and-fix-workflow`, since a skill that shares a workflow's name
-  never loads.
+  `review-and-fix-workflow`, since a skill that shares a workflow's name never
+  loads.
 - A quick change the lead would have made by hand goes to a fork instead,
-  without a route question, since a fork spawn reads this context from cache
-  and keeps the file reads and the edit output out of it.
-- One test decides whose call an item is, in the `lead` skill's new
-  `Whose call` section: whether a competent reader could take it either way,
-  not the size of the change. The triage reminders and the reviewer's
-  `[decision]` finding class an item the same way.
-- `code-architecture` carries one fact one home, siblings sharing one shape
-  and one path, a classification as a type rather than a string or a flag, an
-  unread input refused, and names that say the specific thing.
-- The implementer definitions write a test for a defect that was observed or
-  for the rule the change introduces, pin the promises a change makes rather
-  than details nobody was promised, and mirror the workspace's conventions
-  rather than the surrounding file's.
-- `scoping` applies a choice a written rule of the project or of these
-  skills already answers rather than asking it.
-- `slicing` names every site a removed shape has, and reads an entry against
-  the defect its step removes; `design-decisions` weighs owning the sliver of
-  a dependency that is used, and bounds the effort by the life of the thing.
+  without a route question, since a fork spawn reads this context from cache and
+  keeps the file reads and the edit output out of it.
+- One test decides whose call an item is, in the `lead` skill's new `Whose call`
+  section: whether a competent reader could take it either way, not the size of
+  the change. The triage reminders and the reviewer's `[decision]` finding class
+  an item the same way.
+- `code-architecture` carries one fact one home, siblings sharing one shape and
+  one path, a classification as a type rather than a string or a flag, an unread
+  input refused, and names that say the specific thing.
+- The implementer definitions write a test for a defect that was observed or for
+  the rule the change introduces, pin the promises a change makes rather than
+  details nobody was promised, and mirror the workspace's conventions rather
+  than the surrounding file's.
+- `scoping` applies a choice a written rule of the project or of these skills
+  already answers rather than asking it.
+- `slicing` names every site a removed shape has, and reads an entry against the
+  defect its step removes; `design-decisions` weighs owning the sliver of a
+  dependency that is used, and bounds the effort by the life of the thing.
 
 ### Removed
 
-- The `review` and `comment-review` skills, and `review-scope.sh` with them.
-  A reviewer is launched through the Agent tool instead: a forked skill whose
-  name is already running refuses to background and runs inline, blocking the
-  turn, so two reviews could never run at once. `reviewer` and
-  `comment-reviewer` now render their own scope with `diff-scope.sh`, and the
-  plan reaches the reviewer as a path in the launch prompt rather than through
-  `--plan`.
+- The `review` and `comment-review` skills, and `review-scope.sh` with them. A
+  reviewer is launched through the Agent tool instead: a forked skill whose name
+  is already running refuses to background and runs inline, blocking the turn,
+  so two reviews could never run at once. `reviewer` and `comment-reviewer` now
+  render their own scope with `diff-scope.sh`, and the plan reaches the reviewer
+  as a path in the launch prompt rather than through `--plan`.
 - The `Switch model` handoff route, with its `PostModelSwitch` hook, the
-  `handoff-switch` entry point and the `--target` argument the reading priced
-  it for. Removing it drops den's floor to Claude Code 2.1.232, the release
-  that turned the fork launch on.
+  `handoff-switch` entry point and the `--target` argument the reading priced it
+  for. Removing it drops den's floor to Claude Code 2.1.232, the release that
+  turned the fork launch on.
 - The `Handoff` question and the `handoff-cost` reading it ended in, with the
   fork as a route for handing implementation off: the skill, its script, the
   `handoff`, `transcript` and `session-record` modules, and the
   `transcript-record` hook that left the transcript path for the reading to
-  find. The fork had gone unused as a handoff since it shipped, so the
-  question priced a route the rules never took. Implementation is briefed to
-  a standing implementer, and a fix round that carries a question takes a
-  resume or a brief. A quick change the lead would otherwise make by hand
-  still goes to a fork, without a question.
+  find. The fork had gone unused as a handoff since it shipped, so the question
+  priced a route the rules never took. Implementation is briefed to a standing
+  implementer, and a fix round that carries a question takes a resume or a
+  brief. A quick change the lead would otherwise make by hand still goes to a
+  fork, without a question.
 
 ## [0.6.0] - 2026-09-12
 
 ### Added
 
-- A `diff-page` skill, `/den:diff-page [range]`, that renders a git diff
-  range as one page file, a collapsible section per file with old and new
-  line numbers and coloured lines, untracked files as the new-file hunks
-  they become, and sends the file to the user for reading a change away from
-  the terminal. The page is written under the OS temp directory and nothing
-  is published.
-- A `slicing` skill: how a change is cut into steps a reviewer holds in one
-  read and sequenced by risk, the three tests a boundary must pass, the
-  settled techniques for cutting what looks atomic, and the interrogation of
-  the first attempt at the ordered set, which is presumed wrong until each
-  cut has answered the questions the user would ask of it.
+- A `diff-page` skill, `/den:diff-page [range]`, that renders a git diff range
+  as one page file, a collapsible section per file with old and new line numbers
+  and coloured lines, untracked files as the new-file hunks they become, and
+  sends the file to the user for reading a change away from the terminal. The
+  page is written under the OS temp directory and nothing is published.
+- A `slicing` skill: how a change is cut into steps a reviewer holds in one read
+  and sequenced by risk, the three tests a boundary must pass, the settled
+  techniques for cutting what looks atomic, and the interrogation of the first
+  attempt at the ordered set, which is presumed wrong until each cut has
+  answered the questions the user would ask of it.
 - A `handoff-cost` skill that prices handing coupled implementation off as
-  cache-miss token counts for a fork of the session, a switch of its model and
-  a brief, then puts the choice to the user as the Handoff question.
+  cache-miss token counts for a fork of the session, a switch of its model and a
+  brief, then puts the choice to the user as the Handoff question.
 - A `PostModelSwitch` hook that, when a `Switch model` answer stands on the
-  transcript at the moment of the switch and the switch is the user's own,
-  tells the session to implement inline; and a `UserPromptSubmit` hook that
-  records the transcript path the reading measures.
+  transcript at the moment of the switch and the switch is the user's own, tells
+  the session to implement inline; and a `UserPromptSubmit` hook that records
+  the transcript path the reading measures.
 - A finished fork of the session is recorded for implementer triage like an
   implementer.
 
 ### Fixed
 
-- The triage flag hooks no longer re-check the agent type in the script.
-  They did so on a belief, recorded in the first packaging commit, that a
+- The triage flag hooks no longer re-check the agent type in the script. They
+  did so on a belief, recorded in the first packaging commit, that a
   `SubagentStop` matcher fires for every subagent; it is applied to the agent
-  type, and a check confirmed it. The matcher in `hooks.json` is the one
-  place that decides which agents are triaged, and a user-level agent
-  sharing a den agent's bare name is not among them. Each matcher is
-  anchored, since a regex matcher is not, and `fork` would otherwise match
-  any type containing the word. The `plugin_den_<name>` spelling the
-  packaging commit recorded was never observed in a hook input and is not
-  matched. A stop that carries no
-  agent type reaches every hook unscoped and is dropped, since a reminder
-  for it would name nobody.
+  type, and a check confirmed it. The matcher in `hooks.json` is the one place
+  that decides which agents are triaged, and a user-level agent sharing a den
+  agent's bare name is not among them. Each matcher is anchored, since a regex
+  matcher is not, and `fork` would otherwise match any type containing the word.
+  The `plugin_den_<name>` spelling the packaging commit recorded was never
+  observed in a hook input and is not matched. A stop that carries no agent type
+  reaches every hook unscoped and is dropped, since a reminder for it would name
+  nobody.
 - The triage flags are kept per session. They sat in one directory per relay
-  under the machine's temp directory, so an agent finishing in any session
-  was announced at the next prompt of whichever session asked first. Each
-  flag now lives under the session id the hook input carries, and a stop
-  without one is not recorded.
+  under the machine's temp directory, so an agent finishing in any session was
+  announced at the next prompt of whichever session asked first. Each flag now
+  lives under the session id the hook input carries, and a stop without one is
+  not recorded.
 - A review of the working tree renders untracked files as the new-file hunks
-  they become once added, without touching the index. `git diff` never shows
-  a file outside the index, so a new module in a pending change reached the
-  reviewer as a line in the status and nothing more, and a session that
-  noticed marked the files intent-to-add to get them rendered. A range
-  between two revisions holds no working tree and is unchanged.
+  they become once added, without touching the index. `git diff` never shows a
+  file outside the index, so a new module in a pending change reached the
+  reviewer as a line in the status and nothing more, and a session that noticed
+  marked the files intent-to-add to get them rendered. A range between two
+  revisions holds no working tree and is unchanged.
 
 ### Changed
 
-- The comment reviewer rewrites every doc comment in scope from the code,
-  at its level and in the shape of the standard library example for that
-  level, and treats the existing comment as no source; it works one file at
-  a time and edits each comment as it reaches it, since a judged-and-kept
-  path kept nearly every comment it was given. Inline comments are rewritten
-  by the inline reference or cut where the code shows the fact. The report
-  is counts and gaps.
-- The doc-comment reference states that one level owns a fact, with the
-  standard library's own text for each level: a module doc says what is
-  here, a type doc what one of these is, a function doc what a call does,
-  guarantees and fails, a field doc what the value means. A module doc
-  carries a cross-item fact only when no item can carry it; a unit, a sign
-  or a coordinate frame goes on the fields, and when a check runs goes on
-  the function.
-- The writing-for-humans skill names the explained absence as a tell and
-  the register grep catches its phrasings; the doc-comment reference gains a
-  module-doc section in the standard library's shape: one line saying what
-  the module is, the items it provides by name, and where to start.
-- The reviewer writes the failing test for a defect it can demonstrate,
-  through a normal product seam, leaves it in the tree, and runs that test
-  alone; the finding carries the test's path and the red run. It has the
-  tools to do so: edit, write, skills and the web beside read and search.
-  Reviews were better with the test written and the red test came with them,
-  so the fix is making that test pass.
+- The comment reviewer rewrites every doc comment in scope from the code, at its
+  level and in the shape of the standard library example for that level, and
+  treats the existing comment as no source; it works one file at a time and
+  edits each comment as it reaches it, since a judged-and-kept path kept nearly
+  every comment it was given. Inline comments are rewritten by the inline
+  reference or cut where the code shows the fact. The report is counts and gaps.
+- The doc-comment reference states that one level owns a fact, with the standard
+  library's own text for each level: a module doc says what is here, a type doc
+  what one of these is, a function doc what a call does, guarantees and fails, a
+  field doc what the value means. A module doc carries a cross-item fact only
+  when no item can carry it; a unit, a sign or a coordinate frame goes on the
+  fields, and when a check runs goes on the function.
+- The writing-for-humans skill names the explained absence as a tell and the
+  register grep catches its phrasings; the doc-comment reference gains a
+  module-doc section in the standard library's shape: one line saying what the
+  module is, the items it provides by name, and where to start.
+- The reviewer writes the failing test for a defect it can demonstrate, through
+  a normal product seam, leaves it in the tree, and runs that test alone; the
+  finding carries the test's path and the red run. It has the tools to do so:
+  edit, write, skills and the web beside read and search. Reviews were better
+  with the test written and the red test came with them, so the fix is making
+  that test pass.
 
-- The lead rules deliver a change as steps: cut under `slicing` once the
-  design is pinned and again when an observation falsifies the plan, the
-  plan in a temporary directory with its steps in the task list,
-  each step through handoff, review with the plan's path, fix round, comment
-  pass and commit before the next is briefed. A go-ahead covers one step. A
-  review of thousands of lines was the failure; a step is one read.
-- The opus and fable implementers stop when finishing would take more
-  change than the plan's entry for their step describes, since
-  how the work is cut is the user's decision.
-- One adversarial `reviewer` agent, launched through the `review` skill with
-  the diff and the path of the plan or brief the change was written to,
-  replaces the bug hunter, the quality reviewer, the decisions reviewer, the
-  synthesizer and the flag-review workflow. The lead handing the readers a
-  reading of the change was the failure; one reader given nothing but the
-  change and its plan is the test. The reviewer keeps the defect priorities
-  and the quality and decision kinds in one report.
+- The lead rules deliver a change as steps: cut under `slicing` once the design
+  is pinned and again when an observation falsifies the plan, the plan in a
+  temporary directory with its steps in the task list, each step through
+  handoff, review with the plan's path, fix round, comment pass and commit
+  before the next is briefed. A go-ahead covers one step. A review of thousands
+  of lines was the failure; a step is one read.
+- The opus and fable implementers stop when finishing would take more change
+  than the plan's entry for their step describes, since how the work is cut is
+  the user's decision.
+- One adversarial `reviewer` agent, launched through the `review` skill with the
+  diff and the path of the plan or brief the change was written to, replaces the
+  bug hunter, the quality reviewer, the decisions reviewer, the synthesizer and
+  the flag-review workflow. The lead handing the readers a reading of the change
+  was the failure; one reader given nothing but the change and its plan is the
+  test. The reviewer keeps the defect priorities and the quality and decision
+  kinds in one report.
 - The `coordination` skill is renamed `lead`, since the session it rules
-  designs, decides with the user, hands implementation off with its context
-  and integrates the result, and coordination names only part of that. Invoke
-  it as `/den:lead`; every pointer at it, in the README, the agents, the
-  triage reminders and the docs, follows.
+  designs, decides with the user, hands implementation off with its context and
+  integrates the result, and coordination names only part of that. Invoke it as
+  `/den:lead`; every pointer at it, in the README, the agents, the triage
+  reminders and the docs, follows.
 
-- The lead rules hand implementation that follows from the session's
-  own decisions off with its context kept, and brief a standing implementer
-  for work that is independent of it. Delegating every implementation was the
-  measured handoff loss.
-- A fix round with nothing waiting on the user runs at once and without a
-  route question, resumed in the agent that made the change or briefed to a
-  standing implementer where that is easier: the user is often away when a fix
-  round is due, and neither route needs anyone present. A round that carries a
-  question for the user takes the routes with it, a resume of that agent, a
-  fork of this session or a brief to a standing implementer, and the answer is
-  the go for the route chosen; a fork is a launch like any other either way. A
-  quick, easy change the session can make itself is still made by hand. The
-  question carries no pricing reading: a fork spawn is a cache hit, so it costs
-  nothing over inline work and keeps the main context clean, and a brief for a
-  fix this size is short enough not to price.
-- Implementers and a fork stop on a decision that is the user's (a
-  workaround, a test weakened or deleted, a stored format, a public surface, a
-  dependency, visible behaviour, a fence, a contradicted pin): the turn ends
-  with the question and the agent is resumed with the answer, in place of
-  making the choice and declaring it in the report. The lead skill
-  resumes such an agent rather than replacing it.
+- The lead rules hand implementation that follows from the session's own
+  decisions off with its context kept, and brief a standing implementer for work
+  that is independent of it. Delegating every implementation was the measured
+  handoff loss.
+- A fix round with nothing waiting on the user runs at once and without a route
+  question, resumed in the agent that made the change or briefed to a standing
+  implementer where that is easier: the user is often away when a fix round is
+  due, and neither route needs anyone present. A round that carries a question
+  for the user takes the routes with it, a resume of that agent, a fork of this
+  session or a brief to a standing implementer, and the answer is the go for the
+  route chosen; a fork is a launch like any other either way. A quick, easy
+  change the session can make itself is still made by hand. The question carries
+  no pricing reading: a fork spawn is a cache hit, so it costs nothing over
+  inline work and keeps the main context clean, and a brief for a fix this size
+  is short enough not to price.
+- Implementers and a fork stop on a decision that is the user's (a workaround, a
+  test weakened or deleted, a stored format, a public surface, a dependency,
+  visible behaviour, a fence, a contradicted pin): the turn ends with the
+  question and the agent is resumed with the answer, in place of making the
+  choice and declaring it in the report. The lead skill resumes such an agent
+  rather than replacing it.
 
 ### Removed
 
-- The `red-green-fixer` agent. The reviewer's failing test is the red test a
-  fix starts from, and a finding verified by reading gets its test written
-  first by whoever takes the fix.
+- The `red-green-fixer` agent. The reviewer's failing test is the red test a fix
+  starts from, and a finding verified by reading gets its test written first by
+  whoever takes the fix.
 
 ## [0.5.0] - 2026-09-08
 
@@ -748,36 +726,34 @@ minor bump may change behavior.
   changes to broader direction. Ordinary reads do not require this skill.
 
 - A `project-direction` skill that establishes project goals, priorities,
-  constraints and intended development with the user before task scoping,
-  then records the understanding and its sources durably. Discovery has no
-  default time or question budget; a user-ended pass preserves every unresolved
+  constraints and intended development with the user before task scoping, then
+  records the understanding and its sources durably. Discovery has no default
+  time or question budget; a user-ended pass preserves every unresolved
   question, its context and dependencies, and what would help resolve it.
 - A `design-exploration` workflow under `workflows/`, run by the new
-  `design-exploration` skill through the Workflow tool: three
-  `design-explorer` agents (opus) each propose a decomposition for one change
-  from their own angle, blind to each other, and a `design-judge` agent
-  (opus) ranks them on the code-architecture tests for the user to choose
-  from.
+  `design-exploration` skill through the Workflow tool: three `design-explorer`
+  agents (opus) each propose a decomposition for one change from their own
+  angle, blind to each other, and a `design-judge` agent (opus) ranks them on
+  the code-architecture tests for the user to choose from.
 
-- A `flag-review` workflow under `workflows/`, run by the `flag-review`
-  skill: a `bug-hunter` (fable), a `quality-reviewer` and a
-  `decisions-reviewer` (opus) each read the change given the scope alone, and
-  a `review-synthesizer` (opus) writes one ranked report in the flag-review
-  contract.
+- A `flag-review` workflow under `workflows/`, run by the `flag-review` skill: a
+  `bug-hunter` (fable), a `quality-reviewer` and a `decisions-reviewer` (opus)
+  each read the change given the scope alone, and a `review-synthesizer` (opus)
+  writes one ranked report in the flag-review contract.
 - A `closure-verifier` agent (opus) that verdicts a review's findings against
   the fixed tree, CLOSED or REOPENED, by deriving whether each fix removes the
-  cause and whether its test would catch the defect, and reports what the
-  fixes opened.
+  cause and whether its test would catch the defect, and reports what the fixes
+  opened.
 
 ### Changed
 
-- Direction documentation organizes the record under `docs/`, with a short entry point,
-  substantive topic documents and links between related decisions. Reasons,
-  sources and unresolved questions stay with their authoritative topic.
+- Direction documentation organizes the record under `docs/`, with a short entry
+  point, substantive topic documents and links between related decisions.
+  Reasons, sources and unresolved questions stay with their authoritative topic.
 - Coordination locates project direction before task scoping and invokes
   discovery when that direction is missing, conflicting or superseded. Scoping
-  derives its design basis from the record; its question limit does not apply
-  to project discovery.
+  derives its design basis from the record; its question limit does not apply to
+  project discovery.
 - Implementation has no implicit deadline. Implementers and the fixer assess
   coherent solutions against requirements and engineering costs instead of
   minimizing the diff, including necessary adjacent refactoring within the
@@ -785,50 +761,50 @@ minor bump may change behavior.
   user decisions. Coordination assesses challenges to a brief separately from
   unapproved departures already implemented.
 - Scoping now carries a design basis of project purpose, constraints, planned
-  developments, sources and assumptions through exploration, implementation
-  and review. Explorers explain which requirements consequential choices serve
-  and what they cost; the judge can return missing input or no suitable
-  proposal. Implementers use the accepted rationale for choices left open and
-  report contradictions before dependent work. Future plans do not expand
-  authorized scope.
-- Quality and decisions review assess choices against the design basis,
-  keeping missing context distinct from demonstrated problems. The synthesizer
-  preserves unresolved questions and disagreements; closure can return
-  NEEDS-DECISION when an answer is necessary to assess a fix. The review relay
-  reminds the coordinator to keep those items unresolved.
+  developments, sources and assumptions through exploration, implementation and
+  review. Explorers explain which requirements consequential choices serve and
+  what they cost; the judge can return missing input or no suitable proposal.
+  Implementers use the accepted rationale for choices left open and report
+  contradictions before dependent work. Future plans do not expand authorized
+  scope.
+- Quality and decisions review assess choices against the design basis, keeping
+  missing context distinct from demonstrated problems. The synthesizer preserves
+  unresolved questions and disagreements; closure can return NEEDS-DECISION when
+  an answer is necessary to assess a fix. The review relay reminds the
+  coordinator to keep those items unresolved.
 - The design-exploration workflow requires `basis` text alongside `ask`;
   flag-review accepts optional `basis` while retaining scope-only calls. Both
   preserve agent questions and reject missing reader or explorer output as an
   incomplete run. Tests exercise the shipped workflows with a simulated host;
   they do not evaluate model judgment.
-- The `flag-review` skill runs the flag-review workflow instead of launching
-  one reviewer, and the review-triage relay records a finished
-  `review-synthesizer` or `closure-verifier`.
+- The `flag-review` skill runs the flag-review workflow instead of launching one
+  reviewer, and the review-triage relay records a finished `review-synthesizer`
+  or `closure-verifier`.
 - The `coordination` skill sends the closure of a fix round to a fresh
-  `closure-verifier` given the findings and the scope, instead of resuming
-  the reviewer that raised them.
-- The `coordination` skill chooses a change's decomposition before the brief
-  for any change that adds a module, a persisted format, a public surface or
-  a new mechanism: a workflow of explorers proposes shapes against the code,
-  a judge ranks them, the user chooses, and the brief pins the choice. A
-  pinned decomposition is checked against the tree at triage.
-- The `coordination` skill's launch authorization names approval by
-  adjacency: a reply that does not answer a pending go is not the go, what
-  it asks for is done, and the launch still waits.
+  `closure-verifier` given the findings and the scope, instead of resuming the
+  reviewer that raised them.
+- The `coordination` skill chooses a change's decomposition before the brief for
+  any change that adds a module, a persisted format, a public surface or a new
+  mechanism: a workflow of explorers proposes shapes against the code, a judge
+  ranks them, the user chooses, and the brief pins the choice. A pinned
+  decomposition is checked against the tree at triage.
+- The `coordination` skill's launch authorization names approval by adjacency: a
+  reply that does not answer a pending go is not the go, what it asks for is
+  done, and the launch still waits.
 - The `flag-reviewer` evidence pass gains a decisions step: inheriting the
   change's decisions, the brief's pins included, and reviewing only their
-  execution is named as a failure mode, and each decision is asked why this
-  way. The `design-decisions` skill's reuse order names the platform's own
-  facilities beside the language and its library. The `coordination` skill's
-  triage asks what a finding, a repair or a declared choice points at before
-  routing it, and `red-green-fixer` comes back with a question when a
-  confirmed fix adds a condition where removing a cause would do.
-- The `coordination` skill's Review section is cut to three paragraphs: a
-  fresh reviewer per change, the send-back test with routing at the root
-  cause found one or two levels above an agent's report, and what reaches
-  the user. Its opening names the stance: every agent's report is a claim
-  checked before it moves. The tier ladder, the architecture-ownership
-  sentence and the several-reviewers workflow sentence are gone.
+  execution is named as a failure mode, and each decision is asked why this way.
+  The `design-decisions` skill's reuse order names the platform's own facilities
+  beside the language and its library. The `coordination` skill's triage asks
+  what a finding, a repair or a declared choice points at before routing it, and
+  `red-green-fixer` comes back with a question when a confirmed fix adds a
+  condition where removing a cause would do.
+- The `coordination` skill's Review section is cut to three paragraphs: a fresh
+  reviewer per change, the send-back test with routing at the root cause found
+  one or two levels above an agent's report, and what reaches the user. Its
+  opening names the stance: every agent's report is a claim checked before it
+  moves. The tier ladder, the architecture-ownership sentence and the
+  several-reviewers workflow sentence are gone.
 - The launcher says its own refusals on your screen: a Node under 22.6 with no
   bun on `PATH`, an unset `CLAUDE_PLUGIN_DATA`, a `.runtime` asking for a bun
   that is not there or holding any other word, and an interpreter that will not
@@ -840,65 +816,65 @@ minor bump may change behavior.
 
 ### Removed
 
-- The stale-diagnostics paragraph from the implementer reminder, and with it
-  the relay's read of a finished agent's transcript for `.rs` edits. The hooks
-  now read nothing in your project. The `coordination` skill still rules that a
+- The stale-diagnostics paragraph from the implementer reminder, and with it the
+  relay's read of a finished agent's transcript for `.rs` edits. The hooks now
+  read nothing in your project. The `coordination` skill still rules that a
   diagnostic in a file an agent is editing is a mid-edit state.
 - Skill `voice`; its rules and catalog live in `writing-for-humans`. Drafting a
-  commit message no longer routes through the register rules: its format is
-  each person's own.
+  commit message no longer routes through the register rules: its format is each
+  person's own.
 
 ### Added
 
 - Skill `writing-a-skill`, on how a Claude Code skill is written: the listing
   line the model routes on, the description and `when_to_use` fields in the
-  measured shape, the rest of the frontmatter, what a body is, and the test
-  that shows a trigger fires. The configuration-skills reference moves under
-  it from `writing-for-agents`.
+  measured shape, the rest of the frontmatter, what a body is, and the test that
+  shows a trigger fires. The configuration-skills reference moves under it from
+  `writing-for-agents`.
 
 ### Changed
 
 - The implementer relay is now implementer triage: every finished implementer
   and `red-green-fixer` is recorded, not only one that edited Rust, and its
-  reminder points at the `coordination` skill's new Implementer reports
-  section, where each declared choice, question back, deviation from the brief
-  and left-undone item reaches the user with an accept, answer, send back or
-  defer call and its reasoning, and what contradicts the brief goes back to its
-  agent at once. Its hooks are `implementer-triage-flag` and
+  reminder points at the `coordination` skill's new Implementer reports section,
+  where each declared choice, question back, deviation from the brief and
+  left-undone item reaches the user with an accept, answer, send back or defer
+  call and its reasoning, and what contradicts the brief goes back to its agent
+  at once. Its hooks are `implementer-triage-flag` and
   `implementer-triage-inject`, and its flags now wait in
   `claude-implementer-triage/`. The Briefs section keeps what a question back
   does to the brief and hands the rest to the new section.
-- The `voice` skill is folded into `writing-for-humans`: the register rules
-  are its own section, the grep line sits under them, the catalog of tells is
+- The `voice` skill is folded into `writing-for-humans`: the register rules are
+  its own section, the grep line sits under them, the catalog of tells is
   `references/tells.md`, and a report or message for a person is one of the
   kinds it covers. The comment-reviewer preloads `writing-for-humans` alone.
-- `code-architecture`, `design-decisions`, `unsafety-author` and the two
-  review launchers are hidden from the `/` menu (`user-invocable: false`):
-  Claude applies them when their trigger fires, and typing them was no action
-  a person takes.
+- `code-architecture`, `design-decisions`, `unsafety-author` and the two review
+  launchers are hidden from the `/` menu (`user-invocable: false`): Claude
+  applies them when their trigger fires, and typing them was no action a person
+  takes.
 - Every skill the model routes to itself carries a `when_to_use` directive
   ("ALWAYS invoke this skill when ...", with the thing the model would do
-  instead named) and a description that says what the skill is, so the two
-  no longer restate each other.
+  instead named) and a description that says what the skill is, so the two no
+  longer restate each other.
 
 ## [0.3.0] - 2026-09-05
 
 ### Added
 
 - Skill `voice`: the rules that keep text a person reads from sounding
-  machine-written, character subjects and positive statements and sourced
-  claims and varied sentence shape, with a grep run over the text first and a
-  catalog of every tell with its fix, the vocabulary banded by date so it can
-  go stale one band at a time.
-- Skill `scoping`: the decisions an ask leaves open are put to the user one at
-  a time before a brief is written, dependencies first and then highest impact
-  and uncertainty, each with a recommended answer and what it costs; facts are
-  looked up rather than asked, the answers land in the brief's decisions
-  already made, and anything left open is recorded as deferred.
-- Skill `design-decisions`: a recommendation names what it buys, what it
-  costs and the alternative rejected; the codebase, the runtime and an
-  established library are checked, in that order, before anything is written
-  new; simplicity removes indirection and not the job's essentials.
+  machine-written, character subjects and positive statements and sourced claims
+  and varied sentence shape, with a grep run over the text first and a catalog
+  of every tell with its fix, the vocabulary banded by date so it can go stale
+  one band at a time.
+- Skill `scoping`: the decisions an ask leaves open are put to the user one at a
+  time before a brief is written, dependencies first and then highest impact and
+  uncertainty, each with a recommended answer and what it costs; facts are
+  looked up rather than asked, the answers land in the brief's decisions already
+  made, and anything left open is recorded as deferred.
+- Skill `design-decisions`: a recommendation names what it buys, what it costs
+  and the alternative rejected; the codebase, the runtime and an established
+  library are checked, in that order, before anything is written new; simplicity
+  removes indirection and not the job's essentials.
 - `writing-for-agents` gains `references/configuration-skills.md`: what a
   plugin's configure skill covers and in what order, so the shape is not
   re-derived per plugin.
@@ -908,12 +884,12 @@ minor bump may change behavior.
 
 ### Changed
 
-- The comment-reviewer loads the `voice` skill and runs its grep twice, over
-  the comments in scope before it reads them and over its own edits before it
+- The comment-reviewer loads the `voice` skill and runs its grep twice, over the
+  comments in scope before it reads them and over its own edits before it
   reports.
-- The comment-reviewer presumes a comment in the diff fails its reference's
-  test until it passes, and cuts a borderline one rather than leaving it
-  standing; a public item's doc that falls short is completed instead of cut.
+- The comment-reviewer presumes a comment in the diff fails its reference's test
+  until it passes, and cuts a borderline one rather than leaving it standing; a
+  public item's doc that falls short is completed instead of cut.
 - The comment-reviewer reports a public item with no example instead of writing
   one: the snippet is code, and which call it shows is the author's judgment.
 - The comment-reviewer adds a summary above a phase of a long function, and
@@ -928,10 +904,10 @@ minor bump may change behavior.
   another project's tracker.
 - The review-triage and implementer-diagnostics hooks are TypeScript, and need
   Node 22.6 or newer.
-- The coordination skill launches a review, and the comment pass once the
-  change is clean, without a go-ahead whenever nothing is waiting on the
-  user, and runs obvious fixes as the stage continuing. Implementation, a
-  fix round for findings that needed judgment, and the commit keep theirs.
+- The coordination skill launches a review, and the comment pass once the change
+  is clean, without a go-ahead whenever nothing is waiting on the user, and runs
+  obvious fixes as the stage continuing. Implementation, a fix round for
+  findings that needed judgment, and the commit keep theirs.
 
 ### Removed
 
@@ -958,10 +934,10 @@ Initial release.
   `implementer-haiku`, `implementer-fable`, `red-green-fixer`,
   `prior-art-check`, `surveyor`, `file-peek`, `synthesizer`, `localizer`,
   `localization-reviewer`.
-- Hooks: review-triage and implementer-diagnostics relays, the resume cost
-  gate on `SendMessage`, and the banned-phrases writing rule for Opus.
-- The `flag-review` and `comment-review` skills render the review scope
-  through a shared `diff-scope.sh` helper and inline the diff when it fits.
+- Hooks: review-triage and implementer-diagnostics relays, the resume cost gate
+  on `SendMessage`, and the banned-phrases writing rule for Opus.
+- The `flag-review` and `comment-review` skills render the review scope through
+  a shared `diff-scope.sh` helper and inline the diff when it fits.
 
 [Unreleased]: https://github.com/Stumblinbear/den/compare/den--v0.11.0...HEAD
 [0.11.0]: https://github.com/Stumblinbear/den/compare/den--v0.10.0...den--v0.11.0
