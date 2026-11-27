@@ -27,6 +27,7 @@ minor bump may change behavior.
 - `writing-for-humans` has a reference for changelog entries.
 
 ### Changed
+- `code-architecture` is less than half its old length, with the same rules.
 - The quality reviewer flags a mechanism built from scratch for a problem that's
   already solved, and recommends a prior-art check.
 - `writing-a-skill` asks a configure skill for what each feature does, not how
