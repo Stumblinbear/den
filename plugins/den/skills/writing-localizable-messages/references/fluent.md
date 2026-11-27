@@ -1,13 +1,13 @@
 # Fluent
 
-The skill's rules in Fluent, and what Fluent's own syntax and runtime need
-checked.
+How the skill's rules are written in Fluent, and what Fluent's syntax and
+runtime need checked.
 
 ## Selection
 
-A select on a number variable picks the CLDR category, with exact numeric
-keys matched first, and every select marks one variant as the default with
-`*`:
+A select on a number variable picks the variable's CLDR plural category, and
+an exact numeric key is matched before the categories. Every select marks
+one variant as its default with `*`:
 
 ```
 matches-left = { $remaining ->
@@ -23,17 +23,21 @@ party-joined = { $playerGender ->
 }
 ```
 
-`NUMBER($n, type: "ordinal")` selects ordinal categories. A locale may add a
-select on any variable its message is given, even where the source has none,
-so the source's part is to pass the inputs, a grammatical gender included.
+`NUMBER($n, type: "ordinal")` selects on the ordinal categories.
+
+A locale may add a select on any variable its message is given, even where
+the source message has no select. So the source's job is to pass the inputs
+a locale may select on, a grammatical gender included.
 
 ## Messages and terms
 
-Each product string is a message. Vocabulary a locale reuses across its own
-messages is a term (`-brand-name`): only that locale's resource defines it,
-and code cannot pass one in. A term that must inflect carries its forms as
-variants selected by a parameter, and its grammatical properties as
-attributes, which can only be selected on:
+Each string the product shows is a message. Vocabulary that a locale reuses
+across its own messages is a term, such as `-brand-name`. Only that
+locale's resource defines a term, and code can't pass one in.
+
+A term that must change form carries its forms as variants, chosen by a
+parameter. It carries its grammatical properties as attributes, which a
+message can only select on:
 
 ```
 -sword = { $case ->
@@ -50,17 +54,21 @@ Each locale defines the cases and genders it has.
 
 ## Formatting, direction and markup
 
-Numbers and dates are formatted in the message with `NUMBER()` and
-`DATETIME()`. Placeables are wrapped in directional isolates by default
-(`use_isolating`), and a project that turns this off isolates them itself.
-Markup is not Fluent syntax: the runtime's overlay or the project's renderer
-decides which elements are allowed, and a translation uses only elements its
-source message has.
+Format numbers and dates inside the message, with `NUMBER()` and
+`DATETIME()`.
+
+Fluent wraps placeables in directional isolates by default
+(`use_isolating`). A project that turns this off isolates them itself.
+
+Markup is not part of Fluent's syntax. The runtime's overlay or the
+project's renderer decides which elements are allowed, and a translation
+uses only the elements its source message has.
 
 ## Translator notes
 
-A note is a `#` comment directly above its message. `##` and `###` comments
-are group and resource comments, attached to no message.
+Write a translator note as a `#` comment directly above its message. `##`
+and `###` comments are group and resource comments, and attach to no
+message.
 
 ## Checks after an edit
 

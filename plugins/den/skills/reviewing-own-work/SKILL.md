@@ -6,13 +6,22 @@ user-invocable: false
 
 # Reviewing your own work
 
-Run this search over the finished change even where its files are still in
-your context. What you hold is each piece as you wrote it, and a later edit,
-rename or removal changes what the rest of the tree says without passing back
-through what you read; a search of the tree as it stands is what shows it.
+Run these steps on your finished change even when its files are still in
+your context. Your context holds each piece of the change as you wrote it. A
+later edit, rename or removal can change what earlier pieces and other files
+refer to, and nothing makes you read them again. Only a search of the files
+as they are now shows what they say.
 
-From `git diff HEAD`, list what the change renamed, removed, merged or changed
-the guarantee of. For each, search the old term across the repository, its
-docs and instruction files included, and read what stands beside each hit: a
-name, parameter, branch, guard or comment written for the old shape, and code
-the change left with no caller. Fix what it finds.
+1. Run `git diff HEAD` and list everything the change:
+   - renamed;
+   - removed;
+   - merged with something else;
+   - changed the guarantee of.
+2. For each one, search the whole repository for the name it had before the
+   change. Include docs and the instruction files agents follow, such as
+   CLAUDE.md.
+3. Read the code or text around each hit and look for leftovers:
+   - a name, parameter, branch, guard or comment written for the code as it
+     was before the change;
+   - code the change left with no caller.
+4. Fix each leftover.

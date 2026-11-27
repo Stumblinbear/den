@@ -2,7 +2,7 @@
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
 	"$id": "plan.schema.json",
 	"title": "Plan",
-	"description": "A plan written by the planning agent and rendered by lib/plan/viewer.html for the person who decides it. Text fields marked as markdown accept CommonMark; raw HTML in them is shown as text. Fields described as filled in by the generator are never written by the planning agent.",
+	"description": "A task's plan, written by following the planning skill and rendered for the user by lib/plan/viewer.html. Text the schema marks as markdown, by a $ref to #/$defs/markdown directly or through another definition, takes CommonMark, and raw HTML in it is shown as text, not rendered. Leave out every field whose description says the generator fills it in: the page generator writes those when it makes the page.",
 	"type": "object",
 	"additionalProperties": false,
 	"required": ["title", "problem", "goal", "steps"],
@@ -61,7 +61,7 @@
 			"items": {
 				"$ref": "#/$defs/step"
 			},
-			"description": "Each step after every step its after names. A step is named by its id."
+			"description": "The plan's steps. List each step after every step named in its after. Other fields name a step by its id."
 		}
 	},
 	"$defs": {
@@ -87,17 +87,17 @@
 		"openId": {
 			"type": "string",
 			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
-			"description": "A short snake_case name the agent chooses for the question, usually the name the decision will carry once answered, e.g. opening_type."
+			"description": "A short snake_case name the agent chooses for the question, usually the key the decision will have once it is answered, such as eviction_policy."
 		},
 		"agentId": {
 			"type": "string",
 			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
-			"description": "A short snake_case name the agent chooses for the choice, e.g. opening_drawing."
+			"description": "A short snake_case name the agent chooses for the choice, such as key_format."
 		},
 		"stepId": {
 			"type": "string",
 			"pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
-			"description": "A short snake_case name the agent chooses for the step, e.g. door_rendering."
+			"description": "A short snake_case name the agent chooses for the step, such as cache_persistence."
 		},
 		"factId": {
 			"type": "string",
@@ -121,7 +121,7 @@
 					"items": {
 						"$ref": "#/$defs/stepId"
 					},
-					"description": "The steps that land before this one starts, each earlier in the plan. A step with none can start at once, alongside every other step with none."
+					"description": "The steps that must land before this one starts, each listed earlier in the plan. A step with none can start at once, alongside every other step with none."
 				},
 				"status": {
 					"enum": ["pending", "inProgress", "committed"]
@@ -130,11 +130,11 @@
 					"type": "object",
 					"additionalProperties": false,
 					"required": ["reason"],
-					"description": "Why this step is separate from the steps it comes after. A step with no after has none.",
+					"description": "Why this step is separate from the steps it comes after. A step with no after has no cut.",
 					"properties": {
 						"test": {
 							"enum": ["teaches", "oneRead"],
-							"description": "teaches: landing a step this one comes after teaches what this one should be. oneRead: this step and a step it comes after together exceed one read."
+							"description": "teaches: landing a step this one comes after teaches what this one should be. oneRead: this step and a step it comes after are too big together for one read."
 						},
 						"reason": {
 							"$ref": "#/$defs/markdown"
@@ -143,18 +143,18 @@
 				},
 				"resolvesRisk": {
 					"$ref": "#/$defs/markdown",
-					"description": "The risk this step resolves, stated as what could be wrong: \"the cache key may not survive a process restart\"."
+					"description": "The risk this step resolves, stated as what could turn out to be wrong, such as \"the cache key may not survive a process restart\"."
 				},
 				"summary": {
 					"$ref": "#/$defs/markdown",
-					"description": "Two to four sentences on what the step does. Type-level detail goes in afterItLands."
+					"description": "Two to four sentences on what the step does. Put detail about types in afterItLands."
 				},
 				"afterItLands": {
 					"type": "array",
 					"items": {
 						"$ref": "#/$defs/block"
 					},
-					"description": "What each type the step touches becomes once it lands, and what it removes and where those removed things still appear. Free-form blocks."
+					"description": "Once the step lands: what each type it touches has become, what it has removed, and where the removed things still appear. Blocks of any kind."
 				},
 				"gate": {
 					"type": "array",
@@ -168,14 +168,14 @@
 					"items": {
 						"$ref": "#/$defs/block"
 					},
-					"description": "The change for the person to review: diffs, sketches, and anything that explains them, in reading order."
+					"description": "The change for the user to review: diffs, sketches and anything that explains them, in reading order."
 				},
 				"reliesOn": {
 					"type": "array",
 					"items": {
 						"$ref": "#/$defs/reliesOnItem"
 					},
-					"description": "What the step stands on, in reading order: survey facts (with the evidence this step needs), and anything else, each with a caption saying why the step relies on it."
+					"description": "What the step relies on, in reading order: survey facts, each with the evidence this step needs, and any other block, with a caption saying why the step relies on it."
 				},
 				"decisions": {
 					"$ref": "#/$defs/decisions"
@@ -226,7 +226,7 @@
 				},
 				"gitPath": {
 					"type": "string",
-					"description": "The file or folder the answer lands in, relative to the repo root. The page flags a 'now' question without one."
+					"description": "The file or folder the answer lands in, relative to the repo root. The page warns about a 'now' question that has none."
 				},
 				"when": {
 					"enum": ["now", "trial"],
@@ -250,7 +250,7 @@
 				},
 				"over": {
 					"$ref": "#/$defs/markdown",
-					"description": "The alternative it weighed and passed over, left out when none was weighed. Rendered after the word 'over'."
+					"description": "The alternative the agent weighed and passed over. Leave it out when none was weighed. The page shows it after the word 'over'."
 				},
 				"why": {
 					"$ref": "#/$defs/markdown"
@@ -263,7 +263,7 @@
 						"approved",
 						"objected"
 					],
-					"description": "notRaised: the user has not yet replied having seen it. noObjection: the user replied having seen it and did not object. leftToAgent: left to the implementer to decide in the code. approved / objected: the user's answer, which leaves it a proposal: a recommendation the user accepted is approved here, never moved to the decisions."
+					"description": "notRaised: the user hasn't yet replied after seeing it. noObjection: the user has replied after seeing it, and didn't object. leftToAgent: left to the implementer to decide in the code. approved and objected: the user's answer. Either answer keeps it a proposal: a recommendation the user accepted is marked approved here, and never moved to the decisions."
 				}
 			}
 		},
@@ -274,11 +274,11 @@
 			"properties": {
 				"key": {
 					"type": "string",
-					"description": "snake_case name for the decision, e.g. opening_shape."
+					"description": "A snake_case name for the decision, such as cache_location."
 				},
 				"choice": {
 					"$ref": "#/$defs/markdown",
-					"description": "The outcome the user chose, as what they will observe. Never the mechanism, even one the agent offered and the user said yes to."
+					"description": "The outcome the user chose, described as what they will observe. Leave the mechanism out of it, even one the agent offered and the user said yes to."
 				},
 				"sketch": {
 					"$ref": "#/$defs/markdown",
@@ -286,15 +286,15 @@
 				},
 				"why": {
 					"$ref": "#/$defs/markdown",
-					"description": "The user's reason, which the implementer weighs the decision by."
+					"description": "The user's reason. The implementer weighs the decision by it."
 				},
 				"over": {
 					"$ref": "#/$defs/markdown",
-					"description": "What the user weighed and rejected, left out when nothing was weighed. Rendered after the word 'over'."
+					"description": "What the user weighed and rejected. Leave it out when nothing was weighed. The page shows it after the word 'over'."
 				},
 				"decided": {
 					"type": "string",
-					"description": "When it was decided, as an ISO date. Kept for the implementer; not shown on the page."
+					"description": "The date it was decided, in ISO format. It is kept for the implementer, and the page doesn't show it."
 				}
 			},
 			"oneOf": [
@@ -313,7 +313,7 @@
 			"properties": {
 				"id": {
 					"$ref": "#/$defs/factId",
-					"description": "Unique across the plan and never reused."
+					"description": "Unique across the plan. Never reuse an id, even one whose fact was removed."
 				},
 				"claim": {
 					"$ref": "#/$defs/markdown"
@@ -343,7 +343,7 @@
 			}
 		},
 		"block": {
-			"description": "Any block. row and fact blocks may hold leaf blocks, one level deep.",
+			"description": "Any kind of block. A row or fact block can hold leaf blocks, one level deep.",
 			"oneOf": [
 				{
 					"$ref": "#/$defs/textBlock"
@@ -375,7 +375,7 @@
 			]
 		},
 		"leafBlock": {
-			"description": "Any block except row and fact.",
+			"description": "Any kind of block except row and fact.",
 			"oneOf": [
 				{
 					"$ref": "#/$defs/textBlock"
@@ -440,7 +440,7 @@
 				},
 				"label": {
 					"type": "string",
-					"description": "What the block's header shows instead of the path, e.g. 'bevy_gizmos 0.19.1 · src/retained.rs'."
+					"description": "What the block's header shows instead of the path, such as 'serde_json 1.0.128 · src/de.rs'."
 				},
 				"from": {
 					"oneOf": [
@@ -448,7 +448,7 @@
 							"type": "object",
 							"additionalProperties": false,
 							"required": ["gitPath", "lines"],
-							"description": "A file in the repo. Read from disk when the page is generated, or from git at commit when one is given.",
+							"description": "A file in the repo. The generator reads it from disk when it makes the page, or from git at commit when one is given.",
 							"properties": {
 								"gitPath": {
 									"type": "string",
@@ -488,7 +488,7 @@
 								"firstLine": {
 									"type": "integer",
 									"minimum": 1,
-									"description": "Number the lines from here. Without it the lines are unnumbered."
+									"description": "The number to give the first line. Without it, the lines are shown without numbers."
 								}
 							}
 						}
@@ -519,7 +519,7 @@
 			"type": "object",
 			"additionalProperties": false,
 			"required": ["kind", "gitPath", "patch"],
-			"description": "An exact change to one file, as unified diff text. One file per diff; never mix files in one block.",
+			"description": "An exact change to one file, as unified diff text. A diff block never holds more than one file.",
 			"properties": {
 				"kind": {
 					"const": "diff"
@@ -536,7 +536,7 @@
 				},
 				"label": {
 					"type": "string",
-					"description": "Header text instead of the path."
+					"description": "What the block's header shows instead of the path."
 				},
 				"patch": {
 					"type": "string"
@@ -547,7 +547,7 @@
 			"type": "object",
 			"additionalProperties": false,
 			"required": ["kind", "gitPath", "text"],
-			"description": "The shape of a change to one file, not exact code. One file per sketch; never mix files in one block. Lines starting with + or - are shown as added or removed.",
+			"description": "The shape of a change to one file, not exact code. A sketch block never holds more than one file. Lines that start with + or - are shown as added or removed.",
 			"properties": {
 				"kind": {
 					"const": "sketch"
@@ -675,7 +675,7 @@
 			"type": "object",
 			"additionalProperties": false,
 			"required": ["kind", "id"],
-			"description": "A survey fact this step relies on. The page shows the fact's claim; evidence here is what this step needs to show under it.",
+			"description": "A survey fact this step relies on. The page shows the fact's claim, and under it the evidence given here: the evidence this step needs.",
 			"properties": {
 				"kind": {
 					"const": "fact"

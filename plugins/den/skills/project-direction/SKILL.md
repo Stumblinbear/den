@@ -6,81 +6,109 @@ when_to_use: ALWAYS invoke this skill when the user asks to establish or revisit
 
 # Project direction
 
-The user owns project direction; your role is to uncover missing decisions
-and explain their consequences. Run this conversation in the lead session.
+The user decides where the project is going. Your job is to find the
+decisions that are still missing and explain what each one would change.
+Hold this conversation yourself, in the main session, where the user is there
+to answer.
 
-Discovery has no default time or question budget. Continue investigating and
-questioning until the project's goals and intended development are understood,
-including the reasons behind consequential tradeoffs. Producing a document is
-not itself completion.
+This conversation is discovery: the user sets the project's goals and
+priorities, and you ask and record. It has no limit on time or on the number
+of questions unless the user sets one. Keep investigating and asking until
+you understand the project's goals and how the user means it to develop,
+including the reasons behind the tradeoffs that decide what gets built.
+Discovery ends at the point step 5 describes, not when a document has been
+written.
 
-1. **Recover what is already known.**
+1. **Find out what is already known.**
 
-   Read the relevant project overview, goals, roadmap and existing decisions,
-   and reuse answers from the conversation. Inspect code where needed to
-   understand the current product. Code establishes what exists; it does not
-   establish what the user intends next.
+   Invoke `den:direction-docs` first, and follow it for everything you read
+   from or write to the direction record.
 
-   Identify the documents that currently hold authority. Surface consequential
-   conflicts, distinguishing an explicit change of direction from an
-   interpretation that still needs the user's answer. Current explicit user
-   direction supersedes earlier statements; a model inference does not.
+   Read the project's overview, goals, roadmap and recorded decisions, if it
+   has them, and use the answers the user has already given in this
+   conversation. Read the code when you need to know what the product does
+   today. The code shows what exists. It doesn't show what the user means to
+   build next.
 
-2. **Establish the broader direction.**
+   Work out which documents state the direction that holds today. Point out
+   to the user each conflict between your sources that would change a
+   decision, and say which kind it is: the user explicitly changing direction, or a matter of
+   interpretation the user still has to settle.
 
-   Establish who the project serves, what they should be able to accomplish,
-   and what would make the project successful. Understand the next meaningful
-   capabilities or changes the user expects, their relative priority and
-   dependencies, and the constraints they must respect. Include deliberate
-   exclusions and tradeoffs the user wants future work to preserve.
+2. **Work out the wider direction.**
 
-   On first discovery, look beyond the immediate task. On later passes, revisit
-   the parts affected by new information. Distinguish committed work from
-   possibilities and direction the user deliberately leaves undecided.
+   Establish:
 
-3. **Resolve the missing decisions with the user.**
+   - who the project is for;
+   - what they should be able to do with it;
+   - what would make the project a success;
+   - the next significant capabilities or changes the user expects, which of
+     them comes first, and which depends on which;
+   - the constraints the work must respect;
+   - what the user deliberately leaves out, and the tradeoffs they want later
+     work to keep.
 
-   Ask one project-level question at a time, using each answer to choose the
-   next. Seek concrete use scenarios and priorities where broad goals leave
-   materially different interpretations. Explain the consequence that makes
-   a question worth asking. Challenge incompatible goals and expose the cost
-   of keeping both.
+   The first time a project goes through discovery, cover the project as a
+   whole, not only the task in front of you. On a later pass, go back over the
+   parts the new information affects. Keep three things apart:
 
-   Recommendations follow from goals the user has stated; questions about
-   missing goals leave room for the user to supply them. Keep technical
-   implications distinguishable from product commitments. Mechanisms are
-   decided per task, not here.
+   - work the user has committed to;
+   - ideas that are only possibilities;
+   - direction the user has deliberately left undecided.
 
-   Use AskUserQuestion, or prose when a question needs a worked example. Keep
-   investigating gaps that remain answerable. A direction the user deliberately
-   defers has a recorded reason and a condition for revisiting it; continue
-   through the other topics rather than treating that deferral as completion.
+3. **Settle the missing decisions with the user.**
 
-4. **Record the understanding as it develops.**
+   Ask one question at a time, about the project rather than about one task,
+   and let each answer decide what to ask next. When a broad goal could be
+   read in ways that would lead to different work, ask for a concrete case of
+   someone using the project, or for which goal comes first. With each
+   question, say what its answer would change: that is what makes it worth
+   asking. When two goals pull against each other, say so, and say what
+   keeping both would cost.
 
-   Read and use `den:direction-docs` before the first document update. Record
-   answers, reasons and remaining questions throughout discovery so another
-   session can continue without repeating it.
+   Recommend an answer only when it follows from a goal the user has stated.
+   When a question is about a goal the user hasn't stated, ask it so they can
+   give a goal of their own. Keep the technical consequences of an answer
+   apart from what the product commits to. How something gets built is
+   decided in the task that builds it, not here.
 
-   Explicit user answers can be recorded as confirmed without asking again.
-   Keep inferred commitments visibly unconfirmed. Show the resulting synthesis
-   so the user can correct interpretations, and make changes to previously
-   recorded direction explicit. Revisit relevant statements when new user
-   direction or evidence challenges them.
+   Ask through AskUserQuestion. Ask in prose instead when a question needs a
+   worked example, since the tool hides the prose written before it. Keep
+   investigating every gap that can still be answered. When the user
+   deliberately puts a decision off, record it, and carry on with the other
+   topics: one decision put off doesn't end discovery.
 
-5. **Finish or record an interruption.**
+4. **Record what you learn as you go.**
 
-   Finish when the goals, priorities, constraints and intended development are
-   understood and recorded, with material conflicts resolved or explicitly
-   deferred by the user. Distinguish deliberate deferrals from questions you
-   have not finished investigating.
+   Record the answers, their reasons and the questions still
+   open throughout discovery, not only at the end, so another session can
+   carry on from where you are without asking the same things again.
 
-   If the user explicitly ends discovery before then, persist every unresolved
-   question with its context, why it matters, which decisions depend on it, and
-   what would help resolve it. Mark discovery as interrupted, with enough
-   context for a future session to resume. Stopping supplies no answer to the
-   remaining questions.
+   Record what the user said explicitly as confirmed, without asking them to
+   confirm it again. Mark a commitment you inferred as unconfirmed, where a
+   reader will see it. Show the user what you have put together, so they can
+   correct how you read them, and point out each place where it changes
+   direction recorded earlier. When something the user says, or new evidence,
+   calls a recorded statement into question, reopen that statement.
 
-   Return the document location, established direction, discovery status and
-   remaining questions. Unresolved direction holds up only the decisions that
-   depend on it.
+5. **Finish, or record where discovery stopped.**
+
+   Discovery is finished when the project's goals, priorities and
+   constraints, and how the user means it to develop, are understood and
+   recorded, and every conflict that would change a decision is resolved or
+   explicitly put off by the user. Keep a question the user put off apart
+   from one you haven't finished looking into: the first is the user's
+   decision, and the second is work still to do.
+
+   If the user explicitly ends discovery before then, record it as
+   interrupted, with every question still open. Stopping early answers none of the questions still open.
+
+   Then report:
+
+   - where the documents are;
+   - the direction that was established;
+   - whether discovery finished or was interrupted;
+   - the questions still open.
+
+   An open question holds up only the decisions that depend on it, and other
+   work goes ahead.

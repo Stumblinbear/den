@@ -8,19 +8,14 @@ when_to_use: ALWAYS invoke this skill when the user asks for autonomy to stop, a
 
 !`node "${CLAUDE_PLUGIN_ROOT}/lib/shared/launch.mjs" --data "${CLAUDE_PLUGIN_DATA}" scripts/autonomy stop "${CLAUDE_SESSION_ID}"`
 
-Invoking this skill turned autonomy off, unless a line above says autonomy
-was not changed. From then, the lead skill's rules on whose call a decision
-is, on launches and on commits applied again. den's hooks say whether autonomy
-is on now; this text does not.
+Open your reply by telling the user that autonomy is off. If a line above
+says autonomy was not changed, tell them it is still on, and why. If a line
+above is about context-budget's switch, pass that line on.
 
-Open your reply with one sentence telling the user that autonomy is off, or,
-where a line above says it was not changed, that it is still on and why. A
-line above about context-budget's switch goes to the user with it.
+Then report what was done while autonomy was on, from
+`.local/autonomy-log.md` and the plan's proposals with status `notRaised`:
 
-Then report what happened while it ran, from `.local/autonomy-log.md` and the
-plan's proposals with status `notRaised`:
-
-- the decisions made on their behalf, each with what it was chosen over;
+- each decision made on the user's behalf, with what it was chosen over;
 - what was downloaded or installed;
-- each blocker and the branch holding its work;
+- each blocker, with the branch that holds its work;
 - what is left to do.

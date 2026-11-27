@@ -5,113 +5,228 @@ when_to_use: ALWAYS invoke this skill when writing or auditing a `# Safety` sect
 user-invocable: false
 ---
 
-# Unsafety Author
+# Unsafety author
 
-## The contract voice
+## How a `# Safety` contract is written
 
-Model on std and bevy, the two best-maintained bodies of safety docs.
+A `# Safety` section is a contract: it lists what the caller must ensure. Write
+it the way the Rust standard library (std) and bevy write theirs, because
+theirs are the two best-maintained sets of safety docs.
 
-Core rules:
+1. State the undefined behavior (UB) directly, as a condition the caller can
+   check: "Behavior is undefined if X", or "It is undefined behavior to X
+   while Y." A warning such as "be careful about aliasing" gives the caller
+   nothing to check.
+2. Give each independent obligation its own bullet, as std does throughout,
+   instead of joining them with semicolons in one sentence.
+3. Name the conflicting access or the invariant concretely. Write "no mutable
+   reference to the resource exists at the same time", not "avoid aliasing".
+4. State that the conflicting access must not exist, and leave out how it
+   would come about. std and bevy never explain what the other borrow does or
+   how code reaches it. They say only that its existence is the hazard. An
+   explanation of the mechanism is filler in a contract, because it is not
+   something the caller has to ensure.
+5. State both directions of an aliasing rule: calling the function while a
+   mutable reference to the value is alive, and mutating the value while the
+   returned reference is alive.
+6. State the one condition behind a rule, not the situations it covers. When
+   a rule holds "during A, B, C", name the single condition that A, B and C
+   have in common. A list of situations goes out of date as soon as a new
+   situation appears that it does not name.
+7. Make a contract as long as its obligations need, and no longer. A trivial
+   item gets one line. An item with many real obligations, such as building a
+   slice from a raw pointer, gets a long list. Cut restatements and
+   explanations of mechanism, never a real obligation.
+8. Keep the reasons for the design out of the `# Safety` section. Why the
+   signature has the shape it has goes in an inline `// SAFETY:` comment or
+   nowhere, since it is not something the caller ensures.
+9. Leave out bold for emphasis, filler words such as "actually" and
+   "basically", and parenthetical lists introduced by "e.g.". They read as
+   filler, and std and bevy do not use them.
 
-1. **State the UB directly**, as a checkable condition: "Behavior is undefined if X", or "It is undefined behavior to X while Y." Never "be careful about aliasing."
-2. **List independent obligations as bullets** (std does this everywhere), not semicolon-joined prose. One obligation, one line.
-3. **Name the partner / the invariant concretely.** "no mutable reference to the resource exists at the same time", not "avoid aliasing".
-4. **Say nothing about how the conflicting access is produced.** std and bevy never explain what the other borrow does or how it is reached, only that its existence is the hazard. Mechanism is filler in a contract.
-5. **State both directions** of an aliasing rule (call-while-ref-alive, and mutate-while-ref-alive).
-6. **Do not enumerate contexts that share one pivot.** If the rule holds "during A, B, C...", state the one condition that unifies them. Enumerations rot when a new context appears.
-7. **Length is earned.** A trivial item gets a line; a genuinely load-bearing one (raw slice construction) earns a long list. Cut restatement and mechanism, never a real obligation.
-8. **Rationale is not contract.** Why the signature is shaped the way it is goes in an inline `// SAFETY:` or nowhere, never in the `# Safety` doc.
-9. **No bold-for-emphasis, no "actually/basically", no parenthetical "e.g." lists.** These read as filler and the std/bevy docs do not use them.
+## Examples: match the contract to the category of obligation
 
-## Example gallery: match the contract to the obligation category
+### Pointer validity and alignment, in `std::ptr::read`
 
-**Pointer validity and alignment** in `std::ptr::read`:
 > Behavior is undefined if any of the following conditions are violated:
 > - `src` must be valid for reads.
 > - `src` must be properly aligned.
 > - `src` must point to a properly initialized value of type `T`.
 
-Flat bullet list of independent must-conditions. The default shape for a raw-pointer fn.
+A flat list of independent conditions, each one a "must". This is the default
+shape for a function that takes a raw pointer.
 
-**Bounds** in `slice::get_unchecked`:
+### Bounds, in `slice::get_unchecked`
+
 > Calling this method with an out-of-bounds index is undefined behavior even if the resulting reference is not used.
 
-One sentence. Note the "even if the resulting reference is not used" clause: it forecloses the "but I never dereferenced it" rationalization. Anticipate the wrong mental model and close it.
+One sentence. Its clause "even if the resulting reference is not used" rules
+out the excuse "but I never dereferenced it". When callers are likely to hold
+a wrong belief about where the UB starts, name the case they would get wrong
+and rule it out in the contract.
 
-**Length plus initialization invariant** in `Vec::set_len`:
+### A length tied to initialization, in `Vec::set_len`
+
 > - `new_len` must be less than or equal to `capacity()`.
 > - The elements at `old_len..new_len` must be initialized.
 
-Ties a numeric bound to a state invariant the type cannot check.
+It ties a numeric bound to a condition on the elements' state that the type
+cannot check.
 
-**Encoding** in `String::from_utf8_unchecked`:
+### Encoding, in `String::from_utf8_unchecked`
+
 > The bytes passed in must be valid UTF-8.
 
-A single encoding precondition the type does not enforce. One line, done.
+One encoding obligation that the type does not enforce, stated in one line and
+nothing more.
 
-**Lifetime, provenance, and size** in `slice::from_raw_parts`:
+### Lifetime, provenance and size, in `slice::from_raw_parts`
+
 > - `data` must be valid for reads for `len * size_of::<T>()` many bytes, and it must be properly aligned.
 > - `data` must point to `len` consecutive properly initialized values of type `T`.
 > - The memory referenced must not be mutated for the duration of lifetime `'a`, except inside an `UnsafeCell`.
 > - `len * size_of::<T>()` must be no larger than `isize::MAX`.
 
-The honest long list. Length is justified because every bullet is a distinct, real obligation: validity, initialization, aliasing-over-a-lifetime, and the allocation size cap.
+A long list that has earned its length. Its bullets cover validity,
+initialization, no mutation for the lifetime, and the cap on the allocation's
+size, and each one is a separate, real obligation.
 
-**Single-ownership transfer** in `Box::from_raw`:
-> After calling this function, the raw pointer is owned by the resulting `Box`. Constructing more than one `Box` from the same raw pointer leads to undefined behavior.
+### Transfer of single ownership, in `Box::from_raw`
 
-The obligation is "exactly once": who owns the pointee now, and the double-free hazard.
+> After calling this function, the raw pointer is owned by the resulting `Box`.
+>
+> This function is unsafe because improper use may lead to memory problems. For example, a double-free may occur if the function is called twice on the same raw pointer.
 
-**Aliasing exclusivity over interior mutability** in std `UnsafeCell::as_ref_unchecked`:
+The obligation is "exactly once". The contract says who owns the pointee from
+then on, and names the hazard of a second `Box`: a double free.
+
+### Exclusive access through interior mutability, in std's `UnsafeCell::as_ref_unchecked`
+
 > - It is Undefined Behavior to call this while any mutable reference to the wrapped value is alive.
 > - Mutating the wrapped value while the returned reference is alive is Undefined Behavior.
 
-And `RefCell::try_borrow_unguarded`, the model for any accessor that hands out a reference without touching a borrow flag:
+And `RefCell::try_borrow_unguarded`, the model to follow for any accessor that
+returns a reference without updating a borrow flag:
+
 > Mutably borrowing the `RefCell` while the reference returned by this method is alive is undefined behavior.
 
-Both directions, partner named, no mechanism.
+Both examples state both directions, name the conflicting access, and say
+nothing about how it would come about.
 
-**Permission plus aliasing (shared-mutable escape hatch)** in bevy `UnsafeWorldCell::get_resource`:
+### Permission plus aliasing, in bevy's `UnsafeWorldCell::get_resource`
+
+`UnsafeWorldCell` shares mutable access to a world past what the borrow
+checker can see.
+
 > It is the caller's responsibility to ensure that
 > - the `UnsafeWorldCell` has permission to access the resource
 > - no mutable reference to the resource exists at the same time
 
-The two-part structure (permission, then aliasing) repeats across every accessor on the type. And `world_mut`, the non-coexistence framing worth copying:
+Every accessor on this type repeats the same two parts: permission first, then
+aliasing. Its `world_mut` states that two things must never exist at the same
+time in a form worth copying:
+
 > The returned `&mut World` must never be allowed to exist at the same time as any other borrows of the world or any accesses to its data.
 
-"any accesses to its data" is deliberately broad: it covers reads, not just live `&`/`&mut`. bevy also distinguishes a borrow existing from being used ("so long as none of those instances are used") when the benign case is worth stating, but only then.
+The phrase "any accesses to its data" is broad on purpose: it covers reads,
+not only a live `&` or `&mut` reference. When it is worth telling the caller
+that a borrow may exist as long as it is not used, separate the two as bevy
+does, in "so long as none of those instances are used". Leave the distinction
+out otherwise.
 
-**Type-erased pointers** in bevy `Ptr` / `OwningPtr`: the caller must assert the concrete pointee type and its validity, and for `OwningPtr` that ownership is taken exactly once. An erased pointer pushes the type obligation onto the caller; say which type and that it must match.
+### Type-erased pointers, in bevy's `Ptr` and `OwningPtr`
 
-## Where the obligation lives
+The caller must assert the concrete type of the pointee and that the pointee
+is valid, and for `OwningPtr`, also that ownership is taken exactly once. A
+pointer whose type is erased moves the obligation to know the type onto the
+caller, so the contract says which type the pointee must be and that the
+caller's type must match it.
 
-Find the single party that can actually cause the UB, and put the obligation there.
+## Where the obligation goes
 
-1. **Trace every path to the UB.** Which reach it only through an existing `unsafe`? Which through entirely safe functions?
-2. **The contract belongs on the unsafe boundary that every UB path crosses.** If a safe fn can reach the UB and the precondition is not encoded as `unsafe` anywhere, the API is *unsound as specified*: honoring every written `unsafe` contract still permits UB. Fix it, by tightening an existing unsafe contract to cover the case, or by making the offending step `unsafe`.
-3. **Prefer discharge-at-construction.** If a handle or pointer minted by one `unsafe fn` is dereferenced later by safe code, put the whole-lifecycle obligation on the mint (the unsafe constructor). Every later use is then covered, because obtaining the capability required the unsafe promise, and the hot-path derefs stay safe with no runtime cost. Marking the deref `unsafe` instead is the conservative alternative: more discoverable, but it spreads `unsafe` to every call site.
-4. **Do not mark a safe consumer `unsafe` to cover the producer's obligation.** If two operations alias, the contract goes on the one that mints the `&mut` or the capability, not on the innocent reader. A `&self -> &T` or `&mut self -> &mut field` accessor that is sound by Rust's own borrow rules stays safe even if some other raw-pointer path could alias it. That other path is where the unsafe lives.
+Put the obligation on the one party that can actually cause the UB.
 
-## Debug assertions are not safety mechanisms
+1. Trace every path to the UB. Note which paths reach it only through code
+   already marked `unsafe`, and which reach it through safe functions alone.
+2. Put the contract on the `unsafe` function or trait that every path to the
+   UB goes through. When a safe function can reach the UB and no `unsafe`
+   anywhere carries the obligation, the API is unsound as specified: a caller
+   can honor every written `unsafe` contract and still cause UB. Fix it in one
+   of two ways: tighten an existing `unsafe` contract so it covers the case,
+   or make the step that causes the UB `unsafe`.
+3. By default, put the obligation on the `unsafe` constructor of a handle.
+   When an `unsafe fn` creates a handle or pointer that safe code dereferences
+   later, put the obligation for the handle's whole life on that constructor.
+   Every later use is then covered, because getting the handle required the
+   unsafe promise, and the dereferences on the hot path stay safe at no
+   runtime cost. The conservative alternative is to mark the dereference
+   `unsafe` instead. That is easier to discover, but it spreads `unsafe` to
+   every call site.
+4. Keep a function that only uses a reference or handle safe when the
+   obligation belongs to the code that produced it. When two operations alias,
+   the contract goes on the one that creates the `&mut` reference or the
+   handle, not on the reader that only uses what it was given. An accessor
+   such as `&self -> &T` or `&mut self -> &mut field`, which Rust's own borrow
+   rules make sound, stays safe even if some other path through raw pointers
+   could alias what it returns. The `unsafe` belongs on that other path.
 
-A `#[cfg(debug_assertions)]` borrow flag or invariant check (RefCell-style, but debug-only) is a debugging aid, not a guarantee. It cannot justify a safe signature unless it is always-on *and* complete, with every access path participating. If it is debug-only or blind to one path, soundness still rests on the written contract. Name a Miri pass for any soundness-relevant change even if you do not run it.
+## A debug-only check is not a guarantee
 
-## Audit workflow
+A borrow flag or invariant check behind `#[cfg(debug_assertions)]`, like
+`RefCell`'s borrow flag but compiled only into debug builds, helps you find
+bugs but guarantees nothing. A check can justify a safe signature only when it
+runs in every build and every path that accesses the data goes through it.
+When the check runs only in debug builds, or one path skips it, soundness
+still rests on the written contract.
 
-1. Enumerate: `rg -n "unsafe fn|unsafe trait|unsafe impl|# Safety"` across the crate sources.
-2. Pull every `# Safety` section with a few lines of context in one pass and read them together. Consistency problems show up across items, not within one.
-3. **Coverage:** does every public `unsafe fn` / `unsafe trait` have a `# Safety`? (clippy's `missing_safety_doc` fires only on exported items.) Private glue fns used as function pointers can rely on an inline `// SAFETY:` instead. Do not over-doc private helpers.
-4. **Quality:** check each against the contract voice and the gallery. Common defects: mechanism in the contract, vague obligation, rotting enumeration, semicolon-joined obligations, rationale in the doc.
-5. `unsafe impl` blocks carry a `// SAFETY:` justification (why this impl upholds the trait's contract), not a caller contract. Keep those accurate after refactors that move code around.
+## Auditing existing docs
+
+1. Search the crate's sources for `unsafe fn|unsafe trait|unsafe impl|# Safety`
+   to find every site.
+2. Read every `# Safety` section together in one pass, each with a few lines
+   of the code around it. Inconsistencies show up between items, not inside
+   any one of them.
+3. Check coverage: confirm that every public `unsafe fn` and `unsafe trait`
+   has a `# Safety` section. Clippy's `missing_safety_doc` lint fires only on
+   exported items, so check by hand any public item the crate does not export.
+   A private glue function used as a function pointer can rely on an inline
+   `// SAFETY:` comment instead. Document a private helper only as far as its
+   callers need.
+4. Check quality: hold each section against the rules and the examples above.
+   The common defects are:
+   - an explanation of how the conflicting access comes about
+   - a vague obligation
+   - a list of situations that will go out of date
+   - obligations joined with semicolons
+   - the reasons for the design inside the `# Safety` section
+5. An `unsafe impl` block carries a `// SAFETY:` comment saying why the impl
+   upholds the trait's contract, not a contract for callers. After a refactor
+   that moves code around, check that these comments are still true.
 
 ## Verification
 
-- `cargo check` and `cargo clippy` are the lint authority. Enable `clippy::missing_safety_doc` and `clippy::undocumented_unsafe_blocks`. Editor and LSP diagnostics can be stale; the compiler is truth.
-- `cargo test` for behavior. Doc-only changes cannot change behavior, but compile and clippy must stay clean.
-- `cargo +nightly miri test` (Stacked plus Tree Borrows) is the real soundness check for anything touching raw pointers, interior mutability, or aliasing.
+- `cargo check` and `cargo clippy` are the authority on lints. Turn on
+  `clippy::missing_safety_doc` and `clippy::undocumented_unsafe_blocks`.
+  Editor and LSP diagnostics can be out of date, so when they disagree with
+  the compiler, believe the compiler.
+- Run `cargo test` to check behavior. A change to docs alone cannot change
+  behavior, but the code must still compile and clippy must still pass clean.
+- `cargo +nightly miri test` is the check that actually tests soundness, for
+  any code that touches raw pointers, interior mutability or aliasing. Run it
+  under Stacked Borrows, the default, and again under Tree Borrows, with
+  `-Zmiri-tree-borrows` in `MIRIFLAGS`. For any change that affects soundness,
+  name a Miri run as the check it needs, even when you do not run Miri
+  yourself.
 
 ## Pitfalls
 
-- A `# Safety` doc on a function with no `unsafe` keyword is a smell: either the function should be `unsafe`, or the precondition is actually guaranteed internally and the doc is wrong.
-- "Trust the whole call graph" is unsound as specified. If soundness depends on a global invariant maintained elsewhere with no `unsafe` marking the reliance, encode the reliance as an unsafe contract.
-- Removing an unused method from an `unsafe trait` is a real win: it shrinks the invariants every implementor must uphold.
+- A `# Safety` section on a function not marked `unsafe` means something is
+  wrong. Either the function should be `unsafe`, or the function already
+  guarantees the condition itself and the section is wrong.
+- Trusting the whole call graph to keep an invariant is unsound as specified.
+  When soundness depends on an invariant that code elsewhere maintains, and no
+  `unsafe` marks the code that relies on it, write that reliance into an
+  `unsafe` contract.
+- An unused method on an `unsafe trait` is worth removing. Every implementor
+  must uphold the invariants of every method, so removing one shrinks what
+  each implementor has to get right.

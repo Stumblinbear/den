@@ -12,8 +12,8 @@ notice, in one sentence when one is enough:
   that have an empty name.`
 
 Leave out how the change works and what a new thing contains. The diff, the
-commit message and the docs hold those, and in the changelog they bury the
-one fact the reader came for.
+commit message and the docs already say those things, and in a changelog they
+hide the one fact the reader came for.
 
-A changelog is where history belongs, so the rule to describe what is rather
-than what changed does not apply here: an entry is a description of a change.
+The skill's rule to describe what is, not what changed, doesn't apply here. A
+changelog is where history belongs, and each entry describes a change.

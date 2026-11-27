@@ -1,30 +1,32 @@
 # Where an ecosystem differs
 
-## Python: kinds at the top level
+## Python: split by kind at the top level
 
-Python's own documentation splits at the top by kind (Tutorial, Library
-reference, Language reference, HOWTOs), and the major frameworks follow it,
-telling the reader what each kind assumes: a tutorial takes you by the hand
-through a series of steps, a reference guide gives technical detail on the API
-and assumes you already understand the key concepts.
+Python's own documentation splits at the top level by kind: Tutorial, Library
+Reference, Language Reference and HOWTOs. The major Python frameworks do the
+same, and they tell the reader what each kind assumes. A tutorial, for
+example, takes you step by step through a series of tasks, and a reference
+guide gives technical detail on the API and assumes you already understand
+the key concepts.
 
-In a Python project, a kind-named top-level split is what readers expect, so
-use it. Keep the index page that says what each kind is for: the split only
-helps a reader who can tell which kind they need, and that page is where they
-find out.
+Readers of a Python project expect this split, so use it there. Keep the
+index page that says what each kind is for. The split helps only a reader who
+can tell which kind they need, and that page is where they find out.
 
 ## Go: the package comment is the document
 
-Go puts the orientation Rust puts in a book into the package comment, which
-introduces the package and, in a large package, surveys the API and links
-onward. `references/doc-comments/go.md` gives what it holds and the form it
-takes.
+A Rust project puts its introduction in a book, and a Go project puts it in
+the package comment. The package comment introduces the package, and in a large
+package it also gives an overview of the API with links to the details.
+`references/doc-comments/go.md` says what a package comment holds and how it
+is written.
 
-So before starting a separate document for a Go package, check whether it
-belongs in the package comment. A standalone docs tree covering the same
-ground is the split that leaves one fact in two homes.
+So before you start a separate document for a Go package, check whether its
+content belongs in the package comment. A separate docs tree that covers the
+same ground puts each fact in two places.
 
-## Everywhere else
+## Every other ecosystem
 
-Default to `documentation.md`. An ecosystem earns an entry here when its
-readers expect a different placement, not when its tooling differs.
+Follow `documentation.md` for every other ecosystem, including one whose
+documentation tools work differently. A different tool doesn't change where
+readers expect to find a document.
