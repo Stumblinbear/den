@@ -11,13 +11,19 @@ minor bump may change behavior.
 - Autonomy mode: `/den:autonomy-start` lets the session carry on without you,
   making its own decisions, launches and commits and recording each for your
   review, until `/den:autonomy-stop` hands them back with a report of the run.
-- A `writing-localizable-messages` skill for the source messages translators
-  work from: complete messages, role-named arguments, CLDR plurals, `select`
-  with a default, translator context, locale formatters, movable markup, text
-  expansion and bidi isolation, and the conditions under which a separately
-  translated value may be inserted into another message. References under it
-  give the rules in ICU MessageFormat and Fluent syntax, with each system's
-  own checks.
+- `translating-messages`, loaded by `localizer` and `localization-reviewer`:
+  a message is translated for the job it does where it is shown, read with
+  the messages beside it and those that name the same thing, and to the limits
+  the project states or a check shows, a suspected limit being reported
+  rather than worded around; a message about a domain the project does not own uses
+  that domain's own terms, looked up in its localization and then on the web;
+  and the project glossary is followed, each entry for the thing it describes
+  rather than every use of its English word, with an entry proposed for a
+  term it lacks. Where the domain owner translates the string or a term in it, its
+  text is the one to use, even where the community writes it differently; a
+  term it has no translation for is put in ordinary words of the language
+  rather than the borrowed English. `localizer` gains web search to look
+  those terms up.
 
 ### Changed
 - `lead` checks prior art before choosing a mechanism that has been solved
@@ -36,11 +42,14 @@ minor bump may change behavior.
   write.
 - Implementers read a new name's or shape's siblings before writing it, and
   search for the place that already holds a value, rule, helper or type.
-- `localizer` and `localization-reviewer` preload `writing-localizable-messages`
-  in place of their own copies of its rules, and read its reference for the
-  project's message system in place of a built-in Fluent section.
-- `localizer` translates every message it can and reports each one it could
-  not translate naturally, in place of stopping at the first.
+- `localization-reviewer` fixes the translated text in place, where it had
+  only reported, and marks each edit sure or unsure. Source, code and design
+  findings are still reported, not edited. Only a choice between wordings with
+  the same meaning is left as taste; a wording that can be taken the wrong way
+  is fixed.
+- `localizer`, `localization-reviewer` and `translating-messages` no longer
+  mention a native reviewer. Writing for one turned a run's ordinary
+  judgement calls into a list for a human to check.
 
 ## [0.11.0] - 2026-11-13
 
