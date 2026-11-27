@@ -59,6 +59,8 @@ minor bump may change behavior.
 - A decision that later steps of a plan must follow is kept with the whole plan,
   not on the step where it was made.
 - Autonomy no longer reminds Claude about its context window.
+- `lead` records each decision you make in the plan, not only changes to ones
+  already there.
 - `project-direction` follows `direction-docs` for everything it records.
 - `lead` checks prior art before choosing a mechanism that has been solved many
   times, a rule that had lived in a user's CLAUDE.md.

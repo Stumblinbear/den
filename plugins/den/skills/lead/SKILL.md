@@ -34,7 +34,7 @@ Each task gets a plan file. The file survives compaction, and your memory of the
 conversation does not. Invoke `den:planning`:
 
 - once the user confirms the goal;
-- whenever a decision the plan records changes;
+- whenever the user makes a decision or changes one;
 - when each step starts, and again after it lands;
 - whenever something you observe shows that an assumption in the plan is false.
 
