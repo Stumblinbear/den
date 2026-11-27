@@ -28,6 +28,11 @@ minor bump may change behavior.
 - `writing-for-humans` has a reference for changelog entries.
 
 ### Changed
+- `code-architecture` has Claude decide which module a file belongs in before
+  creating it, and group files of one kind into a module as soon as there
+  are two, instead of leaving them loose beside each other.
+- `code-architecture` no longer asks for a mechanism to keep two copies of a
+  value in step across files or languages.
 - `writing-for-agents`, `writing-for-humans` and `writing-a-skill` are
   written in plain language, and the first two tell Claude to write that
   way too.
